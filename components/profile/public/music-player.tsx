@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { resolveMusicPlayerColor } from "@/lib/settings";
 import { rangeClassName, rangeFillStyle } from "@/lib/ui/range";
 import type { ProfileSettings } from "@/lib/types/settings";
@@ -20,34 +20,164 @@ function formatTitle(settings: ProfileSettings) {
 
 export function MusicPlayer({ settings }: { settings: ProfileSettings }) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const autoplayEnabledRef = useRef(settings.music_autoplay);
+  const volumeRef = useRef(settings.music_volume);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(settings.music_volume);
   const [expanded, setExpanded] = useState(false);
   const title = formatTitle(settings);
   const playerColor = resolveMusicPlayerColor(settings);
 
+  autoplayEnabledRef.current = settings.music_autoplay;
+  volumeRef.current = volume;
+
+  const applyVolume = useCallback((value = volumeRef.current) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.volume = value / 100;
+  }, []);
+
+  const resetToStart = useCallback((audio: HTMLAudioElement) => {
+    try {
+      audio.currentTime = 0;
+    } catch {
+      /* ignore seek errors before metadata loads */
+    }
+  }, []);
+
+  const pauseAtStart = useCallback(
+    (audio: HTMLAudioElement) => {
+      resetToStart(audio);
+      audio.pause();
+      setPlaying(false);
+    },
+    [resetToStart],
+  );
+
+  const tryAutoplay = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio || !settings.music_url || !settings.music_autoplay) return false;
+
+    resetToStart(audio);
+    audio.loop = settings.music_loop;
+    applyVolume();
+
+    const playUnmuted = async () => {
+      audio.muted = false;
+      applyVolume();
+      await audio.play();
+    };
+
+    try {
+      await playUnmuted();
+      setPlaying(true);
+      return true;
+    } catch {
+      try {
+        audio.muted = true;
+        await audio.play();
+        audio.muted = false;
+        applyVolume();
+        setPlaying(true);
+        return true;
+      } catch {
+        setPlaying(false);
+        return false;
+      }
+    }
+  }, [applyVolume, resetToStart, settings.music_autoplay, settings.music_loop, settings.music_url]);
+
+  useEffect(() => {
+    applyVolume(volume);
+  }, [applyVolume, volume]);
+
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !settings.music_url) return;
-    audio.volume = volume / 100;
+
     audio.loop = settings.music_loop;
-    if (settings.music_autoplay) {
-      audio.play().then(() => setPlaying(true)).catch(() => {});
+
+    if (!settings.music_autoplay) {
+      pauseAtStart(audio);
+      return;
     }
-  }, [settings.music_url, settings.music_autoplay, settings.music_loop, volume]);
+
+    let cancelled = false;
+    let started = false;
+    let gestureCleanup: (() => void) | null = null;
+
+    const scheduleAutoplay = () => {
+      if (cancelled || started) return;
+      void tryAutoplay().then((didStart) => {
+        if (didStart) started = true;
+        if (cancelled || didStart || !autoplayEnabledRef.current) return;
+
+        const retryOnGesture = () => {
+          if (!autoplayEnabledRef.current) return;
+          void tryAutoplay().then((ok) => {
+            if (ok) started = true;
+          });
+        };
+
+        window.addEventListener("pointerdown", retryOnGesture, { once: true, capture: true });
+        window.addEventListener("keydown", retryOnGesture, { once: true, capture: true });
+        gestureCleanup = () => {
+          window.removeEventListener("pointerdown", retryOnGesture, true);
+          window.removeEventListener("keydown", retryOnGesture, true);
+        };
+      });
+    };
+
+    resetToStart(audio);
+    audio.addEventListener("canplay", scheduleAutoplay, { once: true });
+
+    if (audio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      scheduleAutoplay();
+    } else {
+      audio.load();
+    }
+
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (!autoplayEnabledRef.current) return;
+      if (event.persisted) {
+        started = false;
+        scheduleAutoplay();
+      }
+    };
+
+    window.addEventListener("pageshow", onPageShow);
+
+    return () => {
+      cancelled = true;
+      audio.removeEventListener("canplay", scheduleAutoplay);
+      window.removeEventListener("pageshow", onPageShow);
+      gestureCleanup?.();
+    };
+  }, [
+    pauseAtStart,
+    resetToStart,
+    settings.music_autoplay,
+    settings.music_loop,
+    settings.music_url,
+    tryAutoplay,
+  ]);
 
   if (!settings.music_url) return null;
 
   const toggle = () => {
     const audio = audioRef.current;
     if (!audio) return;
+
     if (playing) {
       audio.pause();
       setPlaying(false);
-    } else {
-      audio.play();
-      setPlaying(true);
+      return;
     }
+
+    void audio
+      .play()
+      .then(() => setPlaying(true))
+      .catch(() => setPlaying(false));
   };
 
   return (
@@ -66,7 +196,13 @@ export function MusicPlayer({ settings }: { settings: ProfileSettings }) {
             : `0 8px 24px rgba(0,0,0,0.45), 0 0 0 1px ${playerColor}12`,
         }}
       >
-        <audio ref={audioRef} src={settings.music_url} preload="metadata" />
+        <audio
+          key={settings.music_url}
+          ref={audioRef}
+          src={settings.music_url}
+          preload={settings.music_autoplay ? "auto" : "metadata"}
+          playsInline
+        />
 
         <button
           type="button"
@@ -95,7 +231,7 @@ export function MusicPlayer({ settings }: { settings: ProfileSettings }) {
           <>
             <div className="min-w-0 max-w-[160px]">
               <p className="truncate text-xs font-medium text-white">{title}</p>
-              <p className="text-[10px] text-neutral-500">Now playing</p>
+              <p className="text-[10px] text-neutral-500">{playing ? "Now playing" : "Paused"}</p>
             </div>
 
             <div className="bf-range-wrap flex items-center pr-1">
@@ -107,7 +243,7 @@ export function MusicPlayer({ settings }: { settings: ProfileSettings }) {
                 onChange={(e) => {
                   const v = Number(e.target.value);
                   setVolume(v);
-                  if (audioRef.current) audioRef.current.volume = v / 100;
+                  applyVolume(v);
                 }}
                 className={`${rangeClassName} !w-16`}
                 style={rangeFillStyle(volume, 0, 100, playerColor)}

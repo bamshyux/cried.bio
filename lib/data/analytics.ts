@@ -1,14 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
-import { formatCountry } from "@/lib/analytics/geo";
+import { formatCountry, isInternalCountryLabel } from "@/lib/analytics/geo";
 import { normalizeVisitorKey } from "@/lib/analytics/visitor";
 import type { AnalyticsSummary } from "@/lib/types/analytics";
 
-function getDateKey(iso: string) {
-  return iso.slice(0, 10);
+function formatLocalDateKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
-function getVisitorId(hash: string) {
-  return normalizeVisitorKey(hash);
+function getLocalDateKey(iso: string): string {
+  return formatLocalDateKey(new Date(iso));
 }
 
 function buildDailySeries(
@@ -17,15 +20,16 @@ function buildDailySeries(
 ): { date: string; count: number }[] {
   const counts = new Map<string, number>();
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
-    counts.set(d.toISOString().slice(0, 10), 0);
+    counts.set(formatLocalDateKey(d), 0);
   }
 
   for (const event of events) {
-    const key = getDateKey(event.created_at);
+    const key = getLocalDateKey(event.created_at);
     if (counts.has(key)) counts.set(key, (counts.get(key) ?? 0) + 1);
   }
 
@@ -39,6 +43,7 @@ export async function getAnalyticsSummary(
   const supabase = await createClient();
   const since = new Date();
   since.setDate(since.getDate() - days);
+  since.setHours(0, 0, 0, 0);
 
   const { data: events } = await supabase
     .from("analytics_events")
@@ -54,15 +59,18 @@ export async function getAnalyticsSummary(
   const uniqueVisitors = new Set(views.map((v) => getVisitorId(v.visitor_hash))).size;
 
   const countryMap = new Map<string, number>();
-  for (const view of views) {
-    const c = formatCountry(view.country || "Unknown");
-    countryMap.set(c, (countryMap.get(c) ?? 0) + 1);
+  for (const event of all) {
+    const label = formatCountry(event.country || "UNKNOWN");
+    countryMap.set(label, (countryMap.get(label) ?? 0) + 1);
   }
 
+  const hasExternalCountries = Array.from(countryMap.keys()).some((label) => !isInternalCountryLabel(label));
+
   const countries = Array.from(countryMap.entries())
+    .filter(([label]) => !hasExternalCountries || !isInternalCountryLabel(label))
     .map(([country, count]) => ({ country, count }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+    .slice(0, 12);
 
   const linkClickMap = new Map<string, number>();
   for (const click of clicks) {
@@ -89,6 +97,10 @@ export async function getAnalyticsSummary(
     countries,
     topLinks,
   };
+}
+
+function getVisitorId(hash: string) {
+  return normalizeVisitorKey(hash);
 }
 
 export async function getTotalAnalytics(profileId: string) {
