@@ -1,1 +1,1 @@
-export const EMAIL_FROM = "BioForge <noreply@bioforge.blog>";
+export const EMAIL_FROM = "cried.bio <noreply@cried.bio>";

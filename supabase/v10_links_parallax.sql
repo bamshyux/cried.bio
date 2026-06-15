@@ -1,4 +1,4 @@
--- BioForge v10: Monochrome links + profile parallax
+-- cried.bio v10: Monochrome links + profile parallax
 -- Run in Supabase Dashboard → SQL Editor
 
 alter table public.profile_settings

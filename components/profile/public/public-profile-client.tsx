@@ -15,7 +15,7 @@ import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfileLink } from "@/lib/types/link";
 import type { Profile } from "@/lib/types/profile";
 import type { ProfileSettings } from "@/lib/types/settings";
-import { BioForgeLogo } from "@/components/brand/logo";
+import { CriedLogo } from "@/components/brand/logo";
 import { AnalyticsTracker } from "./analytics-tracker";
 import { BadgeRow } from "@/components/badges/badge-ui";
 import { preparePublicBadges, buildBadgeStyleOptions } from "@/lib/badges/display";
@@ -1037,7 +1037,7 @@ export function PublicProfileClient({
       >
         <header className="absolute inset-x-0 top-0 z-20 flex w-full items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
           <Link href="/" className="group opacity-90 transition-opacity hover:opacity-100">
-            <BioForgeLogo size={24} variant="muted" />
+            <CriedLogo size={24} variant="muted" />
           </Link>
           <ProfileCreateCta />
         </header>

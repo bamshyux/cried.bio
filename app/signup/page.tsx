@@ -3,7 +3,7 @@ import { SignUpForm } from "@/components/auth/signup-form";
 
 export default function SignUpPage() {
   return (
-    <AuthLayout title="Create your profile" subtitle="Join BioForge and forge your digital identity">
+    <AuthLayout title="Create your profile" subtitle="Join cried.bio and forge your digital identity">
       <SignUpForm />
     </AuthLayout>
   );

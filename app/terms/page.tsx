@@ -4,8 +4,8 @@ import { LegalPageLayout } from "@/components/legal/legal-page-layout";
 import { SITE_HOST } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — BioForge",
-  description: "Terms of Service for BioForge, the bio link platform for creators.",
+  title: "Terms of Service — cried.bio",
+  description: "Terms of Service for cried.bio, the bio link platform for creators.",
 };
 
 const LAST_UPDATED = "June 14, 2026";
@@ -14,16 +14,16 @@ export default function TermsPage() {
   return (
     <LegalPageLayout title="Terms of Service" lastUpdated={LAST_UPDATED}>
       <p>
-        Welcome to BioForge. These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of
-        the BioForge website, applications, and related services (collectively, the &ldquo;Service&rdquo;)
-        operated at <strong>{SITE_HOST}</strong> (&ldquo;BioForge,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo;
+        Welcome to cried.bio. These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of
+        the cried.bio website, applications, and related services (collectively, the &ldquo;Service&rdquo;)
+        operated at <strong>{SITE_HOST}</strong> (&ldquo;cried.bio,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo;
         or &ldquo;our&rdquo;). By creating an account, accessing, or using the Service, you agree to be
         bound by these Terms. If you do not agree, do not use the Service.
       </p>
 
       <h2>1. Eligibility</h2>
       <p>
-        You must be at least 13 years old to use BioForge. If you are under 18, you represent that you
+        You must be at least 13 years old to use cried.bio. If you are under 18, you represent that you
         have permission from a parent or legal guardian. You must provide accurate registration
         information and keep your account credentials secure. You are responsible for all activity that
         occurs under your account.
@@ -31,19 +31,19 @@ export default function TermsPage() {
 
       <h2>2. The Service</h2>
       <p>
-        BioForge provides customizable public profile pages, social links, analytics, badges, guestbook
+        cried.bio provides customizable public profile pages, social links, analytics, badges, guestbook
         features, embeds, themes, and related creator tools. We may add, change, or remove features at
         any time. Some features may be labeled as beta, experimental, or premium and may be subject to
         additional terms or fees.
       </p>
 
       <h2>3. Your Account and Profile</h2>
-      <p>When you create a BioForge profile, you agree that:</p>
+      <p>When you create a cried.bio profile, you agree that:</p>
       <ul>
         <li>Your username, display name, bio, links, media, and other profile content are your responsibility.</li>
         <li>You will not impersonate another person or misrepresent your affiliation with any entity.</li>
         <li>You will not register usernames intended to confuse, squat on trademarks, or infringe third-party rights.</li>
-        <li>You grant BioForge a non-exclusive, worldwide, royalty-free license to host, display, reproduce, and distribute your profile content solely to operate and promote the Service.</li>
+        <li>You grant cried.bio a non-exclusive, worldwide, royalty-free license to host, display, reproduce, and distribute your profile content solely to operate and promote the Service.</li>
       </ul>
       <p>
         You retain ownership of content you submit. You may delete your profile content at any time through
@@ -51,7 +51,7 @@ export default function TermsPage() {
       </p>
 
       <h2>4. Acceptable Use</h2>
-      <p>You agree not to use BioForge to:</p>
+      <p>You agree not to use cried.bio to:</p>
       <ul>
         <li>Violate any applicable law, regulation, or third-party rights.</li>
         <li>Post or link to unlawful, harassing, hateful, threatening, sexually exploitative, or violent material.</li>
@@ -68,7 +68,7 @@ export default function TermsPage() {
 
       <h2>5. Public Profiles and User Content</h2>
       <p>
-        BioForge profiles are public by default unless a feature explicitly restricts visibility. Content
+        cried.bio profiles are public by default unless a feature explicitly restricts visibility. Content
         you publish — including links, guestbook entries, status text, badges, embeds, and media — may be
         viewed, shared, and indexed by search engines. Do not post information you do not want to be public.
       </p>
@@ -80,14 +80,14 @@ export default function TermsPage() {
 
       <h2>6. Third-Party Links and Services</h2>
       <p>
-        Your profile may contain links to third-party websites, platforms, and embedded content. BioForge
+        Your profile may contain links to third-party websites, platforms, and embedded content. cried.bio
         does not control and is not responsible for third-party services, their terms, privacy practices,
         or content. Your use of third-party services is at your own risk.
       </p>
 
       <h2>7. Analytics and Cookies</h2>
       <p>
-        BioForge may collect usage and analytics data related to profile views, link clicks, and dashboard
+        cried.bio may collect usage and analytics data related to profile views, link clicks, and dashboard
         activity to provide statistics and improve the Service. Our use of data is described in our{" "}
         <Link href="/privacy">Privacy Policy</Link>. By using the Service, you consent to such processing
         as described there.
@@ -95,7 +95,7 @@ export default function TermsPage() {
 
       <h2>8. Premium Features and Payments</h2>
       <p>
-        If BioForge offers paid or premium features, additional payment terms may apply at checkout.
+        If cried.bio offers paid or premium features, additional payment terms may apply at checkout.
         Fees are non-refundable except where required by law or explicitly stated. We may change pricing
         with reasonable notice. Failure to pay may result in downgrade or loss of premium access.
       </p>
@@ -103,21 +103,21 @@ export default function TermsPage() {
       <h2>9. Badges, Milestones, and Virtual Items</h2>
       <p>
         Badges, milestones, and similar recognition features have no monetary value, are not transferable,
-        and may be awarded, modified, or revoked by BioForge at any time. We do not guarantee permanent
+        and may be awarded, modified, or revoked by cried.bio at any time. We do not guarantee permanent
         availability of any badge, rarity tier, or cosmetic feature.
       </p>
 
       <h2>10. Intellectual Property</h2>
       <p>
-        The BioForge name, logo, branding, software, design, and underlying technology are owned by
-        BioForge or its licensors and are protected by intellectual property laws. Except for the limited
+        The cried.bio name, logo, branding, software, design, and underlying technology are owned by
+        cried.bio or its licensors and are protected by intellectual property laws. Except for the limited
         rights expressly granted in these Terms, no license is granted to you. You may not copy, modify,
         distribute, or create derivative works of the Service without our prior written consent.
       </p>
 
       <h2>11. Copyright and DMCA</h2>
       <p>
-        We respect intellectual property rights. If you believe content on BioForge infringes your
+        We respect intellectual property rights. If you believe content on cried.bio infringes your
         copyright, contact us at{" "}
         <a href={`mailto:legal@${SITE_HOST}`}>legal@{SITE_HOST}</a> with:
       </p>
@@ -132,7 +132,7 @@ export default function TermsPage() {
 
       <h2>12. Termination</h2>
       <p>
-        You may stop using BioForge at any time. We may suspend or terminate your account if you violate
+        You may stop using cried.bio at any time. We may suspend or terminate your account if you violate
         these Terms, create risk for other users, or if we discontinue the Service. Upon termination, your
         right to use the Service ends immediately. Provisions that by nature should survive — including
         disclaimers, limitations of liability, and dispute terms — will survive termination.
@@ -148,7 +148,7 @@ export default function TermsPage() {
 
       <h2>14. Limitation of Liability</h2>
       <p>
-        TO THE MAXIMUM EXTENT PERMITTED BY LAW, BIOFORGE AND ITS OFFICERS, DIRECTORS, EMPLOYEES, AND
+        TO THE MAXIMUM EXTENT PERMITTED BY LAW, CRIED.BIO AND ITS OFFICERS, DIRECTORS, EMPLOYEES, AND
         AFFILIATES WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE
         DAMAGES, OR ANY LOSS OF PROFITS, DATA, GOODWILL, OR OTHER INTANGIBLE LOSSES, ARISING FROM YOUR
         USE OF OR INABILITY TO USE THE SERVICE. OUR TOTAL LIABILITY FOR ANY CLAIM ARISING OUT OF THESE
@@ -162,7 +162,7 @@ export default function TermsPage() {
 
       <h2>15. Indemnification</h2>
       <p>
-        You agree to defend, indemnify, and hold harmless BioForge from claims, damages, losses, and
+        You agree to defend, indemnify, and hold harmless cried.bio from claims, damages, losses, and
         expenses (including reasonable legal fees) arising from your content, your use of the Service,
         your violation of these Terms, or your violation of any third-party rights.
       </p>
@@ -185,7 +185,7 @@ export default function TermsPage() {
 
       <h2>18. General</h2>
       <ul>
-        <li><strong>Entire agreement:</strong> These Terms, together with the Privacy Policy, constitute the entire agreement between you and BioForge regarding the Service.</li>
+        <li><strong>Entire agreement:</strong> These Terms, together with the Privacy Policy, constitute the entire agreement between you and cried.bio regarding the Service.</li>
         <li><strong>Severability:</strong> If any provision is unenforceable, the remaining provisions remain in effect.</li>
         <li><strong>No waiver:</strong> Failure to enforce a provision is not a waiver of our right to enforce it later.</li>
         <li><strong>Assignment:</strong> You may not assign these Terms without our consent. We may assign them in connection with a merger, acquisition, or sale of assets.</li>

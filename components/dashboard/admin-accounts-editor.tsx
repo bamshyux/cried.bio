@@ -252,7 +252,7 @@ export function AdminAccountsEditor({ accounts }: { accounts: AdminAccountSummar
     <>
       <PageHeader
         title="Manage Accounts"
-        description="View and edit every BioForge account. Changes apply immediately."
+        description="View and edit every cried.bio account. Changes apply immediately."
       />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
@@ -290,7 +290,7 @@ export function AdminAccountsEditor({ accounts }: { accounts: AdminAccountSummar
                       key={account.id}
                       onClick={() => setSelectedId(account.id)}
                       className={`cursor-pointer border-b border-white/[0.04] transition-colors hover:bg-white/[0.02] ${
-                        active ? "bg-[#00e5cc]/[0.06]" : ""
+                        active ? "bg-[#fafafa]/[0.06]" : ""
                       }`}
                     >
                       <td className="py-3 pr-4 font-mono text-xs text-neutral-400">

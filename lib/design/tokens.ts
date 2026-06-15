@@ -1,8 +1,8 @@
-/** BioForge v3 design tokens — charcoal + single accent */
+/** cried.bio design tokens — black & white */
 export const BRAND = {
-  accent: "#00e5cc",
-  accentMuted: "rgba(0, 229, 204, 0.12)",
-  accentHover: "#00c9b4",
+  accent: "#fafafa",
+  accentMuted: "rgba(255, 255, 255, 0.1)",
+  accentHover: "#e5e5e5",
   bg: "#090909",
   bgElevated: "#0f0f0f",
   surface: "#141414",

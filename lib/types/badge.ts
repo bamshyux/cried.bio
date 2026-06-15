@@ -92,5 +92,5 @@ export const RARITY_STYLES: Record<
   rare: { ring: "ring-blue-500/30", glow: "shadow-[0_0_12px_rgba(59,130,246,0.25)]", label: "Rare" },
   epic: { ring: "ring-purple-500/40", glow: "shadow-[0_0_14px_rgba(168,85,247,0.3)]", label: "Epic" },
   legendary: { ring: "ring-amber-500/50", glow: "shadow-[0_0_16px_rgba(245,158,11,0.35)]", label: "Legendary" },
-  mythic: { ring: "ring-[#00e5cc]/50", glow: "shadow-[0_0_18px_rgba(0,229,204,0.4)]", label: "Mythic" },
+  mythic: { ring: "ring-[#fafafa]/50", glow: "shadow-[0_0_18px_rgba(255,255,255,0.4)]", label: "Mythic" },
 };

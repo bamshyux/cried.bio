@@ -1,4 +1,4 @@
--- BioForge v7: Custom badge images + badge color customization
+-- cried.bio v7: Custom badge images + badge color customization
 -- Run in Supabase Dashboard → SQL Editor (after v5_badges.sql)
 
 -- Custom badge image URL (admin-uploaded icons)

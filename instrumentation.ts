@@ -4,14 +4,14 @@ export async function register() {
     const result = await getProfileSettingsSchemaValidation();
 
     if (!result.ok) {
-      console.error("\n[BioForge] Database schema validation failed:");
+      console.error("\n[cried.bio] Database schema validation failed:");
       console.error(result.message);
       if (result.missing.length > 0) {
         console.error(`Missing columns: ${result.missing.join(", ")}`);
       }
       console.error("\n");
     } else {
-      console.log("[BioForge] Database schema validation passed.");
+      console.log("[cried.bio] Database schema validation passed.");
     }
   }
 }

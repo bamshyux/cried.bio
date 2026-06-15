@@ -56,7 +56,7 @@ export function ToggleField({
           setChecked(e.target.checked);
           onCheckedChange?.(e.target.checked);
         }}
-        className="mt-0.5 h-4 w-4 rounded border-white/20 bg-[#090909] accent-[#00e5cc]"
+        className="mt-0.5 h-4 w-4 rounded border-white/20 bg-[#090909] accent-[#fafafa]"
       />
       <span>
         <span className="block text-sm font-medium text-neutral-100">{label}</span>
@@ -114,7 +114,7 @@ export function ColorField({
   label: string;
   defaultValue: string;
 }) {
-  const hex = defaultValue.startsWith("#") ? defaultValue : "#00e5cc";
+  const hex = defaultValue.startsWith("#") ? defaultValue : "#fafafa";
 
   return (
     <div>

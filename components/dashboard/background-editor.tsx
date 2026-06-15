@@ -28,7 +28,7 @@ import { useSettingsRefresh } from "@/components/dashboard/use-settings-refresh"
 const initial: SettingsFormState = {};
 
 const fileInputClassName =
-  "block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#00e5cc] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]";
+  "block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#fafafa] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]";
 
 export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
   const router = useRouter();

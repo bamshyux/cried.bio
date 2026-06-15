@@ -14,7 +14,7 @@ export function SchemaErrorBanner({
       role="alert"
       className="relative z-[100] border-b border-red-500/30 bg-red-950 px-4 py-3 text-sm text-red-100"
     >
-      <p className="font-semibold text-red-50">BioForge database schema error</p>
+      <p className="font-semibold text-red-50">cried.bio database schema error</p>
       <p className="mt-1 text-red-200/90">{message}</p>
       {missing.length > 0 && (
         <p className="mt-2 font-mono text-xs text-red-300/80">

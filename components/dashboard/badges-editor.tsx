@@ -152,7 +152,7 @@ export function BadgesEditor({
     <>
       <PageHeader
         title="Badges"
-        description="Collect, showcase, and manage your BioForge badge collection."
+        description="Collect, showcase, and manage your cried.bio badge collection."
       />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
@@ -192,7 +192,7 @@ export function BadgesEditor({
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-sm font-medium text-white">Your collection</h2>
               <div className="flex gap-2 text-xs text-neutral-500">
-                <span className="rounded-full bg-[#00e5cc]/10 px-2 py-0.5 text-[#00e5cc]">{earned.length} earned</span>
+                <span className="rounded-full bg-[#fafafa]/10 px-2 py-0.5 text-[#fafafa]">{earned.length} earned</span>
                 <span className="rounded-full bg-white/[0.04] px-2 py-0.5">{locked.length} locked</span>
               </div>
             </div>
@@ -207,7 +207,7 @@ export function BadgesEditor({
               <button
                 type="button"
                 onClick={() => setCategory("all")}
-                className={`rounded-full px-3 py-1 text-xs ${category === "all" ? "bg-[#00e5cc]/10 text-[#00e5cc]" : "bg-white/[0.04] text-neutral-500"}`}
+                className={`rounded-full px-3 py-1 text-xs ${category === "all" ? "bg-[#fafafa]/10 text-[#fafafa]" : "bg-white/[0.04] text-neutral-500"}`}
               >
                 All
               </button>
@@ -216,7 +216,7 @@ export function BadgesEditor({
                   key={c.id}
                   type="button"
                   onClick={() => setCategory(c.id)}
-                  className={`rounded-full px-3 py-1 text-xs ${category === c.id ? "bg-[#00e5cc]/10 text-[#00e5cc]" : "bg-white/[0.04] text-neutral-500"}`}
+                  className={`rounded-full px-3 py-1 text-xs ${category === c.id ? "bg-[#fafafa]/10 text-[#fafafa]" : "bg-white/[0.04] text-neutral-500"}`}
                 >
                   {c.label}
                 </button>

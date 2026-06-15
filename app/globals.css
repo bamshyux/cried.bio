@@ -5,8 +5,8 @@
   --bf-surface: #141414;
   --bf-surface-hover: #1a1a1a;
   --bf-border: rgba(255, 255, 255, 0.06);
-  --bf-accent: #00e5cc;
-  --bf-accent-muted: rgba(0, 229, 204, 0.1);
+  --bf-accent: #fafafa;
+  --bf-accent-muted: rgba(255, 255, 255, 0.1);
   --bf-text: #fafafa;
   --bf-text-muted: #737373;
   --background: var(--bf-bg);
@@ -42,8 +42,8 @@ body {
 }
 
 @keyframes bf-glow {
-  0%, 100% { box-shadow: 0 0 8px rgba(0, 229, 204, 0.15); }
-  50% { box-shadow: 0 0 20px rgba(0, 229, 204, 0.35); }
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 255, 255, 0.15); }
+  50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.35); }
 }
 
 @keyframes bf-slide {
@@ -463,7 +463,7 @@ body {
   margin-left: auto;
 }
 
-.bf-username-glow { text-shadow: 0 0 20px var(--bf-accent), 0 0 40px rgba(0,229,204,0.3); }
+.bf-username-glow { text-shadow: 0 0 20px var(--bf-accent), 0 0 40px rgba(255,255,255,0.3); }
 .bf-username-rainbow { animation: bf-username-rainbow 4s linear infinite; }
 .bf-username-wave { animation: bf-username-wave 2s ease-in-out infinite; display: inline-block; }
 .bf-username-pulse { animation: bf-username-pulse 2s ease-in-out infinite; }
@@ -512,7 +512,7 @@ body {
 }
 
 .bf-input:focus {
-  border-color: rgba(0, 229, 204, 0.4);
+  border-color: rgba(255, 255, 255, 0.4);
   box-shadow: 0 0 0 3px var(--bf-accent-muted);
 }
 
@@ -758,13 +758,13 @@ body {
 }
 
 .legal-prose a {
-  color: #00e5cc;
+  color: #fafafa;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .legal-prose a:hover {
-  color: #00c9b4;
+  color: #e5e5e5;
 }
 
 .legal-prose strong {
@@ -802,10 +802,10 @@ body {
 @keyframes bf-home-accent-glow {
   0%,
   100% {
-    text-shadow: 0 0 18px rgba(0, 229, 204, 0.15);
+    text-shadow: 0 0 18px rgba(255, 255, 255, 0.15);
   }
   50% {
-    text-shadow: 0 0 36px rgba(0, 229, 204, 0.45), 0 0 64px rgba(0, 229, 204, 0.15);
+    text-shadow: 0 0 36px rgba(255, 255, 255, 0.45), 0 0 64px rgba(255, 255, 255, 0.15);
   }
 }
 
@@ -814,12 +814,12 @@ body {
   100% {
     opacity: 1;
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(0, 229, 204, 0.45);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45);
   }
   50% {
     opacity: 0.85;
     transform: scale(1.15);
-    box-shadow: 0 0 0 6px rgba(0, 229, 204, 0);
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0);
   }
 }
 
@@ -900,10 +900,10 @@ body {
 @keyframes bf-home-cta-glow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(0, 229, 204, 0);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
   }
   50% {
-    box-shadow: 0 0 28px rgba(0, 229, 204, 0.35);
+    box-shadow: 0 0 28px rgba(255, 255, 255, 0.35);
   }
 }
 

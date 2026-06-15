@@ -70,14 +70,14 @@ export function SignUpForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-lg bg-[#00e5cc] px-4 py-3 text-sm font-semibold text-[#090909] transition-colors hover:bg-[#00c9b4] disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-lg bg-[#fafafa] px-4 py-3 text-sm font-semibold text-[#090909] transition-colors hover:bg-[#e5e5e5] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? "Creating account..." : "Create Profile"}
       </button>
 
       <p className="text-center text-sm text-neutral-500">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-[#00e5cc] hover:text-[#00c9b4]">
+        <Link href="/login" className="font-medium text-[#fafafa] hover:text-[#e5e5e5]">
           Login
         </Link>
       </p>

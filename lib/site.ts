@@ -1,4 +1,4 @@
-export const SITE_HOST = "bioforge.blog";
+export const SITE_HOST = "cried.bio";
 export const SITE_URL = `https://${SITE_HOST}`;
 
 export function getSiteUrl() {

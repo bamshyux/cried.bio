@@ -13,7 +13,7 @@ export function HomePrimaryCta({ href, children }: { href: string; children: Rea
   return (
     <Link
       href={href}
-      className="bf-home-cta-primary inline-flex items-center gap-2 rounded-lg bg-[#00e5cc] px-8 py-3 text-sm font-semibold text-[#090909] transition-colors hover:bg-[#00c9b4]"
+      className="bf-home-cta-primary inline-flex items-center gap-2 rounded-lg bg-[#fafafa] px-8 py-3 text-sm font-semibold text-[#090909] transition-colors hover:bg-[#e5e5e5]"
     >
       {children}
     </Link>

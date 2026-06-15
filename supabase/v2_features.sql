@@ -1,4 +1,4 @@
--- BioForge v2: Advanced customization, badges, analytics, storage
+-- cried.bio v2: Advanced customization, badges, analytics, storage
 -- Run in Supabase Dashboard → SQL Editor (after profiles.sql + links.sql)
 -- Safe to re-run: uses IF NOT EXISTS / DROP POLICY IF EXISTS throughout.
 
@@ -122,7 +122,7 @@ insert into public.badges (slug, name, icon, color, description, is_system) valu
   ('verified', 'Verified', '✓', '#3b82f6', 'Verified account', true),
   ('premium', 'Premium', '👑', '#f59e0b', 'Premium member', true),
   ('early_adopter', 'Early Adopter', '🚀', '#10b981', 'Joined during early access', true),
-  ('developer', 'Developer', '⚡', '#8b5cf6', 'BioForge developer', true)
+  ('developer', 'Developer', '⚡', '#8b5cf6', 'cried.bio developer', true)
 on conflict (slug) do nothing;
 
 create table if not exists public.profile_badges (

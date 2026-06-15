@@ -1,4 +1,4 @@
--- BioForge dynamic links schema
+-- cried.bio dynamic links schema
 -- Run this in Supabase Dashboard → SQL Editor
 
 -- 1. Links table

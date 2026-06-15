@@ -1,4 +1,4 @@
--- BioForge v12: V2 feature expansion
+-- cried.bio v12: V2 feature expansion
 -- Run in Supabase Dashboard → SQL Editor (after v11)
 
 -- ─── Premium foundation ─────────────────────────────────────────────────────
@@ -80,7 +80,7 @@ create table if not exists public.featured_blocks (
   description text not null default '',
   thumbnail_url text,
   url text not null default '',
-  accent_color text not null default '#00e5cc',
+  accent_color text not null default '#fafafa',
   is_enabled boolean not null default true,
   sort_order int not null default 0,
   created_at timestamptz not null default now(),
@@ -192,7 +192,7 @@ create index if not exists activity_events_profile_idx on public.activity_events
 insert into public.badges (slug, name, description, icon, color, category, rarity, award_rule)
 values
   ('followers-100', '100 Followers', 'Reached 100 followers', 'followers-100', '#a855f7', 'community', 'rare', 'followers_100'),
-  ('account-1yr', 'One Year', 'BioForge member for 1 year', 'account-1yr', '#f59e0b', 'community', 'rare', 'account_1yr')
+  ('account-1yr', 'One Year', 'cried.bio member for 1 year', 'account-1yr', '#f59e0b', 'community', 'rare', 'account_1yr')
 on conflict (slug) do nothing;
 
 -- ─── Sync all milestone badges ──────────────────────────────────────────────

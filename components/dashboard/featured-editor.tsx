@@ -56,7 +56,7 @@ export function FeaturedEditor({ blocks }: { blocks: FeaturedBlock[] }) {
               <label htmlFor="url" className={labelClassName}>URL</label>
               <input id="url" name="url" type="url" className={inputClassName} />
             </div>
-            <ColorField name="accent_color" label="Accent color" defaultValue="#00e5cc" />
+            <ColorField name="accent_color" label="Accent color" defaultValue="#fafafa" />
           </div>
           <div>
             <label htmlFor="thumbnail_url" className={labelClassName}>Thumbnail URL (optional)</label>

@@ -22,7 +22,7 @@ import { SITE_HOST } from "@/lib/site";
 const initialState: ProfileFormState = {};
 
 const fileInputClassName =
-  "block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#00e5cc] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]";
+  "block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#fafafa] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]";
 
 export function ProfileEditor({ profile }: { profile: Profile | null }) {
   const router = useRouter();

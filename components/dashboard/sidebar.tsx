@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BioForgeLogo } from "@/components/brand/logo";
+import { CriedLogo } from "@/components/brand/logo";
 import {
   IconAnalytics,
   IconBackground,
@@ -54,7 +54,7 @@ export function DashboardSidebar({
   return (
     <aside className="flex w-full flex-col lg:w-[220px] lg:shrink-0">
       <div className="mb-6 hidden lg:block">
-        <BioForgeLogo size={28} />
+        <CriedLogo size={28} />
       </div>
 
       <nav className="flex flex-wrap gap-0.5 lg:flex-col">
@@ -70,7 +70,7 @@ export function DashboardSidebar({
                 active ? "bf-nav-active" : ""
               }`}
             >
-              <Icon size={16} className={active ? "text-[#00e5cc]" : "text-neutral-500"} />
+              <Icon size={16} className={active ? "text-[#fafafa]" : "text-neutral-500"} />
               {label}
             </Link>
           );

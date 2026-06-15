@@ -18,8 +18,8 @@ export function HomeFeatures({ features }: { features: Feature[] }) {
       <div className="grid gap-4 sm:grid-cols-3">
         {features.map((feature, index) => (
           <Reveal key={feature.title} delay={index * 90}>
-            <div className="h-full rounded-xl border border-white/[0.06] bg-[#141414] p-6 transition-colors hover:border-[#00e5cc]/20 hover:bg-[#1a1a1a]">
-              <div className="mb-4 inline-flex rounded-lg border border-white/[0.06] bg-[#0f0f0f] p-2.5 text-[#00e5cc]">
+            <div className="h-full rounded-xl border border-white/[0.06] bg-[#141414] p-6 transition-colors hover:border-[#fafafa]/20 hover:bg-[#1a1a1a]">
+              <div className="mb-4 inline-flex rounded-lg border border-white/[0.06] bg-[#0f0f0f] p-2.5 text-[#fafafa]">
                 {feature.icon}
               </div>
               <h3 className="font-medium text-white">{feature.title}</h3>

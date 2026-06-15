@@ -50,7 +50,7 @@ function LayoutPreview({ layout }: { layout: ProfileLayout }) {
     case "gaming":
       return (
         <div className={base}>
-          <div className="h-2 bg-[#00e5cc]/30" />
+          <div className="h-2 bg-[#fafafa]/30" />
           <div className="flex gap-1 p-2">
             <div className="h-4 w-4 bg-neutral-700" />
             <div className="h-1.5 w-8 rounded bg-neutral-700" />
@@ -106,7 +106,7 @@ function LayoutPreview({ layout }: { layout: ProfileLayout }) {
             <div className="h-1 w-1 rounded-full bg-emerald-500/60" />
           </div>
           <div className="space-y-1 p-2 font-mono">
-            <div className="h-1 w-6 rounded bg-[#00e5cc]/40" />
+            <div className="h-1 w-6 rounded bg-[#fafafa]/40" />
             <div className="h-1 w-10 rounded bg-neutral-700" />
             <div className="h-1 w-full rounded bg-neutral-800" />
           </div>
@@ -134,7 +134,7 @@ function LayoutPreview({ layout }: { layout: ProfileLayout }) {
       );
     case "neon":
       return (
-        <div className="h-16 w-full rounded-md p-px" style={{ background: "linear-gradient(135deg, #00e5cc, #00e5cc40)" }}>
+        <div className="h-16 w-full rounded-md p-px" style={{ background: "linear-gradient(135deg, #fafafa, #fafafa40)" }}>
           <div className="flex h-full w-full flex-col justify-center gap-1 rounded-[5px] bg-[#0a0a0a] p-2">
             <div className="h-1 w-8 rounded bg-neutral-700" />
             <div className="h-1 w-full rounded bg-neutral-800" />
@@ -214,7 +214,7 @@ function LayoutPreview({ layout }: { layout: ProfileLayout }) {
       return (
         <div className={`${base} flex flex-col items-center py-2`}>
           <div className="relative">
-            <div className="absolute -inset-1 rounded-full border border-[#00e5cc]/30" />
+            <div className="absolute -inset-1 rounded-full border border-[#fafafa]/30" />
             <div className="h-7 w-7 rounded-full bg-neutral-700" />
           </div>
           <div className="mt-1.5 h-1 w-8 rounded bg-neutral-700" />
@@ -239,7 +239,7 @@ function LayoutPreview({ layout }: { layout: ProfileLayout }) {
     case "poster":
       return (
         <div className={`${base} flex`}>
-          <div className="w-1 shrink-0 bg-[#00e5cc]/60" />
+          <div className="w-1 shrink-0 bg-[#fafafa]/60" />
           <div className="flex flex-1 flex-col justify-center gap-1 p-2">
             <div className="h-2 w-10 rounded bg-neutral-700" />
             <div className="h-1 w-6 rounded bg-neutral-800" />
@@ -250,8 +250,8 @@ function LayoutPreview({ layout }: { layout: ProfileLayout }) {
     case "glass":
       return (
         <div className="relative h-16 w-full overflow-hidden rounded-md border border-white/15 bg-white/[0.04]">
-          <div className="absolute -left-2 -top-2 h-8 w-8 rounded-full bg-[#00e5cc]/30 blur-md" />
-          <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-[#00e5cc]/20 blur-md" />
+          <div className="absolute -left-2 -top-2 h-8 w-8 rounded-full bg-[#fafafa]/30 blur-md" />
+          <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-[#fafafa]/20 blur-md" />
           <div className="relative flex flex-col items-center justify-center gap-1 py-2">
             <div className="h-4 w-4 rounded-full bg-neutral-700/80" />
             <div className="h-1 w-8 rounded bg-neutral-700/80" />
@@ -299,7 +299,7 @@ export function ThemesEditor({ settings }: { settings: ProfileSettings }) {
                   }}
                   className={`rounded-xl border p-4 text-left transition-all ${
                     isActive
-                      ? "border-[#00e5cc]/50 bg-[#00e5cc]/[0.06] ring-1 ring-[#00e5cc]/30"
+                      ? "border-[#fafafa]/50 bg-[#fafafa]/[0.06] ring-1 ring-[#fafafa]/30"
                       : "border-white/[0.06] bg-[#0f0f0f] hover:border-white/10 hover:bg-[#141414]"
                   }`}
                 >

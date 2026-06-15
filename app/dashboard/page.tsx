@@ -62,7 +62,7 @@ export default async function DashboardOverviewPage() {
           <Link
             key={item.href}
             href={item.href}
-            className={`${cardClassName} transition-colors hover:border-[#00e5cc]/20 hover:bg-[#161616]`}
+            className={`${cardClassName} transition-colors hover:border-[#fafafa]/20 hover:bg-[#161616]`}
           >
             <p className="text-sm font-medium text-white">{item.title}</p>
             <p className="mt-1 text-xs text-neutral-500">{item.desc}</p>

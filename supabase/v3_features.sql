@@ -1,4 +1,4 @@
--- BioForge v3: extended effects, analytics indexes, featured links
+-- cried.bio v3: extended effects, analytics indexes, featured links
 -- Safe to re-run
 
 -- Extended settings columns

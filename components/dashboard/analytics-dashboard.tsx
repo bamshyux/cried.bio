@@ -19,7 +19,7 @@ function MiniBarChart({
         {data.map((d) => (
           <div key={d.date} className="group flex flex-1 flex-col items-center gap-1">
             <div
-              className="w-full rounded-sm bg-[#00e5cc]/80 transition-opacity group-hover:bg-[#00e5cc]"
+              className="w-full rounded-sm bg-[#fafafa]/80 transition-opacity group-hover:bg-[#fafafa]"
               style={{ height: `${Math.max((d.count / max) * 100, d.count > 0 ? 4 : 0)}%` }}
               title={`${d.date}: ${d.count}`}
             />

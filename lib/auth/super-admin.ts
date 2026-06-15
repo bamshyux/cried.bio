@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 
 export const SUPER_ADMIN_EMAIL =
-  process.env.BIOFORGE_SUPER_ADMIN_EMAIL?.trim().toLowerCase() ?? "jjbamshy1@gmail.com";
+  process.env.CRIED_SUPER_ADMIN_EMAIL?.trim().toLowerCase() ?? "jjbamshy1@gmail.com";
 
 export async function isSuperAdminEmail(email: string | null | undefined): Promise<boolean> {
   if (!email) return false;

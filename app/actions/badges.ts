@@ -254,7 +254,7 @@ export async function assignBadgeAction(
   if (isFounderBadgeSlug(badgeSlug)) {
     const founderId = await getFounderUserId();
     if (!isFounderProfile(profileId, founderId)) {
-      return { error: "The Founder badge can only be held by the BioForge founder." };
+      return { error: "The Founder badge can only be held by the cried.bio founder." };
     }
   }
 
@@ -308,7 +308,7 @@ export async function createCustomBadgeAction(
   const name = String(formData.get("name") ?? "").trim();
   const slug = String(formData.get("slug") ?? "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
   const description = String(formData.get("description") ?? "").trim();
-  const color = String(formData.get("color") ?? "#00e5cc").trim();
+  const color = String(formData.get("color") ?? "#fafafa").trim();
   const rarity = String(formData.get("rarity") ?? "rare");
 
   if (!name || !slug) return { error: "Name and slug are required." };

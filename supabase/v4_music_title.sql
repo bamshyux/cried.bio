@@ -1,4 +1,4 @@
--- BioForge v4: add music_title to profile_settings
+-- cried.bio v4: add music_title to profile_settings
 -- Safe to re-run (IF NOT EXISTS)
 --
 -- Verified against live Supabase: all other v3 columns exist; only music_title is missing.

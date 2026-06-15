@@ -48,7 +48,7 @@ export function getEmbedIframeSrc(type: EmbedType, embedId: string): string | nu
     case "spotify_playlist":
       return `https://open.spotify.com/embed/playlist/${embedId}`;
     case "soundcloud":
-      return `https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/${embedId}&color=%2300e5cc`;
+      return `https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/${embedId}&color=%23fafafa`;
     case "roblox":
       return `https://www.roblox.com/games/${embedId}`;
     case "discord":
@@ -74,7 +74,7 @@ export function getEmbedIframeSrcServer(type: EmbedType, embedId: string, hostna
     case "spotify_playlist":
       return `https://open.spotify.com/embed/playlist/${embedId}`;
     case "soundcloud":
-      return `https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/${embedId}&color=%2300e5cc`;
+      return `https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/${embedId}&color=%23fafafa`;
     case "discord":
       return `https://discord.com/widget?id=${embedId}&theme=dark`;
     case "roblox":

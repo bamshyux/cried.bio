@@ -4,8 +4,8 @@ import { LegalPageLayout } from "@/components/legal/legal-page-layout";
 import { SITE_HOST } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — BioForge",
-  description: "Privacy Policy for BioForge, explaining how we collect, use, and protect your data.",
+  title: "Privacy Policy — cried.bio",
+  description: "Privacy Policy for cried.bio, explaining how we collect, use, and protect your data.",
 };
 
 const LAST_UPDATED = "June 14, 2026";
@@ -14,14 +14,14 @@ export default function PrivacyPage() {
   return (
     <LegalPageLayout title="Privacy Policy" lastUpdated={LAST_UPDATED}>
       <p>
-        BioForge (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) operates{" "}
+        cried.bio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) operates{" "}
         <strong>{SITE_HOST}</strong> and related services (the &ldquo;Service&rdquo;). This Privacy
-        Policy explains how we collect, use, disclose, and protect information when you use BioForge,
+        Policy explains how we collect, use, disclose, and protect information when you use cried.bio,
         including when you create an account, customize your profile, or visit public profile pages.
       </p>
       <p>
         By using the Service, you agree to the practices described here. If you do not agree, please do
-        not use BioForge. For terms governing your use of the Service, see our{" "}
+        not use cried.bio. For terms governing your use of the Service, see our{" "}
         <Link href="/terms">Terms of Service</Link>.
       </p>
 
@@ -45,7 +45,7 @@ export default function PrivacyPage() {
       <h3>Information from third parties</h3>
       <p>
         If you connect third-party accounts or embed third-party content (such as music players or social
-        widgets), those providers may share limited information according to their own policies. BioForge
+        widgets), those providers may share limited information according to their own policies. cried.bio
         does not receive your passwords for third-party services.
       </p>
 
@@ -67,7 +67,7 @@ export default function PrivacyPage() {
 
       <h2>3. Public Information</h2>
       <p>
-        BioForge profiles are designed to be public. Information you choose to display — including your
+        cried.bio profiles are designed to be public. Information you choose to display — including your
         username, display name, bio, links, badges, guestbook entries (where approved), follower counts,
         activity feeds (when enabled), and media — may be visible to anyone on the internet and may be
         indexed by search engines.
@@ -83,13 +83,13 @@ export default function PrivacyPage() {
         <li><strong>Publicly:</strong> Profile content you publish is visible to visitors of your profile URL.</li>
         <li><strong>Service providers:</strong> We use trusted vendors to operate the Service, including hosting, database, authentication, email delivery, analytics, and infrastructure providers. These providers process data on our behalf under contractual obligations.</li>
         <li><strong>Legal requirements:</strong> We may disclose information if required by law, court order, or government request, or when we believe disclosure is necessary to protect rights, safety, or the integrity of the Service.</li>
-        <li><strong>Business transfers:</strong> If BioForge is involved in a merger, acquisition, or asset sale, user information may be transferred as part of that transaction.</li>
+        <li><strong>Business transfers:</strong> If cried.bio is involved in a merger, acquisition, or asset sale, user information may be transferred as part of that transaction.</li>
         <li><strong>With your direction:</strong> When you explicitly request or authorize sharing.</li>
       </ul>
 
       <h2>5. Service Providers</h2>
       <p>
-        BioForge relies on third-party infrastructure to deliver the Service. These may include:
+        cried.bio relies on third-party infrastructure to deliver the Service. These may include:
       </p>
       <ul>
         <li><strong>Supabase</strong> — authentication, database, and file storage;</li>
@@ -106,7 +106,7 @@ export default function PrivacyPage() {
       <p>
         We send emails related to your account, including welcome messages, social and guestbook
         notifications, badge awards, and password reset links. These emails are sent from{" "}
-        <strong>noreply@bioforge.blog</strong> or other BioForge addresses. You cannot opt out of
+        <strong>noreply@cried.bio</strong> or other cried.bio addresses. You cannot opt out of
         essential transactional emails while maintaining an active account. We do not send promotional
         marketing emails without your consent.
       </p>
@@ -122,7 +122,7 @@ export default function PrivacyPage() {
 
       <h2>8. Cookies and Local Storage</h2>
       <p>
-        BioForge uses cookies and similar browser storage technologies to keep you signed in, remember
+        cried.bio uses cookies and similar browser storage technologies to keep you signed in, remember
         preferences, and protect against abuse. Essential cookies are required for authentication. We may
         also use analytics cookies to understand how the Service is used.
       </p>
@@ -146,16 +146,16 @@ export default function PrivacyPage() {
 
       <h2>10. Children&apos;s Privacy</h2>
       <p>
-        BioForge is not directed to children under 13, and we do not knowingly collect personal
+        cried.bio is not directed to children under 13, and we do not knowingly collect personal
         information from children under 13. If you believe a child under 13 has provided us with personal
         information, contact us and we will take steps to delete it.
       </p>
 
       <h2>11. International Users</h2>
       <p>
-        BioForge is operated from the United States. If you access the Service from outside the United
+        cried.bio is operated from the United States. If you access the Service from outside the United
         States, your information may be transferred to, stored in, and processed in the United States or
-        other countries where our service providers operate. By using BioForge, you consent to such
+        other countries where our service providers operate. By using cried.bio, you consent to such
         transfers.
       </p>
 
@@ -180,7 +180,7 @@ export default function PrivacyPage() {
       <p>
         If you are a California resident, you may have rights under the California Consumer Privacy Act
         (CCPA/CPRA), including the right to know what personal information we collect, request deletion,
-        and opt out of the sale or sharing of personal information. As stated above, BioForge does not
+        and opt out of the sale or sharing of personal information. As stated above, cried.bio does not
         sell personal information. To submit a request, email{" "}
         <a href={`mailto:privacy@${SITE_HOST}`}>privacy@{SITE_HOST}</a>.
       </p>

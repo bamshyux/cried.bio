@@ -1,4 +1,4 @@
--- BioForge v14: link display style (buttons vs icon boxes)
+-- cried.bio v14: link display style (buttons vs icon boxes)
 -- Run in Supabase Dashboard → SQL Editor (after v13)
 
 alter table public.profile_settings

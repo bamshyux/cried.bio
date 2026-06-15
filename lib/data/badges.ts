@@ -25,7 +25,7 @@ function normalizeBadge(b: Record<string, unknown>): Badge {
     name: String(b.name),
     icon: String(b.icon ?? b.slug),
     icon_url: b.icon_url ? String(b.icon_url) : null,
-    color: String(b.color ?? "#00e5cc"),
+    color: String(b.color ?? "#fafafa"),
     description,
     category: (b.category as Badge["category"]) ?? "custom",
     rarity: (b.rarity as Badge["rarity"]) ?? "common",

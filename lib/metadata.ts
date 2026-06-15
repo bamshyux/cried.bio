@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { SITE_HOST, SITE_URL } from "@/lib/site";
 
-export const SITE_TITLE = "BioForge — Forge your digital identity";
+export const SITE_TITLE = "cried.bio — Your bio link, your way";
 export const SITE_DESCRIPTION =
   "The modern bio link platform for creators, gamers, and builders.";
 
@@ -20,7 +20,7 @@ export const siteMetadata: Metadata = {
   openGraph: {
     type: "website",
     url: SITE_URL,
-    siteName: "BioForge",
+    siteName: "cried.bio",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     locale: "en_US",

@@ -1,4 +1,4 @@
--- BioForge profiles schema
+-- cried.bio profiles schema
 -- Run this in Supabase Dashboard → SQL Editor
 
 -- 1. Profiles table

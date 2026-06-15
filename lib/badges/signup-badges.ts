@@ -10,11 +10,11 @@ export const YEAR_ONE_BADGE_SLUG = "year-one";
 export const OG_BADGE_SLUG = "og";
 export const OG_MAX_UID = 50;
 
-/** Default end of BioForge's first year (Jun 14, 2027). Override with BIOFORGE_YEAR_ONE_END. */
+/** Default end of cried.bio's first year (Jun 14, 2027). Override with CRIED_YEAR_ONE_END. */
 export const DEFAULT_YEAR_ONE_END = "2027-06-14T23:59:59.999Z";
 
 export function getYearOneCutoff(): Date {
-  const raw = process.env.BIOFORGE_YEAR_ONE_END?.trim();
+  const raw = process.env.CRIED_YEAR_ONE_END?.trim();
   if (raw) {
     const parsed = new Date(raw);
     if (!Number.isNaN(parsed.getTime())) return parsed;

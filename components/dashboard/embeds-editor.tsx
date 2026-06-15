@@ -117,7 +117,7 @@ export function EmbedsEditor({ embeds: initialEmbeds }: { embeds: ProfileEmbed[]
                   disabled={isPendingAction}
                   onClick={() => handleToggle(embed.id, !embed.is_visible)}
                   className={`rounded-lg px-3 py-1 text-xs font-medium ${
-                    embed.is_visible ? "bg-[#00e5cc]/10 text-[#00e5cc]" : "bg-white/[0.04] text-neutral-500"
+                    embed.is_visible ? "bg-[#fafafa]/10 text-[#fafafa]" : "bg-white/[0.04] text-neutral-500"
                   }`}
                 >
                   {embed.is_visible ? "Visible" : "Hidden"}

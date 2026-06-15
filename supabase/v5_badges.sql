@@ -1,4 +1,4 @@
--- BioForge v5: Badge ecosystem
+-- cried.bio v5: Badge ecosystem
 -- Run after v2_features.sql (badges tables) + v3/v4 profile_settings
 -- Safe to re-run
 
@@ -97,7 +97,7 @@ begin
         icon = 'og',
         category = 'milestone',
         rarity = 'legendary',
-        description = 'Joined during the BioForge launch era'
+        description = 'Joined during the cried.bio launch era'
     where id = legacy_id;
   end if;
 end $$;
@@ -106,17 +106,17 @@ end $$;
 
 insert into public.badges (slug, name, icon, color, description, category, rarity, sort_order, is_system, award_rule) values
   -- Verification & team
-  ('verified', 'Verified', 'verified', '#3b82f6', 'Identity verified by BioForge', 'verification', 'legendary', 10, true, null),
-  ('developer', 'Developer', 'developer', '#00e5cc', 'BioForge developer', 'verification', 'mythic', 20, true, null),
-  ('staff', 'Staff', 'staff', '#a855f7', 'BioForge staff member', 'verification', 'mythic', 30, true, null),
+  ('verified', 'Verified', 'verified', '#3b82f6', 'Identity verified by cried.bio', 'verification', 'legendary', 10, true, null),
+  ('developer', 'Developer', 'developer', '#fafafa', 'cried.bio developer', 'verification', 'mythic', 20, true, null),
+  ('staff', 'Staff', 'staff', '#a855f7', 'cried.bio staff member', 'verification', 'mythic', 30, true, null),
   ('moderator', 'Moderator', 'moderator', '#22c55e', 'Community moderator', 'verification', 'epic', 40, true, null),
   -- Creator
   ('creator', 'Creator', 'creator', '#ec4899', 'Content creator partner', 'creator', 'epic', 50, true, null),
-  ('partner', 'Partner', 'partner', '#f97316', 'Official BioForge partner', 'creator', 'legendary', 60, true, null),
+  ('partner', 'Partner', 'partner', '#f97316', 'Official cried.bio partner', 'creator', 'legendary', 60, true, null),
   -- Supporter
   ('premium', 'Premium', 'premium', '#f59e0b', 'Active premium subscriber', 'supporter', 'epic', 70, true, null),
-  ('founder', 'Founder', 'founder', '#eab308', 'Founder of BioForge', 'verification', 'legendary', 80, true, null),
-  ('donor', 'Donor', 'donor', '#ef4444', 'Donated to support BioForge', 'supporter', 'rare', 90, true, null),
+  ('founder', 'Founder', 'founder', '#eab308', 'Founder of cried.bio', 'verification', 'legendary', 80, true, null),
+  ('donor', 'Donor', 'donor', '#ef4444', 'Donated to support cried.bio', 'supporter', 'rare', 90, true, null),
   ('supporter', 'Supporter', 'supporter', '#06b6d4', 'Purchased a premium feature', 'supporter', 'common', 100, true, null),
   -- Community
   ('helper', 'Helper', 'helper', '#14b8a6', 'Helps users in the community', 'community', 'common', 110, true, null),
@@ -124,8 +124,8 @@ insert into public.badges (slug, name, icon, color, description, category, rarit
   ('contributor', 'Contributor', 'contributor', '#6366f1', 'Contributed assets or code', 'community', 'rare', 130, true, null),
   ('community-choice', 'Community Choice', 'community-choice', '#d946ef', 'Awarded by staff for community impact', 'community', 'epic', 140, true, null),
   -- Milestones
-  ('og', 'OG', 'og', '#fafafa', 'Joined during the BioForge launch era', 'milestone', 'legendary', 150, true, 'milestone_og'),
-  ('year-one', 'Year One', 'year-one', '#cbd5e1', 'Joined in BioForge''s first year', 'milestone', 'epic', 160, true, null),
+  ('og', 'OG', 'og', '#fafafa', 'Joined during the cried.bio launch era', 'milestone', 'legendary', 150, true, 'milestone_og'),
+  ('year-one', 'Year One', 'year-one', '#cbd5e1', 'Joined in cried.bio''s first year', 'milestone', 'epic', 160, true, null),
   ('views-100', '100 Views', 'views-100', '#94a3b8', 'Reached 100 profile views', 'milestone', 'common', 170, true, 'milestone_views_100'),
   ('views-1k', '1K Views', 'views-1k', '#64748b', 'Reached 1,000 profile views', 'milestone', 'rare', 180, true, 'milestone_views_1000'),
   ('views-10k', '10K Views', 'views-10k', '#475569', 'Reached 10,000 profile views', 'milestone', 'epic', 190, true, 'milestone_views_10000'),

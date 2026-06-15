@@ -1,4 +1,4 @@
--- BioForge v6: Sequential profile UID (guns.lol style — UID #1, #2, …)
+-- cried.bio v6: Sequential profile UID (guns.lol style — UID #1, #2, …)
 -- Run in Supabase Dashboard → SQL Editor (after profiles.sql + v2_features.sql)
 
 create sequence if not exists public.profiles_uid_seq;

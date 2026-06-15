@@ -21,7 +21,7 @@ import { useSettingsRefresh } from "@/components/dashboard/use-settings-refresh"
 const initial: SettingsFormState = {};
 
 const fileInputClassName =
-  "block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#00e5cc] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]";
+  "block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#fafafa] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]";
 
 export function MusicEditor({
   settings,
@@ -95,7 +95,7 @@ export function MusicEditor({
           {settings.music_url && (
             <div className="mb-4 space-y-2 border-b border-white/[0.06] pb-4">
               <p className="text-xs text-neutral-500">Current track</p>
-              <audio src={settings.music_url} controls className="w-full accent-[#00e5cc]" />
+              <audio src={settings.music_url} controls className="w-full accent-[#fafafa]" />
               <RemoveMediaButton
                 label="Remove music"
                 disabled={isRemoving || uploadPending}

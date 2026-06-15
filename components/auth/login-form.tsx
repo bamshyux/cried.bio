@@ -33,7 +33,7 @@ export function LoginForm() {
           <label htmlFor="password" className="text-[13px] font-medium text-neutral-400">
             Password
           </label>
-          <Link href="/forgot-password" className="text-[13px] font-medium text-[#00e5cc] hover:text-[#00c9b4]">
+          <Link href="/forgot-password" className="text-[13px] font-medium text-[#fafafa] hover:text-[#e5e5e5]">
             Forgot password?
           </Link>
         </div>
@@ -56,14 +56,14 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-lg bg-[#00e5cc] px-4 py-3 text-sm font-semibold text-[#090909] transition-colors hover:bg-[#00c9b4] disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-lg bg-[#fafafa] px-4 py-3 text-sm font-semibold text-[#090909] transition-colors hover:bg-[#e5e5e5] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? "Logging in..." : "Login"}
       </button>
 
       <p className="text-center text-sm text-neutral-500">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-medium text-[#00e5cc] hover:text-[#00c9b4]">
+        <Link href="/signup" className="font-medium text-[#fafafa] hover:text-[#e5e5e5]">
           Create Profile
         </Link>
       </p>

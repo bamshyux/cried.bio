@@ -1,5 +1,5 @@
--- BioForge v18: Auto-award Year One + OG badges on signup
--- Year One: all new accounts during the first year (until BIOFORGE_YEAR_ONE_END / default Jun 14, 2027)
+-- cried.bio v18: Auto-award Year One + OG badges on signup
+-- Year One: all new accounts during the first year (until CRIED_YEAR_ONE_END / default Jun 14, 2027)
 -- OG: first 50 profiles by sequential uid
 -- Safe to re-run
 

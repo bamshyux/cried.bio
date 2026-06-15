@@ -96,7 +96,7 @@ export function PlatformIconGrid({
           key={platform.id}
           type="button"
           onClick={() => onSelect(platform.id)}
-          className="flex flex-col items-center gap-1.5 rounded-lg border border-white/[0.06] bg-[#0f0f0f] p-3 transition-colors hover:border-[#00e5cc]/30 hover:bg-[#141414]"
+          className="flex flex-col items-center gap-1.5 rounded-lg border border-white/[0.06] bg-[#0f0f0f] p-3 transition-colors hover:border-[#fafafa]/30 hover:bg-[#141414]"
         >
           <LinkIcon platform={platform.id} size={18} />
           <span className="text-[10px] text-neutral-500">{platform.name}</span>

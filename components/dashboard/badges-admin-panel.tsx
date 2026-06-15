@@ -200,7 +200,7 @@ export function BadgesAdminPanel({ catalog }: { catalog: Badge[] }) {
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label htmlFor="badge-color" className={labelClassName}>Color</label>
-                <input id="badge-color" name="color" type="color" defaultValue="#00e5cc" className="h-10 w-full cursor-pointer rounded-lg border border-white/[0.06] bg-[#141414]" />
+                <input id="badge-color" name="color" type="color" defaultValue="#fafafa" className="h-10 w-full cursor-pointer rounded-lg border border-white/[0.06] bg-[#141414]" />
               </div>
               <div>
                 <label htmlFor="badge-rarity" className={labelClassName}>Rarity</label>
@@ -218,7 +218,7 @@ export function BadgesAdminPanel({ catalog }: { catalog: Badge[] }) {
                 name="icon_image"
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
-                className="block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#00e5cc] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]"
+                className="block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#fafafa] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]"
               />
               <p className="mt-1.5 text-xs text-neutral-600">PNG, WebP, or SVG recommended. Max 2 MB.</p>
             </div>

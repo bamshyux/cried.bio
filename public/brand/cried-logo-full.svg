@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" fill="none">
+  <g transform="translate(0 4)">
+    <path d="M16 3C16 3 7 14.5 7 20.5C7 25.194 10.806 29 16 29C21.194 29 25 25.194 25 20.5C25 14.5 16 3 16 3Z" fill="#fafafa"/>
+  </g>
+  <text x="42" y="26" fill="#fafafa" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.02em">cried.bio</text>
+</svg>

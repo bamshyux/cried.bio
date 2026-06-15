@@ -1,4 +1,4 @@
--- BioForge v11: Custom profile status + music player colors
+-- cried.bio v11: Custom profile status + music player colors
 -- Run in Supabase Dashboard → SQL Editor
 -- Empty string = use profile accent color
 

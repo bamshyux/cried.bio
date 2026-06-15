@@ -1,4 +1,4 @@
--- BioForge v9: Auto-award view milestone badges (100, 1K, 10K, 100K views)
+-- cried.bio v9: Auto-award view milestone badges (100, 1K, 10K, 100K views)
 -- Run in Supabase Dashboard → SQL Editor (after v5_badges.sql + analytics_events)
 
 create or replace function public.sync_view_milestone_badges(p_profile_id uuid)

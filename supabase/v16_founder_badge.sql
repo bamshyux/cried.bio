@@ -1,9 +1,9 @@
--- BioForge v16: Founder badge — exclusive to the platform founder
+-- cried.bio v16: Founder badge — exclusive to the platform founder
 -- Safe to re-run
 
 update public.badges
 set
-  description = 'Founder of BioForge',
+  description = 'Founder of cried.bio',
   category = 'verification',
   is_assignable = false
 where slug = 'founder';

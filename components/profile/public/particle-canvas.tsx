@@ -54,7 +54,7 @@ export function ParticleCanvas({ effect }: { effect: ParticleEffect }) {
         updateParticle(p, effect, canvas.width, canvas.height);
 
         if (effect === "matrix") {
-          ctx.fillStyle = `rgba(0, 229, 204, ${p.opacity})`;
+          ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
           ctx.font = `${p.size}px monospace`;
           ctx.fillText(p.char ?? "0", p.x, p.y);
         } else if (effect === "sakura") {

@@ -270,7 +270,7 @@ export function BadgeCard({
               type="button"
               onClick={onToggleVisible}
               className={`rounded-md px-2 py-1 text-[10px] font-medium ${
-                badge.is_visible !== false ? "bg-[#00e5cc]/10 text-[#00e5cc]" : "bg-white/[0.04] text-neutral-500"
+                badge.is_visible !== false ? "bg-[#fafafa]/10 text-[#fafafa]" : "bg-white/[0.04] text-neutral-500"
               }`}
             >
               {badge.is_visible !== false ? "Visible" : "Hidden"}

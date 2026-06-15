@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BioForgeLogo } from "@/components/brand/logo";
+import { CriedLogo } from "@/components/brand/logo";
 import { SITE_HOST } from "@/lib/site";
 
 export function LegalPageLayout({
@@ -14,13 +14,13 @@ export function LegalPageLayout({
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#090909] text-white">
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(0,229,204,0.06),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255, 255, 255, 0.06),transparent)]" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_70%)]" />
       </div>
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <Link href="/">
-          <BioForgeLogo />
+          <CriedLogo />
         </Link>
         <Link
           href="/"
@@ -41,7 +41,7 @@ export function LegalPageLayout({
 
       <footer className="relative z-10 border-t border-white/[0.04] py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
-          <p className="text-sm text-neutral-600">© {new Date().getFullYear()} BioForge</p>
+          <p className="text-sm text-neutral-600">© {new Date().getFullYear()} cried.bio</p>
           <div className="flex gap-6 text-sm text-neutral-600">
             <Link href="/terms" className="transition-colors hover:text-neutral-400">
               Terms

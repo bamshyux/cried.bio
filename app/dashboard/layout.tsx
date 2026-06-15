@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { syncFounderBadges, syncSignupBadgesAction } from "@/app/actions/badges";
-import { BioForgeLogo } from "@/components/brand/logo";
+import { CriedLogo } from "@/components/brand/logo";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
@@ -31,7 +31,7 @@ export default async function DashboardLayout({
       <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#090909]/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
           <Link href="/" className="lg:hidden">
-            <BioForgeLogo size={28} />
+            <CriedLogo size={28} />
           </Link>
           <div className="hidden lg:block" />
           <div className="flex items-center gap-4">

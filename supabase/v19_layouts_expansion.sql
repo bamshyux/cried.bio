@@ -1,4 +1,4 @@
--- BioForge v19: Additional profile layouts
+-- cried.bio v19: Additional profile layouts
 -- Run in Supabase Dashboard → SQL Editor
 
 alter table public.profile_settings drop constraint if exists profile_settings_layout_check;

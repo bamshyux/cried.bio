@@ -31,7 +31,7 @@ export function ProfileLinkButton({
       rel="noopener noreferrer"
       onClick={() => trackLinkClick(profileId, link.id)}
       className={`group flex items-center justify-between border px-4 py-3 ${animClass} ${hoverClass} ${
-        featured ? "border-[var(--bf-accent,#00e5cc)]/30 bg-[var(--bf-accent,#00e5cc)]/[0.06]" : ""
+        featured ? "border-[var(--bf-accent,#fafafa)]/30 bg-[var(--bf-accent,#fafafa)]/[0.06]" : ""
       }`}
       style={{
         color: link.color ?? settings.text_color,
@@ -105,7 +105,7 @@ export function SocialIconRow({
           rel="noopener noreferrer"
           onClick={() => trackLinkClick(profileId, link.id)}
           title={link.title}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.03] transition-colors hover:border-[var(--bf-accent,#00e5cc)]/30 hover:bg-[var(--bf-accent,#00e5cc)]/[0.06]"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.03] transition-colors hover:border-[var(--bf-accent,#fafafa)]/30 hover:bg-[var(--bf-accent,#fafafa)]/[0.06]"
         >
           <LinkIcon
             platform={link.icon}

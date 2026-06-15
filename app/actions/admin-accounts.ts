@@ -6,6 +6,7 @@ import { getFounderUserId } from "@/lib/badges/founder";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import { deleteAllUserStorage } from "@/lib/storage/delete-user-storage";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import type { AdminAccountFormState, AdminAccountSummary } from "@/lib/types/admin-account";
 
 async function guardSuperAdmin() {
@@ -14,28 +15,32 @@ async function guardSuperAdmin() {
   return { auth } as const;
 }
 
-async function buildEmailMap(): Promise<Map<string, string>> {
-  const admin = createAdminClient();
-  const map = new Map<string, string>();
-  if (!admin) return map;
-
-  let page = 1;
-  const perPage = 200;
-
-  while (true) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
-    if (error || !data.users.length) break;
-
-    for (const user of data.users) {
-      if (user.email) map.set(user.id, user.email);
-    }
-
-    if (data.users.length < perPage) break;
-    page += 1;
+function rpcSetupHint(message: string) {
+  if (
+    message.includes("admin_list_accounts") ||
+    message.includes("admin_update_account") ||
+    message.includes("admin_delete_account") ||
+    message.includes("Could not find the function")
+  ) {
+    return `${message} Run supabase/v20_admin_accounts.sql in the Supabase SQL Editor.`;
   }
-
-  return map;
+  return message;
 }
+
+type AdminAccountRow = {
+  id: string;
+  email: string | null;
+  uid: number | null;
+  username: string | null;
+  display_name: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  banner_url: string | null;
+  is_admin: boolean;
+  premium_tier: string;
+  premium_expires_at: string | null;
+  created_at: string;
+};
 
 export async function listAdminAccountsAction(): Promise<{
   accounts?: AdminAccountSummary[];
@@ -44,34 +49,26 @@ export async function listAdminAccountsAction(): Promise<{
   const gate = await guardSuperAdmin();
   if ("error" in gate) return { error: gate.error };
 
-  const admin = createAdminClient();
-  if (!admin) return { error: "Server admin client is not configured." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_list_accounts");
 
-  const [{ data: profiles, error: profilesError }, emailMap] = await Promise.all([
-    admin
-      .from("profiles")
-      .select(
-        "id, uid, username, display_name, bio, avatar_url, banner_url, is_admin, premium_tier, premium_expires_at, created_at",
-      )
-      .order("uid", { ascending: true, nullsFirst: false }),
-    buildEmailMap(),
-  ]);
+  if (error) {
+    return { error: rpcSetupHint(error.message) };
+  }
 
-  if (profilesError) return { error: profilesError.message };
-
-  const accounts: AdminAccountSummary[] = (profiles ?? []).map((profile) => ({
-    id: profile.id,
-    email: emailMap.get(profile.id) ?? null,
-    uid: profile.uid,
-    username: profile.username,
-    display_name: profile.display_name,
-    bio: profile.bio,
-    avatar_url: profile.avatar_url,
-    banner_url: profile.banner_url,
-    is_admin: !!profile.is_admin,
-    premium_tier: profile.premium_tier ?? "free",
-    premium_expires_at: profile.premium_expires_at,
-    created_at: profile.created_at,
+  const accounts: AdminAccountSummary[] = ((data ?? []) as AdminAccountRow[]).map((row) => ({
+    id: row.id,
+    email: row.email,
+    uid: row.uid,
+    username: row.username,
+    display_name: row.display_name,
+    bio: row.bio,
+    avatar_url: row.avatar_url,
+    banner_url: row.banner_url,
+    is_admin: !!row.is_admin,
+    premium_tier: row.premium_tier ?? "free",
+    premium_expires_at: row.premium_expires_at,
+    created_at: row.created_at,
   }));
 
   return { accounts };
@@ -84,14 +81,8 @@ export async function updateAdminAccountAction(
   const gate = await guardSuperAdmin();
   if ("error" in gate) return { error: gate.error };
 
-  const admin = createAdminClient();
-  if (!admin) return { error: "Server admin client is not configured." };
-
   const userId = String(formData.get("user_id") ?? "").trim();
   if (!userId) return { error: "Missing account id." };
-
-  const { data: existing } = await admin.from("profiles").select("username").eq("id", userId).maybeSingle();
-  if (!existing) return { error: "Account not found." };
 
   const usernameRaw = String(formData.get("username") ?? "").trim();
   const displayName = String(formData.get("display_name") ?? "").trim();
@@ -107,29 +98,23 @@ export async function updateAdminAccountAction(
     return { error: "Username must be 3–20 characters: lowercase letters, numbers, underscores." };
   }
 
-  if (username !== existing.username) {
-    const { data: taken } = await admin
-      .from("profiles")
-      .select("id")
-      .eq("username", username)
-      .neq("id", userId)
-      .maybeSingle();
+  const supabase = await createClient();
 
-    if (taken) return { error: "That username is already taken." };
-  }
+  const { data: existingRows } = await supabase.rpc("admin_list_accounts");
+  const existing = ((existingRows ?? []) as AdminAccountRow[]).find((row) => row.id === userId);
+  if (!existing) return { error: "Account not found." };
 
-  const update = {
-    username,
-    display_name: displayName || null,
-    bio: bio || "",
-    is_admin: isAdmin,
-    premium_tier: premiumTier === "premium" ? "premium" : "free",
-    premium_expires_at: premiumExpiresRaw ? new Date(premiumExpiresRaw).toISOString() : null,
-    updated_at: new Date().toISOString(),
-  };
+  const { error } = await supabase.rpc("admin_update_account", {
+    p_user_id: userId,
+    p_username: username,
+    p_display_name: displayName,
+    p_bio: bio,
+    p_is_admin: isAdmin,
+    p_premium_tier: premiumTier === "premium" ? "premium" : "free",
+    p_premium_expires_at: premiumExpiresRaw ? new Date(premiumExpiresRaw).toISOString() : null,
+  });
 
-  const { error } = await admin.from("profiles").update(update).eq("id", userId);
-  if (error) return { error: error.message };
+  if (error) return { error: rpcSetupHint(error.message) };
 
   revalidatePath("/dashboard/accounts");
   if (existing.username) revalidatePath(`/${existing.username}`);
@@ -145,9 +130,6 @@ export async function deleteAdminAccountAction(
   const gate = await guardSuperAdmin();
   if ("error" in gate) return { error: gate.error };
 
-  const admin = createAdminClient();
-  if (!admin) return { error: "Server admin client is not configured." };
-
   const userId = String(formData.get("user_id") ?? "").trim();
   const confirmUsername = normalizeUsername(String(formData.get("confirm_username") ?? ""));
 
@@ -157,24 +139,30 @@ export async function deleteAdminAccountAction(
   const founderId = await getFounderUserId();
   if (founderId && userId === founderId) return { error: "The founder account cannot be deleted." };
 
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("username")
-    .eq("id", userId)
-    .maybeSingle();
+  const supabase = await createClient();
+  const { data: existingRows } = await supabase.rpc("admin_list_accounts");
+  const profile = ((existingRows ?? []) as AdminAccountRow[]).find((row) => row.id === userId);
 
   if (!profile?.username) return { error: "Account not found." };
   if (confirmUsername !== profile.username) {
     return { error: "Confirmation username does not match." };
   }
 
-  await deleteAllUserStorage(admin, userId);
+  const admin = createAdminClient();
+  if (admin) {
+    await deleteAllUserStorage(admin, userId);
+  }
 
-  const { error: deleteError } = await admin.auth.admin.deleteUser(userId);
-  if (deleteError) return { error: deleteError.message };
+  const { error: deleteError } = await supabase.rpc("admin_delete_account", {
+    p_user_id: userId,
+    p_confirm_username: confirmUsername,
+  });
+
+  if (deleteError) return { error: rpcSetupHint(deleteError.message) };
 
   revalidatePath("/dashboard/accounts");
   revalidatePath(`/${profile.username}`);
 
-  return { success: `Deleted @${profile.username} and all associated data.` };
+  const storageNote = admin ? "" : " (Add SUPABASE_SERVICE_ROLE_KEY to also purge uploaded files.)";
+  return { success: `Deleted @${profile.username} and all associated data.${storageNote}` };
 }

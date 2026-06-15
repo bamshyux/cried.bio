@@ -2,16 +2,16 @@ import { getBadgeIdBySlug, profileHasBadge } from "@/lib/data/badges";
 import { createClient } from "@/lib/supabase/server";
 
 export const FOUNDER_BADGE_SLUG = "founder";
-export const FOUNDER_BADGE_DESCRIPTION = "Founder of BioForge";
+export const FOUNDER_BADGE_DESCRIPTION = "Founder of cried.bio";
 
-/** Default founder username when BIOFORGE_FOUNDER_USER_ID is not set. */
+/** Default founder username when CRIED_FOUNDER_USER_ID is not set. */
 export const DEFAULT_FOUNDER_USERNAME = "bamshy";
 
 export async function getFounderUserId(): Promise<string | null> {
-  const fromEnv = process.env.BIOFORGE_FOUNDER_USER_ID?.trim();
+  const fromEnv = process.env.CRIED_FOUNDER_USER_ID?.trim();
   if (fromEnv) return fromEnv;
 
-  const username = process.env.BIOFORGE_FOUNDER_USERNAME?.trim() || DEFAULT_FOUNDER_USERNAME;
+  const username = process.env.CRIED_FOUNDER_USERNAME?.trim() || DEFAULT_FOUNDER_USERNAME;
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")

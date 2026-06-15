@@ -19,7 +19,7 @@ export async function createFeaturedBlockAction(
   const blockType = String(formData.get("block_type") ?? "link") as FeaturedBlockType;
   const description = String(formData.get("description") ?? "").trim();
   const url = String(formData.get("url") ?? "").trim();
-  const accentColor = String(formData.get("accent_color") ?? "#00e5cc");
+  const accentColor = String(formData.get("accent_color") ?? "#fafafa");
   const thumbnailUrl = String(formData.get("thumbnail_url") ?? "").trim() || null;
 
   if (!title) return { error: "Title is required." };
@@ -69,7 +69,7 @@ export async function updateFeaturedBlockAction(
       title,
       description: String(formData.get("description") ?? "").trim(),
       url: String(formData.get("url") ?? "").trim(),
-      accent_color: String(formData.get("accent_color") ?? "#00e5cc"),
+      accent_color: String(formData.get("accent_color") ?? "#fafafa"),
       block_type: String(formData.get("block_type") ?? "link"),
       thumbnail_url: String(formData.get("thumbnail_url") ?? "").trim() || null,
     })

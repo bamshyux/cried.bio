@@ -24,11 +24,11 @@ type PageProps = { params: Promise<{ username: string }> };
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
   const profile = await getProfileByUsername(username);
-  if (!profile) return { title: "Profile Not Found — BioForge" };
+  if (!profile) return { title: "Profile Not Found — cried.bio" };
   const displayName = profile.display_name || profile.username;
   return {
-    title: `${displayName} — BioForge`,
-    description: profile.bio || `${displayName}'s BioForge profile`,
+    title: `${displayName} — cried.bio`,
+    description: profile.bio || `${displayName}'s cried.bio profile`,
   };
 }
 
