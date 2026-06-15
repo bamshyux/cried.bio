@@ -144,6 +144,7 @@ export type ProfileSettings = {
   show_badges: boolean;
   badge_display_limit: number;
   badges_monochrome: boolean;
+  badges_glow: boolean;
   badge_color: string;
   links_monochrome: boolean;
   links_style: LinksStyle;

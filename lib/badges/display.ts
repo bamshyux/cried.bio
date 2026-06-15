@@ -10,6 +10,8 @@ export type BadgeStyleOptions = {
   monochrome?: boolean;
   /** Applied when monochrome is on — uses profile text color from Customize */
   color?: string;
+  /** Subtle color-matched glow around badge seals */
+  glow?: boolean;
 };
 
 /** Color used for badges when monochrome mode is enabled */
@@ -28,11 +30,12 @@ export function resolveBadgeColor(
 }
 
 export function buildBadgeStyleOptions(
-  settings: Pick<ProfileSettings, "badges_monochrome" | "text_color">,
+  settings: Pick<ProfileSettings, "badges_monochrome" | "text_color" | "badges_glow">,
 ): BadgeStyleOptions {
   return {
     monochrome: settings.badges_monochrome,
     color: settings.badges_monochrome ? getMonochromeBadgeColor(settings) : undefined,
+    glow: settings.badges_glow ?? true,
   };
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { backgroundUploadSizeError, MAX_BACKGROUND_UPLOAD_BYTES } from "@/lib/uploads/limits";
+import { backgroundUploadSizeError, MAX_BACKGROUND_UPLOAD_BYTES, MAX_BACKGROUND_UPLOAD_LABEL } from "@/lib/uploads/limits";
 
 async function removeExistingBackgroundFiles(userId: string) {
   const supabase = createClient();
@@ -54,6 +54,12 @@ export async function uploadBackgroundToStorage(
     .upload(path, file, { upsert: true, contentType: file.type });
 
   if (error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes("size") || msg.includes("large") || msg.includes("payload") || msg.includes("limit")) {
+      throw new Error(
+        `Upload rejected — storage limit is ${MAX_BACKGROUND_UPLOAD_LABEL}. ${backgroundUploadSizeError()}`,
+      );
+    }
     throw new Error(error.message);
   }
 

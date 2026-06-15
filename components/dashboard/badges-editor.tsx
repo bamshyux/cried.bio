@@ -169,6 +169,12 @@ export function BadgesEditor({
                 description={`Tint all badges to your text color (${settings.text_color}) from Customize`}
                 defaultChecked={settings.badges_monochrome}
               />
+              <ToggleField
+                name="badges_glow"
+                label="Badge glow"
+                description="Subtle color-matched glow around each badge seal"
+                defaultChecked={settings.badges_glow ?? true}
+              />
               <SliderField
                 name="badge_display_limit"
                 label="Public badge limit"

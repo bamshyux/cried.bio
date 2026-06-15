@@ -495,100 +495,17 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: transform 0.22s cubic-bezier(0.34, 1.4, 0.64, 1), filter 0.22s ease;
+  transition: transform 0.22s cubic-bezier(0.34, 1.4, 0.64, 1);
   transform-origin: center center;
 }
 
-.bf-badge-medallion__aura {
-  position: absolute;
-  inset: -35%;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--bf-badge-aura) 0%, transparent 68%);
-  opacity: 0.85;
-  pointer-events: none;
-  transition: opacity 0.22s ease;
-}
-
-.bf-badge-medallion__shine {
-  position: absolute;
-  inset: -8%;
-  border-radius: 50%;
-  background: linear-gradient(
-    125deg,
-    transparent 38%,
-    rgba(255, 255, 255, 0.42) 48%,
-    rgba(255, 255, 255, 0.08) 52%,
-    transparent 62%
-  );
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(-120%) rotate(12deg);
-  transition: opacity 0.2s ease;
-}
-
-.bf-badge-medallion--active .bf-badge-medallion__shine,
-.bf-badge-medallion--featured .bf-badge-medallion__shine {
-  opacity: 0.75;
-  animation: bf-badge-shine-sweep 0.65s ease forwards;
-}
-
-.bf-badge-medallion--shimmer .bf-badge-medallion__glyph {
-  animation: bf-badge-shimmer 2.8s ease-in-out infinite;
-}
-
-.bf-badge-medallion--featured .bf-badge-medallion__aura {
-  opacity: 1;
-  animation: bf-badge-pulse 2.4s ease-in-out infinite;
-}
-
-.bf-badge-medallion__glyph {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 0;
-}
-
-.bf-verified-badge {
+.bf-seal-badge {
   display: block;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+  transition: filter 0.22s ease;
 }
 
-@keyframes bf-badge-shine-sweep {
-  from {
-    transform: translateX(-130%) rotate(12deg);
-    opacity: 0;
-  }
-  20% {
-    opacity: 0.85;
-  }
-  to {
-    transform: translateX(130%) rotate(12deg);
-    opacity: 0;
-  }
-}
-
-@keyframes bf-badge-shimmer {
-  0%,
-  100% {
-    filter: brightness(1);
-  }
-  50% {
-    filter: brightness(1.18);
-  }
-}
-
-@keyframes bf-badge-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.75;
-  }
-  50% {
-    transform: scale(1.08);
-    opacity: 1;
-  }
+.bf-badge-medallion--no-glow .bf-seal-badge {
+  filter: none !important;
 }
 
 .bf-badge-icon {

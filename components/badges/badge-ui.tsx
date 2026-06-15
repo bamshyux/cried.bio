@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { BadgeMedallion } from "@/components/badges/badge-medallion";
 import { rarityClass } from "@/components/icons/badge-icons";
 import type { BadgeStyleOptions } from "@/lib/badges/display";
-import { COMPACT_BADGE_ICON_SIZE } from "@/lib/badges/glow";
+import { COMPACT_BADGE_ICON_SIZE } from "@/lib/badges/seal-utils";
 import { getRarityVisual } from "@/lib/badges/rarity-visuals";
 import type { Badge, BadgeInventoryItem, ProfileBadge } from "@/lib/types/badge";
 
@@ -89,6 +89,7 @@ export function BadgeChip({
   const rarity = rarityClass(badge.rarity);
   const rarityVisual = getRarityVisual(badge.rarity);
   const monochrome = styleOptions?.monochrome ?? false;
+  const glowEnabled = styleOptions?.glow ?? true;
   const displayColor = resolveDisplayColor(badge, styleOptions);
   const chipRef = useRef<HTMLSpanElement>(null);
   const [hovered, setHovered] = useState(false);
@@ -123,6 +124,7 @@ export function BadgeChip({
       hovered={hovered}
       monochrome={monochrome}
       featured={badge.is_featured}
+      glowEnabled={glowEnabled}
     />
   );
 
@@ -198,6 +200,7 @@ export function BadgeCard({
 }) {
   const rarityVisual = getRarityVisual(badge.rarity);
   const monochrome = styleOptions?.monochrome ?? false;
+  const glowEnabled = styleOptions?.glow ?? true;
   const displayColor = resolveDisplayColor(badge, styleOptions);
   const [hovered, setHovered] = useState(false);
 
@@ -240,6 +243,7 @@ export function BadgeCard({
           hovered={hovered}
           monochrome={monochrome || !earned}
           featured={badge.is_featured}
+          glowEnabled={glowEnabled}
         />
 
         <p

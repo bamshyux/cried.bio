@@ -58,6 +58,7 @@ export async function updateBadgeDisplaySettingsAction(
 
   const showBadges = formData.get("show_badges") === "true";
   const badgesMonochrome = formData.get("badges_monochrome") === "true";
+  const badgesGlow = formData.get("badges_glow") === "true";
   const limit = parseInt(String(formData.get("badge_display_limit") ?? "5"), 10);
   const badgeDisplayLimit = Number.isFinite(limit) ? Math.min(20, Math.max(0, limit)) : 5;
 
@@ -65,6 +66,7 @@ export async function updateBadgeDisplaySettingsAction(
     show_badges: showBadges,
     badge_display_limit: badgeDisplayLimit,
     badges_monochrome: badgesMonochrome,
+    badges_glow: badgesGlow,
   });
 
   const supabase = await createClient();

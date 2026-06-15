@@ -8,6 +8,7 @@ import {
   updateSettingsAction,
 } from "@/app/actions/settings";
 import { uploadBackgroundToStorage } from "@/lib/uploads/background-client";
+import { MAX_BACKGROUND_UPLOAD_LABEL } from "@/lib/uploads/limits";
 import { BACKGROUND_TYPE_OPTIONS, PARTICLE_OPTIONS } from "@/lib/settings";
 import type { BackgroundType, ParticleEffect, ProfileSettings, SettingsFormState } from "@/lib/types/settings";
 import { ControlledSelect } from "@/components/dashboard/controlled-fields";
@@ -222,7 +223,7 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
             <p className="text-xs text-neutral-600">
               {uploadPending
                 ? "Uploading background..."
-                : "Choose a file to upload or replace your background."}
+                : `JPEG, PNG, WebP, GIF, or MP4 — max ${MAX_BACKGROUND_UPLOAD_LABEL}.`}
             </p>
             <FormFeedback error={uploadError} success={uploadSuccess} />
           </div>
