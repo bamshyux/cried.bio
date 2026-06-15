@@ -2,10 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { isValidDiscordUserId } from "@/lib/discord/connection";
 import {
   removeDiscordStatusWidget,
   setDiscordStatusWidgetEnabled,
+  updateDiscordStatusWidgetConfig,
 } from "@/lib/data/discord-widget";
+import type { DiscordCardConfig } from "@/lib/types/discord-widget";
 import { formatSchemaError } from "@/lib/db/schema";
 import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
 
@@ -44,13 +47,15 @@ export async function toggleDiscordStatusAction(show: boolean): Promise<{ error?
   if (!userId) return { error: "Not signed in." };
 
   const discordUserId = await getDiscordUserId(userId);
-  if (!discordUserId && show) {
+  if (!isValidDiscordUserId(discordUserId) && show) {
     return { error: "Connect your Discord account before enabling status on your profile." };
   }
 
-  await setDiscordStatusWidgetEnabled(userId, show && Boolean(discordUserId));
+  await setDiscordStatusWidgetEnabled(userId, show && isValidDiscordUserId(discordUserId));
 
-  const patch = await omitUnsupportedSettingsColumns({ show_discord_status: show && Boolean(discordUserId) });
+  const patch = await omitUnsupportedSettingsColumns({
+    show_discord_status: show && isValidDiscordUserId(discordUserId),
+  });
   const supabase = await createClient();
   const { error } = await supabase
     .from("profile_settings")
@@ -111,4 +116,39 @@ export async function saveDiscordUserIdAction(discordUserId: string): Promise<{ 
   await setDiscordStatusWidgetEnabled(userId, false);
   await revalidateProfile(userId);
   return {};
+}
+
+export async function updateDiscordCardConfigAction(
+  config: DiscordCardConfig,
+): Promise<{ error?: string }> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "Not signed in." };
+
+  const discordUserId = await getDiscordUserId(userId);
+  if (!isValidDiscordUserId(discordUserId)) {
+    return { error: "Connect Discord before customizing the card." };
+  }
+
+  await updateDiscordStatusWidgetConfig(userId, config);
+  await revalidateProfile(userId);
+  return {};
+}
+
+export async function sanitizeDiscordConnectionAction(): Promise<void> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return;
+
+  const discordUserId = await getDiscordUserId(userId);
+  if (isValidDiscordUserId(discordUserId)) return;
+
+  await removeDiscordStatusWidget(userId);
+
+  const patch = await omitUnsupportedSettingsColumns({
+    widgets_discord_user_id: "",
+    discord_username: "",
+    discord_avatar: "",
+    show_discord_status: false,
+  });
+  const supabase = await createClient();
+  await supabase.from("profile_settings").update(patch).eq("profile_id", userId);
 }

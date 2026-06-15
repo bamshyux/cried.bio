@@ -1,3 +1,4 @@
+import type { DiscordCardStyle } from "@/lib/types/discord-widget";
 import type {
   BackgroundType,
   ContentAlignment,
@@ -81,6 +82,8 @@ export const DEFAULT_SETTINGS: Omit<
   discord_username: "",
   discord_avatar: "",
   show_discord_status: false,
+  discord_card_style: "discord",
+  discord_show_lanyard_hint: false,
   custom_theme_id: null,
 };
 
@@ -305,6 +308,12 @@ export function mergeSettings(
     discord_username: row?.discord_username ?? DEFAULT_SETTINGS.discord_username,
     discord_avatar: row?.discord_avatar ?? DEFAULT_SETTINGS.discord_avatar,
     show_discord_status: row?.show_discord_status ?? DEFAULT_SETTINGS.show_discord_status,
+    discord_card_style:
+      (row as { discord_card_style?: DiscordCardStyle })?.discord_card_style ??
+      DEFAULT_SETTINGS.discord_card_style,
+    discord_show_lanyard_hint:
+      (row as { discord_show_lanyard_hint?: boolean })?.discord_show_lanyard_hint ??
+      DEFAULT_SETTINGS.discord_show_lanyard_hint,
     custom_theme_id: row?.custom_theme_id ?? null,
     created_at: row?.created_at ?? now,
     updated_at: row?.updated_at ?? now,

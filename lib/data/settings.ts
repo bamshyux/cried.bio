@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { getDiscordStatusWidgetEnabled } from "@/lib/data/discord-widget";
+import { applyDiscordCardConfig } from "@/lib/discord/card-config";
+import { isValidDiscordUserId } from "@/lib/discord/connection";
+import { getDiscordStatusWidget } from "@/lib/data/discord-widget";
 import { mergeSettings } from "@/lib/settings";
 import type { ProfileSettings } from "@/lib/types/settings";
 
@@ -22,15 +24,20 @@ export async function getSettingsByProfileId(
     }
   }
 
-  const settings = mergeSettings(row, profileId);
+  let settings = mergeSettings(row, profileId);
+  const widget = await getDiscordStatusWidget(profileId);
+  const connected = isValidDiscordUserId(settings.discord_user_id);
 
-  const widgetEnabled = await getDiscordStatusWidgetEnabled(profileId);
-  if (widgetEnabled != null) {
-    settings.show_discord_status = widgetEnabled;
-  }
-
-  if (!settings.discord_user_id.trim()) {
+  if (!connected) {
+    settings.discord_user_id = "";
+    settings.discord_username = "";
+    settings.discord_avatar = "";
     settings.show_discord_status = false;
+  } else if (widget) {
+    settings.show_discord_status = widget.is_enabled;
+    settings = applyDiscordCardConfig(settings, widget.config);
+  } else {
+    settings.show_discord_status = row?.show_discord_status === true;
   }
 
   return settings;

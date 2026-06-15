@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toggleDiscordStatusAction } from "@/app/actions/discord";
+import { isDiscordConnected } from "@/lib/discord/connection";
 import type { ProfileEmbed } from "@/lib/types/embed";
 import type { ProfileSettings } from "@/lib/types/settings";
 import { SiDiscord } from "react-icons/si";
@@ -19,7 +20,7 @@ export function ProfileEditWidgetsPanel({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const connected = Boolean(settings.discord_user_id);
+  const connected = isDiscordConnected(settings);
   const visibleEmbeds = embeds.filter((e) => e.is_visible).length;
 
   const toggleDiscord = () => {

@@ -165,6 +165,8 @@ export type ProfileSettings = {
   discord_username: string;
   discord_avatar: string;
   show_discord_status: boolean;
+  discord_card_style: import("@/lib/types/discord-widget").DiscordCardStyle;
+  discord_show_lanyard_hint: boolean;
   custom_theme_id: string | null;
   created_at: string;
   updated_at: string;

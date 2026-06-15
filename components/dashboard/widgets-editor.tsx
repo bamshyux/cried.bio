@@ -7,6 +7,7 @@ import {
   disconnectDiscordAction,
   saveDiscordUserIdAction,
   toggleDiscordStatusAction,
+  updateDiscordCardConfigAction,
 } from "@/app/actions/discord";
 import {
   buttonPrimaryClassName,
@@ -18,8 +19,15 @@ import {
   ToggleField,
 } from "@/components/dashboard/form-fields";
 import { SiDiscord } from "react-icons/si";
+import { DiscordStatusCard } from "@/components/profile/public/discord-status-card";
+import { getDiscordCardStyleLabel } from "@/lib/discord/card-config";
+import { isDiscordConnected } from "@/lib/discord/connection";
+import { buildFallbackDiscordPresence } from "@/lib/discord/fallback-presence";
 import { getDiscordAvatarUrl } from "@/lib/discord/config";
+import type { DiscordCardConfig, DiscordCardStyle } from "@/lib/types/discord-widget";
 import type { ProfileSettings } from "@/lib/types/settings";
+
+const CARD_STYLES: DiscordCardStyle[] = ["discord", "minimal", "compact"];
 
 const DISCORD_MESSAGES: Record<string, { type: "success" | "error"; text: string }> = {
   connected: { type: "success", text: "Discord account connected." },
@@ -46,9 +54,13 @@ export function WidgetsEditor({
   const searchParams = useSearchParams();
   const [feedback, setFeedback] = useState<{ error?: string; success?: string }>({});
   const [manualId, setManualId] = useState("");
+  const [cardConfig, setCardConfig] = useState<DiscordCardConfig>({
+    style: settings.discord_card_style ?? "discord",
+    show_lanyard_hint: settings.discord_show_lanyard_hint ?? false,
+  });
   const [isPending, startTransition] = useTransition();
 
-  const connected = Boolean(settings.discord_user_id);
+  const connected = isDiscordConnected(settings);
   const avatarUrl = connected
     ? getDiscordAvatarUrl(settings.discord_user_id, settings.discord_avatar || null)
     : null;
@@ -62,6 +74,13 @@ export function WidgetsEditor({
     }
     router.replace("/dashboard/widgets");
   }, [router, searchParams]);
+
+  useEffect(() => {
+    setCardConfig({
+      style: settings.discord_card_style ?? "discord",
+      show_lanyard_hint: settings.discord_show_lanyard_hint ?? false,
+    });
+  }, [settings.discord_card_style, settings.discord_show_lanyard_hint, settings.updated_at]);
 
   const handleToggle = (checked: boolean) => {
     startTransition(async () => {
@@ -89,6 +108,27 @@ export function WidgetsEditor({
       }
     });
   };
+
+  const saveCardConfig = (next: DiscordCardConfig) => {
+    setCardConfig(next);
+    startTransition(async () => {
+      const result = await updateDiscordCardConfigAction(next);
+      setFeedback(
+        result.error
+          ? { error: result.error }
+          : { success: "Discord card appearance updated." },
+      );
+      router.refresh();
+    });
+  };
+
+  const previewPresence = connected
+    ? buildFallbackDiscordPresence({
+        ...settings,
+        discord_card_style: cardConfig.style,
+        discord_show_lanyard_hint: cardConfig.show_lanyard_hint,
+      })
+    : null;
 
   return (
     <>
@@ -192,6 +232,59 @@ export function WidgetsEditor({
               </a>{" "}
               with the same account — no commands needed. You can mute the server after joining.
             </p>
+
+            <div className="mt-6 border-t border-white/[0.06] pt-4">
+              <h3 className="mb-1 text-sm font-medium text-white">Card appearance</h3>
+              <p className="mb-4 text-xs text-neutral-500">
+                Choose how the Discord status block looks on your public profile.
+              </p>
+
+              <div className="mb-4 grid gap-2 sm:grid-cols-3">
+                {CARD_STYLES.map((style) => (
+                  <button
+                    key={style}
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => saveCardConfig({ ...cardConfig, style })}
+                    className={`rounded-lg border px-3 py-2.5 text-left text-xs transition-colors disabled:opacity-50 ${
+                      cardConfig.style === style
+                        ? "border-[#5865F2]/60 bg-[#5865F2]/10 text-white"
+                        : "border-white/[0.06] bg-[#0f0f0f] text-neutral-400 hover:border-white/15 hover:text-white"
+                    }`}
+                  >
+                    <span className="block font-medium">{getDiscordCardStyleLabel(style)}</span>
+                  </button>
+                ))}
+              </div>
+
+              <ToggleField
+                key={`discord-hint-${settings.updated_at}-${cardConfig.show_lanyard_hint}`}
+                name="discord_show_lanyard_hint"
+                label="Show Lanyard setup hint"
+                description="When offline, show a small note about joining the Lanyard server for live activity."
+                defaultChecked={cardConfig.show_lanyard_hint}
+                onCheckedChange={(checked) =>
+                  saveCardConfig({ ...cardConfig, show_lanyard_hint: checked })
+                }
+              />
+
+              {previewPresence ? (
+                <div className="mt-4 rounded-lg border border-white/[0.06] bg-[#0a0a0a] p-4">
+                  <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
+                    Preview
+                  </p>
+                  <DiscordStatusCard
+                    presence={previewPresence}
+                    settings={{
+                      ...settings,
+                      discord_card_style: cardConfig.style,
+                      discord_show_lanyard_hint: cardConfig.show_lanyard_hint,
+                    }}
+                    live={false}
+                  />
+                </div>
+              ) : null}
+            </div>
           </div>
         )}
       </div>

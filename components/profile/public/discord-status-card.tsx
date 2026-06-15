@@ -1,6 +1,7 @@
 import { getActivityTypeLabel } from "@/lib/discord/activity-images";
 import { getDiscordStatusColor, getDiscordStatusLabel } from "@/lib/discord/status-colors";
 import type { DiscordActivity, DiscordPresence } from "@/lib/discord/types";
+import type { DiscordCardStyle } from "@/lib/types/discord-widget";
 import type { ProfileSettings } from "@/lib/types/settings";
 
 function ActivityBlock({
@@ -9,13 +10,23 @@ function ActivityBlock({
   line1,
   line2,
   imageUrl,
+  compact = false,
 }: {
   label: string;
   title: string;
   line1?: string;
   line2?: string;
   imageUrl?: string | null;
+  compact?: boolean;
 }) {
+  if (compact) {
+    return (
+      <p className="truncate px-3 pb-2.5 text-xs text-[#b5bac1]">
+        {label}: <span className="font-medium text-[#f2f3f5]">{title}</span>
+      </p>
+    );
+  }
+
   return (
     <div className="mx-3 mb-3 rounded-md bg-[#1e1f22] p-2.5">
       <div className="flex gap-3">
@@ -49,7 +60,7 @@ function ActivityBlock({
   );
 }
 
-function renderActivity(activity: DiscordActivity) {
+function renderActivity(activity: DiscordActivity, compact: boolean) {
   if (activity.type === 4) {
     return (
       <ActivityBlock
@@ -57,6 +68,7 @@ function renderActivity(activity: DiscordActivity) {
         title={activity.state || activity.name}
         line1={activity.state ? activity.name : undefined}
         imageUrl={activity.largeImageUrl}
+        compact={compact}
       />
     );
   }
@@ -68,7 +80,40 @@ function renderActivity(activity: DiscordActivity) {
       line1={activity.details}
       line2={activity.state}
       imageUrl={activity.largeImageUrl ?? activity.smallImageUrl}
+      compact={compact}
     />
+  );
+}
+
+function getCardShellClass(style: DiscordCardStyle) {
+  switch (style) {
+    case "minimal":
+      return "rounded-lg border border-white/10 bg-black/40 backdrop-blur-sm shadow-none";
+    case "compact":
+      return "rounded-md bg-[#2b2d31]/90 shadow-[0_4px_12px_rgba(0,0,0,0.2)]";
+    default:
+      return "rounded-lg bg-[#2b2d31] shadow-[0_8px_16px_rgba(0,0,0,0.24)]";
+  }
+}
+
+function LanyardHint({ minimal }: { minimal?: boolean }) {
+  return (
+    <p
+      className={`border-t px-3 py-2 text-[11px] leading-relaxed ${
+        minimal ? "border-white/10 text-neutral-500" : "border-[#1e1f22] text-[#949ba4]"
+      }`}
+    >
+      Join{" "}
+      <a
+        href="https://discord.gg/lanyard"
+        target="_blank"
+        rel="noreferrer"
+        className={minimal ? "text-[var(--bf-accent,#00a8fc)] hover:underline" : "text-[#00a8fc] hover:underline"}
+      >
+        discord.gg/lanyard
+      </a>{" "}
+      for live activity.
+    </p>
   );
 }
 
@@ -81,61 +126,76 @@ export function DiscordStatusCard({
   settings: ProfileSettings;
   live?: boolean;
 }) {
+  const style = settings.discord_card_style ?? "discord";
+  const compact = style === "compact";
   const statusColor = getDiscordStatusColor(presence.status);
   const statusLabel = getDiscordStatusLabel(presence.status);
   const displayName = settings.discord_username || presence.username;
   const hasActivity = Boolean(presence.activity || presence.spotify);
+  const showHint = settings.discord_show_lanyard_hint && !live && !hasActivity;
+  const avatarSize = compact ? "h-8 w-8" : "h-10 w-10";
+  const borderColor = style === "minimal" ? "border-white/10" : "border-[#2b2d31]";
 
   return (
-    <div className="profile-discord-status bf-profile-block mb-5 w-full max-w-[320px] overflow-hidden rounded-lg bg-[#2b2d31] shadow-[0_8px_16px_rgba(0,0,0,0.24)]">
-      <div className="flex items-center gap-3 px-3 py-3">
+    <div
+      className={`profile-discord-status bf-profile-block mb-5 w-full max-w-[320px] overflow-hidden ${getCardShellClass(style)}`}
+    >
+      <div className={`flex items-center gap-3 px-3 ${compact ? "py-2" : "py-3"}`}>
         {presence.avatarUrl ? (
           <div className="relative shrink-0">
             <img
               src={presence.avatarUrl}
               alt=""
-              className="h-10 w-10 rounded-full object-cover"
+              className={`${avatarSize} rounded-full object-cover`}
             />
             <span
-              className="absolute -bottom-0.5 -right-0.5 box-content h-2.5 w-2.5 rounded-full border-[3px] border-[#2b2d31]"
+              className={`absolute -bottom-0.5 -right-0.5 box-content h-2 w-2 rounded-full border-[2px] ${borderColor}`}
               style={{ backgroundColor: statusColor }}
               title={statusLabel}
             />
           </div>
         ) : null}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-semibold leading-tight text-[#f2f3f5]">
+          <p
+            className={`truncate font-semibold leading-tight ${
+              style === "minimal" ? "text-sm text-white" : "text-[15px] text-[#f2f3f5]"
+            }`}
+          >
             {displayName}
           </p>
-          <p className="truncate text-[13px] leading-snug text-[#b5bac1]">{statusLabel}</p>
+          <p
+            className={`truncate leading-snug ${
+              style === "minimal" ? "text-xs text-neutral-400" : "text-[13px] text-[#b5bac1]"
+            }`}
+          >
+            {statusLabel}
+          </p>
         </div>
       </div>
 
-      {presence.spotify ? (
+      {!compact && presence.spotify ? (
         <ActivityBlock
           label="Listening to Spotify"
           title={presence.spotify.song}
           line1={`by ${presence.spotify.artist}`}
           imageUrl={presence.spotify.albumArtUrl}
         />
-      ) : presence.activity ? (
-        renderActivity(presence.activity)
+      ) : !compact && presence.activity ? (
+        renderActivity(presence.activity, false)
+      ) : compact && hasActivity ? (
+        presence.spotify ? (
+          <ActivityBlock
+            label="Spotify"
+            title={presence.spotify.song}
+            line1={`by ${presence.spotify.artist}`}
+            compact
+          />
+        ) : presence.activity ? (
+          renderActivity(presence.activity, true)
+        ) : null
       ) : null}
 
-      {!live && !hasActivity ? (
-        <p className="border-t border-[#1e1f22] px-3 py-2 text-[11px] leading-relaxed text-[#949ba4]">
-          Join{" "}
-          <a
-            href="https://discord.gg/lanyard"
-            target="_blank"
-            rel="noreferrer"
-            className="text-[#00a8fc] hover:underline"
-          >
-            discord.gg/lanyard
-          </a>{" "}
-          for live activity.
-        </p>
-      ) : null}
+      {showHint ? <LanyardHint minimal={style === "minimal"} /> : null}
     </div>
   );
 }

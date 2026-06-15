@@ -44,12 +44,14 @@ export function DiscordStatusWidget({
           setPresence(mergeDiscordPresence(settings, json.presence));
           setLive(true);
         } else {
-          setPresence((current) => current ?? buildFallbackDiscordPresence(settings));
+          const fallback = buildFallbackDiscordPresence(settings);
+          setPresence(fallback);
           setLive(false);
         }
       } catch {
         if (!cancelled) {
-          setPresence((current) => current ?? buildFallbackDiscordPresence(settings));
+          const fallback = buildFallbackDiscordPresence(settings);
+          setPresence((current) => current ?? fallback);
         }
       }
     };
