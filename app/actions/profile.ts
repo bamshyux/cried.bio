@@ -1,5 +1,6 @@
 "use server";
 
+import { sendNewAccountDiscordAlert } from "@/lib/discord/signup-webhook";
 import { createClient } from "@/lib/supabase/server";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import type { ProfileFormState } from "@/lib/types/profile";
@@ -161,6 +162,19 @@ export async function updateProfileAction(
       return { error: "That username is already taken." };
     }
     return { error: error.message };
+  }
+
+  const hadUsername = Boolean(existingProfile?.username?.trim());
+  if (!hadUsername) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    void sendNewAccountDiscordAlert({
+      email: user?.email ?? "Unknown",
+      username,
+      displayName,
+      userId,
+    });
   }
 
   revalidatePath("/dashboard");
