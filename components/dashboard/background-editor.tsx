@@ -1,8 +1,13 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { removeBackgroundAction, updateSettingsAction, uploadBackgroundAction } from "@/app/actions/settings";
+import {
+  removeBackgroundAction,
+  saveBackgroundMediaAction,
+  updateSettingsAction,
+} from "@/app/actions/settings";
+import { uploadBackgroundToStorage } from "@/lib/uploads/background-client";
 import { BACKGROUND_TYPE_OPTIONS, PARTICLE_OPTIONS } from "@/lib/settings";
 import type { BackgroundType, ParticleEffect, ProfileSettings, SettingsFormState } from "@/lib/types/settings";
 import { ControlledSelect } from "@/components/dashboard/controlled-fields";
@@ -25,11 +30,17 @@ const initial: SettingsFormState = {};
 
 export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isRemoving, startRemove] = useTransition();
   const [state, formAction, isPending] = useActionState(updateSettingsAction, initial);
-  const [uploadState, uploadAction, uploadPending] = useActionState(uploadBackgroundAction, initial);
+  const [uploadError, setUploadError] = useState<string>();
+  const [uploadSuccess, setUploadSuccess] = useState<string>();
+  const [uploadPending, setUploadPending] = useState(false);
   useSettingsRefresh(state);
-  useSettingsRefresh(uploadState);
+
+  useEffect(() => {
+    if (uploadSuccess) router.refresh();
+  }, [uploadSuccess, router]);
 
   const [backgroundType, setBackgroundType] = useState(settings.background_type);
   const [particleEffect, setParticleEffect] = useState(settings.particle_effect ?? "");
@@ -49,6 +60,36 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
       await removeBackgroundAction();
       router.refresh();
     });
+  };
+
+  const handleBackgroundUpload = async () => {
+    const file = fileInputRef.current?.files?.[0];
+    if (!file) {
+      setUploadSuccess(undefined);
+      setUploadError("Please select a file.");
+      return;
+    }
+
+    setUploadPending(true);
+    setUploadError(undefined);
+    setUploadSuccess(undefined);
+
+    try {
+      const { url, isVideo } = await uploadBackgroundToStorage(file);
+      const result = await saveBackgroundMediaAction(url, isVideo ? "video" : "image");
+
+      if (result.error) {
+        setUploadError(result.error);
+        return;
+      }
+
+      setUploadSuccess(result.success);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "Upload failed.");
+    } finally {
+      setUploadPending(false);
+    }
   };
 
   return (
@@ -135,18 +176,24 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
             </div>
           )}
 
-          <form action={uploadAction} className="space-y-4">
+          <div className="space-y-4">
             <input
+              ref={fileInputRef}
               name="background"
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif,video/mp4"
               className="block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#00e5cc] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]"
             />
-            <FormFeedback error={uploadState.error} success={uploadState.success} />
-            <button type="submit" disabled={uploadPending} className={buttonSecondaryClassName}>
+            <FormFeedback error={uploadError} success={uploadSuccess} />
+            <button
+              type="button"
+              disabled={uploadPending}
+              onClick={handleBackgroundUpload}
+              className={buttonSecondaryClassName}
+            >
               {uploadPending ? "Uploading..." : "Upload file"}
             </button>
-          </form>
+          </div>
         </div>
       </div>
     </>

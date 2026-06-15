@@ -243,6 +243,31 @@ async function deleteStoragePrefix(
   }
 }
 
+export async function saveBackgroundMediaAction(
+  mediaUrl: string,
+  mediaType: "image" | "video",
+): Promise<SettingsFormState> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "You must be logged in." };
+
+  if (!mediaUrl.trim()) return { error: "Invalid background URL." };
+
+  await ensureSettingsRow(userId);
+
+  const update =
+    mediaType === "video"
+      ? { background_type: "video" as const, background_video_url: mediaUrl, background_image_url: null }
+      : { background_type: "image" as const, background_image_url: mediaUrl, background_video_url: null };
+
+  const { error } = await patchProfileSettings(userId, update);
+  if (error) return { error };
+
+  await revalidateProfile(userId);
+  return {
+    success: mediaType === "video" ? "Video background uploaded." : "Image background uploaded.",
+  };
+}
+
 export async function uploadBackgroundAction(
   _prev: SettingsFormState,
   formData: FormData,
@@ -269,17 +294,7 @@ export async function uploadBackgroundAction(
   try {
     const ext = isVideo ? "mp4" : file.type.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
     const url = await uploadFile(userId, file, "backgrounds", `background.${ext}`);
-
-    const supabase = await createClient();
-    const update = isVideo
-      ? { background_type: "video" as const, background_video_url: url, background_image_url: null }
-      : { background_type: "image" as const, background_image_url: url, background_video_url: null };
-
-    const { error } = await patchProfileSettings(userId, update);
-    if (error) return { error };
-
-    await revalidateProfile(userId);
-    return { success: isVideo ? "Video background uploaded." : "Image background uploaded." };
+    return saveBackgroundMediaAction(url, isVideo ? "video" : "image");
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Upload failed." };
   }
