@@ -90,6 +90,7 @@ export const LAYOUT_OPTIONS: {
 export const FONT_OPTIONS = [
   { value: "inter", label: "Inter", css: "'Inter', sans-serif" },
   { value: "geist", label: "Geist", css: "var(--font-geist-sans), sans-serif" },
+  { value: "helvetica", label: "Helvetica", css: "Helvetica, 'Helvetica Neue', Arial, sans-serif" },
   { value: "poppins", label: "Poppins", css: "'Poppins', sans-serif" },
   { value: "montserrat", label: "Montserrat", css: "'Montserrat', sans-serif" },
   { value: "roboto", label: "Roboto", css: "'Roboto', sans-serif" },
