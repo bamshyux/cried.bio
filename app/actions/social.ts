@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidateUserProfile, getAuthenticatedUserId } from "@/lib/actions/auth";
+import { clearActivityFeed } from "@/lib/data/activity";
 import { createNotification } from "@/lib/data/notifications";
 import { logActivity } from "@/lib/data/activity";
 import { syncAllMilestoneBadges } from "@/lib/badges/sync-milestones";
@@ -159,4 +160,15 @@ export async function updateSocialSettingsAction(
 
   await revalidateUserProfile(userId, ["/dashboard/social"]);
   return { success: "Social settings saved." };
+}
+
+export async function clearRecentActivityAction(): Promise<SocialFormState> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "You must be logged in." };
+
+  const result = await clearActivityFeed(userId);
+  if (result.error) return { error: result.error };
+
+  await revalidateUserProfile(userId, ["/dashboard/social"]);
+  return { success: "Recent activity cleared." };
 }

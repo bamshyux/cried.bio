@@ -1,6 +1,7 @@
 "use server";
 
 import { sendNewAccountDiscordAlert } from "@/lib/discord/signup-webhook";
+import { rejectIfModerated } from "@/lib/moderation/validate";
 import { createClient } from "@/lib/supabase/server";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import type { ProfileFormState } from "@/lib/types/profile";
@@ -121,6 +122,15 @@ export async function updateProfileAction(
         "Username must be 3–20 characters and use only lowercase letters, numbers, and underscores.",
     };
   }
+
+  const usernameError = await rejectIfModerated(username, "username", userId);
+  if (usernameError) return { error: usernameError };
+
+  const displayNameError = await rejectIfModerated(displayName, "display_name", userId);
+  if (displayNameError) return { error: displayNameError };
+
+  const bioError = await rejectIfModerated(bio, "bio", userId);
+  if (bioError) return { error: bioError };
 
   const supabase = await createClient();
 

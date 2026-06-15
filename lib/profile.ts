@@ -29,16 +29,28 @@ export function isValidUsername(username: string) {
 }
 
 export function isPublicProfilePath(pathname: string) {
-  if (!pathname.startsWith("/") || pathname.includes("/", 1)) {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  const segments = normalized.split("/").filter(Boolean);
+
+  if (segments.length === 0 || segments.length > 2) {
     return false;
   }
 
-  const segment = pathname.slice(1);
-  if (!segment || RESERVED_USERNAMES.has(segment.toLowerCase())) {
+  const username = segments[0].toLowerCase();
+  if (!username || RESERVED_USERNAMES.has(username)) {
     return false;
   }
 
-  return USERNAME_REGEX.test(segment.toLowerCase());
+  if (!USERNAME_REGEX.test(username)) {
+    return false;
+  }
+
+  if (segments.length === 2) {
+    const subpage = segments[1].toLowerCase();
+    return subpage === "followers" || subpage === "following";
+  }
+
+  return true;
 }
 
 export function formatProfileUid(uid: number) {

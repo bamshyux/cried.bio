@@ -5,10 +5,15 @@ import { clampCardLayout, mergeSettings } from "@/lib/settings";
 import { backgroundUploadSizeError, MAX_BACKGROUND_UPLOAD_BYTES } from "@/lib/uploads/limits";
 import { formatSchemaError } from "@/lib/db/schema";
 import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
+import { rejectIfModerated } from "@/lib/moderation/validate";
 import type { SettingsFormState, SettingsSection } from "@/lib/types/settings";
 import type {
   BackgroundType,
   CursorEffect,
+  EnterGateAnimation,
+  EnterGateBackgroundType,
+  EnterGateButtonStyle,
+  EnterGateTextAlign,
   LinkAnimation,
   ParticleEffect,
   ProfileLayout,
@@ -107,6 +112,30 @@ function parseGradient(raw: string, fallback: string[]) {
   return raw.split(",").map((c) => c.trim()).filter(Boolean);
 }
 
+function parseEnterGateBackgroundType(value: string, fallback: EnterGateBackgroundType): EnterGateBackgroundType {
+  const allowed: EnterGateBackgroundType[] = ["solid", "image", "video", "gradient", "profile"];
+  return allowed.includes(value as EnterGateBackgroundType) ? (value as EnterGateBackgroundType) : fallback;
+}
+
+function parseEnterGateTextAlign(value: string, fallback: EnterGateTextAlign): EnterGateTextAlign {
+  return (["left", "center", "right"].includes(value) ? value : fallback) as EnterGateTextAlign;
+}
+
+function parseEnterGateButtonStyle(value: string, fallback: EnterGateButtonStyle): EnterGateButtonStyle {
+  const allowed: EnterGateButtonStyle[] = ["pill", "outline", "ghost", "minimal", "glow"];
+  return allowed.includes(value as EnterGateButtonStyle) ? (value as EnterGateButtonStyle) : fallback;
+}
+
+function parseEnterGateAnimation(value: string, fallback: EnterGateAnimation): EnterGateAnimation {
+  const allowed: EnterGateAnimation[] = ["none", "pulse", "fade", "bounce", "glow"];
+  return allowed.includes(value as EnterGateAnimation) ? (value as EnterGateAnimation) : fallback;
+}
+
+function clampEnterGate(value: number, min: number, max: number, fallback: number) {
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(value)));
+}
+
 function parseParticle(value: string): ParticleEffect | null {
   const v = value.trim();
   if (!v) return null;
@@ -191,6 +220,56 @@ function parseSectionUpdates(
         enter_gate_subtitle: String(formData.get("enter_gate_subtitle") ?? existing.enter_gate_subtitle).trim().slice(0, 200),
         enter_gate_button: String(formData.get("enter_gate_button") ?? existing.enter_gate_button).trim().slice(0, 40),
         enter_gate_show_avatar: parseBool(formData.get("enter_gate_show_avatar")),
+        enter_gate_show_username: parseBool(formData.get("enter_gate_show_username")),
+        enter_gate_show_branding: parseBool(formData.get("enter_gate_show_branding")),
+        enter_gate_blur: parseBool(formData.get("enter_gate_blur")),
+        enter_gate_blur_strength: clampEnterGate(
+          parseIntField(formData.get("enter_gate_blur_strength"), existing.enter_gate_blur_strength),
+          0,
+          30,
+          existing.enter_gate_blur_strength,
+        ),
+        enter_gate_background_type: parseEnterGateBackgroundType(
+          String(formData.get("enter_gate_background_type") ?? existing.enter_gate_background_type),
+          existing.enter_gate_background_type,
+        ),
+        enter_gate_background_color: String(formData.get("enter_gate_background_color") ?? existing.enter_gate_background_color),
+        enter_gate_gradient_colors: parseGradient(
+          String(formData.get("enter_gate_gradient_colors") ?? ""),
+          existing.enter_gate_gradient_colors,
+        ),
+        enter_gate_animated_gradient: parseBool(formData.get("enter_gate_animated_gradient")),
+        enter_gate_overlay_opacity: clampEnterGate(
+          parseIntField(formData.get("enter_gate_overlay_opacity"), existing.enter_gate_overlay_opacity),
+          0,
+          100,
+          existing.enter_gate_overlay_opacity,
+        ),
+        enter_gate_vignette: parseBool(formData.get("enter_gate_vignette")),
+        enter_gate_noise: parseBool(formData.get("enter_gate_noise")),
+        enter_gate_particle_effect: parseParticle(String(formData.get("enter_gate_particle_effect") ?? "")),
+        enter_gate_title_color: String(formData.get("enter_gate_title_color") ?? existing.enter_gate_title_color).slice(0, 32),
+        enter_gate_subtitle_color: String(formData.get("enter_gate_subtitle_color") ?? existing.enter_gate_subtitle_color).slice(0, 32),
+        enter_gate_accent_color: String(formData.get("enter_gate_accent_color") ?? existing.enter_gate_accent_color).slice(0, 32),
+        enter_gate_text_align: parseEnterGateTextAlign(
+          String(formData.get("enter_gate_text_align") ?? existing.enter_gate_text_align),
+          existing.enter_gate_text_align,
+        ),
+        enter_gate_button_style: parseEnterGateButtonStyle(
+          String(formData.get("enter_gate_button_style") ?? existing.enter_gate_button_style),
+          existing.enter_gate_button_style,
+        ),
+        enter_gate_animation: parseEnterGateAnimation(
+          String(formData.get("enter_gate_animation") ?? existing.enter_gate_animation),
+          existing.enter_gate_animation,
+        ),
+        enter_gate_glass_card: parseBool(formData.get("enter_gate_glass_card")),
+        enter_gate_card_opacity: clampEnterGate(
+          parseIntField(formData.get("enter_gate_card_opacity"), existing.enter_gate_card_opacity),
+          0,
+          100,
+          existing.enter_gate_card_opacity,
+        ),
       };
     default:
       return {};
@@ -210,6 +289,15 @@ export async function updateSettingsAction(
   await ensureSettingsRow(userId);
   const existing = await getExistingSettings(userId);
   const updates = parseSectionUpdates(section, formData, existing);
+
+  if (section === "customize" && updates.layout_label) {
+    const layoutLabelError = await rejectIfModerated(
+      updates.layout_label,
+      "layout_label",
+      userId,
+    );
+    if (layoutLabelError) return { error: layoutLabelError };
+  }
 
   const { error } = await patchProfileSettings(userId, updates);
   if (error) return { error };
@@ -391,6 +479,56 @@ export async function uploadMusicAction(
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Upload failed." };
   }
+}
+
+export async function saveEnterGateMediaAction(
+  mediaUrl: string,
+  mediaType: "image" | "video",
+): Promise<SettingsFormState> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "You must be logged in." };
+
+  if (!mediaUrl.trim()) return { error: "Invalid enter gate background URL." };
+
+  await ensureSettingsRow(userId);
+
+  const update =
+    mediaType === "video"
+      ? {
+          enter_gate_background_type: "video" as const,
+          enter_gate_background_video_url: mediaUrl,
+          enter_gate_background_image_url: null,
+        }
+      : {
+          enter_gate_background_type: "image" as const,
+          enter_gate_background_image_url: mediaUrl,
+          enter_gate_background_video_url: null,
+        };
+
+  const { error } = await patchProfileSettings(userId, update);
+  if (error) return { error };
+
+  await revalidateProfile(userId);
+  return {
+    success: mediaType === "video" ? "Enter gate video uploaded." : "Enter gate image uploaded.",
+  };
+}
+
+export async function removeEnterGateMediaAction(): Promise<SettingsFormState> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "You must be logged in." };
+
+  const { error } = await patchProfileSettings(userId, {
+    enter_gate_background_image_url: null,
+    enter_gate_background_video_url: null,
+  });
+
+  if (error) return { error };
+
+  await deleteStoragePrefix(userId, "backgrounds", "enter-gate.");
+
+  await revalidateProfile(userId);
+  return { success: "Enter gate background removed." };
 }
 
 export async function removeBackgroundAction(): Promise<SettingsFormState> {

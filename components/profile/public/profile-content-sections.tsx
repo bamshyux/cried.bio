@@ -14,7 +14,7 @@ import { ProfileEmbedsSection } from "./profile-embeds";
 import { ProfileFeaturedSection } from "./profile-featured";
 import { ProfileGuestbookSection } from "./profile-guestbook";
 import { ProfileFriendsSection, ProfileSocialBar, ProfileStatusLine } from "./profile-social";
-import { ProfileLinks, SocialIconRow } from "./profile-links";
+import { ProfileLinks, SocialIconOnlyRow, SocialIconRow } from "./profile-links";
 import { TypingBio } from "./profile-effects";
 
 export function ProfileContentSections({
@@ -78,6 +78,8 @@ export function ProfileContentSections({
       <ProfileFeaturedSection blocks={featured} settings={settings} />
       {settings.links_style === "icons" ? (
         <SocialIconRow links={links} settings={settings} profileId={profile.id} />
+      ) : settings.links_style === "icons_only" ? (
+        <SocialIconOnlyRow links={links} settings={settings} profileId={profile.id} />
       ) : (
         <LinksSectionInner links={links} settings={settings} profileId={profile.id} />
       )}

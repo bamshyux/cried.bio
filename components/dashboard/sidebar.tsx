@@ -208,12 +208,18 @@ export function DashboardSidebar({
         </div>
 
         {showManageAccounts ? (
-          <div className="bf-dash-nav-group border-t border-white/[0.06] pt-3">
+          <div className="bf-dash-nav-group space-y-1 border-t border-white/[0.06] pt-3">
             <NavLink
               href="/dashboard/accounts"
               label="Manage Accounts"
               Icon={IconProfile}
               active={pathname.startsWith("/dashboard/accounts")}
+            />
+            <NavLink
+              href="/admin/moderation"
+              label="Moderation"
+              Icon={IconSettings}
+              active={pathname.startsWith("/admin/moderation")}
             />
           </div>
         ) : null}

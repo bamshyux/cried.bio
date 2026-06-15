@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidateUserProfile, getAuthenticatedUserId } from "@/lib/actions/auth";
+import { rejectIfModerated } from "@/lib/moderation/validate";
 import { DEFAULT_CUSTOM_THEME_CSS } from "@/lib/themes/default-template";
 import { scopeProfileCss } from "@/lib/themes/scope-css";
 import { validateCssInput } from "@/lib/themes/sanitize-css";
@@ -30,6 +31,9 @@ export async function createCustomThemeAction(
   if (!userId) return { error: "You must be logged in." };
 
   const themeName = name.trim().slice(0, 60) || "My Theme";
+  const nameError = await rejectIfModerated(themeName, "theme_name", userId);
+  if (nameError) return { error: nameError };
+
   const themeCss = css ?? DEFAULT_CUSTOM_THEME_CSS;
   const check = validateThemeCss(themeCss);
   if (!check.ok) return { error: check.error };
@@ -72,11 +76,15 @@ export async function saveCustomThemeAction(
   const check = validateThemeCss(css);
   if (!check.ok) return { error: check.error };
 
+  const themeName = name.trim().slice(0, 60) || "My Theme";
+  const nameError = await rejectIfModerated(themeName, "theme_name", userId);
+  if (nameError) return { error: nameError };
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("custom_themes")
     .update({
-      name: name.trim().slice(0, 60) || "My Theme",
+      name: themeName,
       css: check.css,
     })
     .eq("id", themeId)
@@ -111,11 +119,15 @@ export async function duplicateCustomThemeAction(themeId: string): Promise<Custo
     return { error: `Maximum ${MAX_CUSTOM_THEMES} custom themes allowed.` };
   }
 
+  const copyName = `${source.name} (copy)`.slice(0, 60);
+  const nameError = await rejectIfModerated(copyName, "theme_name", userId);
+  if (nameError) return { error: nameError };
+
   const { data, error } = await supabase
     .from("custom_themes")
     .insert({
       profile_id: userId,
-      name: `${source.name} (copy)`.slice(0, 60),
+      name: copyName,
       css: source.css,
       sort_order: count ?? 0,
     })

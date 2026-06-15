@@ -1,9 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv } from "@/lib/supabase/env";
-import { isPublicProfilePath } from "@/lib/profile";
 
-const publicRoutes = ["/", "/login", "/signup"];
+const authEntryRoutes = ["/login", "/signup"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -47,12 +46,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
-  const isPublicRoute =
-    publicRoutes.includes(pathname) ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/api");
-  const isProtectedRoute = pathname.startsWith("/dashboard");
-  const isProfileRoute = isPublicProfilePath(pathname);
+  const isProtectedRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
 
   if (isProtectedRoute && !user) {
     const redirectUrl = request.nextUrl.clone();
@@ -60,15 +54,9 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (user && (pathname === "/login" || pathname === "/signup")) {
+  if (user && authEntryRoutes.includes(pathname)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/dashboard";
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  if (!user && !isPublicRoute && !isProtectedRoute && !isProfileRoute) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/login";
     return NextResponse.redirect(redirectUrl);
   }
 

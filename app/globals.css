@@ -91,8 +91,40 @@ body {
   animation: bf-enter-gate-pulse 2.2s ease-in-out infinite;
 }
 
+.bf-enter-gate-btn--fade {
+  animation: bf-enter-gate-fade 2.4s ease-in-out infinite;
+}
+
+.bf-enter-gate-btn--bounce {
+  animation: bf-enter-gate-bounce 2s ease-in-out infinite;
+}
+
+.bf-enter-gate-btn--glow {
+  animation: bf-enter-gate-glow 2.2s ease-in-out infinite;
+}
+
 .bf-enter-gate {
   animation: bf-enter-gate-in 0.35s ease-out forwards;
+}
+
+.bf-enter-gate--preview {
+  animation: none;
+  min-height: 320px;
+}
+
+@keyframes bf-enter-gate-fade {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+
+@keyframes bf-enter-gate-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes bf-enter-gate-glow {
+  0%, 100% { filter: brightness(1); box-shadow: 0 0 24px rgba(255, 255, 255, 0.08); }
+  50% { filter: brightness(1.15); box-shadow: 0 0 40px rgba(255, 255, 255, 0.18); }
 }
 
 @keyframes bf-orbit-spin {

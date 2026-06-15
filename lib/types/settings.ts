@@ -76,7 +76,15 @@ export type UsernameEffect =
 
 export type LinkAnimation = "none" | "pulse" | "bounce" | "glow" | "slide";
 
-export type LinksStyle = "buttons" | "icons";
+export type LinksStyle = "buttons" | "icons" | "icons_only";
+
+export type EnterGateBackgroundType = "solid" | "image" | "video" | "gradient" | "profile";
+
+export type EnterGateButtonStyle = "pill" | "outline" | "ghost" | "minimal" | "glow";
+
+export type EnterGateAnimation = "none" | "pulse" | "fade" | "bounce" | "glow";
+
+export type EnterGateTextAlign = "left" | "center" | "right";
 
 export type StatusPreset =
   | "online"
@@ -156,6 +164,28 @@ export type ProfileSettings = {
   enter_gate_subtitle: string;
   enter_gate_button: string;
   enter_gate_show_avatar: boolean;
+  enter_gate_blur: boolean;
+  enter_gate_blur_strength: number;
+  enter_gate_background_type: EnterGateBackgroundType;
+  enter_gate_background_color: string;
+  enter_gate_background_image_url: string | null;
+  enter_gate_background_video_url: string | null;
+  enter_gate_gradient_colors: string[];
+  enter_gate_animated_gradient: boolean;
+  enter_gate_overlay_opacity: number;
+  enter_gate_vignette: boolean;
+  enter_gate_noise: boolean;
+  enter_gate_particle_effect: ParticleEffect | null;
+  enter_gate_show_username: boolean;
+  enter_gate_show_branding: boolean;
+  enter_gate_title_color: string;
+  enter_gate_subtitle_color: string;
+  enter_gate_accent_color: string;
+  enter_gate_text_align: EnterGateTextAlign;
+  enter_gate_button_style: EnterGateButtonStyle;
+  enter_gate_animation: EnterGateAnimation;
+  enter_gate_glass_card: boolean;
+  enter_gate_card_opacity: number;
   layout_label: string;
   hide_card_border: boolean;
   card_offset_x: number;

@@ -2,47 +2,50 @@
 
 import { ControlledSelect } from "@/components/dashboard/controlled-fields";
 import {
+  EnterGateEditor,
+  readEnterGateForm,
+  type EnterGateFormFields,
+} from "@/components/dashboard/enter-gate-editor";
+import {
   SaveConfirmation,
   useDashboardSettingsSection,
 } from "@/components/dashboard/use-settings-form";
 import {
   buttonPrimaryClassName,
   cardClassName,
-  inputClassName,
-  labelClassName,
   PageHeader,
   ToggleField,
 } from "@/components/dashboard/form-fields";
 import { CURSOR_EFFECT_OPTIONS, USERNAME_EFFECT_OPTIONS } from "@/lib/settings";
 import type { CursorEffect, ProfileSettings, UsernameEffect } from "@/lib/types/settings";
+import type { Profile } from "@/lib/types/profile";
 
-type EffectsFormState = {
+type EffectsFormState = EnterGateFormFields & {
   cursor_effect: CursorEffect;
   username_effect: UsernameEffect;
   typing_bio: boolean;
   hover_animations: boolean;
   page_entrance: boolean;
-  enter_gate_title: string;
-  enter_gate_subtitle: string;
-  enter_gate_button: string;
-  enter_gate_show_avatar: boolean;
 };
 
 function readEffectsForm(settings: ProfileSettings): EffectsFormState {
   return {
+    ...readEnterGateForm(settings),
     cursor_effect: settings.cursor_effect,
     username_effect: settings.username_effect,
     typing_bio: settings.typing_bio,
     hover_animations: settings.hover_animations,
     page_entrance: settings.page_entrance,
-    enter_gate_title: settings.enter_gate_title,
-    enter_gate_subtitle: settings.enter_gate_subtitle,
-    enter_gate_button: settings.enter_gate_button,
-    enter_gate_show_avatar: settings.enter_gate_show_avatar,
   };
 }
 
-export function EffectsEditor({ settings }: { settings: ProfileSettings }) {
+export function EffectsEditor({
+  settings,
+  profile,
+}: {
+  settings: ProfileSettings;
+  profile: Profile;
+}) {
   const { form, patchForm, submit, state, isPending } = useDashboardSettingsSection(
     "effects",
     settings,
@@ -60,66 +63,12 @@ export function EffectsEditor({ settings }: { settings: ProfileSettings }) {
       <PageHeader title="Effects" description="Cursor, username, bio, page entrance, and click-to-enter screen." />
       <div className={cardClassName}>
         <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-5">
-          <div className="rounded-xl border border-white/[0.06] bg-[#0c0c0c] p-4">
-            <p className="mb-4 text-sm font-medium text-white">Click to enter</p>
-            <p className="mb-4 text-xs leading-relaxed text-neutral-500">
-              Every profile requires a click before loading — like guns.lol. Customize the intro screen below.
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="enter_gate_title" className={labelClassName}>
-                  Headline
-                </label>
-                <input
-                  id="enter_gate_title"
-                  type="text"
-                  value={form.enter_gate_title}
-                  onChange={(e) => patchForm({ enter_gate_title: e.target.value })}
-                  placeholder="Leave empty to use your display name"
-                  maxLength={80}
-                  className={inputClassName}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="enter_gate_subtitle" className={labelClassName}>
-                  Subtitle
-                </label>
-                <input
-                  id="enter_gate_subtitle"
-                  type="text"
-                  value={form.enter_gate_subtitle}
-                  onChange={(e) => patchForm({ enter_gate_subtitle: e.target.value })}
-                  placeholder="Optional tagline or message"
-                  maxLength={200}
-                  className={inputClassName}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="enter_gate_button" className={labelClassName}>
-                  Button text
-                </label>
-                <input
-                  id="enter_gate_button"
-                  type="text"
-                  value={form.enter_gate_button}
-                  onChange={(e) => patchForm({ enter_gate_button: e.target.value })}
-                  placeholder="Click to enter"
-                  maxLength={40}
-                  className={inputClassName}
-                />
-              </div>
-
-              <ToggleField
-                name="enter_gate_show_avatar"
-                label="Show avatar"
-                checked={form.enter_gate_show_avatar}
-                onCheckedChange={(enter_gate_show_avatar) => patchForm({ enter_gate_show_avatar })}
-              />
-            </div>
-          </div>
+          <EnterGateEditor
+            settings={settings}
+            profile={profile}
+            form={form}
+            patchForm={patchForm}
+          />
 
           <ControlledSelect
             label="Cursor effect"
@@ -167,6 +116,12 @@ export function EffectsEditor({ settings }: { settings: ProfileSettings }) {
   );
 }
 
-export function EffectsPageShell({ settings }: { settings: ProfileSettings }) {
-  return <EffectsEditor settings={settings} />;
+export function EffectsPageShell({
+  settings,
+  profile,
+}: {
+  settings: ProfileSettings;
+  profile: Profile;
+}) {
+  return <EffectsEditor settings={settings} profile={profile} />;
 }

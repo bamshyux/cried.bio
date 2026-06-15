@@ -2,7 +2,13 @@
 
 import type { ProfileSettings } from "@/lib/types/settings";
 
-export function ProfileBackground({ settings }: { settings: ProfileSettings }) {
+export function ProfileBackground({
+  settings,
+  contained = false,
+}: {
+  settings: ProfileSettings;
+  contained?: boolean;
+}) {
   const colors = settings.gradient_colors.length >= 2
     ? settings.gradient_colors
     : ["#090909", "#141414"];
@@ -36,7 +42,9 @@ export function ProfileBackground({ settings }: { settings: ProfileSettings }) {
   }
 
   return (
-    <div className={`fixed inset-0 z-0 ${settings.noise_texture ? "bf-noise" : ""} ${settings.vignette ? "bf-vignette" : ""}`}>
+    <div
+      className={`${contained ? "absolute inset-0 h-full w-full" : "fixed inset-0 z-0"} ${settings.noise_texture ? "bf-noise" : ""} ${settings.vignette ? "bf-vignette" : ""}`}
+    >
       {bg}
       <div className="absolute inset-0" style={{ backgroundColor: `rgba(0,0,0,${overlayOpacity})` }} />
     </div>

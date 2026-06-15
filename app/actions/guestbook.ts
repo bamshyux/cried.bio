@@ -2,6 +2,7 @@
 
 import { revalidateUserProfile, getAuthenticatedUserId } from "@/lib/actions/auth";
 import { isGuestbookBanned } from "@/lib/data/guestbook";
+import { rejectIfModerated } from "@/lib/moderation/validate";
 import { createNotification } from "@/lib/data/notifications";
 import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
 import { formatSchemaError } from "@/lib/db/schema";
@@ -45,6 +46,9 @@ export async function postGuestbookEntryAction(
   if (!profileId || !message) return { error: "Message is required." };
   if (message.length > 500) return { error: "Message is too long." };
   if (profileId === userId) return { error: "You cannot sign your own guestbook." };
+
+  const moderationError = await rejectIfModerated(message, "guestbook_message", userId);
+  if (moderationError) return { error: moderationError };
 
   const supabase = await createClient();
   const { data: settings } = await supabase

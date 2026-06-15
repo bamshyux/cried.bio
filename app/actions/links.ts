@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { normalizeLinkUrl } from "@/lib/links";
+import { rejectIfModerated } from "@/lib/moderation/validate";
 import { getPlatform } from "@/lib/social-platforms";
 import type { LinkFormState } from "@/lib/types/link";
 import type { LinkAnimation } from "@/lib/types/settings";
@@ -93,6 +94,12 @@ export async function createLinkAction(
     return { error: validationError };
   }
 
+  const titleError = await rejectIfModerated(title, "link_title", userId);
+  if (titleError) return { error: titleError };
+
+  const urlError = await rejectIfModerated(url, "link_url", userId);
+  if (urlError) return { error: urlError };
+
   await ensureProfileRow(userId);
 
   const supabase = await createClient();
@@ -147,6 +154,13 @@ export async function createSocialLinkAction(
     return { error: "Please enter a valid username or URL." };
   }
 
+  const title = platform.buildTitle(input);
+  const titleError = await rejectIfModerated(title, "link_title", userId);
+  if (titleError) return { error: titleError };
+
+  const urlError = await rejectIfModerated(url, "link_url", userId);
+  if (urlError) return { error: urlError };
+
   await ensureProfileRow(userId);
   const supabase = await createClient();
 
@@ -199,6 +213,12 @@ export async function updateLinkAction(
   if (validationError) {
     return { error: validationError };
   }
+
+  const titleError = await rejectIfModerated(title, "link_title", userId);
+  if (titleError) return { error: titleError };
+
+  const urlError = await rejectIfModerated(url, "link_url", userId);
+  if (urlError) return { error: urlError };
 
   const supabase = await createClient();
   const { error } = await supabase

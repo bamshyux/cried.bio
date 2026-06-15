@@ -10,6 +10,7 @@ import {
   syncPrivacyToProfileSettings,
 } from "@/lib/data/account-settings";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
+import { rejectIfModerated } from "@/lib/moderation/validate";
 import { createClient } from "@/lib/supabase/server";
 import type { AccountSettingsFormState, ProfileVisibility } from "@/lib/types/account-settings";
 
@@ -41,6 +42,9 @@ export async function updateUsernameAction(
   if (!isValidUsername(username)) {
     return { error: "Username must be 3–20 characters: lowercase letters, numbers, underscores." };
   }
+
+  const moderationError = await rejectIfModerated(username, "username", auth.userId);
+  if (moderationError) return { error: moderationError };
 
   const { data: taken } = await auth.supabase
     .from("profiles")

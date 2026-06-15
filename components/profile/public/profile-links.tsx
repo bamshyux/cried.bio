@@ -119,6 +119,45 @@ export function SocialIconRow({
   );
 }
 
+export function SocialIconOnlyRow({
+  links,
+  settings,
+  profileId,
+}: {
+  links: ProfileLink[];
+  settings: ProfileSettings;
+  profileId: string;
+}) {
+  if (links.length === 0) return null;
+
+  const hoverClass = settings.hover_animations
+    ? "transition-all duration-200 hover:scale-110"
+    : "transition-opacity hover:opacity-100";
+
+  return (
+    <div className="bf-profile-icon-row mb-4 flex flex-wrap gap-3">
+      {links.slice(0, 8).map((link) => (
+        <a
+          key={link.id}
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackLinkClick(profileId, link.id)}
+          aria-label={link.title}
+          className={`flex items-center justify-center opacity-80 ${hoverClass}`}
+        >
+          <LinkIcon
+            platform={link.icon}
+            size={18}
+            monochrome={settings.links_monochrome}
+            monoColor={settings.text_color}
+          />
+        </a>
+      ))}
+    </div>
+  );
+}
+
 /** Split links for display: optional featured + remaining list */
 export function splitLinksForDisplay(links: ProfileLink[]) {
   const featured = links.find((l) => l.is_featured);

@@ -267,8 +267,11 @@ export function LinksEditor({ links: initialLinks, settings }: { links: ProfileL
             <select id="links_style" name="links_style" className={inputClassName} defaultValue={settings.links_style}>
               <option value="buttons">Full buttons</option>
               <option value="icons">Icon boxes</option>
+              <option value="icons_only">Icons only</option>
             </select>
-            <p className="mt-1.5 text-xs text-neutral-500">Choose between labeled link buttons or compact icon-only boxes.</p>
+            <p className="mt-1.5 text-xs text-neutral-500">
+              Full buttons show titles; icon boxes wrap icons in a subtle tile; icons only show bare platform icons with no label.
+            </p>
           </div>
           <ToggleField
             name="links_monochrome"
