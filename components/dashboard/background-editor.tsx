@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   removeBackgroundAction,
@@ -13,7 +13,6 @@ import type { BackgroundType, ParticleEffect, ProfileSettings, SettingsFormState
 import { ControlledSelect } from "@/components/dashboard/controlled-fields";
 import {
   buttonPrimaryClassName,
-  buttonSecondaryClassName,
   cardClassName,
   ColorField,
   FormFeedback,
@@ -28,26 +27,24 @@ import { useSettingsRefresh } from "@/components/dashboard/use-settings-refresh"
 
 const initial: SettingsFormState = {};
 
+const fileInputClassName =
+  "block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#00e5cc] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]";
+
 export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isRemoving, startRemove] = useTransition();
   const [state, formAction, isPending] = useActionState(updateSettingsAction, initial);
   const [uploadError, setUploadError] = useState<string>();
   const [uploadSuccess, setUploadSuccess] = useState<string>();
   const [uploadPending, setUploadPending] = useState(false);
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
   useSettingsRefresh(state);
-
-  useEffect(() => {
-    if (uploadSuccess) router.refresh();
-  }, [uploadSuccess, router]);
 
   const [backgroundType, setBackgroundType] = useState(settings.background_type);
   const [particleEffect, setParticleEffect] = useState(settings.particle_effect ?? "");
   const [gradientColors, setGradientColors] = useState(settings.gradient_colors.join(", "));
-
-  const hasBackgroundMedia =
-    !!settings.background_image_url || !!settings.background_video_url;
 
   useEffect(() => {
     setBackgroundType(settings.background_type);
@@ -55,41 +52,75 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
     setGradientColors(settings.gradient_colors.join(", "));
   }, [settings.updated_at, settings.background_type, settings.particle_effect, settings.gradient_colors]);
 
-  const removeBackground = () => {
-    startRemove(async () => {
-      await removeBackgroundAction();
-      router.refresh();
-    });
-  };
+  useEffect(() => {
+    setImagePreview(null);
+    setVideoPreview(null);
+  }, [settings.background_image_url, settings.background_video_url]);
 
-  const handleBackgroundUpload = async () => {
-    const file = fileInputRef.current?.files?.[0];
-    if (!file) {
-      setUploadSuccess(undefined);
-      setUploadError("Please select a file.");
-      return;
-    }
+  useEffect(() => {
+    return () => {
+      if (imagePreview?.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
+      if (videoPreview?.startsWith("blob:")) URL.revokeObjectURL(videoPreview);
+    };
+  }, [imagePreview, videoPreview]);
+
+  const displayImageUrl = imagePreview ?? settings.background_image_url ?? null;
+  const displayVideoUrl = videoPreview ?? settings.background_video_url ?? null;
+  const hasBackgroundMedia = !!displayImageUrl || !!displayVideoUrl;
+
+  const handleBackgroundUpload = async (file: File | undefined) => {
+    if (!file) return;
 
     setUploadPending(true);
     setUploadError(undefined);
     setUploadSuccess(undefined);
 
+    const isVideo = file.type === "video/mp4";
+    if (isVideo) {
+      setVideoPreview(URL.createObjectURL(file));
+      setImagePreview(null);
+    } else {
+      setImagePreview(URL.createObjectURL(file));
+      setVideoPreview(null);
+    }
+
     try {
-      const { url, isVideo } = await uploadBackgroundToStorage(file);
-      const result = await saveBackgroundMediaAction(url, isVideo ? "video" : "image");
+      const { url, isVideo: uploadedVideo } = await uploadBackgroundToStorage(file);
+      const result = await saveBackgroundMediaAction(url, uploadedVideo ? "video" : "image");
 
       if (result.error) {
         setUploadError(result.error);
+        setImagePreview(null);
+        setVideoPreview(null);
         return;
       }
 
       setUploadSuccess(result.success);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      router.refresh();
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "Upload failed.");
+      setImagePreview(null);
+      setVideoPreview(null);
     } finally {
       setUploadPending(false);
+      setFileInputKey((key) => key + 1);
     }
+  };
+
+  const removeBackground = () => {
+    startRemove(async () => {
+      const result = await removeBackgroundAction();
+      if (!result.error) {
+        setImagePreview(null);
+        setVideoPreview(null);
+        setUploadError(undefined);
+        setUploadSuccess(result.success);
+        setFileInputKey((key) => key + 1);
+        router.refresh();
+      } else {
+        setUploadError(result.error);
+      }
+    });
   };
 
   return (
@@ -153,16 +184,16 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
           {hasBackgroundMedia && (
             <div className="mb-4 space-y-3 border-b border-white/[0.06] pb-4">
               <p className="text-xs text-neutral-500">Current background</p>
-              {settings.background_image_url && (
+              {displayImageUrl && (
                 <img
-                  src={settings.background_image_url}
+                  src={displayImageUrl}
                   alt="Background preview"
                   className="max-h-32 w-full rounded-lg border border-white/[0.06] object-cover"
                 />
               )}
-              {settings.background_video_url && (
+              {displayVideoUrl && (
                 <video
-                  src={settings.background_video_url}
+                  src={displayVideoUrl}
                   className="max-h-32 w-full rounded-lg border border-white/[0.06] object-cover"
                   muted
                   playsInline
@@ -170,29 +201,30 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
               )}
               <RemoveMediaButton
                 label="Remove background"
-                disabled={isRemoving}
+                disabled={isRemoving || uploadPending}
                 onClick={removeBackground}
               />
             </div>
           )}
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <input
-              ref={fileInputRef}
-              name="background"
+              key={fileInputKey}
+              id="background"
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif,video/mp4"
-              className="block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#00e5cc] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]"
-            />
-            <FormFeedback error={uploadError} success={uploadSuccess} />
-            <button
-              type="button"
               disabled={uploadPending}
-              onClick={handleBackgroundUpload}
-              className={buttonSecondaryClassName}
-            >
-              {uploadPending ? "Uploading..." : "Upload file"}
-            </button>
+              onChange={(event) => {
+                void handleBackgroundUpload(event.target.files?.[0]);
+              }}
+              className={fileInputClassName}
+            />
+            <p className="text-xs text-neutral-600">
+              {uploadPending
+                ? "Uploading background..."
+                : "Choose a file to upload or replace your background."}
+            </p>
+            <FormFeedback error={uploadError} success={uploadSuccess} />
           </div>
         </div>
       </div>

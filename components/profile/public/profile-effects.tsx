@@ -106,30 +106,74 @@ export function CursorTrail(props: { enabled: boolean; color: string }) {
   );
 }
 
+const TYPING_BIO_TYPE_MS = 80;
+const TYPING_BIO_DELETE_MS = 50;
+const TYPING_BIO_PAUSE_FULL_MS = 2500;
+const TYPING_BIO_PAUSE_EMPTY_MS = 800;
+
 export function TypingBio({ text, enabled }: { text: string; enabled: boolean }) {
   const [displayed, setDisplayed] = useState(enabled ? "" : text);
-  const [done, setDone] = useState(!enabled);
 
   useEffect(() => {
     if (!enabled) {
       setDisplayed(text);
-      setDone(true);
       return;
     }
 
-    setDisplayed("");
-    setDone(false);
-    let i = 0;
-    const interval = setInterval(() => {
-      i++;
-      setDisplayed(text.slice(0, i));
-      if (i >= text.length) {
-        clearInterval(interval);
-        setDone(true);
-      }
-    }, 35);
+    if (!text) {
+      setDisplayed("");
+      return;
+    }
 
-    return () => clearInterval(interval);
+    let cancelled = false;
+    let index = 0;
+    let deleting = false;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const schedule = (delay: number, fn: () => void) => {
+      timeoutId = setTimeout(() => {
+        if (!cancelled) fn();
+      }, delay);
+    };
+
+    const step = () => {
+      if (deleting) {
+        index = Math.max(0, index - 1);
+        setDisplayed(text.slice(0, index));
+
+        if (index === 0) {
+          schedule(TYPING_BIO_PAUSE_EMPTY_MS, () => {
+            deleting = false;
+            step();
+          });
+          return;
+        }
+
+        schedule(TYPING_BIO_DELETE_MS, step);
+        return;
+      }
+
+      index = Math.min(text.length, index + 1);
+      setDisplayed(text.slice(0, index));
+
+      if (index >= text.length) {
+        schedule(TYPING_BIO_PAUSE_FULL_MS, () => {
+          deleting = true;
+          step();
+        });
+        return;
+      }
+
+      schedule(TYPING_BIO_TYPE_MS, step);
+    };
+
+    setDisplayed("");
+    schedule(TYPING_BIO_TYPE_MS, step);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [text, enabled]);
 
   if (!enabled) return <p className="leading-relaxed">{text}</p>;
@@ -137,7 +181,7 @@ export function TypingBio({ text, enabled }: { text: string; enabled: boolean })
   return (
     <p className="leading-relaxed">
       {displayed}
-      {!done && <span className="bf-cursor-blink ml-0.5 inline-block w-0.5">|</span>}
+      <span className="bf-cursor-blink ml-0.5 inline-block w-0.5 text-current opacity-80">|</span>
     </p>
   );
 }

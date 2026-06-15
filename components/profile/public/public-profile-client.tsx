@@ -27,7 +27,7 @@ import type { FeaturedBlock } from "@/lib/types/featured";
 import type { GuestbookEntry } from "@/lib/types/guestbook";
 import type { ProfileEmbed } from "@/lib/types/embed";
 import type { SocialProfile } from "@/lib/types/social";
-import { ProfileContentSections } from "./profile-content-sections";
+import { ProfileCreateCta } from "./profile-create-cta";
 import { ProfileParallaxCard } from "./profile-parallax";
 
 function ProfileHandle({ profile, className = "" }: { profile: Profile; className?: string }) {
@@ -774,12 +774,7 @@ export function PublicProfileClient({
           <Link href="/" className="group opacity-90 transition-opacity hover:opacity-100">
             <BioForgeLogo size={24} variant="muted" />
           </Link>
-          <Link
-            href="/signup"
-            className="rounded-full border border-white/[0.07] bg-black/20 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-neutral-500 backdrop-blur-sm transition-colors hover:border-white/[0.12] hover:bg-black/30 hover:text-neutral-300"
-          >
-            Create yours
-          </Link>
+          <ProfileCreateCta />
         </header>
 
         <main

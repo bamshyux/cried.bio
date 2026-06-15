@@ -222,7 +222,7 @@ async function uploadFile(
   if (error) throw new Error(error.message);
 
   const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
-  return publicUrl;
+  return `${publicUrl}?v=${Date.now()}`;
 }
 
 async function deleteStoragePrefix(
@@ -293,6 +293,7 @@ export async function uploadBackgroundAction(
 
   try {
     const ext = isVideo ? "mp4" : file.type.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
+    await deleteStoragePrefix(userId, "backgrounds", "background.");
     const url = await uploadFile(userId, file, "backgrounds", `background.${ext}`);
     return saveBackgroundMediaAction(url, isVideo ? "video" : "image");
   } catch (e) {

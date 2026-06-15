@@ -52,7 +52,7 @@ export function EffectsEditor({ settings }: { settings: ProfileSettings }) {
           />
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <ToggleField name="typing_bio" label="Typing bio" description="Bio types out on load" defaultChecked={settings.typing_bio} />
+            <ToggleField name="typing_bio" label="Typing bio" description="Bio types out, pauses, then backspaces in a loop" defaultChecked={settings.typing_bio} />
             <ToggleField name="hover_animations" label="Hover animations" defaultChecked={settings.hover_animations} />
             <ToggleField name="page_entrance" label="Page entrance" defaultChecked={settings.page_entrance} />
           </div>
