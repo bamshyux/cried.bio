@@ -20,6 +20,7 @@ import { formatProfileUid } from "@/lib/profile";
 import type { AdminAccountFormState, AdminAccountSummary } from "@/lib/types/admin-account";
 
 const initial: AdminAccountFormState = {};
+const DELETE_CONFIRM_PHRASE = "I Confirm";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-US", {
@@ -41,7 +42,7 @@ function AccountEditor({
   const router = useRouter();
   const [updateState, updateAction, updatePending] = useActionState(updateAdminAccountAction, initial);
   const [deleteState, deleteAction, deletePending] = useActionState(deleteAdminAccountAction, initial);
-  const [confirmUsername, setConfirmUsername] = useState("");
+  const [confirmPhrase, setConfirmPhrase] = useState("");
   const [showDelete, setShowDelete] = useState(false);
 
   const pending = updatePending || deletePending;
@@ -185,16 +186,16 @@ function AccountEditor({
           <form action={deleteAction} className="mt-4 space-y-3">
             <input type="hidden" name="user_id" value={account.id} />
             <div>
-              <label className={labelClassName} htmlFor="admin-confirm-username">
-                Type <span className="text-white">@{account.username}</span> to confirm
+              <label className={labelClassName} htmlFor="admin-confirm-phrase">
+                Type <span className="text-white">{DELETE_CONFIRM_PHRASE}</span> to confirm
               </label>
               <input
-                id="admin-confirm-username"
-                name="confirm_username"
-                value={confirmUsername}
-                onChange={(e) => setConfirmUsername(e.target.value)}
+                id="admin-confirm-phrase"
+                name="confirm_phrase"
+                value={confirmPhrase}
+                onChange={(e) => setConfirmPhrase(e.target.value)}
                 className={inputClassName}
-                placeholder={account.username ?? ""}
+                placeholder={DELETE_CONFIRM_PHRASE}
                 autoComplete="off"
               />
             </div>
@@ -202,7 +203,7 @@ function AccountEditor({
             <div className="flex flex-wrap gap-2">
               <button
                 type="submit"
-                disabled={deletePending || confirmUsername !== (account.username ?? "")}
+                disabled={deletePending || confirmPhrase.trim() !== DELETE_CONFIRM_PHRASE}
                 className="rounded-lg bg-red-500/15 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/25 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {deletePending ? "Deleting..." : "Permanently delete"}
@@ -211,7 +212,7 @@ function AccountEditor({
                 type="button"
                 onClick={() => {
                   setShowDelete(false);
-                  setConfirmUsername("");
+                  setConfirmPhrase("");
                 }}
                 className={buttonSecondaryClassName}
               >

@@ -5,6 +5,8 @@ import { requireSuperAdmin } from "@/lib/auth/super-admin";
 import { getFounderUserId } from "@/lib/badges/founder";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import { deleteAllUserStorage } from "@/lib/storage/delete-user-storage";
+
+const DELETE_CONFIRM_PHRASE = "I Confirm";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { AdminAccountFormState, AdminAccountSummary } from "@/lib/types/admin-account";
@@ -131,7 +133,7 @@ export async function deleteAdminAccountAction(
   if ("error" in gate) return { error: gate.error };
 
   const userId = String(formData.get("user_id") ?? "").trim();
-  const confirmUsername = normalizeUsername(String(formData.get("confirm_username") ?? ""));
+  const confirmPhrase = String(formData.get("confirm_phrase") ?? "").trim();
 
   if (!userId) return { error: "Missing account id." };
   if (userId === gate.auth.userId) return { error: "You cannot delete your own account from here." };
@@ -139,14 +141,15 @@ export async function deleteAdminAccountAction(
   const founderId = await getFounderUserId();
   if (founderId && userId === founderId) return { error: "The founder account cannot be deleted." };
 
+  if (confirmPhrase !== DELETE_CONFIRM_PHRASE) {
+    return { error: `Type "${DELETE_CONFIRM_PHRASE}" to confirm deletion.` };
+  }
+
   const supabase = await createClient();
   const { data: existingRows } = await supabase.rpc("admin_list_accounts");
   const profile = ((existingRows ?? []) as AdminAccountRow[]).find((row) => row.id === userId);
 
   if (!profile?.username) return { error: "Account not found." };
-  if (confirmUsername !== profile.username) {
-    return { error: "Confirmation username does not match." };
-  }
 
   const admin = createAdminClient();
   if (admin) {
@@ -155,7 +158,7 @@ export async function deleteAdminAccountAction(
 
   const { error: deleteError } = await supabase.rpc("admin_delete_account", {
     p_user_id: userId,
-    p_confirm_username: confirmUsername,
+    p_confirm_phrase: confirmPhrase,
   });
 
   if (deleteError) return { error: rpcSetupHint(deleteError.message) };
