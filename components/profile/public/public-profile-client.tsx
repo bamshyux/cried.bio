@@ -41,17 +41,19 @@ function ProfileMeta({
   profile,
   settings,
   viewCount,
+  className = "",
 }: {
   profile: Profile;
   settings: ProfileSettings;
   viewCount: number;
+  className?: string;
 }) {
   const joinDate = new Date(profile.created_at).toLocaleDateString("en-US", {
     month: "short",
     year: "numeric",
   });
   return (
-    <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-neutral-400">
+    <div className={`mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-neutral-400 ${className}`.trim()}>
       {settings.show_view_count && <span>{viewCount.toLocaleString()} views</span>}
       {settings.show_join_date && <span>Joined {joinDate}</span>}
     </div>
@@ -203,13 +205,15 @@ function getLayoutBadges(badges: ProfileBadge[], settings: ProfileSettings) {
 function ProfileBadgeSection({
   badges,
   styleOptions,
+  className = "",
 }: {
   badges: ProfileBadge[];
   styleOptions?: import("@/lib/badges/display").BadgeStyleOptions;
+  className?: string;
 }) {
   if (badges.length === 0) return null;
   return (
-    <div className="relative z-10 mb-4 overflow-visible">
+    <div className={`relative z-10 mb-4 overflow-visible ${className}`.trim()}>
       <BadgeRow badges={badges} styleOptions={styleOptions} />
     </div>
   );
@@ -423,9 +427,31 @@ function SplitLayout({ profile, links, settings, badges, viewCount, embeds, feat
   );
 }
 
+function TerminalSection({
+  label,
+  children,
+  className = "",
+}: {
+  label?: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`border-t border-white/[0.06] pt-4 ${className}`.trim()}>
+      {label && (
+        <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.18em] text-neutral-600">
+          {label}
+        </p>
+      )}
+      {children}
+    </section>
+  );
+}
+
 function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { publicBadges, usernameBadges, styleOptions } = getLayoutBadges(badges, settings);
+  const title = profile.username ? `@${profile.username}` : "profile";
 
   return (
     <div
@@ -436,40 +462,52 @@ function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, f
         <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
         <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
         <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
-        <span className="ml-2 text-[10px] text-neutral-600">bioforge — bash</span>
+        <span className="ml-2 truncate text-[10px] text-neutral-500">{title}</span>
       </div>
+
       <div className="space-y-4 p-5">
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-4">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-14 w-14 shrink-0" />
           <div className="min-w-0 flex-1">
-            <p className="text-neutral-600">
-              <span style={{ color: settings.accent_color }}>$</span> whoami
-            </p>
-            <div className="relative z-10 mt-1 flex flex-wrap items-center gap-2 overflow-visible">
-              <span className="text-base font-semibold text-white">{displayName}</span>
+            <div className="relative z-10 flex flex-wrap items-center gap-2 overflow-visible">
+              <h1 className="text-lg font-semibold tracking-tight text-white">{displayName}</h1>
               <BadgeRow badges={usernameBadges} compact styleOptions={styleOptions} />
             </div>
             <ProfileHandle profile={profile} className="mt-1" />
+            <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mb-0 mt-2" />
           </div>
         </div>
-        <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        <ProfileBadgeSection badges={publicBadges} styleOptions={styleOptions} />
+
+        {publicBadges.length > 0 && (
+          <ProfileBadgeSection badges={publicBadges} styleOptions={styleOptions} className="mb-0" />
+        )}
+
         {profile.bio && (
-          <div>
-            <p className="text-neutral-600">
-              <span style={{ color: settings.accent_color }}>$</span> cat bio.txt
-            </p>
-            <p className="mt-1 pl-4 text-neutral-300">
+          <TerminalSection label="About">
+            <p className="leading-relaxed text-neutral-300">
               <TypingBio text={profile.bio} enabled={settings.typing_bio} />
             </p>
-          </div>
+          </TerminalSection>
         )}
-        <div>
-          <p className="mb-2 text-neutral-600">
-            <span style={{ color: settings.accent_color }}>$</span> ls ./links
-          </p>
-          <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} hideBio />
-        </div>
+
+        <TerminalSection className={profile.bio ? undefined : "!border-t-0 !pt-0"}>
+          <ProfileMainContent
+            profile={profile}
+            links={links}
+            settings={settings}
+            embeds={embeds}
+            featured={featured}
+            guestbook={guestbook}
+            activity={activity}
+            friends={friends}
+            followerCount={followerCount}
+            followingCount={followingCount}
+            isFollowing={isFollowing}
+            isLoggedIn={isLoggedIn}
+            currentUserId={currentUserId}
+            hideBio
+          />
+        </TerminalSection>
       </div>
     </div>
   );

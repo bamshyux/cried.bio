@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { syncFounderBadges } from "@/app/actions/badges";
 import { BioForgeLogo } from "@/components/brand/logo";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
@@ -17,6 +18,7 @@ export default async function DashboardLayout({
   if (error || !data?.claims) redirect("/login");
 
   const userId = data.claims.sub as string;
+  await syncFounderBadges(userId);
   const email = (data.claims.email as string | undefined) ?? "User";
   const profile = await getProfileByUserId(userId);
 

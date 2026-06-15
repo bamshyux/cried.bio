@@ -1,3 +1,4 @@
+import { FOUNDER_BADGE_SLUG, getFounderUserId } from "@/lib/badges/founder";
 import { createClient } from "@/lib/supabase/server";
 import type { Badge, BadgeInventoryItem, ProfileBadge } from "@/lib/types/badge";
 
@@ -78,14 +79,18 @@ export async function getAllBadgesCatalog(): Promise<Badge[]> {
 }
 
 export async function getBadgeInventory(profileId: string): Promise<BadgeInventoryItem[]> {
-  const [catalog, earned] = await Promise.all([
+  const [catalog, earned, founderId] = await Promise.all([
     getAllBadgesCatalog(),
     getBadgesByProfileId(profileId),
+    getFounderUserId(),
   ]);
 
   const earnedMap = new Map(earned.map((b) => [b.id, b]));
+  const showFounderBadge = founderId === profileId;
 
-  return catalog.map((badge) => {
+  return catalog
+    .filter((badge) => showFounderBadge || badge.slug !== FOUNDER_BADGE_SLUG)
+    .map((badge) => {
     const owned = earnedMap.get(badge.id);
     return {
       ...badge,

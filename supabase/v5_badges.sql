@@ -115,7 +115,7 @@ insert into public.badges (slug, name, icon, color, description, category, rarit
   ('partner', 'Partner', 'partner', '#f97316', 'Official BioForge partner', 'creator', 'legendary', 60, true, null),
   -- Supporter
   ('premium', 'Premium', 'premium', '#f59e0b', 'Active premium subscriber', 'supporter', 'epic', 70, true, null),
-  ('founder', 'Founder', 'founder', '#eab308', 'Early BioForge supporter', 'supporter', 'legendary', 80, true, null),
+  ('founder', 'Founder', 'founder', '#eab308', 'Creator and owner of BioForge', 'verification', 'legendary', 80, true, null),
   ('donor', 'Donor', 'donor', '#ef4444', 'Donated to support BioForge', 'supporter', 'rare', 90, true, null),
   ('supporter', 'Supporter', 'supporter', '#06b6d4', 'Purchased a premium feature', 'supporter', 'common', 100, true, null),
   -- Community

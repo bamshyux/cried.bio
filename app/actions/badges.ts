@@ -3,6 +3,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { syncAllMilestoneBadges } from "@/lib/badges/sync-milestones";
 import {
+  getFounderUserId,
+  isFounderBadgeSlug,
+  isFounderProfile,
+  syncFounderBadge,
+} from "@/lib/badges/founder";
+import {
   getBadgeIdBySlug,
   getBadgesByProfileId,
 } from "@/lib/data/badges";
@@ -173,11 +179,19 @@ export async function removeBadgeAssignmentAction(
   const supabase = await createClient();
   const { data: row } = await supabase
     .from("profile_badges")
-    .select("profile_id")
+    .select("profile_id, badges(slug)")
     .eq("id", profileBadgeId)
     .maybeSingle();
 
   if (!row) return { error: "Badge assignment not found." };
+
+  const badgeSlug = row.badges && !Array.isArray(row.badges)
+    ? String((row.badges as { slug: string }).slug)
+    : null;
+
+  if (badgeSlug && isFounderBadgeSlug(badgeSlug)) {
+    return { error: "The Founder badge cannot be removed." };
+  }
 
   const { error } = await supabase.from("profile_badges").delete().eq("id", profileBadgeId);
   if (error) return { error: error.message };
@@ -235,6 +249,13 @@ export async function assignBadgeAction(
 
   const badgeId = await getBadgeIdBySlug(badgeSlug);
   if (!badgeId) return { error: "Badge not found." };
+
+  if (isFounderBadgeSlug(badgeSlug)) {
+    const founderId = await getFounderUserId();
+    if (!isFounderProfile(profileId, founderId)) {
+      return { error: "The Founder badge can only be held by the BioForge founder." };
+    }
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.from("profile_badges").insert({
@@ -329,4 +350,9 @@ export async function createCustomBadgeAction(
 /** Auto-award analytics milestone badges (idempotent) */
 export async function syncMilestoneBadges(profileId: string): Promise<void> {
   await syncAllMilestoneBadges(profileId);
+}
+
+/** Keep the Founder badge exclusive and auto-award it to the founder account. */
+export async function syncFounderBadges(profileId: string): Promise<void> {
+  await syncFounderBadge(profileId);
 }

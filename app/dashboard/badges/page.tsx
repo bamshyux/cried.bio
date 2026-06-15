@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { syncMilestoneBadges } from "@/app/actions/badges";
+import { syncFounderBadges, syncMilestoneBadges } from "@/app/actions/badges";
 import { BadgesPageShell } from "@/components/dashboard/badges-editor";
 import { getBadgeInventory, getBadgesByProfileId, getAllBadgesCatalog } from "@/lib/data/badges";
 import { getProfileByUserId } from "@/lib/data/profiles";
@@ -14,6 +14,7 @@ export default async function BadgesPage() {
   const userId = data.claims.sub as string;
 
   await syncMilestoneBadges(userId);
+  await syncFounderBadges(userId);
 
   const [inventory, earnedBadges, settings, profile, catalog] = await Promise.all([
     getBadgeInventory(userId),
