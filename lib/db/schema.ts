@@ -97,14 +97,50 @@ const COLUMN_MIGRATIONS: Record<string, string> = {
 /** Which migration file(s) to run for missing columns */
 export function getMigrationFilesForMissing(missing: string[]): string[] {
   const files = new Set<string>();
+
+  if (missing.includes("profile_id") || missing.length > 20) {
+    files.add("supabase/profiles.sql");
+    files.add("supabase/links.sql");
+    files.add("supabase/v2_features.sql");
+  }
+
   for (const col of missing) {
     const file = COLUMN_MIGRATIONS[col];
     if (file) files.add(file);
   }
+
   if (files.size === 0) {
-    return ["supabase/v3_features.sql", "supabase/v4_music_title.sql", "supabase/v5_badges.sql"];
+    return [
+      "supabase/v3_features.sql",
+      "supabase/v4_music_title.sql",
+      "supabase/v11_ui_colors.sql",
+      "supabase/v5_badges.sql",
+      "supabase/v7_badge_customization.sql",
+      "supabase/v10_links_parallax.sql",
+      "supabase/v14_links_style.sql",
+      "supabase/v12_v2_expansion.sql",
+      "supabase/v13_show_follow_counts.sql",
+      "supabase/v15_show_activity.sql",
+    ];
   }
-  return Array.from(files);
+
+  const ordered = [
+    "supabase/profiles.sql",
+    "supabase/links.sql",
+    "supabase/v2_features.sql",
+    "supabase/v3_features.sql",
+    "supabase/v4_music_title.sql",
+    "supabase/v11_ui_colors.sql",
+    "supabase/v5_badges.sql",
+    "supabase/v7_badge_customization.sql",
+    "supabase/v10_links_parallax.sql",
+    "supabase/v14_links_style.sql",
+    "supabase/v12_v2_expansion.sql",
+    "supabase/v13_show_follow_counts.sql",
+    "supabase/v15_show_activity.sql",
+  ];
+
+  return ordered.filter((file) => files.has(file));
 }
 
 export function buildSchemaValidationMessage(missing: string[]): string {

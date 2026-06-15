@@ -23,8 +23,8 @@ function isMissingColumnError(message: string) {
 }
 
 async function probeColumn(column: string): Promise<boolean> {
-  const { createClient } = await import("@/lib/supabase/server");
-  const supabase = await createClient();
+  const { createSchemaProbeClient } = await import("@/lib/supabase/schema-probe");
+  const supabase = createSchemaProbeClient();
   const { error } = await supabase
     .from("profile_settings")
     .select(column)
@@ -44,10 +44,9 @@ export async function validateProfileSettingsSchema(): Promise<SchemaValidationR
       if (!exists) missing.push(column);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown schema validation error";
-      cachedMissing = [...REQUIRED_PROFILE_SETTINGS_COLUMNS];
       return {
         ok: false,
-        missing: cachedMissing,
+        missing: [],
         message: `Could not validate profile_settings schema: ${message}`,
       };
     }
