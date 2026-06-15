@@ -2,8 +2,8 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { updateSettingsAction } from "@/app/actions/settings";
-import { FONT_OPTIONS, LINK_ANIMATION_OPTIONS } from "@/lib/settings";
-import type { LinkAnimation, ProfileSettings, SettingsFormState } from "@/lib/types/settings";
+import { FONT_OPTIONS, LINK_ANIMATION_OPTIONS, CONTENT_ALIGNMENT_OPTIONS } from "@/lib/settings";
+import type { ContentAlignment, LinkAnimation, ProfileSettings, SettingsFormState } from "@/lib/types/settings";
 import { ControlledSelect } from "@/components/dashboard/controlled-fields";
 import {
   buttonPrimaryClassName,
@@ -26,13 +26,15 @@ export function CustomizeEditor({ settings }: { settings: ProfileSettings }) {
 
   const [fontFamily, setFontFamily] = useState(settings.font_family);
   const [linkAnimation, setLinkAnimation] = useState(settings.link_animation);
+  const [contentAlignment, setContentAlignment] = useState<ContentAlignment>(settings.content_alignment);
   const [statusUseAccent, setStatusUseAccent] = useState(!settings.profile_status_color?.trim());
 
   useEffect(() => {
     setFontFamily(settings.font_family);
     setLinkAnimation(settings.link_animation);
+    setContentAlignment(settings.content_alignment);
     setStatusUseAccent(!settings.profile_status_color?.trim());
-  }, [settings.updated_at, settings.font_family, settings.link_animation, settings.profile_status_color]);
+  }, [settings.updated_at, settings.font_family, settings.link_animation, settings.content_alignment, settings.profile_status_color]);
 
   return (
     <>
@@ -53,6 +55,33 @@ export function CustomizeEditor({ settings }: { settings: ProfileSettings }) {
             onChange={(v) => setFontFamily(v)}
             options={FONT_OPTIONS.map((f) => ({ value: f.value, label: f.label }))}
           />
+
+          <div>
+            <label className={labelClassName}>Text alignment</label>
+            <p className="mb-2 text-xs text-neutral-600">
+              Align your profile text left, center, or right within your profile card
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {CONTENT_ALIGNMENT_OPTIONS.map((option) => {
+                const active = contentAlignment === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setContentAlignment(option.value)}
+                    className={`rounded-lg border px-3 py-2.5 text-sm transition-colors ${
+                      active
+                        ? "border-[var(--bf-accent)]/40 bg-[var(--bf-accent)]/10 text-white"
+                        : "border-white/[0.08] bg-[#0f0f0f] text-neutral-400 hover:border-white/[0.14] hover:text-neutral-200"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            <input type="hidden" name="content_alignment" value={contentAlignment} />
+          </div>
 
           <div className="grid gap-5 sm:grid-cols-3">
             <SliderField name="border_radius" label="Corner radius" min={0} max={48} defaultValue={settings.border_radius} unit="px" />

@@ -310,6 +310,85 @@ body {
   color: color-mix(in srgb, var(--bf-accent) 55%, rgba(255, 255, 255, 0.4));
 }
 
+.bf-profile-align {
+  width: 100%;
+}
+
+.bf-profile-align--left {
+  text-align: left;
+}
+
+.bf-profile-align--center {
+  text-align: center;
+}
+
+.bf-profile-align--right {
+  text-align: right;
+}
+
+.bf-profile-align--center .bf-profile-row,
+.bf-profile-align--center .bf-profile-inline-row,
+.bf-profile-align--center .bf-profile-icon-row,
+.bf-profile-align--center .bf-profile-avatar-row {
+  justify-content: center;
+}
+
+.bf-profile-align--right .bf-profile-row,
+.bf-profile-align--right .bf-profile-inline-row,
+.bf-profile-align--right .bf-profile-icon-row,
+.bf-profile-align--right .bf-profile-avatar-row {
+  justify-content: flex-end;
+}
+
+.bf-profile-align--center .bf-profile-block {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.bf-profile-align--right .bf-profile-block {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.bf-profile-align--center .bf-guestbook {
+  border-left: none;
+  padding-left: 0;
+}
+
+.bf-profile-align--right .bf-guestbook {
+  border-left: none;
+  padding-left: 0;
+  border-right: 1px solid color-mix(in srgb, var(--bf-accent) 8%, rgba(255, 255, 255, 0.04));
+  padding-right: 0.875rem;
+}
+
+.bf-profile-row,
+.bf-profile-inline-row,
+.bf-profile-icon-row,
+.bf-profile-avatar-row {
+  display: flex;
+}
+
+.bf-profile-inline-row {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.bf-profile-align--center .bf-profile-inline-row,
+.bf-profile-align--right .bf-profile-inline-row {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.bf-profile-align--center .bf-profile-inline-row {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.bf-profile-align--right .bf-profile-inline-row {
+  margin-left: auto;
+}
+
 .bf-username-glow { text-shadow: 0 0 20px var(--bf-accent), 0 0 40px rgba(0,229,204,0.3); }
 .bf-username-rainbow { animation: bf-username-rainbow 4s linear infinite; }
 .bf-username-wave { animation: bf-username-wave 2s ease-in-out infinite; display: inline-block; }

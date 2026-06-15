@@ -1,6 +1,7 @@
 "use server";
 
 import { sendPasswordResetEmail, sendWelcomeEmail } from "@/lib/email";
+import { syncSignupBadges } from "@/lib/badges/signup-badges";
 import { getProfileByUserId } from "@/lib/data/profiles";
 import { getSiteUrl } from "@/lib/site";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -53,6 +54,9 @@ export async function signUpAction(
     if (data.session) {
       sessionCreated = true;
       const profile = data.user ? await getProfileByUserId(data.user.id) : null;
+      if (data.user?.id) {
+        await syncSignupBadges(data.user.id);
+      }
       void sendWelcomeEmail({
         to: email,
         displayName: profile?.display_name,

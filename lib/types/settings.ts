@@ -1,3 +1,5 @@
+export type ContentAlignment = "left" | "center" | "right";
+
 export type ProfileLayout =
   | "classic"
   | "modern"
@@ -117,6 +119,7 @@ export type ProfileSettings = {
   links_monochrome: boolean;
   links_style: LinksStyle;
   profile_parallax: boolean;
+  content_alignment: ContentAlignment;
   created_at: string;
   updated_at: string;
 };

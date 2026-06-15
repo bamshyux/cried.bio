@@ -135,6 +135,9 @@ function parseSectionUpdates(
         show_view_count: parseBool(formData.get("show_view_count")),
         show_join_date: parseBool(formData.get("show_join_date")),
         profile_parallax: parseBool(formData.get("profile_parallax")),
+        content_alignment: (["left", "center", "right"].includes(String(formData.get("content_alignment")))
+          ? String(formData.get("content_alignment"))
+          : existing.content_alignment) as import("@/lib/types/settings").ContentAlignment,
       };
     case "links":
       return {

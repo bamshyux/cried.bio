@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { syncAllMilestoneBadges } from "@/lib/badges/sync-milestones";
+import { syncSignupBadges } from "@/lib/badges/signup-badges";
 import {
   getFounderUserId,
   isFounderBadgeSlug,
@@ -349,7 +350,13 @@ export async function createCustomBadgeAction(
 
 /** Auto-award analytics milestone badges (idempotent) */
 export async function syncMilestoneBadges(profileId: string): Promise<void> {
+  await syncSignupBadges(profileId);
   await syncAllMilestoneBadges(profileId);
+}
+
+/** Auto-award Year One and OG signup badges (idempotent) */
+export async function syncSignupBadgesAction(profileId: string): Promise<void> {
+  await syncSignupBadges(profileId);
 }
 
 /** Keep the Founder badge exclusive and auto-award it to the founder account. */

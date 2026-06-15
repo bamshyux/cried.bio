@@ -96,7 +96,7 @@ export function SocialIconRow({
   if (links.length === 0) return null;
 
   return (
-    <div className="mb-4 flex flex-wrap gap-2">
+    <div className="bf-profile-icon-row mb-4 flex flex-wrap gap-2">
       {links.slice(0, 8).map((link) => (
         <a
           key={link.id}

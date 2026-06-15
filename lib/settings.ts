@@ -1,5 +1,6 @@
 import type {
   BackgroundType,
+  ContentAlignment,
   CursorEffect,
   LinkAnimation,
   ParticleEffect,
@@ -64,7 +65,14 @@ export const DEFAULT_SETTINGS: Omit<
   links_monochrome: false,
   links_style: "buttons",
   profile_parallax: false,
+  content_alignment: "left",
 };
+
+export const CONTENT_ALIGNMENT_OPTIONS: { value: ContentAlignment; label: string }[] = [
+  { value: "left", label: "Left" },
+  { value: "center", label: "Center" },
+  { value: "right", label: "Right" },
+];
 
 export const LAYOUT_OPTIONS: {
   value: ProfileLayout;
@@ -232,9 +240,14 @@ export function mergeSettings(
     links_monochrome: row?.links_monochrome ?? DEFAULT_SETTINGS.links_monochrome,
     links_style: (row?.links_style ?? DEFAULT_SETTINGS.links_style) as import("@/lib/types/settings").LinksStyle,
     profile_parallax: row?.profile_parallax ?? DEFAULT_SETTINGS.profile_parallax,
+    content_alignment: (row?.content_alignment ?? DEFAULT_SETTINGS.content_alignment) as ContentAlignment,
     created_at: row?.created_at ?? now,
     updated_at: row?.updated_at ?? now,
   };
+}
+
+export function getProfileAlignClass(alignment: ContentAlignment = "left") {
+  return `bf-profile-align bf-profile-align--${alignment}`;
 }
 
 export function buildCardStyle(settings: ProfileSettings): Record<string, string | number | undefined> {

@@ -7,6 +7,7 @@ import {
   buildCardStyle,
   getFontCss,
   getGoogleFontsUrl,
+  getProfileAlignClass,
   getUsernameEffectClass,
 } from "@/lib/settings";
 import { formatProfileUid } from "@/lib/profile";
@@ -55,7 +56,7 @@ function ProfileMeta({
     year: "numeric",
   });
   return (
-    <div className={`mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-neutral-400 ${className}`.trim()}>
+    <div className={`mb-5 bf-profile-row flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-neutral-400 ${className}`.trim()}>
       {settings.show_view_count && <span>{viewCount.toLocaleString()} views</span>}
       {settings.show_join_date && <span>Joined {joinDate}</span>}
     </div>
@@ -215,7 +216,7 @@ function ProfileBadgeSection({
 }) {
   if (badges.length === 0) return null;
   return (
-    <div className={`relative z-10 mb-4 overflow-visible ${className}`.trim()}>
+    <div className={`relative z-10 mb-4 overflow-visible bf-profile-row ${className}`.trim()}>
       <BadgeRow badges={badges} styleOptions={styleOptions} />
     </div>
   );
@@ -242,10 +243,10 @@ function ClassicLayout({ profile, links, settings, badges, viewCount, embeds, fe
         <div className="h-24 overflow-hidden sm:h-32" style={{ ...bannerTopRadius(settings.border_radius), background: `linear-gradient(135deg, ${settings.gradient_colors.join(", ")})` }} />
       )}
       <div className="px-6 pb-6 pt-4">
-        <div className="-mt-10 mb-4 flex items-end gap-4">
+        <div className="-mt-10 mb-4 bf-profile-avatar-row flex items-end gap-4">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} />
           <div className="pb-1">
-            <div className="relative z-10 flex flex-wrap items-center gap-2 overflow-visible">
+            <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
               <Username name={displayName} settings={settings} profile={profile} />
               <BadgeRow badges={usernameBadges} compact styleOptions={styleOptions} />
             </div>
@@ -266,20 +267,20 @@ function ModernLayout({ profile, links, settings, badges, viewCount, embeds, fea
   const { publicBadges, usernameBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="w-full px-6 py-10 text-center" style={buildCardStyle(settings)}>
-      <div className="mx-auto mb-4 flex justify-center">
+    <div className="w-full px-6 py-10" style={buildCardStyle(settings)}>
+      <div className="bf-profile-avatar-row mb-4 flex">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-28 w-28" />
       </div>
-      <div className="relative z-10 mb-1 flex flex-wrap items-center justify-center gap-2 overflow-visible">
+      <div className="relative z-10 mb-1 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
         <Username name={displayName} settings={settings} profile={profile} />
         <BadgeRow badges={usernameBadges} compact styleOptions={styleOptions} />
       </div>
       <ProfileHandle profile={profile} className="mb-4" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-      <div className="mx-auto mb-4 flex justify-center">
+      <div className="bf-profile-row mb-4 flex">
         <ProfileBadgeSection badges={publicBadges} styleOptions={styleOptions} />
       </div>
-      <div className="mx-auto max-w-md">
+      <div className="bf-profile-block max-w-md">
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
     </div>
@@ -295,10 +296,10 @@ function GamingLayout({ profile, links, settings, badges, viewCount, embeds, fea
       <div className="border-b px-5 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ borderColor: `${settings.accent_color}30`, color: settings.accent_color }}>
         Player Profile
       </div>
-      <div className="flex gap-4 p-5">
+      <div className="flex gap-4 p-5 bf-profile-avatar-row">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20 shrink-0" />
         <div>
-          <div className="relative z-10 flex flex-wrap items-center gap-2 overflow-visible">
+          <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
             <Username name={displayName} settings={settings} profile={profile} />
             <BadgeRow badges={usernameBadges} compact styleOptions={styleOptions} />
           </div>
@@ -362,7 +363,7 @@ function StackedLayout({ profile, links, settings, badges, viewCount, embeds, fe
   const { publicBadges, usernameBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="w-full overflow-visible text-center" style={buildCardStyle(settings)}>
+    <div className="w-full overflow-visible" style={buildCardStyle(settings)}>
       {profile.banner_url ? (
         <div className="h-32 overflow-hidden sm:h-40" style={bannerTopRadius(settings.border_radius)}>
           <img src={profile.banner_url} alt="" className="h-full w-full object-cover" />
@@ -371,22 +372,22 @@ function StackedLayout({ profile, links, settings, badges, viewCount, embeds, fe
         <div className="h-28 overflow-hidden sm:h-36" style={{ ...bannerTopRadius(settings.border_radius), background: `linear-gradient(135deg, ${settings.gradient_colors.join(", ")})` }} />
       )}
       <div className="px-6 pb-8 pt-0">
-        <div className="-mt-12 mb-4 flex justify-center">
+        <div className="-mt-12 mb-4 bf-profile-avatar-row flex">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />
         </div>
-        <div className="relative z-10 mb-1 flex flex-wrap items-center justify-center gap-2 overflow-visible">
+        <div className="relative z-10 mb-1 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={usernameBadges} compact styleOptions={styleOptions} />
         </div>
         <ProfileHandle profile={profile} className="mb-4" />
-        <div className="flex justify-center">
+        <div className="bf-profile-row flex">
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         </div>
-        <div className="mt-2 flex justify-center">
+        <div className="bf-profile-row mt-2 flex">
           <ProfileBadgeSection badges={publicBadges} styleOptions={styleOptions} />
         </div>
 
-        <div className="mx-auto max-w-md">
+        <div className="bf-profile-block max-w-md">
           <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
         </div>
       </div>
@@ -476,10 +477,10 @@ function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, f
       </div>
 
       <div className="space-y-4 p-5">
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-4 bf-profile-avatar-row">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-14 w-14 shrink-0" />
           <div className="min-w-0 flex-1">
-            <div className="relative z-10 flex flex-wrap items-center gap-2 overflow-visible">
+            <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
               <h1 className="text-lg font-semibold tracking-tight text-white">{displayName}</h1>
               <BadgeRow badges={usernameBadges} compact styleOptions={styleOptions} />
             </div>
@@ -529,10 +530,10 @@ function CompactLayout({ profile, links, settings, badges, viewCount, embeds, fe
 
   return (
     <div className="w-full p-5" style={buildCardStyle(settings)}>
-      <div className="mb-4 flex items-center gap-3">
+        <div className="mb-4 bf-profile-avatar-row flex items-center gap-3">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-14 w-14 shrink-0" />
         <div className="min-w-0 flex-1">
-          <div className="relative z-10 flex flex-wrap items-center gap-2 overflow-visible">
+          <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
             <h1 className="truncate text-lg font-semibold">{displayName}</h1>
             <BadgeRow badges={usernameBadges} compact styleOptions={styleOptions} />
           </div>
@@ -555,11 +556,11 @@ function CardLayout({ profile, links, settings, badges, viewCount, embeds, featu
       className="mx-auto w-full max-w-sm overflow-visible shadow-2xl"
       style={{ ...buildCardStyle(settings), borderRadius: Math.max(settings.border_radius, 20) }}
     >
-      <div className="px-6 py-8 text-center">
-        <div className="mx-auto mb-4 flex justify-center">
+      <div className="px-6 py-8">
+        <div className="bf-profile-avatar-row mb-4 flex">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
         </div>
-        <div className="relative z-10 mb-1 flex flex-wrap items-center justify-center gap-2 overflow-visible">
+        <div className="relative z-10 mb-1 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={usernameBadges} compact styleOptions={styleOptions} />
         </div>
@@ -586,10 +587,10 @@ function NeonLayout({ profile, links, settings, badges, viewCount, embeds, featu
       }}
     >
       <div className="overflow-visible bg-[#0a0a0a]/95 p-6" style={{ borderRadius: Math.max(settings.border_radius - 1, 0) }}>
-        <div className="mb-4 flex items-start gap-4">
+        <div className="mb-4 bf-profile-avatar-row flex items-start gap-4">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20 shrink-0" />
           <div>
-            <div className="relative z-10 flex flex-wrap items-center gap-2 overflow-visible">
+            <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
               <Username name={displayName} settings={settings} profile={profile} />
               <BadgeRow badges={usernameBadges} compact styleOptions={styleOptions} />
             </div>
@@ -613,9 +614,9 @@ function MagazineLayout({ profile, links, settings, badges, viewCount, embeds, f
       <div className="absolute right-6 top-6 sm:right-8 sm:top-8">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16 sm:h-20 sm:w-20" />
       </div>
-      <div className="max-w-[75%] pr-4">
+      <div className="bf-profile-block max-w-[75%] pr-4">
         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-neutral-600">Profile</p>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="mt-2 bf-profile-row flex flex-wrap items-center gap-2">
           <h1
             className={`text-4xl font-bold leading-none tracking-tight sm:text-5xl ${getUsernameEffectClass(settings.username_effect)}`}
             style={settings.neon_glow ? { textShadow: `0 0 30px ${settings.accent_color}60` } : undefined}
@@ -647,7 +648,7 @@ function BentoLayout({ profile, links, settings, badges, viewCount, embeds, feat
         <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4 sm:col-span-2">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16 shrink-0" />
           <div className="min-w-0">
-            <div className="relative z-10 flex flex-wrap items-center gap-2 overflow-visible">
+            <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
               <Username name={displayName} settings={settings} profile={profile} />
               <BadgeRow badges={usernameBadges} compact styleOptions={styleOptions} />
             </div>
@@ -785,7 +786,9 @@ export function PublicProfileClient({
         >
           <div className="mx-auto w-full max-w-2xl">
             <ProfileParallaxCard enabled={settings.profile_parallax}>
-              <Layout {...layoutProps} />
+              <div className={getProfileAlignClass(settings.content_alignment)}>
+                <Layout {...layoutProps} />
+              </div>
             </ProfileParallaxCard>
           </div>
         </main>

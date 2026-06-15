@@ -62,7 +62,7 @@ export function ProfileContentSections({
       )}
       <ProfileFriendsSection friends={friends} visibility={settings.friends_visibility} />
       {!hideBio && profile.bio && (
-        <div className="mb-5 max-w-2xl text-neutral-300">
+        <div className="bf-profile-block mb-5 max-w-2xl text-neutral-300">
           <TypingBio text={profile.bio} enabled={settings.typing_bio} />
         </div>
       )}

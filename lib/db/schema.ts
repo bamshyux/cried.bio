@@ -47,6 +47,7 @@ export const REQUIRED_PROFILE_SETTINGS_COLUMNS = [
   "links_monochrome",
   "links_style",
   "profile_parallax",
+  "content_alignment",
   "status_preset",
   "status_emoji",
   "guestbook_enabled",
@@ -74,6 +75,7 @@ const COLUMN_MIGRATIONS: Record<string, string> = {
   links_monochrome: "supabase/v10_links_parallax.sql",
   links_style: "supabase/v14_links_style.sql",
   profile_parallax: "supabase/v10_links_parallax.sql",
+  content_alignment: "supabase/v17_content_alignment.sql",
   profile_status_color: "supabase/v11_ui_colors.sql",
   music_player_color: "supabase/v11_ui_colors.sql",
   status_preset: "supabase/v12_v2_expansion.sql",
@@ -121,6 +123,7 @@ export function getMigrationFilesForMissing(missing: string[]): string[] {
       "supabase/v12_v2_expansion.sql",
       "supabase/v13_show_follow_counts.sql",
       "supabase/v15_show_activity.sql",
+      "supabase/v17_content_alignment.sql",
     ];
   }
 
@@ -138,6 +141,7 @@ export function getMigrationFilesForMissing(missing: string[]): string[] {
     "supabase/v12_v2_expansion.sql",
     "supabase/v13_show_follow_counts.sql",
     "supabase/v15_show_activity.sql",
+    "supabase/v17_content_alignment.sql",
   ];
 
   return ordered.filter((file) => files.has(file));

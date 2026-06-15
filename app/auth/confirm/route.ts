@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getProfileByUserId } from "@/lib/data/profiles";
 import { sendWelcomeEmail } from "@/lib/email";
+import { syncSignupBadges } from "@/lib/badges/signup-badges";
 import { redirect } from "next/navigation";
 import { type NextRequest } from "next/server";
 import { type EmailOtpType } from "@supabase/supabase-js";
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest) {
 
       if (user?.email && (type === "signup" || type === "email")) {
         const profile = await getProfileByUserId(user.id);
+        await syncSignupBadges(user.id);
         void sendWelcomeEmail({
           to: user.email,
           displayName: profile?.display_name,
