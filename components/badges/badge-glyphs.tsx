@@ -143,8 +143,12 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
     case "year-one":
       return (
         <>
-          <rect x="7" y="4" width="10" height="16" rx="2" fill={c} />
-          <rect x="10" y="7" width="4" height="10" rx="1" fill="#000" fillOpacity="0.25" />
+          <path d="M9 6.5v2M15 6.5v2" stroke={c} strokeWidth="2.4" strokeLinecap="round" />
+          <rect x="5.5" y="8" width="13" height="13.5" rx="2" stroke={c} strokeWidth="2.4" fill="none" />
+          <path d="M5.5 11.5h13" stroke={c} strokeWidth="2" strokeLinecap="round" />
+          <text x="12" y="18.5" textAnchor="middle" fill={c} fontSize="10" fontWeight="900" fontFamily="system-ui,sans-serif">
+            1
+          </text>
         </>
       );
 

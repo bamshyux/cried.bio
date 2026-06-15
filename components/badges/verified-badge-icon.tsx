@@ -25,7 +25,6 @@ export function VerifiedBadgeIcon({
 }) {
   const uid = useId().replace(/:/g, "");
   const gradId = `bf-verified-grad-${uid}`;
-  const shineId = `bf-verified-shine-${uid}`;
   const shape = buildScallopPath(24, 24, 22.2, 19.4, 12);
 
   return (
@@ -43,14 +42,8 @@ export function VerifiedBadgeIcon({
           <stop offset="38%" stopColor="#1D9BF0" />
           <stop offset="100%" stopColor="#1574B8" />
         </linearGradient>
-        <radialGradient id={shineId} cx="32%" cy="24%" r="58%">
-          <stop offset="0%" stopColor="rgba(255,255,255,0.55)" />
-          <stop offset="55%" stopColor="rgba(255,255,255,0.12)" />
-          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
-        </radialGradient>
       </defs>
       <path d={shape} fill={`url(#${gradId})`} />
-      <path d={shape} fill={`url(#${shineId})`} />
       <path
         d="M17.2 24.4 21.6 28.8 31.2 18.6"
         stroke="#ffffff"
