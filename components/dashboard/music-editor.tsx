@@ -129,7 +129,7 @@ export function MusicEditor({
         </div>
 
         <div className={cardClassName}>
-          <form action={formAction} className="space-y-5">
+          <form action={formAction} data-dashboard-primary-form className="space-y-5">
             <input type="hidden" name="_section" value="music" />
             <div>
               <label htmlFor="music_title" className={labelClassName}>Song title</label>

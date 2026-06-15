@@ -111,7 +111,7 @@ export function ProfileEditor({ profile }: { profile: Profile | null }) {
   const bannerDisplayUrl = bannerPreview ?? profile?.banner_url ?? null;
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form action={formAction} data-dashboard-primary-form className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
         <div>
           <label htmlFor="username" className={labelClassName}>Username</label>

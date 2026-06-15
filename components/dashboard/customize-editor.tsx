@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { updateSettingsAction } from "@/app/actions/settings";
 import { FONT_OPTIONS, LINK_ANIMATION_OPTIONS, CONTENT_ALIGNMENT_OPTIONS } from "@/lib/settings";
 import {
@@ -29,7 +29,8 @@ const initial: SettingsFormState = {};
 export function CustomizeEditor({ settings }: { settings: ProfileSettings }) {
   const [state, formAction, isPending] = useActionState(updateSettingsAction, initial);
   useSettingsRefresh(state);
-  const { markDirty } = useUnsavedChanges();
+  const { markDirty, setLastDirtyForm } = useUnsavedChanges();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [fontFamily, setFontFamily] = useState(settings.font_family);
   const [linkAnimation, setLinkAnimation] = useState(settings.link_animation);
@@ -47,7 +48,7 @@ export function CustomizeEditor({ settings }: { settings: ProfileSettings }) {
     <>
       <PageHeader title="Customize" description="Colors, typography, card styling, and profile display options." />
       <div className={cardClassName}>
-        <form action={formAction} className="space-y-6">
+        <form ref={formRef} action={formAction} data-dashboard-primary-form className="space-y-6">
           <input type="hidden" name="_section" value="customize" />
 
           <div className="grid gap-5 sm:grid-cols-2">
@@ -77,6 +78,7 @@ export function CustomizeEditor({ settings }: { settings: ProfileSettings }) {
                     type="button"
                     onClick={() => {
                       setContentAlignment(option.value);
+                      if (formRef.current) setLastDirtyForm(formRef.current);
                       markDirty();
                     }}
                     className={`rounded-lg border px-3 py-2.5 text-sm transition-colors ${

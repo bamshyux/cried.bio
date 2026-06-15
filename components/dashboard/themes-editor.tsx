@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { updateSettingsAction } from "@/app/actions/settings";
 import {
   FONT_OPTIONS,
@@ -464,7 +464,8 @@ export function ThemesEditor({ settings }: { settings: ProfileSettings }) {
   const [state, formAction, isPending] = useActionState(updateSettingsAction, initial);
   const [selected, setSelected] = useState<ProfileLayout>(settings.layout);
   useSettingsRefresh(state);
-  const { markDirty } = useUnsavedChanges();
+  const { markDirty, setLastDirtyForm } = useUnsavedChanges();
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     setSelected(settings.layout);
@@ -474,7 +475,7 @@ export function ThemesEditor({ settings }: { settings: ProfileSettings }) {
     <>
       <PageHeader title="Layouts" description="Choose how your public profile is structured." />
       <div className={cardClassName}>
-        <form action={formAction} className="space-y-6">
+        <form ref={formRef} action={formAction} data-dashboard-primary-form className="space-y-6">
           <input type="hidden" name="_section" value="themes" />
           <input type="hidden" name="layout" value={selected} />
 
@@ -487,6 +488,7 @@ export function ThemesEditor({ settings }: { settings: ProfileSettings }) {
                   type="button"
                   onClick={() => {
                     setSelected(layout.value);
+                    if (formRef.current) setLastDirtyForm(formRef.current);
                     markDirty();
                   }}
                   className={`rounded-xl border p-4 text-left transition-all ${

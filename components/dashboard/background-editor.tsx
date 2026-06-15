@@ -129,7 +129,7 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
       <PageHeader title="Background" description="Images, video, gradients, particles, and overlay controls." />
       <div className="space-y-6">
         <div className={cardClassName}>
-          <form action={formAction} className="space-y-5">
+          <form action={formAction} data-dashboard-primary-form className="space-y-5">
             <input type="hidden" name="_section" value="background" />
 
             <ControlledSelect

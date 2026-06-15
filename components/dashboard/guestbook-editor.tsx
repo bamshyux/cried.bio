@@ -36,7 +36,7 @@ export function GuestbookEditor({
     <>
       <PageHeader title="Guestbook" description="Let visitors leave messages on your profile." />
       <div className={`${cardClassName} mb-6`}>
-        <form action={formAction} className="space-y-4">
+        <form action={formAction} data-dashboard-primary-form className="space-y-4">
           <ToggleField name="guestbook_enabled" label="Enable guestbook" defaultChecked={settings.guestbook_enabled} />
           <ToggleField name="guestbook_approval_required" label="Require approval" defaultChecked={settings.guestbook_approval_required} />
           <FormFeedback error={state.error} success={state.success} />

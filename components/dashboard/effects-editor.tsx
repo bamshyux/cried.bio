@@ -34,7 +34,7 @@ export function EffectsEditor({ settings }: { settings: ProfileSettings }) {
     <>
       <PageHeader title="Effects" description="Cursor, username, bio, page entrance, and click-to-enter screen." />
       <div className={cardClassName}>
-        <form action={formAction} className="space-y-5">
+        <form action={formAction} data-dashboard-primary-form className="space-y-5">
           <input type="hidden" name="_section" value="effects" />
 
           <div className="rounded-xl border border-white/[0.06] bg-[#0c0c0c] p-4">

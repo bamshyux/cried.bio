@@ -48,7 +48,7 @@ export function SocialEditor({
       </div>
 
       <div className={`${cardClassName} mb-6`}>
-        <form action={formAction} className="space-y-4">
+        <form action={formAction} data-dashboard-primary-form className="space-y-4">
           <ToggleField
             name="show_follow_counts"
             label="Show followers & following"

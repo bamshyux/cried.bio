@@ -161,7 +161,7 @@ export function BadgesEditor({
 
           <div className={cardClassName}>
             <h2 className="mb-4 text-sm font-medium text-white">Display settings</h2>
-            <form action={formAction} className="space-y-4">
+            <form action={formAction} data-dashboard-primary-form className="space-y-4">
               <ToggleField name="show_badges" label="Show badges on profile" defaultChecked={settings.show_badges} />
               <ToggleField
                 name="badges_monochrome"
