@@ -140,11 +140,9 @@ function NavGroupSection({
 
 export function DashboardSidebar({
   username,
-  displayName,
   showManageAccounts = false,
 }: {
   username?: string | null;
-  displayName?: string | null;
   showManageAccounts?: boolean;
 }) {
   const pathname = usePathname();
@@ -210,32 +208,34 @@ export function DashboardSidebar({
       </nav>
 
       {username ? (
-        <div className="bf-dash-live-cta mt-5 shrink-0 lg:mt-4 lg:border-t lg:border-white/[0.06] lg:pt-4">
+        <div className="bf-dash-live-cta mt-4 shrink-0 lg:mt-3 lg:border-t lg:border-white/[0.06] lg:pt-3">
           <Link
             href={`/${username}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="group block rounded-xl bg-white p-3.5 text-[#090909] shadow-[0_8px_32px_rgba(255,255,255,0.08)] transition-all hover:bg-neutral-100 hover:shadow-[0_12px_40px_rgba(255,255,255,0.12)]"
+            className="group flex items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.04] px-2.5 py-2 transition-colors hover:border-white/[0.16] hover:bg-white/[0.07]"
           >
-            <span className="flex items-center justify-between gap-2 text-sm font-semibold">
-              View live profile
-              <IconExternal size={14} className="text-neutral-500 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </span>
-            <span className="mt-1 block truncate font-mono text-[11px] text-neutral-500">
-              {SITE_HOST}/{username}
-            </span>
-            {displayName ? (
-              <span className="mt-0.5 block truncate text-xs text-neutral-600">{displayName}</span>
-            ) : null}
+            <div className="min-w-0 flex-1">
+              <span className="block text-[12px] font-medium text-neutral-200 group-hover:text-white">
+                View live profile
+              </span>
+              <span className="mt-0.5 block truncate font-mono text-[10px] text-neutral-500">
+                {SITE_HOST}/{username}
+              </span>
+            </div>
+            <IconExternal
+              size={13}
+              className="shrink-0 text-neutral-500 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-neutral-300"
+            />
           </Link>
         </div>
       ) : (
-        <div className="bf-dash-live-cta mt-5 shrink-0 rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-3.5 lg:mt-4 lg:border-t lg:border-white/[0.06] lg:pt-4">
-          <p className="text-sm font-medium text-white">Profile not live yet</p>
-          <p className="mt-1 text-xs text-neutral-500">Set a username in Profile to publish.</p>
+        <div className="bf-dash-live-cta mt-4 shrink-0 rounded-lg border border-dashed border-white/10 bg-white/[0.02] px-2.5 py-2.5 lg:mt-3 lg:border-t lg:border-white/[0.06] lg:pt-3">
+          <p className="text-[12px] font-medium text-neutral-200">Profile not live yet</p>
+          <p className="mt-0.5 text-[10px] text-neutral-500">Set a username in Profile to publish.</p>
           <Link
             href="/dashboard/profile"
-            className="mt-3 inline-flex rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-[#090909] hover:bg-neutral-200"
+            className="mt-2 inline-flex rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[11px] font-medium text-neutral-200 hover:border-white/15 hover:bg-white/[0.1] hover:text-white"
           >
             Set up profile
           </Link>
