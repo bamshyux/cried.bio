@@ -784,3 +784,251 @@ body {
     0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
+/* ─── Landing page animations ─────────────────────────────────────────────── */
+
+@keyframes bf-home-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes bf-home-accent-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 18px rgba(0, 229, 204, 0.15);
+  }
+  50% {
+    text-shadow: 0 0 36px rgba(0, 229, 204, 0.45), 0 0 64px rgba(0, 229, 204, 0.15);
+  }
+}
+
+@keyframes bf-home-pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 229, 204, 0.45);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.15);
+    box-shadow: 0 0 0 6px rgba(0, 229, 204, 0);
+  }
+}
+
+@keyframes bf-home-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes bf-home-orb-drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(40px, 24px) scale(1.08);
+  }
+}
+
+@keyframes bf-home-orb-drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-32px, -20px) scale(1.05);
+  }
+}
+
+@keyframes bf-home-orb-drift-c {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(24px, -28px) scale(0.94);
+  }
+}
+
+@keyframes bf-home-ambient-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
+@keyframes bf-home-grid-drift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(72px);
+  }
+}
+
+@keyframes bf-home-shimmer-line {
+  0% {
+    opacity: 0.35;
+    transform: scaleX(0.6);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0.35;
+    transform: scaleX(0.6);
+  }
+}
+
+@keyframes bf-home-cta-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 229, 204, 0);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(0, 229, 204, 0.35);
+  }
+}
+
+@keyframes bf-home-preview-link-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.bf-home-enter {
+  animation: bf-home-fade-up 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bf-home-enter-0 { animation-delay: 0ms; }
+.bf-home-enter-1 { animation-delay: 80ms; }
+.bf-home-enter-2 { animation-delay: 180ms; }
+.bf-home-enter-3 { animation-delay: 280ms; }
+.bf-home-enter-4 { animation-delay: 380ms; }
+.bf-home-enter-5 { animation-delay: 520ms; }
+.bf-home-enter-6 { animation-delay: 680ms; }
+
+.bf-home-accent-glow {
+  animation: bf-home-accent-glow 3.5s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+.bf-home-pulse-dot {
+  animation: bf-home-pulse-dot 2.4s ease-in-out infinite;
+}
+
+.bf-home-ambient {
+  animation: bf-home-ambient-pulse 8s ease-in-out infinite;
+}
+
+.bf-home-orb {
+  animation-duration: 14s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.bf-home-orb--a {
+  animation-name: bf-home-orb-drift-a;
+}
+
+.bf-home-orb--b {
+  animation-name: bf-home-orb-drift-b;
+  animation-duration: 18s;
+}
+
+.bf-home-orb--c {
+  animation-name: bf-home-orb-drift-c;
+  animation-duration: 16s;
+}
+
+.bf-home-grid {
+  animation: bf-home-grid-drift 24s linear infinite;
+}
+
+.bf-home-shimmer-line {
+  transform-origin: center;
+  animation: bf-home-shimmer-line 4s ease-in-out infinite;
+}
+
+.bf-home-preview {
+  animation:
+    bf-home-fade-up 1s cubic-bezier(0.22, 1, 0.36, 1) 520ms both,
+    bf-home-float 6s ease-in-out 1.6s infinite;
+}
+
+.bf-home-preview-link {
+  animation: bf-home-preview-link-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bf-home-preview-link-1 { animation-delay: 1.1s; }
+.bf-home-preview-link-2 { animation-delay: 1.22s; }
+.bf-home-preview-link-3 { animation-delay: 1.34s; }
+
+.bf-home-preview-url {
+  animation: bf-home-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 1.5s;
+}
+
+.bf-home-cta-primary {
+  animation: bf-home-cta-glow 3s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
+.bf-home-reveal-pending {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.bf-home-revealed {
+  animation: bf-home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bf-home-enter,
+  .bf-home-preview,
+  .bf-home-preview-link,
+  .bf-home-preview-url,
+  .bf-home-revealed,
+  .bf-home-accent-glow,
+  .bf-home-pulse-dot,
+  .bf-home-ambient,
+  .bf-home-orb,
+  .bf-home-grid,
+  .bf-home-shimmer-line,
+  .bf-home-cta-primary {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+    filter: none;
+    text-shadow: none;
+    box-shadow: none;
+  }
+
+  .bf-home-reveal-pending {
+    opacity: 1;
+    transform: none;
+  }
+}
+

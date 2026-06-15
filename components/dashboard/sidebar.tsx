@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BioForgeLogo } from "@/components/brand/logo";
-import { IconAnalytics, IconBackground, IconBadges, IconCustomize,
+import {
+  IconAnalytics,
+  IconBackground,
+  IconBadges,
+  IconCustomize,
   IconEffects,
   IconExternal,
   IconLayout,
@@ -31,8 +35,21 @@ const NAV_ITEMS = [
   { href: "/dashboard/analytics", label: "Analytics", Icon: IconAnalytics },
 ];
 
-export function DashboardSidebar({ username }: { username?: string | null }) {
+export function DashboardSidebar({
+  username,
+  showManageAccounts = false,
+}: {
+  username?: string | null;
+  showManageAccounts?: boolean;
+}) {
   const pathname = usePathname();
+
+  const navItems = showManageAccounts
+    ? [
+        ...NAV_ITEMS,
+        { href: "/dashboard/accounts", label: "Manage Accounts", Icon: IconProfile },
+      ]
+    : NAV_ITEMS;
 
   return (
     <aside className="flex w-full flex-col lg:w-[220px] lg:shrink-0">
@@ -41,7 +58,7 @@ export function DashboardSidebar({ username }: { username?: string | null }) {
       </div>
 
       <nav className="flex flex-wrap gap-0.5 lg:flex-col">
-        {NAV_ITEMS.map(({ href, label, Icon }) => {
+        {navItems.map(({ href, label, Icon }) => {
           const active =
             href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
 

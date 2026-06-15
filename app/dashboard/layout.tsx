@@ -6,6 +6,7 @@ import { LogoutButton } from "@/components/auth/logout-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { getProfileByUserId } from "@/lib/data/profiles";
+import { isSuperAdminEmail } from "@/lib/auth/super-admin";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({
@@ -23,6 +24,7 @@ export default async function DashboardLayout({
   await syncSignupBadgesAction(userId);
   const email = (data.claims.email as string | undefined) ?? "User";
   const profile = await getProfileByUserId(userId);
+  const showManageAccounts = await isSuperAdminEmail(email);
 
   return (
     <div className="min-h-screen bg-[#090909] text-neutral-100">
@@ -41,7 +43,7 @@ export default async function DashboardLayout({
 
       <DashboardShell>
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-8 lg:flex-row lg:px-8">
-          <DashboardSidebar username={profile?.username} />
+          <DashboardSidebar username={profile?.username} showManageAccounts={showManageAccounts} />
           <main className="min-w-0 flex-1">{children}</main>
         </div>
       </DashboardShell>
