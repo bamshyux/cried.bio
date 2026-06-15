@@ -36,25 +36,31 @@ export function ToggleField({
   label,
   description,
   defaultChecked,
+  checked,
   onCheckedChange,
 }: {
   name: string;
   label: string;
   description?: string;
   defaultChecked?: boolean;
+  /** When set, the toggle is fully controlled by the parent (preferred for settings forms). */
+  checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
 }) {
-  const [checked, setChecked] = useState(defaultChecked ?? false);
+  const [internalChecked, setInternalChecked] = useState(defaultChecked ?? false);
+  const isControlled = checked !== undefined;
+  const resolvedChecked = isControlled ? checked : internalChecked;
 
   return (
     <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/[0.06] bg-[#0f0f0f] p-4 transition-colors hover:border-white/10">
-      <input type="hidden" name={name} value={checked ? "true" : "false"} />
+      {!isControlled ? <input type="hidden" name={name} value={resolvedChecked ? "true" : "false"} /> : null}
       <input
         type="checkbox"
-        checked={checked}
+        checked={resolvedChecked}
         onChange={(e) => {
-          setChecked(e.target.checked);
-          onCheckedChange?.(e.target.checked);
+          const next = e.target.checked;
+          if (!isControlled) setInternalChecked(next);
+          onCheckedChange?.(next);
         }}
         className="mt-0.5 h-4 w-4 rounded border-white/20 bg-[#090909] accent-[#fafafa]"
       />

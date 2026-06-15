@@ -3,8 +3,7 @@
 import { ControlledSelect } from "@/components/dashboard/controlled-fields";
 import {
   SaveConfirmation,
-  useSettingsForm,
-  useSyncedSettingsState,
+  useDashboardSettingsSection,
 } from "@/components/dashboard/use-settings-form";
 import {
   buttonPrimaryClassName,
@@ -14,7 +13,6 @@ import {
   labelClassName,
   PageHeader,
   RemoveMediaButton,
-  SliderField,
   ToggleField,
 } from "@/components/dashboard/form-fields";
 import {
@@ -25,41 +23,45 @@ import { uploadBackgroundToStorage } from "@/lib/uploads/background-client";
 import { MAX_BACKGROUND_UPLOAD_LABEL } from "@/lib/uploads/limits";
 import { BACKGROUND_TYPE_OPTIONS, PARTICLE_OPTIONS } from "@/lib/settings";
 import type { BackgroundType, ParticleEffect, ProfileSettings } from "@/lib/types/settings";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 const fileInputClassName =
   "block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#fafafa] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]";
 
 type BackgroundFormState = {
-  backgroundType: BackgroundType;
-  particleEffect: ParticleEffect | "";
-  gradientColors: string;
-  backgroundColor: string;
-  animatedGradient: boolean;
-  overlayOpacity: number;
+  background_type: BackgroundType;
+  particle_effect: ParticleEffect | "";
+  gradient_colors: string;
+  background_color: string;
+  animated_gradient: boolean;
+  overlay_opacity: number;
   vignette: boolean;
-  noiseTexture: boolean;
+  noise_texture: boolean;
 };
 
 function readBackgroundForm(settings: ProfileSettings): BackgroundFormState {
   return {
-    backgroundType: settings.background_type,
-    particleEffect: settings.particle_effect ?? "",
-    gradientColors: settings.gradient_colors.join(", "),
-    backgroundColor: settings.background_color,
-    animatedGradient: settings.animated_gradient,
-    overlayOpacity: settings.overlay_opacity,
+    background_type: settings.background_type,
+    particle_effect: settings.particle_effect ?? "",
+    gradient_colors: settings.gradient_colors.join(", "),
+    background_color: settings.background_color,
+    animated_gradient: settings.animated_gradient,
+    overlay_opacity: settings.overlay_opacity,
     vignette: settings.vignette,
-    noiseTexture: settings.noise_texture,
+    noise_texture: settings.noise_texture,
   };
 }
 
 export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
-  const { state, submit, isPending } = useSettingsForm("background", "Background saved.");
-  const [form, setForm] = useSyncedSettingsState(settings.updated_at, readBackgroundForm(settings));
+  const { form, patchForm, submit, state, isPending } = useDashboardSettingsSection(
+    "background",
+    settings,
+    readBackgroundForm,
+    "Background saved.",
+  );
 
   const [uploadError, setUploadError] = useState<string>();
   const [uploadSuccess, setUploadSuccess] = useState<string>();
@@ -67,11 +69,8 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
   const [fileInputKey, setFileInputKey] = useState(0);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
-
-  const patchForm = useCallback(
-    (partial: Partial<BackgroundFormState>) => setForm((prev) => ({ ...prev, ...partial })),
-    [setForm],
-  );
+  const formRef = useRef(form);
+  formRef.current = form;
 
   useEffect(() => {
     setImagePreview(null);
@@ -91,16 +90,7 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
 
   const handleSave = (event: React.FormEvent) => {
     event.preventDefault();
-    submit({
-      background_type: form.backgroundType,
-      background_color: form.backgroundColor,
-      gradient_colors: form.gradientColors,
-      animated_gradient: form.animatedGradient,
-      particle_effect: form.particleEffect,
-      overlay_opacity: form.overlayOpacity,
-      vignette: form.vignette,
-      noise_texture: form.noiseTexture,
-    });
+    submit(formRef.current);
   };
 
   const handleBackgroundUpload = async (file: File | undefined) => {
@@ -131,11 +121,7 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
       }
 
       setUploadSuccess(result.success);
-      if (uploadedVideo) {
-        patchForm({ backgroundType: "video" });
-      } else {
-        patchForm({ backgroundType: "image" });
-      }
+      patchForm({ background_type: uploadedVideo ? "video" : "image" });
       router.refresh();
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "Upload failed.");
@@ -168,15 +154,11 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
       <PageHeader title="Background" description="Images, video, gradients, particles, and overlay controls." />
       <div className="space-y-6">
         <div className={cardClassName}>
-          <form
-            onSubmit={handleSave}
-            data-dashboard-primary-form
-            className="space-y-5"
-          >
+          <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-5">
             <ControlledSelect
               label="Background type"
-              value={form.backgroundType}
-              onChange={(v) => patchForm({ backgroundType: v as BackgroundType })}
+              value={form.background_type}
+              onChange={(v) => patchForm({ background_type: v as BackgroundType })}
               options={BACKGROUND_TYPE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
             />
 
@@ -187,8 +169,8 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
               <input
                 id="background_color"
                 type="color"
-                value={form.backgroundColor.startsWith("#") ? form.backgroundColor : "#050508"}
-                onChange={(e) => patchForm({ backgroundColor: e.target.value })}
+                value={form.background_color.startsWith("#") ? form.background_color : "#050508"}
+                onChange={(e) => patchForm({ background_color: e.target.value })}
                 className="h-10 w-full cursor-pointer rounded-lg border border-white/[0.06] bg-[#090909]"
               />
             </div>
@@ -200,25 +182,24 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
               <input
                 id="gradient_colors"
                 type="text"
-                value={form.gradientColors}
-                onChange={(e) => patchForm({ gradientColors: e.target.value })}
+                value={form.gradient_colors}
+                onChange={(e) => patchForm({ gradient_colors: e.target.value })}
                 placeholder="#090909, #141414, #1a1a1a"
                 className={inputClassName}
               />
             </div>
 
             <ToggleField
-              key={`animated-${form.animatedGradient}`}
               name="animated_gradient"
               label="Animate gradient"
-              defaultChecked={form.animatedGradient}
-              onCheckedChange={(animatedGradient) => patchForm({ animatedGradient })}
+              checked={form.animated_gradient}
+              onCheckedChange={(animated_gradient) => patchForm({ animated_gradient })}
             />
 
             <ControlledSelect
               label="Particle effect"
-              value={form.particleEffect}
-              onChange={(v) => patchForm({ particleEffect: v as ParticleEffect | "" })}
+              value={form.particle_effect}
+              onChange={(v) => patchForm({ particle_effect: v as ParticleEffect | "" })}
               options={[
                 { value: "", label: "None" },
                 ...PARTICLE_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
@@ -227,34 +208,32 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
 
             <div>
               <label htmlFor="overlay_opacity" className={labelClassName}>
-                Overlay opacity: <span className="text-[var(--bf-accent)]">{form.overlayOpacity}%</span>
+                Overlay opacity: <span className="text-[var(--bf-accent)]">{form.overlay_opacity}%</span>
               </label>
               <input
                 id="overlay_opacity"
                 type="range"
                 min={0}
                 max={100}
-                value={form.overlayOpacity}
-                onChange={(e) => patchForm({ overlayOpacity: Number(e.target.value) })}
+                value={form.overlay_opacity}
+                onChange={(e) => patchForm({ overlay_opacity: Number(e.target.value) })}
                 className="w-full accent-[#5865F2]"
               />
             </div>
 
             <ToggleField
-              key={`vignette-${form.vignette}`}
               name="vignette"
               label="Vignette"
               description="Darkened edges"
-              defaultChecked={form.vignette}
+              checked={form.vignette}
               onCheckedChange={(vignette) => patchForm({ vignette })}
             />
             <ToggleField
-              key={`noise-${form.noiseTexture}`}
               name="noise_texture"
               label="Noise texture"
               description="Subtle film grain"
-              defaultChecked={form.noiseTexture}
-              onCheckedChange={(noiseTexture) => patchForm({ noiseTexture })}
+              checked={form.noise_texture}
+              onCheckedChange={(noise_texture) => patchForm({ noise_texture })}
             />
 
             <SaveConfirmation success={state.success} error={state.error} />

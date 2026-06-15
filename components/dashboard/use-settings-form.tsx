@@ -5,14 +5,12 @@ import {
   useEffect,
   useRef,
   useState,
-  type Dispatch,
-  type SetStateAction,
 } from "react";
 import { useRouter } from "next/navigation";
 import { useActionState } from "react";
 import { updateSettingsAction } from "@/app/actions/settings";
 import { useClearUnsavedOnSuccess } from "@/components/dashboard/unsaved-changes";
-import type { SettingsFormState, SettingsSection } from "@/lib/types/settings";
+import type { ProfileSettings, SettingsFormState, SettingsSection } from "@/lib/types/settings";
 
 const initial: SettingsFormState = {};
 
@@ -30,23 +28,6 @@ function appendToFormData(fd: FormData, values: SettingsFormValues) {
       fd.set(key, String(raw));
     }
   }
-}
-
-/** Sync local form fields from server only when updated_at actually changes. */
-export function useSyncedSettingsState<T>(
-  settingsUpdatedAt: string,
-  snapshot: T,
-): [T, Dispatch<SetStateAction<T>>] {
-  const [state, setState] = useState(snapshot);
-  const lastSyncedAt = useRef(settingsUpdatedAt);
-
-  useEffect(() => {
-    if (settingsUpdatedAt === lastSyncedAt.current) return;
-    lastSyncedAt.current = settingsUpdatedAt;
-    setState(snapshot);
-  }, [settingsUpdatedAt, snapshot]);
-
-  return [state, setState];
 }
 
 export function useSettingsForm(section: SettingsSection, successMessage?: string) {
@@ -74,6 +55,52 @@ export function useSettingsForm(section: SettingsSection, successMessage?: strin
     state.success === "Settings saved." && successMessage ? successMessage : state.success;
 
   return { state: { ...state, success: displaySuccess }, submit, isPending };
+}
+
+/**
+ * Dashboard settings page form: local state is source of truth while editing.
+ * After our own save, skip the post-refresh server sync so a second edit on the
+ * same page is not wiped.
+ */
+export function useDashboardSettingsSection<T extends SettingsFormValues>(
+  section: SettingsSection,
+  settings: ProfileSettings,
+  readForm: (settings: ProfileSettings) => T,
+  successMessage?: string,
+) {
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+
+  const skipSyncRef = useRef(false);
+  const lastSyncedAt = useRef(settings.updated_at);
+  const [form, setForm] = useState(() => readForm(settings));
+
+  const { state, submit: rawSubmit, isPending } = useSettingsForm(section, successMessage);
+
+  useEffect(() => {
+    if (skipSyncRef.current) {
+      skipSyncRef.current = false;
+      lastSyncedAt.current = settings.updated_at;
+      return;
+    }
+    if (settings.updated_at === lastSyncedAt.current) return;
+    lastSyncedAt.current = settings.updated_at;
+    setForm(readForm(settingsRef.current));
+  }, [settings.updated_at, readForm]);
+
+  const patchForm = useCallback((partial: Partial<T>) => {
+    setForm((prev) => ({ ...prev, ...partial }));
+  }, []);
+
+  const submit = useCallback(
+    (values: T) => {
+      skipSyncRef.current = true;
+      rawSubmit(values);
+    },
+    [rawSubmit],
+  );
+
+  return { form, setForm, patchForm, submit, state, isPending };
 }
 
 export function SaveConfirmation({
