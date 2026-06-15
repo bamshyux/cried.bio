@@ -9,6 +9,8 @@ import {
   buttonPrimaryClassName,
   cardClassName,
   FormFeedback,
+  inputClassName,
+  labelClassName,
   PageHeader,
   ToggleField,
 } from "@/components/dashboard/form-fields";
@@ -30,10 +32,84 @@ export function EffectsEditor({ settings }: { settings: ProfileSettings }) {
 
   return (
     <>
-      <PageHeader title="Effects" description="Cursor, username, bio, and page entrance animations." />
+      <PageHeader title="Effects" description="Cursor, username, bio, page entrance, and click-to-enter screen." />
       <div className={cardClassName}>
         <form action={formAction} className="space-y-5">
           <input type="hidden" name="_section" value="effects" />
+
+          <div className="rounded-xl border border-white/[0.06] bg-[#0c0c0c] p-4">
+            <p className="mb-4 text-sm font-medium text-white">Click to enter</p>
+            <p className="mb-4 text-xs leading-relaxed text-neutral-500">
+              Visitors see a full-screen intro before your profile loads — like guns.lol. Click anywhere on the screen to enter.
+            </p>
+
+            <div className="space-y-4">
+              <ToggleField
+                name="enter_gate_enabled"
+                label="Enable click-to-enter"
+                description="Require a click before showing your profile"
+                defaultChecked={settings.enter_gate_enabled}
+              />
+
+              <div>
+                <label htmlFor="enter_gate_title" className={labelClassName}>
+                  Headline
+                </label>
+                <input
+                  id="enter_gate_title"
+                  name="enter_gate_title"
+                  type="text"
+                  defaultValue={settings.enter_gate_title}
+                  placeholder="Leave empty to use your display name"
+                  maxLength={80}
+                  className={inputClassName}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="enter_gate_subtitle" className={labelClassName}>
+                  Subtitle
+                </label>
+                <input
+                  id="enter_gate_subtitle"
+                  name="enter_gate_subtitle"
+                  type="text"
+                  defaultValue={settings.enter_gate_subtitle}
+                  placeholder="Optional tagline or message"
+                  maxLength={200}
+                  className={inputClassName}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="enter_gate_button" className={labelClassName}>
+                  Button text
+                </label>
+                <input
+                  id="enter_gate_button"
+                  name="enter_gate_button"
+                  type="text"
+                  defaultValue={settings.enter_gate_button}
+                  placeholder="Click to enter"
+                  maxLength={40}
+                  className={inputClassName}
+                />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <ToggleField
+                  name="enter_gate_show_avatar"
+                  label="Show avatar"
+                  defaultChecked={settings.enter_gate_show_avatar}
+                />
+                <ToggleField
+                  name="enter_gate_blur"
+                  label="Blur profile behind gate"
+                  defaultChecked={settings.enter_gate_blur}
+                />
+              </div>
+            </div>
+          </div>
 
           <ControlledSelect
             name="cursor_effect"

@@ -1,13 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { resolveMusicPlayerColor } from "@/lib/settings";
 import { rangeClassName, rangeFillStyle } from "@/lib/ui/range";
 import type { ProfileSettings } from "@/lib/types/settings";
-
-const GESTURE_EVENTS = ["pointerdown", "touchstart", "touchend", "click", "keydown"] as const;
-const RETRY_MS = 350;
-const MAX_RETRIES = 12;
 
 function formatTitle(settings: ProfileSettings) {
   if (settings.music_title?.trim()) return settings.music_title.trim();
@@ -22,245 +18,76 @@ function formatTitle(settings: ProfileSettings) {
   return "Profile Track";
 }
 
-export function MusicPlayer({ settings }: { settings: ProfileSettings }) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const settingsRef = useRef(settings);
-  const gestureCleanupRef = useRef<(() => void) | null>(null);
-  const retryTimerRef = useRef<number | null>(null);
-  const bootIdRef = useRef(0);
+type MusicPlayerProps = {
+  settings: ProfileSettings;
+  /** Hold autoplay until the parent triggers play (e.g. enter gate click) */
+  deferAutoplay?: boolean;
+  onPlayReady?: (play: () => void) => void;
+};
 
+export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: MusicPlayerProps) {
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(settings.music_volume);
   const [expanded, setExpanded] = useState(false);
-  const [needsUnmute, setNeedsUnmute] = useState(false);
-
   const title = formatTitle(settings);
   const playerColor = resolveMusicPlayerColor(settings);
 
-  settingsRef.current = settings;
-
-  const clearGestureListeners = useCallback(() => {
-    gestureCleanupRef.current?.();
-    gestureCleanupRef.current = null;
-  }, []);
-
-  const clearRetryTimer = useCallback(() => {
-    if (retryTimerRef.current != null) {
-      window.clearInterval(retryTimerRef.current);
-      retryTimerRef.current = null;
-    }
-  }, []);
-
-  const applyVolume = useCallback((audio: HTMLAudioElement, value = settingsRef.current.music_volume) => {
-    audio.volume = Math.max(0, Math.min(1, value / 100));
-  }, []);
-
-  const resetToStart = useCallback((audio: HTMLAudioElement) => {
-    try {
-      audio.currentTime = 0;
-    } catch {
-      /* ignore seek before metadata */
-    }
-  }, []);
-
-  const tryPlay = useCallback(
-    async (audio: HTMLAudioElement, withSound: boolean) => {
-      const current = settingsRef.current;
-      if (!current.music_url || !current.music_autoplay) return false;
-
-      resetToStart(audio);
-      audio.loop = current.music_loop;
-      applyVolume(audio);
-      audio.muted = !withSound;
-
-      try {
-        await audio.play();
-        if (withSound) {
-          audio.muted = false;
-          applyVolume(audio);
-          setNeedsUnmute(false);
-        } else {
-          setNeedsUnmute(true);
-        }
-        setPlaying(true);
-        return true;
-      } catch {
-        audio.muted = false;
-        return false;
-      }
-    },
-    [applyVolume, resetToStart],
-  );
-
-  const bootstrapAutoplay = useCallback(
-    (audio: HTMLAudioElement) => {
-      const bootId = ++bootIdRef.current;
-      clearGestureListeners();
-      clearRetryTimer();
-
-      const current = settingsRef.current;
-      audio.loop = current.music_loop;
-      applyVolume(audio);
-
-      if (!current.music_url) return;
-      if (!current.music_autoplay) {
-        resetToStart(audio);
-        audio.pause();
-        audio.muted = false;
-        setPlaying(false);
-        setNeedsUnmute(false);
-        return;
-      }
-
-      const isStale = () => bootId !== bootIdRef.current || audioRef.current !== audio;
-
-      const unlockWithSound = () => {
-        if (isStale() || !settingsRef.current.music_autoplay) return;
-        void tryPlay(audio, true).then((ok) => {
-          if (ok) {
-            clearGestureListeners();
-            clearRetryTimer();
-          }
-        });
-      };
-
-      const attachGestureUnlock = () => {
-        if (gestureCleanupRef.current || isStale()) return;
-
-        const handler = () => unlockWithSound();
-        const opts = { capture: true, passive: true } as const;
-
-        for (const eventName of GESTURE_EVENTS) {
-          document.addEventListener(eventName, handler, opts);
-        }
-
-        gestureCleanupRef.current = () => {
-          for (const eventName of GESTURE_EVENTS) {
-            document.removeEventListener(eventName, handler, true);
-          }
-        };
-      };
-
-      const attemptAutoplay = async () => {
-        if (isStale() || !settingsRef.current.music_autoplay) return false;
-
-        if (await tryPlay(audio, true)) {
-          clearGestureListeners();
-          clearRetryTimer();
-          return true;
-        }
-
-        if (await tryPlay(audio, false)) {
-          attachGestureUnlock();
-          return true;
-        }
-
-        attachGestureUnlock();
-        return false;
-      };
-
-      const onAudioReady = () => {
-        if (isStale()) return;
-        void attemptAutoplay();
-      };
-
-      audio.addEventListener("loadeddata", onAudioReady);
-      audio.addEventListener("canplay", onAudioReady);
-      audio.addEventListener("canplaythrough", onAudioReady);
-
-      void attemptAutoplay();
-
-      let tries = 0;
-      retryTimerRef.current = window.setInterval(() => {
-        if (isStale()) {
-          clearRetryTimer();
-          return;
-        }
-
-        tries += 1;
-        if (tries > MAX_RETRIES) {
-          clearRetryTimer();
-          return;
-        }
-
-        if (!audio.paused) {
-          clearRetryTimer();
-          return;
-        }
-
-        void attemptAutoplay();
-      }, RETRY_MS);
-
-      return () => {
-        audio.removeEventListener("loadeddata", onAudioReady);
-        audio.removeEventListener("canplay", onAudioReady);
-        audio.removeEventListener("canplaythrough", onAudioReady);
-      };
-    },
-    [applyVolume, clearGestureListeners, clearRetryTimer, resetToStart, tryPlay],
-  );
-
-  useLayoutEffect(() => {
+  const playFromStart = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || !settings.music_url) return;
 
-    const removeAudioListeners = bootstrapAutoplay(audio);
+    audio.loop = settings.music_loop;
+    audio.volume = volume / 100;
+    audio.currentTime = 0;
 
-    return () => {
-      removeAudioListeners?.();
-      clearGestureListeners();
-      clearRetryTimer();
-    };
-  }, [
-    bootstrapAutoplay,
-    clearGestureListeners,
-    clearRetryTimer,
-    settings.music_autoplay,
-    settings.music_loop,
-    settings.music_url,
-  ]);
+    void audio
+      .play()
+      .then(() => setPlaying(true))
+      .catch(() => setPlaying(false));
+  }, [settings.music_loop, settings.music_url, volume]);
 
   useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) applyVolume(audio, volume);
-  }, [applyVolume, volume]);
-
-  useEffect(() => {
-    const unlock = () => {
-      const audio = audioRef.current;
-      if (!audio || !settingsRef.current.music_autoplay) return;
-      void tryPlay(audio, true);
-    };
-
-    window.addEventListener("bf-music-unlock", unlock);
-    return () => window.removeEventListener("bf-music-unlock", unlock);
-  }, [tryPlay]);
+    onPlayReady?.(playFromStart);
+  }, [onPlayReady, playFromStart]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
-    const syncPlaying = () => setPlaying(!audio.paused);
-    audio.addEventListener("play", syncPlaying);
-    audio.addEventListener("pause", syncPlaying);
-    audio.addEventListener("ended", syncPlaying);
-
-    return () => {
-      audio.removeEventListener("play", syncPlaying);
-      audio.removeEventListener("pause", syncPlaying);
-      audio.removeEventListener("ended", syncPlaying);
-    };
-  }, [settings.music_url]);
+    audio.volume = volume / 100;
+  }, [volume]);
 
   useEffect(() => {
-    const onPageShow = (event: PageTransitionEvent) => {
-      if (!event.persisted || !audioRef.current || !settingsRef.current.music_autoplay) return;
-      bootstrapAutoplay(audioRef.current);
+    const audio = audioRef.current;
+    if (!audio || !settings.music_url || deferAutoplay) return;
+
+    audio.loop = settings.music_loop;
+    audio.volume = settings.music_volume / 100;
+
+    const startPlayback = () => {
+      if (!settings.music_autoplay) {
+        audio.pause();
+        setPlaying(false);
+        return;
+      }
+
+      if (!audio.paused) return;
+
+      audio.currentTime = 0;
+      void audio
+        .play()
+        .then(() => setPlaying(true))
+        .catch(() => setPlaying(false));
     };
 
-    window.addEventListener("pageshow", onPageShow);
-    return () => window.removeEventListener("pageshow", onPageShow);
-  }, [bootstrapAutoplay]);
+    if (audio.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
+      startPlayback();
+      return;
+    }
+
+    audio.addEventListener("canplay", startPlayback, { once: true });
+    return () => audio.removeEventListener("canplay", startPlayback);
+  }, [deferAutoplay, settings.music_autoplay, settings.music_loop, settings.music_url, settings.music_volume]);
 
   if (!settings.music_url) return null;
 
@@ -268,20 +95,12 @@ export function MusicPlayer({ settings }: { settings: ProfileSettings }) {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (!audio.paused) {
+    if (playing) {
       audio.pause();
       setPlaying(false);
-      return;
+    } else {
+      void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
     }
-
-    resetToStart(audio);
-    applyVolume(audio);
-    audio.muted = false;
-    setNeedsUnmute(false);
-    void audio
-      .play()
-      .then(() => setPlaying(true))
-      .catch(() => setPlaying(false));
   };
 
   return (
@@ -300,13 +119,7 @@ export function MusicPlayer({ settings }: { settings: ProfileSettings }) {
             : `0 8px 24px rgba(0,0,0,0.45), 0 0 0 1px ${playerColor}12`,
         }}
       >
-        <audio
-          ref={audioRef}
-          src={settings.music_url}
-          autoPlay={settings.music_autoplay}
-          playsInline
-          preload="auto"
-        />
+        <audio ref={audioRef} src={settings.music_url} preload="metadata" playsInline />
 
         <button
           type="button"
@@ -335,9 +148,7 @@ export function MusicPlayer({ settings }: { settings: ProfileSettings }) {
           <>
             <div className="min-w-0 max-w-[160px]">
               <p className="truncate text-xs font-medium text-white">{title}</p>
-              <p className="text-[10px] text-neutral-500">
-                {needsUnmute ? "Tap anywhere for sound" : playing ? "Now playing" : "Paused"}
-              </p>
+              <p className="text-[10px] text-neutral-500">{playing ? "Now playing" : "Paused"}</p>
             </div>
 
             <div className="bf-range-wrap flex items-center pr-1">
@@ -349,7 +160,7 @@ export function MusicPlayer({ settings }: { settings: ProfileSettings }) {
                 onChange={(e) => {
                   const v = Number(e.target.value);
                   setVolume(v);
-                  if (audioRef.current) applyVolume(audioRef.current, v);
+                  if (audioRef.current) audioRef.current.volume = v / 100;
                 }}
                 className={`${rangeClassName} !w-16`}
                 style={rangeFillStyle(volume, 0, 100, playerColor)}

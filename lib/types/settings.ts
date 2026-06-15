@@ -128,6 +128,12 @@ export type ProfileSettings = {
   links_style: LinksStyle;
   profile_parallax: boolean;
   content_alignment: ContentAlignment;
+  enter_gate_enabled: boolean;
+  enter_gate_title: string;
+  enter_gate_subtitle: string;
+  enter_gate_button: string;
+  enter_gate_show_avatar: boolean;
+  enter_gate_blur: boolean;
   created_at: string;
   updated_at: string;
 };

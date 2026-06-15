@@ -23,6 +23,7 @@ import { MusicPlayer } from "./music-player";
 import { ParticleCanvas } from "./particle-canvas";
 import { ProfileBackground } from "./profile-background";
 import { CursorEffectCanvas, TypingBio } from "./profile-effects";
+import { ProfileEnterGate } from "./profile-enter-gate";
 import type { ActivityEvent } from "@/lib/types/activity";
 import type { FeaturedBlock } from "@/lib/types/featured";
 import type { GuestbookEntry } from "@/lib/types/guestbook";
@@ -996,6 +997,20 @@ export function PublicProfileClient({
   isLoggedIn: boolean;
   currentUserId?: string | null;
 }) {
+  const gateActive = settings.enter_gate_enabled;
+  const [entered, setEntered] = useState(!gateActive);
+  const playMusicRef = useRef<(() => void) | null>(null);
+
+  const handleEnter = useCallback(() => {
+    setEntered(true);
+    if (settings.music_autoplay) {
+      playMusicRef.current?.();
+    }
+  }, [settings.music_autoplay]);
+
+  const showProfile = !gateActive || entered;
+  const gateVisible = gateActive && !entered;
+
   const fontCss = getFontCss(settings.font_family);
   const fontUrl = getGoogleFontsUrl(settings.font_family);
   const showParticles =
@@ -1020,27 +1035,24 @@ export function PublicProfileClient({
     currentUserId,
   };
 
-  const unlockMusic = useCallback(() => {
-    if (!settings.music_autoplay) return;
-    window.dispatchEvent(new Event("bf-music-unlock"));
-  }, [settings.music_autoplay]);
-
   return (
     <>
       {fontUrl && <link rel="stylesheet" href={fontUrl} />}
-      <AnalyticsTracker profileId={profile.id} />
       <ProfileBackground settings={settings} />
       {showParticles && settings.particle_effect && (
         <ParticleCanvas effect={settings.particle_effect} />
       )}
-      <CursorEffectCanvas effect={settings.cursor_effect} color={settings.accent_color} />
-      <MusicPlayer settings={settings} />
+      {showProfile && <AnalyticsTracker profileId={profile.id} />}
+      {showProfile && (
+        <CursorEffectCanvas effect={settings.cursor_effect} color={settings.accent_color} />
+      )}
 
       <div
-        className="relative z-10 flex min-h-screen flex-col"
+        className={`relative z-10 flex min-h-screen flex-col transition-[filter] duration-500 ${
+          gateVisible && settings.enter_gate_blur ? "scale-[1.02] blur-md brightness-75" : ""
+        }`}
         style={{ color: settings.text_color, fontFamily: fontCss, "--bf-accent": settings.accent_color } as React.CSSProperties}
-        onPointerDownCapture={unlockMusic}
-        onTouchStartCapture={unlockMusic}
+        aria-hidden={gateVisible}
       >
         <header className="absolute inset-x-0 top-0 z-20 flex w-full items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
           <Link href="/" className="group opacity-90 transition-opacity hover:opacity-100">
@@ -1051,11 +1063,11 @@ export function PublicProfileClient({
 
         <main
           className={`flex flex-1 items-center justify-center px-5 py-20 ${
-            settings.page_entrance ? "bf-page-entrance" : ""
+            settings.page_entrance && showProfile ? "bf-page-entrance" : ""
           }`}
         >
           <div className="mx-auto w-full max-w-2xl">
-            <ProfileParallaxCard enabled={settings.profile_parallax}>
+            <ProfileParallaxCard enabled={settings.profile_parallax && showProfile}>
               <div className={getProfileAlignClass(settings.content_alignment)}>
                 <Layout {...layoutProps} />
               </div>
@@ -1063,6 +1075,22 @@ export function PublicProfileClient({
           </div>
         </main>
       </div>
+
+      {settings.music_url ? (
+        <div className={gateVisible ? "pointer-events-none opacity-0" : undefined}>
+          <MusicPlayer
+            settings={settings}
+            deferAutoplay={gateActive && !entered}
+            onPlayReady={(play) => {
+              playMusicRef.current = play;
+            }}
+          />
+        </div>
+      ) : null}
+
+      {gateVisible && (
+        <ProfileEnterGate profile={profile} settings={settings} onEnter={handleEnter} />
+      )}
     </>
   );
 }

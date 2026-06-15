@@ -179,6 +179,12 @@ function parseSectionUpdates(
         username_effect: String(formData.get("username_effect") ?? existing.username_effect) as UsernameEffect,
         hover_animations: parseBool(formData.get("hover_animations")),
         page_entrance: parseBool(formData.get("page_entrance")),
+        enter_gate_enabled: parseBool(formData.get("enter_gate_enabled")),
+        enter_gate_title: String(formData.get("enter_gate_title") ?? existing.enter_gate_title).trim().slice(0, 80),
+        enter_gate_subtitle: String(formData.get("enter_gate_subtitle") ?? existing.enter_gate_subtitle).trim().slice(0, 200),
+        enter_gate_button: String(formData.get("enter_gate_button") ?? existing.enter_gate_button).trim().slice(0, 40),
+        enter_gate_show_avatar: parseBool(formData.get("enter_gate_show_avatar")),
+        enter_gate_blur: parseBool(formData.get("enter_gate_blur")),
       };
     default:
       return {};

@@ -81,6 +81,25 @@ body {
 .bf-animate-glow { animation: bf-glow 2s ease-in-out infinite; }
 .bf-animate-slide { animation: bf-slide 2s ease-in-out infinite; }
 .bf-page-entrance { animation: bf-page-entrance 0.5s ease-out forwards; }
+
+@keyframes bf-enter-gate-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.88; transform: scale(1.03); }
+}
+
+.bf-enter-gate-btn {
+  animation: bf-enter-gate-pulse 2.2s ease-in-out infinite;
+}
+
+.bf-enter-gate {
+  animation: bf-enter-gate-in 0.35s ease-out forwards;
+}
+
+@keyframes bf-enter-gate-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .bf-cursor-blink { animation: bf-cursor-blink 1s step-end infinite; }
 
 .bf-profile-cta {

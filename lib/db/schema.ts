@@ -55,6 +55,12 @@ export const REQUIRED_PROFILE_SETTINGS_COLUMNS = [
   "show_follow_counts",
   "show_activity",
   "friends_visibility",
+  "enter_gate_enabled",
+  "enter_gate_title",
+  "enter_gate_subtitle",
+  "enter_gate_button",
+  "enter_gate_show_avatar",
+  "enter_gate_blur",
   "created_at",
   "updated_at",
 ] as const;
@@ -85,6 +91,12 @@ const COLUMN_MIGRATIONS: Record<string, string> = {
   show_follow_counts: "supabase/v13_show_follow_counts.sql",
   show_activity: "supabase/v15_show_activity.sql",
   friends_visibility: "supabase/v12_v2_expansion.sql",
+  enter_gate_enabled: "supabase/v24_enter_gate.sql",
+  enter_gate_title: "supabase/v24_enter_gate.sql",
+  enter_gate_subtitle: "supabase/v24_enter_gate.sql",
+  enter_gate_button: "supabase/v24_enter_gate.sql",
+  enter_gate_show_avatar: "supabase/v24_enter_gate.sql",
+  enter_gate_blur: "supabase/v24_enter_gate.sql",
   overlay_opacity: "supabase/v3_features.sql",
   vignette: "supabase/v3_features.sql",
   noise_texture: "supabase/v3_features.sql",
@@ -142,6 +154,7 @@ export function getMigrationFilesForMissing(missing: string[]): string[] {
     "supabase/v13_show_follow_counts.sql",
     "supabase/v15_show_activity.sql",
     "supabase/v17_content_alignment.sql",
+    "supabase/v24_enter_gate.sql",
   ];
 
   return ordered.filter((file) => files.has(file));

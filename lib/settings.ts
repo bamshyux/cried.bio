@@ -66,6 +66,12 @@ export const DEFAULT_SETTINGS: Omit<
   links_style: "buttons",
   profile_parallax: false,
   content_alignment: "left",
+  enter_gate_enabled: true,
+  enter_gate_title: "",
+  enter_gate_subtitle: "",
+  enter_gate_button: "Click to enter",
+  enter_gate_show_avatar: true,
+  enter_gate_blur: true,
 };
 
 export const CONTENT_ALIGNMENT_OPTIONS: { value: ContentAlignment; label: string }[] = [
@@ -249,6 +255,12 @@ export function mergeSettings(
     links_style: (row?.links_style ?? DEFAULT_SETTINGS.links_style) as import("@/lib/types/settings").LinksStyle,
     profile_parallax: row?.profile_parallax ?? DEFAULT_SETTINGS.profile_parallax,
     content_alignment: (row?.content_alignment ?? DEFAULT_SETTINGS.content_alignment) as ContentAlignment,
+    enter_gate_enabled: row?.enter_gate_enabled ?? DEFAULT_SETTINGS.enter_gate_enabled,
+    enter_gate_title: row?.enter_gate_title ?? DEFAULT_SETTINGS.enter_gate_title,
+    enter_gate_subtitle: row?.enter_gate_subtitle ?? DEFAULT_SETTINGS.enter_gate_subtitle,
+    enter_gate_button: row?.enter_gate_button ?? DEFAULT_SETTINGS.enter_gate_button,
+    enter_gate_show_avatar: row?.enter_gate_show_avatar ?? DEFAULT_SETTINGS.enter_gate_show_avatar,
+    enter_gate_blur: row?.enter_gate_blur ?? DEFAULT_SETTINGS.enter_gate_blur,
     created_at: row?.created_at ?? now,
     updated_at: row?.updated_at ?? now,
   };
