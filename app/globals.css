@@ -1,0 +1,301 @@
+@import "tailwindcss";
+
+:root {
+  --bf-bg: #090909;
+  --bf-surface: #141414;
+  --bf-surface-hover: #1a1a1a;
+  --bf-border: rgba(255, 255, 255, 0.06);
+  --bf-accent: #00e5cc;
+  --bf-accent-muted: rgba(0, 229, 204, 0.1);
+  --bf-text: #fafafa;
+  --bf-text-muted: #737373;
+  --background: var(--bf-bg);
+  --foreground: var(--bf-text);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bf-bg);
+  color: var(--bf-text);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+@keyframes bf-gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes bf-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.88; transform: scale(1.008); }
+}
+
+@keyframes bf-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes bf-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 229, 204, 0.15); }
+  50% { box-shadow: 0 0 20px rgba(0, 229, 204, 0.35); }
+}
+
+@keyframes bf-slide {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(3px); }
+}
+
+@keyframes bf-page-entrance {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bf-cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes bf-username-rainbow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes bf-username-wave {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes bf-username-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.bf-animate-pulse { animation: bf-pulse 2.5s ease-in-out infinite; }
+.bf-animate-bounce { animation: bf-bounce 1.8s ease-in-out infinite; }
+.bf-animate-glow { animation: bf-glow 2s ease-in-out infinite; }
+.bf-animate-slide { animation: bf-slide 2s ease-in-out infinite; }
+.bf-page-entrance { animation: bf-page-entrance 0.5s ease-out forwards; }
+.bf-cursor-blink { animation: bf-cursor-blink 1s step-end infinite; }
+
+.bf-username-glow { text-shadow: 0 0 20px var(--bf-accent), 0 0 40px rgba(0,229,204,0.3); }
+.bf-username-rainbow { animation: bf-username-rainbow 4s linear infinite; }
+.bf-username-wave { animation: bf-username-wave 2s ease-in-out infinite; display: inline-block; }
+.bf-username-pulse { animation: bf-username-pulse 2s ease-in-out infinite; }
+.bf-username-gradient {
+  background: linear-gradient(135deg, var(--bf-accent), #fff, var(--bf-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bf-noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.bf-vignette::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%);
+}
+
+/* Dashboard utilities */
+.bf-card {
+  border-radius: 12px;
+  border: 1px solid var(--bf-border);
+  background: var(--bf-surface);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.bf-input {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--bf-border);
+  background: var(--bf-bg);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--bf-text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.bf-input:focus {
+  border-color: rgba(0, 229, 204, 0.4);
+  box-shadow: 0 0 0 3px var(--bf-accent-muted);
+}
+
+.bf-input::placeholder { color: var(--bf-text-muted); }
+
+.bf-btn-primary {
+  border-radius: 8px;
+  background: var(--bf-accent);
+  color: #090909;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.bf-btn-primary:hover:not(:disabled) { opacity: 0.92; }
+.bf-btn-primary:disabled { opacity: 0.5; }
+
+.bf-btn-secondary {
+  border-radius: 8px;
+  border: 1px solid var(--bf-border);
+  background: transparent;
+  color: var(--bf-text-muted);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.bf-btn-secondary:hover { border-color: rgba(255,255,255,0.12); color: var(--bf-text); }
+
+.bf-nav-active {
+  background: var(--bf-accent-muted);
+  color: var(--bf-accent);
+}
+
+.bf-nav-item {
+  color: var(--bf-text-muted);
+  transition: background 0.15s, color 0.15s;
+}
+
+.bf-nav-item:hover {
+  background: rgba(255,255,255,0.04);
+  color: var(--bf-text);
+}
+
+/* Range sliders — guns.lol-style pill track + glowing thumb */
+.bf-range-wrap {
+  padding: 6px 2px 2px;
+}
+
+.bf-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 32px;
+  background: transparent;
+  cursor: pointer;
+  --bf-range-fill: 50%;
+  --bf-range-accent: var(--bf-accent);
+}
+
+.bf-range:focus {
+  outline: none;
+}
+
+.bf-range::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--bf-range-accent) 0%,
+    color-mix(in srgb, var(--bf-range-accent) 75%, #ffffff) var(--bf-range-fill),
+    rgba(255, 255, 255, 0.07) var(--bf-range-fill),
+    rgba(255, 255, 255, 0.07) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.45),
+    0 0 16px color-mix(in srgb, var(--bf-range-accent) 18%, transparent);
+}
+
+.bf-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 32% 28%,
+    #ffffff 0%,
+    var(--bf-range-accent) 42%,
+    color-mix(in srgb, var(--bf-range-accent) 65%, #090909) 100%
+  );
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 2px 10px rgba(0, 0, 0, 0.5),
+    0 0 18px color-mix(in srgb, var(--bf-range-accent) 60%, transparent);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bf-range:hover::-webkit-slider-thumb {
+  transform: scale(1.1);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 3px 12px rgba(0, 0, 0, 0.55),
+    0 0 24px color-mix(in srgb, var(--bf-range-accent) 75%, transparent);
+}
+
+.bf-range:active::-webkit-slider-thumb {
+  transform: scale(1.04);
+}
+
+.bf-range:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 3px var(--bf-accent-muted),
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 2px 10px rgba(0, 0, 0, 0.5),
+    0 0 20px color-mix(in srgb, var(--bf-range-accent) 65%, transparent);
+}
+
+.bf-range::-moz-range-track {
+  height: 10px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+.bf-range::-moz-range-progress {
+  height: 10px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--bf-range-accent),
+    color-mix(in srgb, var(--bf-range-accent) 75%, #ffffff)
+  );
+  box-shadow: 0 0 16px color-mix(in srgb, var(--bf-range-accent) 22%, transparent);
+}
+
+.bf-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: radial-gradient(
+    circle at 32% 28%,
+    #ffffff 0%,
+    var(--bf-range-accent) 42%,
+    color-mix(in srgb, var(--bf-range-accent) 65%, #090909) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 2px 10px rgba(0, 0, 0, 0.5),
+    0 0 18px color-mix(in srgb, var(--bf-range-accent) 60%, transparent);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bf-range:hover::-moz-range-thumb {
+  transform: scale(1.1);
+}
+
+.bf-range:active::-moz-range-thumb {
+  transform: scale(1.04);
+}
