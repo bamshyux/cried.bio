@@ -2,7 +2,7 @@ import { getBadgeIdBySlug, profileHasBadge } from "@/lib/data/badges";
 import { createClient } from "@/lib/supabase/server";
 
 export const FOUNDER_BADGE_SLUG = "founder";
-export const FOUNDER_BADGE_DESCRIPTION = "Creator and owner of BioForge";
+export const FOUNDER_BADGE_DESCRIPTION = "Founder of BioForge";
 
 /** Default founder username when BIOFORGE_FOUNDER_USER_ID is not set. */
 export const DEFAULT_FOUNDER_USERNAME = "bamshy";

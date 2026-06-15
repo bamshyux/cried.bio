@@ -4,8 +4,7 @@ type LogoProps = {
   size?: number;
   showWordmark?: boolean;
   className?: string;
-  /** Use on light backgrounds */
-  variant?: "dark" | "light";
+  variant?: "dark" | "light" | "muted";
 };
 
 /**
@@ -19,10 +18,15 @@ export function BioForgeLogo({
   variant = "dark",
 }: LogoProps) {
   const isDark = variant === "dark";
-  const frameColor = isDark ? "#fafafa" : "#171717";
-  const nodePrimary = isDark ? "#fafafa" : "#171717";
-  const nodeAccent = BRAND.accent;
-  const wordColor = isDark ? "text-white" : "text-neutral-900";
+  const isMuted = variant === "muted";
+  const frameColor = isMuted ? "#404040" : isDark ? "#fafafa" : "#171717";
+  const nodePrimary = isMuted ? "#525252" : isDark ? "#fafafa" : "#171717";
+  const nodeAccent = isMuted ? "#525252" : BRAND.accent;
+  const wordColor = isMuted
+    ? "text-neutral-500 group-hover:text-neutral-300"
+    : isDark
+      ? "text-white"
+      : "text-neutral-900";
 
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>

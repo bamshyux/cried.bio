@@ -300,6 +300,38 @@ body {
   transform: scale(1.04);
 }
 
+.split-layout {
+  overflow: hidden;
+}
+
+.split-layout__banner {
+  overflow: hidden;
+  border-top-left-radius: var(--bf-card-radius, 16px);
+  border-top-right-radius: var(--bf-card-radius, 16px);
+}
+
+@media (min-width: 768px) {
+  .split-layout__banner {
+    border-top-right-radius: 0;
+    border-bottom-left-radius: var(--bf-card-radius, 16px);
+  }
+}
+
+.split-layout__content {
+  border-bottom-left-radius: var(--bf-card-radius, 16px);
+  border-bottom-right-radius: var(--bf-card-radius, 16px);
+}
+
+@media (min-width: 768px) {
+  .split-layout__content {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: var(--bf-card-radius, 16px);
+    border-bottom-right-radius: var(--bf-card-radius, 16px);
+  }
+}
+
+
 .legal-prose {
   color: #a3a3a3;
   font-size: 15px;

@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect } from "react";
-import { getSessionId, getVisitorId } from "@/lib/analytics/visitor";
+import {
+  getSessionId,
+  getVisitorId,
+  hasRecordedProfileView,
+  markProfileViewRecorded,
+} from "@/lib/analytics/visitor";
 
 export function AnalyticsTracker({ profileId }: { profileId: string }) {
   useEffect(() => {
+    if (hasRecordedProfileView(profileId)) return;
+
     const visitorHash = getVisitorId();
-    const sessionId = getSessionId();
 
     fetch("/api/analytics", {
       method: "POST",
@@ -15,9 +21,12 @@ export function AnalyticsTracker({ profileId }: { profileId: string }) {
         profileId,
         eventType: "profile_view",
         visitorHash,
-        sessionId,
       }),
-    }).catch(() => {});
+    })
+      .then((response) => {
+        if (response.ok) markProfileViewRecorded(profileId);
+      })
+      .catch(() => {});
   }, [profileId]);
 
   return null;

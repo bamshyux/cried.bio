@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCountry } from "@/lib/analytics/geo";
+import { buildProfileViewHash } from "@/lib/analytics/view-identity";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-
-const VIEW_COOLDOWN_HOURS = 24;
 
 export async function POST(request: Request) {
   let body: {
@@ -32,11 +31,10 @@ export async function POST(request: Request) {
 
   const headersList = await headers();
   const country = await resolveCountry(headersList);
-  const trackingHash = sessionId
-    ? `${visitorHash}:${sessionId}`.slice(0, 128)
-    : visitorHash.slice(0, 64);
-
   const supabase = await createClient();
+
+  const { data: auth } = await supabase.auth.getClaims();
+  const viewerId = auth?.claims?.sub as string | undefined;
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -62,18 +60,26 @@ export async function POST(request: Request) {
     }
   }
 
-  // Dedupe profile views: one unique view per visitor per 24h
-  if (eventType === "profile_view") {
-    const since = new Date();
-    since.setHours(since.getHours() - VIEW_COOLDOWN_HOURS);
+  const trackingHash =
+    eventType === "profile_view"
+      ? buildProfileViewHash(headersList, visitorHash)
+      : sessionId
+        ? `${visitorHash}:${sessionId}`.slice(0, 128)
+        : visitorHash.slice(0, 64);
 
+  // Profile owners viewing their own page don't increment views.
+  if (eventType === "profile_view" && viewerId === profileId) {
+    return NextResponse.json({ ok: true, skipped: true });
+  }
+
+  // One profile view per device + IP, ever.
+  if (eventType === "profile_view") {
     const { data: existing } = await supabase
       .from("analytics_events")
       .select("id")
       .eq("profile_id", profileId)
       .eq("event_type", "profile_view")
       .eq("visitor_hash", trackingHash)
-      .gte("created_at", since.toISOString())
       .limit(1)
       .maybeSingle();
 

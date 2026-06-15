@@ -1,4 +1,4 @@
-import { FOUNDER_BADGE_SLUG, getFounderUserId } from "@/lib/badges/founder";
+import { FOUNDER_BADGE_DESCRIPTION, FOUNDER_BADGE_SLUG, getFounderUserId } from "@/lib/badges/founder";
 import { createClient } from "@/lib/supabase/server";
 import type { Badge, BadgeInventoryItem, ProfileBadge } from "@/lib/types/badge";
 
@@ -13,14 +13,20 @@ type BadgeRow = {
 };
 
 function normalizeBadge(b: Record<string, unknown>): Badge {
+  const slug = String(b.slug);
+  const description =
+    slug === FOUNDER_BADGE_SLUG
+      ? FOUNDER_BADGE_DESCRIPTION
+      : String(b.description ?? "");
+
   return {
     id: String(b.id),
-    slug: String(b.slug),
+    slug,
     name: String(b.name),
     icon: String(b.icon ?? b.slug),
     icon_url: b.icon_url ? String(b.icon_url) : null,
     color: String(b.color ?? "#00e5cc"),
-    description: String(b.description ?? ""),
+    description,
     category: (b.category as Badge["category"]) ?? "custom",
     rarity: (b.rarity as Badge["rarity"]) ?? "common",
     sort_order: Number(b.sort_order ?? 0),

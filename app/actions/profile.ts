@@ -5,14 +5,6 @@ import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import type { ProfileFormState } from "@/lib/types/profile";
 import { revalidatePath } from "next/cache";
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-]);
-
 async function getAuthenticatedUserId() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
@@ -22,38 +14,6 @@ async function getAuthenticatedUserId() {
   }
 
   return data.claims.sub as string;
-}
-
-async function uploadProfileImage(
-  userId: string,
-  file: File,
-  type: "avatar" | "banner",
-) {
-  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-    throw new Error("Images must be JPEG, PNG, WebP, or GIF.");
-  }
-
-  if (file.size > MAX_IMAGE_SIZE) {
-    throw new Error("Images must be 5 MB or smaller.");
-  }
-
-  const extension = file.type.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
-  const path = `${userId}/${type}.${extension}`;
-
-  const supabase = await createClient();
-  const { error } = await supabase.storage
-    .from("profiles")
-    .upload(path, file, { upsert: true, contentType: file.type });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("profiles").getPublicUrl(path);
-
-  return publicUrl;
 }
 
 async function deleteStoragePrefix(
@@ -105,6 +65,38 @@ export async function removeProfileImageAction(
   return { success: `${type === "avatar" ? "Avatar" : "Banner"} removed.` };
 }
 
+export async function saveProfileImageAction(
+  type: "avatar" | "banner",
+  imageUrl: string,
+): Promise<ProfileFormState> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "You must be logged in." };
+
+  if (!imageUrl.trim()) return { error: "Invalid image URL." };
+
+  const supabase = await createClient();
+  const field = type === "avatar" ? "avatar_url" : "banner_url";
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ [field]: imageUrl })
+    .eq("id", userId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard/profile");
+  revalidatePath("/dashboard");
+  if (profile?.username) revalidatePath(`/${profile.username}`);
+
+  return { success: `${type === "avatar" ? "Avatar" : "Banner"} updated.` };
+}
+
 export async function updateProfileAction(
   _prevState: ProfileFormState,
   formData: FormData,
@@ -150,22 +142,6 @@ export async function updateProfileAction(
 
   let avatarUrl = existingProfile?.avatar_url ?? null;
   let bannerUrl = existingProfile?.banner_url ?? null;
-
-  try {
-    const avatarFile = formData.get("avatar");
-    if (avatarFile instanceof File && avatarFile.size > 0) {
-      avatarUrl = await uploadProfileImage(userId, avatarFile, "avatar");
-    }
-
-    const bannerFile = formData.get("banner");
-    if (bannerFile instanceof File && bannerFile.size > 0) {
-      bannerUrl = await uploadProfileImage(userId, bannerFile, "banner");
-    }
-  } catch (error) {
-    return {
-      error: error instanceof Error ? error.message : "Image upload failed.",
-    };
-  }
 
   const profileData = {
     id: userId,

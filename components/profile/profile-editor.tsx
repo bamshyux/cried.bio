@@ -1,9 +1,14 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { removeProfileImageAction, updateProfileAction } from "@/app/actions/profile";
+import {
+  removeProfileImageAction,
+  saveProfileImageAction,
+  updateProfileAction,
+} from "@/app/actions/profile";
 import type { Profile, ProfileFormState } from "@/lib/types/profile";
+import { uploadProfileImageToStorage } from "@/lib/uploads/profile-client";
 import {
   buttonPrimaryClassName,
   FormFeedback,
@@ -15,20 +20,93 @@ import { SITE_HOST } from "@/lib/site";
 
 const initialState: ProfileFormState = {};
 
+const fileInputClassName =
+  "block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#00e5cc] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]";
+
 export function ProfileEditor({ profile }: { profile: Profile | null }) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
   const [state, formAction, isPending] = useActionState(updateProfileAction, initialState);
 
+  const [avatarInputKey, setAvatarInputKey] = useState(0);
+  const [bannerInputKey, setBannerInputKey] = useState(0);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [bannerUploading, setBannerUploading] = useState(false);
+  const [avatarFeedback, setAvatarFeedback] = useState<ProfileFormState>({});
+  const [bannerFeedback, setBannerFeedback] = useState<ProfileFormState>({});
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreview?.startsWith("blob:")) URL.revokeObjectURL(avatarPreview);
+      if (bannerPreview?.startsWith("blob:")) URL.revokeObjectURL(bannerPreview);
+    };
+  }, [avatarPreview, bannerPreview]);
+
+  useEffect(() => {
+    setAvatarPreview(null);
+    setBannerPreview(null);
+  }, [profile?.avatar_url, profile?.banner_url]);
+
+  const handleImageUpload = async (type: "avatar" | "banner", file: File | undefined) => {
+    if (!file) return;
+
+    const setUploading = type === "avatar" ? setAvatarUploading : setBannerUploading;
+    const setFeedback = type === "avatar" ? setAvatarFeedback : setBannerFeedback;
+    const setPreview = type === "avatar" ? setAvatarPreview : setBannerPreview;
+    const bumpInputKey = type === "avatar" ? setAvatarInputKey : setBannerInputKey;
+
+    setUploading(true);
+    setFeedback({});
+
+    const localPreview = URL.createObjectURL(file);
+    setPreview(localPreview);
+
+    try {
+      const url = await uploadProfileImageToStorage(file, type);
+      const result = await saveProfileImageAction(type, url);
+
+      if (result.error) {
+        setFeedback({ error: result.error });
+        setPreview(null);
+        return;
+      }
+
+      setFeedback({ success: result.success });
+      router.refresh();
+    } catch (error) {
+      setFeedback({
+        error: error instanceof Error ? error.message : "Image upload failed.",
+      });
+      setPreview(null);
+    } finally {
+      setUploading(false);
+      bumpInputKey((key) => key + 1);
+    }
+  };
+
   const removeImage = (type: "avatar" | "banner") => {
     startRemove(async () => {
-      await removeProfileImageAction(type);
+      const result = await removeProfileImageAction(type);
+      if (type === "avatar") {
+        setAvatarFeedback(result);
+        setAvatarPreview(null);
+        setAvatarInputKey((key) => key + 1);
+      } else {
+        setBannerFeedback(result);
+        setBannerPreview(null);
+        setBannerInputKey((key) => key + 1);
+      }
       router.refresh();
     });
   };
 
+  const avatarDisplayUrl = avatarPreview ?? profile?.avatar_url ?? null;
+  const bannerDisplayUrl = bannerPreview ?? profile?.banner_url ?? null;
+
   return (
-    <form action={formAction} encType="multipart/form-data" className="space-y-6">
+    <form action={formAction} className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
         <div>
           <label htmlFor="username" className={labelClassName}>Username</label>
@@ -78,17 +156,17 @@ export function ProfileEditor({ profile }: { profile: Profile | null }) {
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
           <label htmlFor="avatar" className={labelClassName}>Avatar Image</label>
-          {profile?.avatar_url ? (
+          {avatarDisplayUrl ? (
             <div className="mb-3">
               <img
-                src={profile.avatar_url}
+                src={avatarDisplayUrl}
                 alt="Current avatar"
                 className="h-20 w-20 rounded-full border border-white/[0.06] object-cover"
               />
               <div className="mt-2">
                 <RemoveMediaButton
                   label="Remove avatar"
-                  disabled={isRemoving}
+                  disabled={isRemoving || avatarUploading}
                   onClick={() => removeImage("avatar")}
                 />
               </div>
@@ -97,27 +175,35 @@ export function ProfileEditor({ profile }: { profile: Profile | null }) {
             <p className="mb-3 text-xs text-neutral-600">No avatar uploaded.</p>
           )}
           <input
+            key={avatarInputKey}
             id="avatar"
-            name="avatar"
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
-            className="block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#00e5cc] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]"
+            disabled={avatarUploading}
+            onChange={(event) => {
+              void handleImageUpload("avatar", event.target.files?.[0]);
+            }}
+            className={fileInputClassName}
           />
+          <p className="mt-1.5 text-xs text-neutral-600">
+            {avatarUploading ? "Uploading avatar..." : "Choose a file to upload or replace your avatar."}
+          </p>
+          <FormFeedback error={avatarFeedback.error} success={avatarFeedback.success} />
         </div>
 
         <div>
           <label htmlFor="banner" className={labelClassName}>Banner Image</label>
-          {profile?.banner_url ? (
+          {bannerDisplayUrl ? (
             <div className="mb-3">
               <img
-                src={profile.banner_url}
+                src={bannerDisplayUrl}
                 alt="Current banner"
                 className="h-20 w-full rounded-lg border border-white/[0.06] object-cover"
               />
               <div className="mt-2">
                 <RemoveMediaButton
                   label="Remove banner"
-                  disabled={isRemoving}
+                  disabled={isRemoving || bannerUploading}
                   onClick={() => removeImage("banner")}
                 />
               </div>
@@ -126,12 +212,20 @@ export function ProfileEditor({ profile }: { profile: Profile | null }) {
             <p className="mb-3 text-xs text-neutral-600">No banner uploaded.</p>
           )}
           <input
-            id="banner"
-            name="banner"
+            key={bannerInputKey}
             type="file"
+            id="banner"
             accept="image/jpeg,image/png,image/webp,image/gif"
-            className="block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#00e5cc] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]"
+            disabled={bannerUploading}
+            onChange={(event) => {
+              void handleImageUpload("banner", event.target.files?.[0]);
+            }}
+            className={fileInputClassName}
           />
+          <p className="mt-1.5 text-xs text-neutral-600">
+            {bannerUploading ? "Uploading banner..." : "Choose a file to upload or replace your banner."}
+          </p>
+          <FormFeedback error={bannerFeedback.error} success={bannerFeedback.success} />
         </div>
       </div>
 

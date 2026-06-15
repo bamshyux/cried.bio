@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatCountry } from "@/lib/analytics/geo";
+import { normalizeVisitorKey } from "@/lib/analytics/visitor";
 import type { AnalyticsSummary } from "@/lib/types/analytics";
 
 function getDateKey(iso: string) {
@@ -7,7 +8,7 @@ function getDateKey(iso: string) {
 }
 
 function getVisitorId(hash: string) {
-  return hash.split(":")[0] || hash;
+  return normalizeVisitorKey(hash);
 }
 
 function buildDailySeries(
@@ -116,11 +117,11 @@ export async function getTotalAnalytics(profileId: string) {
 
 export async function getPublicViewCount(profileId: string) {
   const supabase = await createClient();
-  const { count } = await supabase
+  const { data } = await supabase
     .from("analytics_events")
-    .select("*", { count: "exact", head: true })
+    .select("visitor_hash")
     .eq("profile_id", profileId)
     .eq("event_type", "profile_view");
 
-  return count ?? 0;
+  return new Set((data ?? []).map((row) => normalizeVisitorKey(row.visitor_hash))).size;
 }

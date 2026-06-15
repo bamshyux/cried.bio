@@ -3,7 +3,7 @@
 
 update public.badges
 set
-  description = 'Creator and owner of BioForge',
+  description = 'Founder of BioForge',
   category = 'verification',
   is_assignable = false
 where slug = 'founder';

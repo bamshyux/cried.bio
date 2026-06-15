@@ -14,6 +14,7 @@ import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfileLink } from "@/lib/types/link";
 import type { Profile } from "@/lib/types/profile";
 import type { ProfileSettings } from "@/lib/types/settings";
+import { BioForgeLogo } from "@/components/brand/logo";
 import { AnalyticsTracker } from "./analytics-tracker";
 import { BadgeRow } from "@/components/badges/badge-ui";
 import { preparePublicBadges, prepareUsernameBadges, buildBadgeStyleOptions } from "@/lib/badges/display";
@@ -397,9 +398,17 @@ function SplitLayout({ profile, links, settings, badges, viewCount, embeds, feat
   const { publicBadges, usernameBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="grid w-full overflow-visible md:grid-cols-2" style={buildCardStyle(settings)}>
+    <div
+      className="split-layout grid w-full md:grid-cols-2"
+      style={
+        {
+          ...buildCardStyle(settings),
+          "--bf-card-radius": `${settings.border_radius}px`,
+        } as React.CSSProperties
+      }
+    >
       <div
-        className="relative flex min-h-[220px] items-center justify-center border-b border-white/[0.06] md:min-h-[320px] md:border-b-0 md:border-r"
+        className="split-layout__banner relative flex min-h-[220px] items-center justify-center border-b border-white/[0.06] md:min-h-[320px] md:border-b-0 md:border-r"
         style={
           profile.banner_url
             ? undefined
@@ -413,7 +422,7 @@ function SplitLayout({ profile, links, settings, badges, viewCount, embeds, feat
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-28 w-28" />
         </div>
       </div>
-      <div className="flex flex-col justify-center p-6">
+      <div className="split-layout__content flex flex-col justify-center p-6">
         <div className="relative z-10 mb-1 flex flex-wrap items-center gap-2 overflow-visible">
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={usernameBadges} compact styleOptions={styleOptions} />
@@ -761,14 +770,13 @@ export function PublicProfileClient({
         className="relative z-10 flex min-h-screen flex-col"
         style={{ color: settings.text_color, fontFamily: fontCss, "--bf-accent": settings.accent_color } as React.CSSProperties}
       >
-        <header className="absolute left-0 right-0 top-0 z-20 mx-auto flex max-w-2xl items-center justify-between px-5 py-5">
-          <Link href="/" className="text-sm font-medium text-neutral-500 transition-colors hover:text-white">
-            BioForge
+        <header className="absolute inset-x-0 top-0 z-20 flex w-full items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
+          <Link href="/" className="group opacity-90 transition-opacity hover:opacity-100">
+            <BioForgeLogo size={24} variant="muted" />
           </Link>
           <Link
             href="/signup"
-            className="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-[#090909] transition-opacity hover:opacity-90"
-            style={{ backgroundColor: settings.accent_color }}
+            className="rounded-full border border-white/[0.07] bg-black/20 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-neutral-500 backdrop-blur-sm transition-colors hover:border-white/[0.12] hover:bg-black/30 hover:text-neutral-300"
           >
             Create yours
           </Link>
