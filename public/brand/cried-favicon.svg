@@ -1,4 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
   <rect width="32" height="32" rx="8" fill="#090909"/>
-  <path d="M16 3C16 3 7 14.5 7 20.5C7 25.194 10.806 29 16 29C21.194 29 25 25.194 25 20.5C25 14.5 16 3 16 3Z" fill="#fafafa"/>
+  <g transform="translate(16 16) scale(0.7) translate(-16 -16)">
+    <path d="M16 3C16 3 7 14.5 7 20.5C7 25.194 10.806 29 16 29C21.194 29 25 25.194 25 20.5C25 14.5 16 3 16 3Z" fill="#fafafa"/>
+  </g>
 </svg>
