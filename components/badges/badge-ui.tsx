@@ -114,6 +114,7 @@ export function BadgeChip({
   };
 
   if (compact) {
+    const borderAlpha = badge.is_featured ? "45" : "32";
     return (
       <>
         <span
@@ -123,15 +124,19 @@ export function BadgeChip({
           onMouseLeave={showTooltip ? handleLeave : undefined}
           onFocus={showTooltip ? handleEnter : undefined}
           onBlur={showTooltip ? handleLeave : undefined}
-          className={`inline-flex shrink-0 items-center justify-center transition-opacity duration-150 hover:opacity-100 ${
-            badge.is_featured ? "opacity-80" : "opacity-55"
-          } ${hovered ? "z-[9999]" : "z-0"}`}
-          style={{ color: displayColor }}
+          className={`inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[6px] transition-[filter,background-color] duration-150 hover:brightness-110 ${
+            hovered ? "z-[9999]" : "z-0"
+          }`}
+          style={{
+            color: displayColor,
+            backgroundColor: monochrome ? "rgba(255,255,255,0.08)" : `${displayColor}20`,
+            boxShadow: `inset 0 0 0 1px ${displayColor}${borderAlpha}`,
+          }}
         >
           <BadgeIcon
             slug={badge.slug}
             iconUrl={badge.icon_url}
-            size={13}
+            size={12}
             color={displayColor}
             monochrome={monochrome}
           />
@@ -189,11 +194,7 @@ export function BadgeRow({
   if (badges.length === 0) return null;
 
   return (
-    <div
-      className={`relative flex flex-wrap items-center overflow-visible ${
-        compact ? "bf-profile-inline-row gap-1" : "bf-profile-row gap-2"
-      }`}
-    >
+    <div className={`bf-badge-row relative overflow-visible ${compact ? "" : "bf-profile-row gap-2"}`}>
       {badges.map((badge) => (
         <BadgeChip key={badge.profile_badge_id} badge={badge} compact={compact} styleOptions={styleOptions} />
       ))}

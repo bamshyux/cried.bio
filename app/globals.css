@@ -396,6 +396,34 @@ body {
   max-width: 100%;
 }
 
+.bf-profile-name-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.bf-profile-align--center .bf-profile-name-row {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.bf-profile-align--right .bf-profile-name-row {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.bf-badge-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  width: fit-content;
+  flex-shrink: 0;
+}
+
 .bf-profile-align--center .bf-profile-inline-row,
 .bf-profile-align--right .bf-profile-inline-row {
   width: fit-content;

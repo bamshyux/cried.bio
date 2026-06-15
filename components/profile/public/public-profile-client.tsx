@@ -228,7 +228,7 @@ function ClassicLayout({ profile, links, settings, badges, viewCount, embeds, fe
         <div className="-mt-10 mb-4 bf-profile-avatar-row flex items-end gap-4">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} />
           <div className="pb-1">
-            <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+            <div className="relative z-10 bf-profile-name-row overflow-visible">
               <Username name={displayName} settings={settings} profile={profile} />
               <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
             </div>
@@ -251,7 +251,7 @@ function ModernLayout({ profile, links, settings, badges, viewCount, embeds, fea
       <div className="bf-profile-avatar-row mb-4 flex">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-28 w-28" />
       </div>
-      <div className="relative z-10 mb-1 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+      <div className="relative z-10 mb-1 bf-profile-name-row overflow-visible">
         <Username name={displayName} settings={settings} profile={profile} />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       </div>
@@ -276,7 +276,7 @@ function GamingLayout({ profile, links, settings, badges, viewCount, embeds, fea
       <div className="flex gap-4 p-5 bf-profile-avatar-row">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20 shrink-0" />
         <div>
-          <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+          <div className="relative z-10 bf-profile-name-row overflow-visible">
             <Username name={displayName} settings={settings} profile={profile} />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
@@ -301,7 +301,7 @@ function PortfolioLayout({ profile, links, settings, badges, viewCount, embeds, 
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-28 w-28" />
       </div>
       <div className="p-6">
-        <div className="relative z-10 mb-1 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+        <div className="relative z-10 mb-1 bf-profile-name-row overflow-visible">
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
@@ -319,7 +319,7 @@ function MinimalLayout({ profile, links, settings, badges, viewCount, embeds, fe
 
   return (
     <div className="w-full py-6">
-      <div className="relative z-10 mb-2 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+      <div className="relative z-10 mb-2 bf-profile-name-row overflow-visible">
         <Username name={displayName} settings={settings} profile={profile} />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       </div>
@@ -347,7 +347,7 @@ function StackedLayout({ profile, links, settings, badges, viewCount, embeds, fe
         <div className="-mt-12 mb-4 bf-profile-avatar-row flex">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />
         </div>
-        <div className="relative z-10 mb-1 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+        <div className="relative z-10 mb-1 bf-profile-name-row overflow-visible">
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
@@ -394,7 +394,7 @@ function SplitLayout({ profile, links, settings, badges, viewCount, embeds, feat
         </div>
       </div>
       <div className="split-layout__content flex flex-col justify-center p-6">
-        <div className="relative z-10 mb-1 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+        <div className="relative z-10 mb-1 bf-profile-name-row overflow-visible">
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
@@ -448,7 +448,7 @@ function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, f
         <div className="flex items-start gap-4 bf-profile-avatar-row">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-14 w-14 shrink-0" />
           <div className="min-w-0 flex-1">
-            <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+            <div className="relative z-10 bf-profile-name-row overflow-visible">
               <h1 className="text-lg font-semibold tracking-tight text-white">{displayName}</h1>
               <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
             </div>
@@ -497,7 +497,7 @@ function CompactLayout({ profile, links, settings, badges, viewCount, embeds, fe
         <div className="mb-4 bf-profile-avatar-row flex items-center gap-3">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-14 w-14 shrink-0" />
         <div className="min-w-0 flex-1">
-          <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+          <div className="relative z-10 bf-profile-name-row overflow-visible">
             <h1 className="truncate text-lg font-semibold">{displayName}</h1>
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
@@ -523,7 +523,7 @@ function CardLayout({ profile, links, settings, badges, viewCount, embeds, featu
         <div className="bf-profile-avatar-row mb-4 flex">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
         </div>
-        <div className="relative z-10 mb-1 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+        <div className="relative z-10 mb-1 bf-profile-name-row overflow-visible">
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
@@ -552,7 +552,7 @@ function NeonLayout({ profile, links, settings, badges, viewCount, embeds, featu
         <div className="mb-4 bf-profile-avatar-row flex items-start gap-4">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20 shrink-0" />
           <div>
-            <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+            <div className="relative z-10 bf-profile-name-row overflow-visible">
               <Username name={displayName} settings={settings} profile={profile} />
               <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
             </div>
@@ -577,18 +577,16 @@ function MagazineLayout({ profile, links, settings, badges, viewCount, embeds, f
       </div>
       <div className="bf-profile-block max-w-[75%] pr-4">
         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-neutral-600">Profile</p>
-        <div className="mt-2 bf-profile-row flex flex-wrap items-center gap-2">
+        <div className="mt-2 bf-profile-name-row">
           <h1
             className={`text-4xl font-bold leading-none tracking-tight sm:text-5xl ${getUsernameEffectClass(settings.username_effect)}`}
             style={settings.neon_glow ? { textShadow: `0 0 30px ${settings.accent_color}60` } : undefined}
           >
             {displayName}
           </h1>
-        </div>
-        <ProfileHandle profile={profile} className="mt-3" />
-        <div className="relative z-10 mt-2 overflow-visible">
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
+        <ProfileHandle profile={profile} className="mt-3" />
       </div>
       <div className="mt-6 border-t border-white/[0.06] pt-6">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
@@ -608,7 +606,7 @@ function BentoLayout({ profile, links, settings, badges, viewCount, embeds, feat
         <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4 sm:col-span-2">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16 shrink-0" />
           <div className="min-w-0">
-            <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+            <div className="relative z-10 bf-profile-name-row overflow-visible">
               <Username name={displayName} settings={settings} profile={profile} />
               <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
             </div>
@@ -645,7 +643,7 @@ function SidebarLayout({ profile, links, settings, badges, viewCount, embeds, fe
       <aside className="flex shrink-0 flex-col items-center border-b border-white/[0.06] p-6 md:w-60 md:border-b-0 md:border-r">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />
         <div className="mt-4 w-full text-center">
-          <div className="relative z-10 bf-profile-row flex flex-wrap items-center justify-center gap-2 overflow-visible">
+          <div className="relative z-10 bf-profile-name-row overflow-visible">
             <Username name={displayName} settings={settings} profile={profile} />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
@@ -672,7 +670,7 @@ function HeroLayout({ profile, links, settings, badges, viewCount, embeds, featu
       <div className="relative h-44 sm:h-56" style={{ ...heroStyle, ...bannerTopRadius(settings.border_radius) }}>
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20" />
         <div className="relative flex h-full flex-col justify-end p-6 pb-14">
-          <div className="relative z-10 bf-profile-row flex flex-wrap items-end gap-2 overflow-visible">
+          <div className="relative z-10 bf-profile-name-row items-end overflow-visible">
             <h1
               className={`text-3xl font-bold tracking-tight text-white sm:text-4xl ${getUsernameEffectClass(settings.username_effect)}`}
               style={settings.neon_glow ? { textShadow: `0 0 30px ${settings.accent_color}80` } : undefined}
@@ -740,7 +738,7 @@ function PolaroidLayout({ profile, links, settings, badges, viewCount, embeds, f
           </div>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+          <div className="relative z-10 bf-profile-name-row overflow-visible">
             <Username name={displayName} settings={settings} profile={profile} />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
@@ -775,7 +773,7 @@ function CinematicLayout({ profile, links, settings, badges, viewCount, embeds, 
         <div className="bf-profile-avatar-row mb-4 flex justify-center">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16" />
         </div>
-        <div className="relative z-10 bf-profile-row mb-2 flex flex-wrap items-center justify-center gap-2 overflow-visible">
+        <div className="relative z-10 bf-profile-name-row mb-2 overflow-visible">
           <ProfileHandle profile={profile} className="mb-0" />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
@@ -809,7 +807,7 @@ function ShowcaseLayout({ profile, links, settings, badges, viewCount, embeds, f
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="relative h-32 w-32 sm:h-36 sm:w-36" />
         </div>
       </div>
-      <div className="relative z-10 bf-profile-row flex flex-wrap items-center justify-center gap-2 overflow-visible">
+      <div className="relative z-10 bf-profile-name-row overflow-visible">
         <Username name={displayName} settings={settings} profile={profile} />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       </div>
@@ -841,7 +839,7 @@ function RetroLayout({ profile, links, settings, badges, viewCount, embeds, feat
           <div className="flex flex-wrap items-start gap-4 bf-profile-avatar-row">
             <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16 shrink-0" />
             <div className="min-w-0 flex-1">
-              <div className="relative z-10 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+              <div className="relative z-10 bf-profile-name-row overflow-visible">
                 <Username name={displayName} settings={settings} profile={profile} />
                 <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
               </div>
@@ -882,7 +880,7 @@ function PosterLayout({ profile, links, settings, badges, viewCount, embeds, fea
             >
               {displayName}
             </h1>
-            <div className="relative z-10 mt-3 bf-profile-row flex flex-wrap items-center gap-2 overflow-visible">
+            <div className="relative z-10 mt-3 bf-profile-name-row overflow-visible">
               <ProfileHandle profile={profile} className="mb-0" />
               <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
             </div>
@@ -927,7 +925,7 @@ function GlassLayout({ profile, links, settings, badges, viewCount, embeds, feat
         <div className="bf-profile-avatar-row mb-4 flex">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />
         </div>
-        <div className="relative z-10 bf-profile-row flex flex-wrap items-center justify-center gap-2 overflow-visible">
+        <div className="relative z-10 bf-profile-name-row overflow-visible">
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
