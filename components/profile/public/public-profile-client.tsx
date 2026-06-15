@@ -27,6 +27,7 @@ import type { FeaturedBlock } from "@/lib/types/featured";
 import type { GuestbookEntry } from "@/lib/types/guestbook";
 import type { ProfileEmbed } from "@/lib/types/embed";
 import type { SocialProfile } from "@/lib/types/social";
+import { ProfileContentSections } from "./profile-content-sections";
 import { ProfileCreateCta } from "./profile-create-cta";
 import { ProfileParallaxCard } from "./profile-parallax";
 
