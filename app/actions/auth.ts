@@ -1,6 +1,9 @@
 "use server";
 
+import { sendPasswordResetEmail, sendWelcomeEmail } from "@/lib/email";
+import { getProfileByUserId } from "@/lib/data/profiles";
 import { getSiteUrl } from "@/lib/site";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -49,6 +52,12 @@ export async function signUpAction(
 
     if (data.session) {
       sessionCreated = true;
+      const profile = data.user ? await getProfileByUserId(data.user.id) : null;
+      void sendWelcomeEmail({
+        to: email,
+        displayName: profile?.display_name,
+        username: profile?.username,
+      });
     } else {
       return {
         success:
@@ -118,4 +127,69 @@ export async function signOutAction() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
+}
+
+export async function requestPasswordResetAction(
+  _prevState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email) {
+    return { error: "Email is required." };
+  }
+
+  const admin = createAdminClient();
+  if (!admin) {
+    return { error: "Password reset is temporarily unavailable." };
+  }
+
+  const siteUrl = getSiteUrl();
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "recovery",
+    email,
+    options: {
+      redirectTo: `${siteUrl}/auth/confirm?next=/auth/update-password`,
+    },
+  });
+
+  if (error) {
+    console.error("[auth] password reset link failed:", error.message);
+  }
+
+  if (!error && data.properties.action_link) {
+    void sendPasswordResetEmail({ to: email, resetUrl: data.properties.action_link });
+  }
+
+  return {
+    success: "If an account exists for that email, a reset link has been sent.",
+  };
+}
+
+export async function updatePasswordAction(
+  _prevState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const password = String(formData.get("password") ?? "");
+  const repeatPassword = String(formData.get("repeatPassword") ?? "");
+
+  if (!password || !repeatPassword) {
+    return { error: "Password and confirmation are required." };
+  }
+
+  if (password !== repeatPassword) {
+    return { error: "Passwords do not match." };
+  }
+
+  if (password.length < 6) {
+    return { error: "Password must be at least 6 characters." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  redirect("/dashboard");
 }

@@ -1,3 +1,4 @@
+import { dispatchNotificationEmail } from "@/lib/email/dispatch";
 import { createClient } from "@/lib/supabase/server";
 import type { Notification, NotificationType } from "@/lib/types/notification";
 
@@ -10,13 +11,24 @@ export async function createNotification(input: {
   data?: Record<string, unknown>;
 }) {
   const supabase = await createClient();
+  const body = input.body ?? "";
+  const data = input.data ?? {};
+
   await supabase.from("notifications").insert({
     user_id: input.userId,
     type: input.type,
     title: input.title,
-    body: input.body ?? "",
+    body,
     actor_id: input.actorId ?? null,
-    data: input.data ?? {},
+    data,
+  });
+
+  void dispatchNotificationEmail({
+    userId: input.userId,
+    type: input.type,
+    title: input.title,
+    body,
+    data,
   });
 }
 

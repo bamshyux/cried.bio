@@ -2,15 +2,14 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { signInAction, type AuthActionState } from "@/app/actions/auth";
+import { requestPasswordResetAction, type AuthActionState } from "@/app/actions/auth";
 
 const initialState: AuthActionState = {};
 
-const inputClass =
-  "bf-input w-full";
+const inputClass = "bf-input w-full";
 
-export function LoginForm() {
-  const [state, formAction, isPending] = useActionState(signInAction, initialState);
+export function ForgotPasswordForm() {
+  const [state, formAction, isPending] = useActionState(requestPasswordResetAction, initialState);
 
   return (
     <form action={formAction} className="space-y-5">
@@ -28,28 +27,15 @@ export function LoginForm() {
         />
       </div>
 
-      <div>
-        <div className="mb-1.5 flex items-center justify-between">
-          <label htmlFor="password" className="text-[13px] font-medium text-neutral-400">
-            Password
-          </label>
-          <Link href="/forgot-password" className="text-[13px] font-medium text-[#00e5cc] hover:text-[#00c9b4]">
-            Forgot password?
-          </Link>
-        </div>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          placeholder="••••••••"
-          className={inputClass}
-        />
-      </div>
-
       {state.error && (
         <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
           {state.error}
+        </p>
+      )}
+
+      {state.success && (
+        <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-400">
+          {state.success}
         </p>
       )}
 
@@ -58,13 +44,13 @@ export function LoginForm() {
         disabled={isPending}
         className="w-full rounded-lg bg-[#00e5cc] px-4 py-3 text-sm font-semibold text-[#090909] transition-colors hover:bg-[#00c9b4] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isPending ? "Logging in..." : "Login"}
+        {isPending ? "Sending..." : "Send reset link"}
       </button>
 
       <p className="text-center text-sm text-neutral-500">
-        Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-medium text-[#00e5cc] hover:text-[#00c9b4]">
-          Create Profile
+        Remember your password?{" "}
+        <Link href="/login" className="font-medium text-[#00e5cc] hover:text-[#00c9b4]">
+          Back to login
         </Link>
       </p>
     </form>

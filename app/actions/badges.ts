@@ -6,6 +6,7 @@ import {
   getBadgeIdBySlug,
   getBadgesByProfileId,
 } from "@/lib/data/badges";
+import { createNotification } from "@/lib/data/notifications";
 import { formatSchemaError } from "@/lib/db/schema";
 import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
 import type { BadgeFormState } from "@/lib/types/badge";
@@ -246,6 +247,22 @@ export async function assignBadgeAction(
   if (error) {
     if (error.code === "23505") return { error: "Badge already assigned." };
     return { error: error.message };
+  }
+
+  const { data: badge } = await supabase
+    .from("badges")
+    .select("name, slug, description")
+    .eq("id", badgeId)
+    .maybeSingle();
+
+  if (badge) {
+    await createNotification({
+      userId: profileId,
+      type: "badge_earned",
+      title: `You earned the ${badge.name} badge`,
+      body: badge.description ?? "",
+      data: { badge_name: badge.name, badge_slug: badge.slug },
+    });
   }
 
   revalidatePath("/dashboard/badges");

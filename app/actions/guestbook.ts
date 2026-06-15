@@ -91,6 +91,10 @@ export async function postGuestbookEntryAction(
     title: "New guestbook message",
     body: `${author?.display_name || author?.username || "Someone"} signed your guestbook`,
     actorId: userId,
+    data: {
+      author_name: author?.display_name || author?.username || "Someone",
+      message_preview: message.length > 120 ? `${message.slice(0, 117)}...` : message,
+    },
   });
 
   await revalidateUserProfile(profileId, ["/dashboard/guestbook"]);
