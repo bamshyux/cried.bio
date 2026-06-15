@@ -40,6 +40,7 @@ import {
   type LayoutProps,
 } from "./layout-primitives";
 import { CustomThemeLayout } from "./custom-theme-layout";
+import { DiscordPresenceProvider } from "./discord-presence-context";
 import { ProfileThemeScope } from "./profile-theme-scope";
 import { EXTENDED_LAYOUTS } from "./profile-layouts-extra";
 
@@ -915,9 +916,11 @@ export function PublicProfileClient({
                 username={profile.username ?? ""}
               >
                 <div className={getProfileAlignClass(settings.content_alignment)}>
-                  <ProfileThemeScope scopedCss={settings.layout === "custom" ? scopedCustomCss : null}>
-                    <Layout {...layoutProps} />
-                  </ProfileThemeScope>
+                  <DiscordPresenceProvider presence={discordPresence ?? null}>
+                    <ProfileThemeScope scopedCss={settings.layout === "custom" ? scopedCustomCss : null}>
+                      <Layout {...layoutProps} />
+                    </ProfileThemeScope>
+                  </DiscordPresenceProvider>
                 </div>
               </ProfileCardLayoutEditor>
             </div>

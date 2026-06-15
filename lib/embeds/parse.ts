@@ -52,7 +52,10 @@ export function getEmbedIframeSrc(type: EmbedType, embedId: string): string | nu
     case "roblox":
       return `https://www.roblox.com/games/${embedId}`;
     case "discord":
-      return `https://discord.com/widget?id=${embedId}&theme=dark`;
+      if (/^\d{17,20}$/.test(embedId)) {
+        return `https://discord.com/widget?id=${embedId}&theme=dark`;
+      }
+      return `https://discord.com/widget?invite=${encodeURIComponent(embedId)}&theme=dark`;
     default:
       return null;
   }
@@ -76,7 +79,10 @@ export function getEmbedIframeSrcServer(type: EmbedType, embedId: string, hostna
     case "soundcloud":
       return `https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/${embedId}&color=%23fafafa`;
     case "discord":
-      return `https://discord.com/widget?id=${embedId}&theme=dark`;
+      if (/^\d{17,20}$/.test(embedId)) {
+        return `https://discord.com/widget?id=${embedId}&theme=dark`;
+      }
+      return `https://discord.com/widget?invite=${encodeURIComponent(embedId)}&theme=dark`;
     case "roblox":
       return null;
     default:

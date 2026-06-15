@@ -5,16 +5,18 @@ import type { ProfileSettings } from "@/lib/types/settings";
 export function DiscordStatusCard({
   presence,
   settings,
+  live = true,
 }: {
   presence: DiscordPresence;
   settings: ProfileSettings;
+  live?: boolean;
 }) {
   const statusColor = getDiscordStatusColor(presence.status);
   const statusLabel = getDiscordStatusLabel(presence.status);
   const displayName = settings.discord_username || presence.username;
 
   return (
-    <div className="bf-profile-block mb-5 w-full max-w-md overflow-hidden rounded-xl border border-[#5865F2]/25 bg-[#5865F2]/10">
+    <div className="profile-discord-status bf-profile-block mb-5 w-full max-w-md overflow-hidden rounded-xl border border-[#5865F2]/25 bg-[#5865F2]/10">
       <div className="flex items-center gap-3 px-4 py-3">
         {presence.avatarUrl ? (
           <div className="relative shrink-0">
@@ -68,6 +70,23 @@ export function DiscordStatusCard({
               )}
             </div>
           ) : null}
+        </div>
+      )}
+
+      {!live && !presence.activity && !presence.spotify && (
+        <div className="border-t border-white/[0.06] bg-black/20 px-4 py-2.5">
+          <p className="text-[10px] text-neutral-500">
+            For live activity, join{" "}
+            <a
+              href="https://discord.gg/lanyard"
+              target="_blank"
+              rel="noreferrer"
+              className="text-[#5865F2] hover:underline"
+            >
+              discord.gg/lanyard
+            </a>{" "}
+            with this Discord account (joining is all that’s required).
+          </p>
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
+import { setDiscordStatusWidgetEnabled } from "@/lib/data/discord-widget";
 import {
   getDiscordClientId,
   getDiscordClientSecret,
@@ -78,6 +79,7 @@ export async function GET(request: Request) {
     widgets_discord_user_id: discordUser.id,
     discord_username: discordUser.global_name || discordUser.username,
     discord_avatar: discordUser.avatar ?? "",
+    show_discord_status: true,
   });
 
   const { error } = await supabase
@@ -88,6 +90,8 @@ export async function GET(request: Request) {
   if (error) {
     return redirectWithMessage("save_failed");
   }
+
+  await setDiscordStatusWidgetEnabled(userId, true);
 
   return redirectWithMessage("connected");
 }

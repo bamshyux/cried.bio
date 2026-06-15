@@ -304,7 +304,12 @@ export function mergeSettings(
       DEFAULT_SETTINGS.discord_user_id,
     discord_username: row?.discord_username ?? DEFAULT_SETTINGS.discord_username,
     discord_avatar: row?.discord_avatar ?? DEFAULT_SETTINGS.discord_avatar,
-    show_discord_status: row?.show_discord_status ?? DEFAULT_SETTINGS.show_discord_status,
+    show_discord_status:
+      row?.show_discord_status ??
+      ((row as { widgets_discord_user_id?: string })?.widgets_discord_user_id?.trim() ||
+      row?.discord_user_id?.trim()
+        ? true
+        : DEFAULT_SETTINGS.show_discord_status),
     custom_theme_id: row?.custom_theme_id ?? null,
     created_at: row?.created_at ?? now,
     updated_at: row?.updated_at ?? now,

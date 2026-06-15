@@ -174,6 +174,7 @@ export function WidgetsEditor({
         {connected && (
           <div className="border-t border-white/[0.06] pt-4">
             <ToggleField
+              key={`discord-status-${settings.updated_at}-${settings.show_discord_status}`}
               name="show_discord_status"
               label="Show Discord status on profile"
               description="Display your live Discord presence (online, activity, Spotify) on your public biolink"
@@ -181,12 +182,15 @@ export function WidgetsEditor({
               onCheckedChange={handleToggle}
             />
             <p className="mt-3 text-xs text-neutral-600">
-              Live status uses{" "}
+              Live activity uses{" "}
               <a href="https://lanyard.rest" target="_blank" rel="noreferrer" className="text-[var(--bf-accent)] hover:underline">
                 Lanyard
               </a>
-              . Join the Lanyard Discord server and run{" "}
-              <code className="rounded bg-white/5 px-1 py-0.5 text-[10px]">/opt-in</code> so your status can appear.
+              . Join the{" "}
+              <a href="https://discord.gg/lanyard" target="_blank" rel="noreferrer" className="text-[var(--bf-accent)] hover:underline">
+                Lanyard Discord server
+              </a>{" "}
+              with the same account — no commands needed. You can mute the server after joining.
             </p>
           </div>
         )}
