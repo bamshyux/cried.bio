@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { isDiscordLinked } from "@/lib/discord/connection";
+import { fetchLanyardDiscordUser } from "@/lib/discord/lanyard";
+import { isDiscordLinked, isValidDiscordUserId, needsDiscordProfileRefresh } from "@/lib/discord/connection";
 import {
   removeDiscordStatusWidget,
   setDiscordStatusWidgetEnabled,
@@ -107,9 +108,18 @@ export async function saveDiscordUserIdAction(discordUserId: string): Promise<{ 
     return { error: "Enter a valid Discord user ID (17–20 digits)." };
   }
 
+  const lanyardUser = await fetchLanyardDiscordUser(trimmed);
+  if (!lanyardUser?.username) {
+    return {
+      error:
+        "Could not resolve your Discord username. Connect with OAuth, or join discord.gg/lanyard with that account first.",
+    };
+  }
+
   const patch = await omitUnsupportedSettingsColumns({
     widgets_discord_user_id: trimmed,
-    discord_username: `Discord #${trimmed.slice(-4)}`,
+    discord_username: lanyardUser.username,
+    discord_avatar: lanyardUser.avatar ?? "",
     show_discord_status: false,
   });
   const supabase = await createClient();
@@ -144,10 +154,15 @@ export async function sanitizeDiscordConnectionAction(): Promise<void> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return;
 
-  const { linked, discordUserId } = await getDiscordLinkState(userId);
+  const { linked, discordUserId, discordUsername } = await getDiscordLinkState(userId);
+
+  if (needsDiscordProfileRefresh({ discord_user_id: discordUserId, discord_username: discordUsername })) {
+    await refreshDiscordProfileAction();
+    return;
+  }
+
   if (linked || !discordUserId) return;
 
-  // Clear stale IDs / orphaned widget rows that were never properly linked.
   await removeDiscordStatusWidget(userId);
 
   const patch = await omitUnsupportedSettingsColumns({
@@ -158,4 +173,36 @@ export async function sanitizeDiscordConnectionAction(): Promise<void> {
   });
   const supabase = await createClient();
   await supabase.from("profile_settings").update(patch).eq("profile_id", userId);
+}
+
+export async function refreshDiscordProfileAction(): Promise<{ error?: string }> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "Not signed in." };
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profile_settings")
+    .select("widgets_discord_user_id, discord_username")
+    .eq("profile_id", userId)
+    .maybeSingle();
+
+  const row = data as { widgets_discord_user_id?: string; discord_username?: string } | null;
+  const discordUserId = String(row?.widgets_discord_user_id ?? "").trim();
+
+  if (!needsDiscordProfileRefresh({ discord_user_id: discordUserId, discord_username: row?.discord_username })) {
+    return {};
+  }
+
+  const lanyardUser = await fetchLanyardDiscordUser(discordUserId);
+  if (!lanyardUser?.username) {
+    return {};
+  }
+
+  const patch = await omitUnsupportedSettingsColumns({
+    discord_username: lanyardUser.username,
+    discord_avatar: lanyardUser.avatar ?? "",
+  });
+  await supabase.from("profile_settings").update(patch).eq("profile_id", userId);
+  await revalidateProfile(userId);
+  return {};
 }

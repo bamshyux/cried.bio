@@ -1,42 +1,78 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
-import { updateSettingsAction } from "@/app/actions/settings";
-import { CURSOR_EFFECT_OPTIONS, USERNAME_EFFECT_OPTIONS } from "@/lib/settings";
-import type { CursorEffect, ProfileSettings, SettingsFormState, UsernameEffect } from "@/lib/types/settings";
+import { useCallback } from "react";
 import { ControlledSelect } from "@/components/dashboard/controlled-fields";
+import {
+  SaveConfirmation,
+  useSettingsForm,
+  useSyncedSettingsState,
+} from "@/components/dashboard/use-settings-form";
 import {
   buttonPrimaryClassName,
   cardClassName,
-  FormFeedback,
   inputClassName,
   labelClassName,
   PageHeader,
   ToggleField,
 } from "@/components/dashboard/form-fields";
-import { useSettingsRefresh } from "@/components/dashboard/use-settings-refresh";
+import { CURSOR_EFFECT_OPTIONS, USERNAME_EFFECT_OPTIONS } from "@/lib/settings";
+import type { CursorEffect, ProfileSettings, UsernameEffect } from "@/lib/types/settings";
 
-const initial: SettingsFormState = {};
+type EffectsFormState = {
+  cursorEffect: CursorEffect;
+  usernameEffect: UsernameEffect;
+  typingBio: boolean;
+  hoverAnimations: boolean;
+  pageEntrance: boolean;
+  enterGateTitle: string;
+  enterGateSubtitle: string;
+  enterGateButton: string;
+  enterGateShowAvatar: boolean;
+};
+
+function readEffectsForm(settings: ProfileSettings): EffectsFormState {
+  return {
+    cursorEffect: settings.cursor_effect,
+    usernameEffect: settings.username_effect,
+    typingBio: settings.typing_bio,
+    hoverAnimations: settings.hover_animations,
+    pageEntrance: settings.page_entrance,
+    enterGateTitle: settings.enter_gate_title,
+    enterGateSubtitle: settings.enter_gate_subtitle,
+    enterGateButton: settings.enter_gate_button,
+    enterGateShowAvatar: settings.enter_gate_show_avatar,
+  };
+}
 
 export function EffectsEditor({ settings }: { settings: ProfileSettings }) {
-  const [state, formAction, isPending] = useActionState(updateSettingsAction, initial);
-  useSettingsRefresh(state);
+  const { state, submit, isPending } = useSettingsForm("effects", "Effects saved.");
+  const [form, setForm] = useSyncedSettingsState(settings.updated_at, readEffectsForm(settings));
 
-  const [cursorEffect, setCursorEffect] = useState(settings.cursor_effect);
-  const [usernameEffect, setUsernameEffect] = useState(settings.username_effect);
+  const patchForm = useCallback(
+    (partial: Partial<EffectsFormState>) => setForm((prev) => ({ ...prev, ...partial })),
+    [setForm],
+  );
 
-  useEffect(() => {
-    setCursorEffect(settings.cursor_effect);
-    setUsernameEffect(settings.username_effect);
-  }, [settings.updated_at, settings.cursor_effect, settings.username_effect]);
+  const handleSave = (event: React.FormEvent) => {
+    event.preventDefault();
+    submit({
+      cursor_effect: form.cursorEffect,
+      username_effect: form.usernameEffect,
+      typing_bio: form.typingBio,
+      hover_animations: form.hoverAnimations,
+      page_entrance: form.pageEntrance,
+      enter_gate_title: form.enterGateTitle,
+      enter_gate_subtitle: form.enterGateSubtitle,
+      enter_gate_button: form.enterGateButton,
+      enter_gate_show_avatar: form.enterGateShowAvatar,
+    });
+  };
 
   return (
     <>
       <PageHeader title="Effects" description="Cursor, username, bio, page entrance, and click-to-enter screen." />
       <div className={cardClassName}>
-        <form action={formAction} data-dashboard-primary-form className="space-y-5">
-          <input type="hidden" name="_section" value="effects" />
-
+        <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-5">
           <div className="rounded-xl border border-white/[0.06] bg-[#0c0c0c] p-4">
             <p className="mb-4 text-sm font-medium text-white">Click to enter</p>
             <p className="mb-4 text-xs leading-relaxed text-neutral-500">
@@ -50,9 +86,9 @@ export function EffectsEditor({ settings }: { settings: ProfileSettings }) {
                 </label>
                 <input
                   id="enter_gate_title"
-                  name="enter_gate_title"
                   type="text"
-                  defaultValue={settings.enter_gate_title}
+                  value={form.enterGateTitle}
+                  onChange={(e) => patchForm({ enterGateTitle: e.target.value })}
                   placeholder="Leave empty to use your display name"
                   maxLength={80}
                   className={inputClassName}
@@ -65,9 +101,9 @@ export function EffectsEditor({ settings }: { settings: ProfileSettings }) {
                 </label>
                 <input
                   id="enter_gate_subtitle"
-                  name="enter_gate_subtitle"
                   type="text"
-                  defaultValue={settings.enter_gate_subtitle}
+                  value={form.enterGateSubtitle}
+                  onChange={(e) => patchForm({ enterGateSubtitle: e.target.value })}
                   placeholder="Optional tagline or message"
                   maxLength={200}
                   className={inputClassName}
@@ -80,9 +116,9 @@ export function EffectsEditor({ settings }: { settings: ProfileSettings }) {
                 </label>
                 <input
                   id="enter_gate_button"
-                  name="enter_gate_button"
                   type="text"
-                  defaultValue={settings.enter_gate_button}
+                  value={form.enterGateButton}
+                  onChange={(e) => patchForm({ enterGateButton: e.target.value })}
                   placeholder="Click to enter"
                   maxLength={40}
                   className={inputClassName}
@@ -90,36 +126,55 @@ export function EffectsEditor({ settings }: { settings: ProfileSettings }) {
               </div>
 
               <ToggleField
+                key={`gate-avatar-${form.enterGateShowAvatar}`}
                 name="enter_gate_show_avatar"
                 label="Show avatar"
-                defaultChecked={settings.enter_gate_show_avatar}
+                defaultChecked={form.enterGateShowAvatar}
+                onCheckedChange={(enterGateShowAvatar) => patchForm({ enterGateShowAvatar })}
               />
             </div>
           </div>
 
           <ControlledSelect
-            name="cursor_effect"
             label="Cursor effect"
-            value={cursorEffect}
-            onChange={(v) => setCursorEffect(v as CursorEffect)}
+            value={form.cursorEffect}
+            onChange={(v) => patchForm({ cursorEffect: v as CursorEffect })}
             options={CURSOR_EFFECT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
           />
 
           <ControlledSelect
-            name="username_effect"
             label="Username effect"
-            value={usernameEffect}
-            onChange={(v) => setUsernameEffect(v as UsernameEffect)}
+            value={form.usernameEffect}
+            onChange={(v) => patchForm({ usernameEffect: v as UsernameEffect })}
             options={USERNAME_EFFECT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
           />
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <ToggleField name="typing_bio" label="Typing bio" description="Bio types out, pauses, then backspaces in a loop" defaultChecked={settings.typing_bio} />
-            <ToggleField name="hover_animations" label="Hover animations" defaultChecked={settings.hover_animations} />
-            <ToggleField name="page_entrance" label="Page entrance" defaultChecked={settings.page_entrance} />
+            <ToggleField
+              key={`typing-${form.typingBio}`}
+              name="typing_bio"
+              label="Typing bio"
+              description="Bio types out, pauses, then backspaces in a loop"
+              defaultChecked={form.typingBio}
+              onCheckedChange={(typingBio) => patchForm({ typingBio })}
+            />
+            <ToggleField
+              key={`hover-${form.hoverAnimations}`}
+              name="hover_animations"
+              label="Hover animations"
+              defaultChecked={form.hoverAnimations}
+              onCheckedChange={(hoverAnimations) => patchForm({ hoverAnimations })}
+            />
+            <ToggleField
+              key={`entrance-${form.pageEntrance}`}
+              name="page_entrance"
+              label="Page entrance"
+              defaultChecked={form.pageEntrance}
+              onCheckedChange={(pageEntrance) => patchForm({ pageEntrance })}
+            />
           </div>
 
-          <FormFeedback error={state.error} success={state.success} />
+          <SaveConfirmation success={state.success} error={state.error} />
           <button type="submit" disabled={isPending} className={buttonPrimaryClassName}>
             {isPending ? "Saving..." : "Save effects"}
           </button>

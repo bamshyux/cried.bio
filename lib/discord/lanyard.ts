@@ -61,7 +61,7 @@ function pickActivity(activities?: LanyardActivity[]): DiscordActivity | null {
   return activity ? mapActivity(activity) : null;
 }
 
-export async function fetchLanyardPresence(discordUserId: string): Promise<DiscordPresence | null> {
+async function fetchLanyardData(discordUserId: string): Promise<LanyardResponse["data"] | null> {
   if (!discordUserId.trim()) return null;
 
   try {
@@ -72,25 +72,42 @@ export async function fetchLanyardPresence(discordUserId: string): Promise<Disco
 
     const json = (await res.json()) as LanyardResponse;
     if (!json.success || !json.data?.discord_user) return null;
-
-    const user = json.data.discord_user;
-    const spotify = json.data.spotify;
-
-    return {
-      userId: user.id,
-      username: user.username,
-      avatarUrl: getDiscordAvatarUrl(user.id, user.avatar),
-      status: normalizeStatus(json.data.discord_status),
-      activity: pickActivity(json.data.activities),
-      spotify: spotify?.song
-        ? {
-            song: spotify.song,
-            artist: spotify.artist ?? "",
-            albumArtUrl: spotify.album_art_url,
-          }
-        : null,
-    };
+    return json.data;
   } catch {
     return null;
   }
+}
+
+export async function fetchLanyardDiscordUser(
+  discordUserId: string,
+): Promise<{ username: string; avatar: string | null } | null> {
+  const data = await fetchLanyardData(discordUserId);
+  if (!data?.discord_user?.username) return null;
+  return {
+    username: data.discord_user.username,
+    avatar: data.discord_user.avatar ?? null,
+  };
+}
+
+export async function fetchLanyardPresence(discordUserId: string): Promise<DiscordPresence | null> {
+  const data = await fetchLanyardData(discordUserId);
+  if (!data?.discord_user) return null;
+
+  const user = data.discord_user;
+  const spotify = data.spotify;
+
+  return {
+    userId: user.id,
+    username: user.username,
+    avatarUrl: getDiscordAvatarUrl(user.id, user.avatar),
+    status: normalizeStatus(data.discord_status),
+    activity: pickActivity(data.activities),
+    spotify: spotify?.song
+      ? {
+          song: spotify.song,
+          artist: spotify.artist ?? "",
+          albumArtUrl: spotify.album_art_url,
+        }
+      : null,
+  };
 }

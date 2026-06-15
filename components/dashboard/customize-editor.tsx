@@ -42,7 +42,7 @@ export function CustomizeEditor({ settings }: { settings: ProfileSettings }) {
     setLinkAnimation(settings.link_animation);
     setContentAlignment(settings.content_alignment);
     setStatusUseAccent(!settings.profile_status_color?.trim());
-  }, [settings.updated_at, settings.font_family, settings.link_animation, settings.content_alignment, settings.profile_status_color]);
+  }, [settings.updated_at]);
 
   return (
     <>

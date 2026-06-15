@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { sanitizeDiscordConnectionAction } from "@/app/actions/discord";
+import { sanitizeDiscordConnectionAction, refreshDiscordProfileAction } from "@/app/actions/discord";
 import { WidgetsEditor } from "@/components/dashboard/widgets-editor";
 import { getSettingsByProfileId } from "@/lib/data/settings";
 import { isDiscordOAuthConfigured } from "@/lib/discord/config";
@@ -13,6 +13,7 @@ export default async function DashboardWidgetsPage() {
 
   const userId = data.claims.sub as string;
   await sanitizeDiscordConnectionAction();
+  await refreshDiscordProfileAction();
   const settings = await getSettingsByProfileId(userId);
 
   return (

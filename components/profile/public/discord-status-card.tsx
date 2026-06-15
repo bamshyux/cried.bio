@@ -3,7 +3,7 @@ import { resolveDiscordCardAppearance } from "@/lib/discord/card-appearance";
 import { configFromProfileSettings } from "@/lib/discord/card-config";
 import { getDiscordStatusColor, getDiscordStatusLabel } from "@/lib/discord/status-colors";
 import type { DiscordActivity, DiscordPresence } from "@/lib/discord/types";
-import type { DiscordCardConfig } from "@/lib/types/discord-widget";
+import { resolveDiscordDisplayName } from "@/lib/discord/resolve-profile";
 import type { ProfileSettings } from "@/lib/types/settings";
 
 function ActivityBlock({
@@ -149,7 +149,7 @@ export function DiscordStatusCard({
   const appearance = resolveDiscordCardAppearance(config, settings.accent_color);
   const statusColor = getDiscordStatusColor(presence.status);
   const statusLabel = getDiscordStatusLabel(presence.status);
-  const displayName = settings.discord_username || presence.username;
+  const displayName = resolveDiscordDisplayName(settings, presence);
   const hasActivity = Boolean(presence.activity || presence.spotify) || previewActivity;
   const showHint = config.show_lanyard_hint && !live && !hasActivity;
   const showActivity = config.show_activity && !appearance.isCompact;

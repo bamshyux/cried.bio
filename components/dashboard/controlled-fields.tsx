@@ -3,26 +3,29 @@
 import { useEffect, useState } from "react";
 
 export function ControlledSelect({
-  name,
   label,
   value,
   onChange,
   options,
+  name,
 }: {
-  name: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
+  /** Optional — omit when the parent form submits via React state. */
+  name?: string;
 }) {
+  const id = name ?? label.toLowerCase().replace(/\s+/g, "_");
+
   return (
     <div>
-      <label htmlFor={name} className="mb-1.5 block text-[13px] font-medium text-neutral-400">
+      <label htmlFor={id} className="mb-1.5 block text-[13px] font-medium text-neutral-400">
         {label}
       </label>
+      {name ? <input type="hidden" name={name} value={value} readOnly /> : null}
       <select
-        id={name}
-        name={name}
+        id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="bf-input"

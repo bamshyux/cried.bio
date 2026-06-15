@@ -215,7 +215,17 @@ export async function updateSettingsAction(
   if (error) return { error };
 
   await revalidateProfile(userId);
-  return { success: "Settings saved." };
+
+  const messages: Record<SettingsSection, string> = {
+    customize: "Customization saved.",
+    links: "Link settings saved.",
+    background: "Background saved.",
+    themes: "Theme saved.",
+    music: "Music settings saved.",
+    effects: "Effects saved.",
+  };
+
+  return { success: messages[section] ?? "Settings saved." };
 }
 
 export async function updateCardLayoutAction(layout: {
