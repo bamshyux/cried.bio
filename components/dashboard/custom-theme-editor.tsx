@@ -10,6 +10,7 @@ import {
   duplicateCustomThemeAction,
   saveCustomThemeAction,
 } from "@/app/actions/custom-themes";
+import { PublishThemeModal } from "@/components/dashboard/community-themes/publish-theme-modal";
 import {
   buttonPrimaryClassName,
   cardClassName,
@@ -24,14 +25,17 @@ import {
   DEFAULT_CUSTOM_THEME_CSS,
 } from "@/components/dashboard/custom-theme-preview";
 import type { CustomTheme } from "@/lib/types/custom-theme";
+import type { CommunityThemeListing } from "@/lib/types/community-theme";
 import type { ProfileSettings } from "@/lib/types/settings";
 
 export function CustomThemeEditor({
   themes: initialThemes,
   settings,
+  publishedByThemeId = {},
 }: {
   themes: CustomTheme[];
   settings: ProfileSettings;
+  publishedByThemeId?: Record<string, CommunityThemeListing>;
 }) {
   const router = useRouter();
   const [themes, setThemes] = useState(initialThemes);
@@ -43,6 +47,7 @@ export function CustomThemeEditor({
   const [savedCss, setSavedCss] = useState(DEFAULT_CUSTOM_THEME_CSS);
   const [feedback, setFeedback] = useState<{ error?: string; success?: string }>({});
   const [importOpen, setImportOpen] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
   const [importText, setImportText] = useState("");
   const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -222,6 +227,12 @@ export function CustomThemeEditor({
         >
           ← Back to layouts
         </Link>
+        <Link
+          href="/dashboard/explore/themes"
+          className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-neutral-400 transition-colors hover:text-white"
+        >
+          Community Themes
+        </Link>
         {isActiveOnProfile && (
           <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
             Active on profile
@@ -310,6 +321,20 @@ export function CustomThemeEditor({
             </button>
             <button
               type="button"
+              onClick={() => {
+                if (dirty) {
+                  setFeedback({ error: "Save your theme before publishing." });
+                  return;
+                }
+                setPublishOpen(true);
+              }}
+              disabled={isPending || !activeId}
+              className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-sm font-medium text-violet-200 transition-colors hover:bg-violet-500/20 disabled:opacity-50"
+            >
+              {activeId && publishedByThemeId[activeId] ? "Update publish" : "Publish Theme"}
+            </button>
+            <button
+              type="button"
               onClick={handleDuplicate}
               disabled={isPending || !activeId}
               className="rounded-lg border border-white/[0.08] px-4 py-2 text-sm font-medium text-neutral-300 transition-colors hover:border-white/20 hover:text-white disabled:opacity-50"
@@ -375,6 +400,15 @@ export function CustomThemeEditor({
           </div>
         </div>
       </div>
+
+      {publishOpen && activeTheme ? (
+        <PublishThemeModal
+          theme={activeTheme}
+          existingListing={publishedByThemeId[activeTheme.id] ?? null}
+          onClose={() => setPublishOpen(false)}
+          onPublished={() => router.refresh()}
+        />
+      ) : null}
 
       {importOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">

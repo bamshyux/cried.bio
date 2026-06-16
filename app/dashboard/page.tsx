@@ -69,7 +69,7 @@ export default async function DashboardOverviewPage() {
               <p className="mt-4 font-mono text-sm text-neutral-600">
                 {SITE_HOST}/{profile!.username}
                 {profile?.uid != null ? (
-                  <span className="ml-3 text-neutral-700">· UID {formatProfileUid(profile.uid)}</span>
+                  <span className="ml-3 text-neutral-700">· {formatProfileUid(profile.uid)}</span>
                 ) : null}
               </p>
             ) : null}

@@ -1,28 +1,8 @@
-import { redirect } from "next/navigation";
-import { ExploreProfilesShell } from "@/components/dashboard/explore-profiles/explore-profiles-shell";
-import {
-  getSuggestedExploreProfiles,
-  searchExploreProfiles,
-} from "@/lib/data/explore-profiles";
-import { createClient } from "@/lib/supabase/server";
+import { SectionHub } from "@/components/dashboard/section-hub";
+import { DASHBOARD_SECTIONS } from "@/lib/dashboard/navigation";
 
-export default async function ExploreProfilesPage() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
+const section = DASHBOARD_SECTIONS.find((s) => s.id === "explore")!;
 
-  if (error || !data?.claims) redirect("/login");
-
-  const userId = data.claims.sub as string;
-
-  const [initial, suggested] = await Promise.all([
-    searchExploreProfiles({ page: 1, excludeUserId: userId }),
-    getSuggestedExploreProfiles(userId),
-  ]);
-
-  return (
-    <ExploreProfilesShell
-      initial={initial}
-      suggested={suggested}
-    />
-  );
+export default function ExploreHubPage() {
+  return <SectionHub section={section} />;
 }

@@ -1248,6 +1248,121 @@ body {
   }
 }
 
+/* Dashboard — Leaderboard */
+.bf-leaderboard-page {
+  animation: bf-explore-page-in 0.45s ease;
+}
+
+.bf-leaderboard-podium-glow {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(251, 191, 36, 0.08), transparent 55%),
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.03), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.03), transparent 40%);
+}
+
+.bf-leaderboard-podium-slot {
+  animation: bf-leaderboard-podium-in 0.6s ease backwards;
+}
+
+.bf-leaderboard-podium-first {
+  animation-delay: 120ms;
+}
+
+.bf-leaderboard-podium-second {
+  animation-delay: 0ms;
+}
+
+.bf-leaderboard-podium-third {
+  animation-delay: 220ms;
+}
+
+.bf-leaderboard-row {
+  animation: bf-leaderboard-row-in 0.45s ease backwards;
+}
+
+.bf-leaderboard-rank-gold {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(180, 83, 9, 0.15));
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #fcd34d;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.15);
+}
+
+.bf-leaderboard-rank-silver {
+  background: linear-gradient(135deg, rgba(212, 212, 216, 0.2), rgba(113, 113, 122, 0.12));
+  border: 1px solid rgba(212, 212, 216, 0.3);
+  color: #e4e4e7;
+  box-shadow: 0 0 16px rgba(212, 212, 216, 0.08);
+}
+
+.bf-leaderboard-rank-bronze {
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(154, 52, 18, 0.12));
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  color: #fdba74;
+  box-shadow: 0 0 16px rgba(251, 146, 60, 0.1);
+}
+
+.bf-leaderboard-rank-default {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #a3a3a3;
+}
+
+.bf-leaderboard-preview {
+  animation: bf-leaderboard-preview-in 0.2s ease;
+}
+
+.bf-leaderboard-rank-flash .bf-leaderboard-rank {
+  animation: bf-leaderboard-rank-pulse 0.65s ease;
+}
+
+.bf-leaderboard-follow:active {
+  transform: scale(0.97);
+}
+
+@keyframes bf-leaderboard-podium-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bf-leaderboard-row-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bf-leaderboard-preview-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% + 6px)) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1);
+  }
+}
+
+@keyframes bf-leaderboard-rank-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.12);
+    filter: brightness(1.2);
+  }
+}
+
 @keyframes bf-live-pulse {
   0% {
     transform: scale(1);

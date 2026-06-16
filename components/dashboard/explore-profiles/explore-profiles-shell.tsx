@@ -272,7 +272,7 @@ export function ExploreProfilesShell({
       <Reveal>
         <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#111] p-6 sm:p-8">
           <div className="bf-explore-hero-glow pointer-events-none absolute inset-0" aria-hidden />
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-500">Settings</p>
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-500">Explore</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
             Explore Profiles
           </h1>

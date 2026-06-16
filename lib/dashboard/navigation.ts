@@ -114,7 +114,7 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
       },
       {
         href: "/dashboard/custom-theme",
-        label: "Custom themes",
+        label: "Custom Themes",
         description: "Scoped CSS editor",
         keywords: ["css", "custom", "code"],
         Icon: IconEffects,
@@ -155,6 +155,36 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
         description: "Background music player",
         keywords: ["music", "audio", "player"],
         Icon: IconMusic,
+      },
+    ],
+  },
+  {
+    id: "explore",
+    label: "Explore",
+    href: "/dashboard/explore",
+    description: "Discover profiles and community themes",
+    Icon: IconExplore,
+    items: [
+      {
+        href: "/dashboard/explore/profiles",
+        label: "Explore Profiles",
+        description: "Browse cried.bio creators",
+        keywords: ["explore", "profiles", "users", "discover"],
+        Icon: IconExplore,
+      },
+      {
+        href: "/dashboard/explore/themes",
+        label: "Community Themes",
+        description: "Install themes from the community",
+        keywords: ["themes", "marketplace", "css", "community"],
+        Icon: IconLayout,
+      },
+      {
+        href: "/dashboard/explore/leaderboard",
+        label: "Leaderboard",
+        description: "Top viewed and most followed creators",
+        keywords: ["leaderboard", "rankings", "views", "followers", "top"],
+        Icon: IconAnalytics,
       },
     ],
   },
@@ -261,13 +291,6 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
         Icon: IconSettings,
       },
       {
-        href: "/dashboard/explore",
-        label: "Explore Profiles",
-        description: "Discover creators on cried.bio",
-        keywords: ["explore", "discover", "profiles", "users", "browse"],
-        Icon: IconExplore,
-      },
-      {
         href: "/dashboard/premium",
         label: "Premium",
         description: "Upgrade your account",
@@ -336,7 +359,6 @@ export function getSectionForPath(pathname: string): DashboardSection | undefine
   return DASHBOARD_SECTIONS.find((section) => {
     if (pathname === section.href) return true;
     if (section.id === "settings" && pathname.startsWith("/dashboard/premium")) return true;
-    if (section.id === "settings" && pathname.startsWith("/dashboard/explore")) return true;
     return section.items.some((item) => pathname.startsWith(item.href) && item.href !== "/dashboard");
   }) ?? DASHBOARD_SECTIONS.find((section) =>
     section.href !== "/dashboard" && pathname.startsWith(section.href),
@@ -351,6 +373,9 @@ export function isNavActive(pathname: string, href: string): boolean {
   if (href === "/dashboard/content") {
     return ["/dashboard/content", "/dashboard/links", "/dashboard/embeds", "/dashboard/widgets", "/dashboard/music"].some((p) => pathname.startsWith(p));
   }
+  if (href === "/dashboard/explore") {
+    return ["/dashboard/explore", "/dashboard/explore/profiles", "/dashboard/explore/themes", "/dashboard/explore/leaderboard"].some((p) => pathname.startsWith(p));
+  }
   if (href === "/dashboard/community") {
     return ["/dashboard/community", "/dashboard/guestbook", "/dashboard/social", "/dashboard/badges", "/dashboard/featured"].some((p) => pathname.startsWith(p));
   }
@@ -358,11 +383,7 @@ export function isNavActive(pathname: string, href: string): boolean {
     return pathname.startsWith("/dashboard/profile") || pathname.startsWith("/dashboard/links");
   }
   if (href === "/dashboard/settings") {
-    return (
-      pathname.startsWith("/dashboard/settings") ||
-      pathname.startsWith("/dashboard/premium") ||
-      pathname.startsWith("/dashboard/explore")
-    );
+    return pathname.startsWith("/dashboard/settings") || pathname.startsWith("/dashboard/premium");
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
