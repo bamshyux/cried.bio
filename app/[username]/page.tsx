@@ -144,6 +144,7 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
           baseProfile,
           baseBadges: badges,
           presetData,
+          preserveViewerIdentity: true,
         });
         profile = preview.profile;
         previewSettings = preview.settings;
