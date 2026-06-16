@@ -1,71 +1,83 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useId } from "react";
 
-function parseHexColor(hex: string) {
-  const normalized = hex.replace("#", "").trim();
-  if (normalized.length !== 6) return { r: 0, g: 104, b: 94 };
-  return {
-    r: parseInt(normalized.slice(0, 2), 16),
-    g: parseInt(normalized.slice(2, 4), 16),
-    b: parseInt(normalized.slice(4, 6), 16),
-  };
+const MONOCHROME_FILL = "#e4e4e7";
+
+function isMonochromeColor(color: string) {
+  return color.trim().toLowerCase() === MONOCHROME_FILL;
 }
 
-function isLightHex(hex: string) {
-  const { r, g, b } = parseHexColor(hex);
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62;
-}
-
-export function ogBadgePalette(color: string) {
-  if (isLightHex(color)) {
-    return {
-      fill: "#d4d4d8",
-      letter: "#18181b",
-      border: "#52525b",
-    };
-  }
-
-  return {
-    fill: color,
-    letter: "#ffffff",
-    border: "#ffffff",
-  };
-}
-
-/** Block-letter OG inside a vertical hexagon. */
+/** Block-letter OG inside a vertical hexagon — gold with white letters. */
 export function OgBadgeMark({
-  fill,
-  letter,
-  border,
+  monochrome = false,
+  idPrefix,
 }: {
-  fill: string;
-  letter: string;
-  border: string;
+  monochrome?: boolean;
+  idPrefix?: string;
 }): ReactNode {
+  const uid = useId().replace(/:/g, "");
+  const prefix = idPrefix ?? uid;
+  const goldId = `bf-og-gold-${prefix}`;
+  const shineId = `bf-og-shine-${prefix}`;
+
+  const hexFill = monochrome ? "#d4d4d8" : `url(#${goldId})`;
+  const border = monochrome ? "#52525b" : "#fffef7";
+  const letter = monochrome ? "#18181b" : "#ffffff";
+
   return (
     <>
+      {!monochrome && (
+        <defs>
+          <linearGradient id={goldId} x1="18%" y1="4%" x2="82%" y2="96%">
+            <stop offset="0%" stopColor="#fff3b0" />
+            <stop offset="28%" stopColor="#fcd34d" />
+            <stop offset="58%" stopColor="#f59e0b" />
+            <stop offset="100%" stopColor="#b45309" />
+          </linearGradient>
+          <linearGradient id={shineId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
+            <stop offset="38%" stopColor="#ffffff" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+      )}
+
       <path
-        d="M12 2.1 19.9 6.62v10.76L12 21.9 4.1 17.38V6.62Z"
-        fill={fill}
+        d="M12 2.05 19.95 6.58v10.84L12 21.95 4.05 17.42V6.58Z"
+        fill={hexFill}
         stroke={border}
-        strokeWidth="1.05"
+        strokeWidth="1.08"
         strokeLinejoin="round"
       />
+
+      {!monochrome && (
+        <path
+          d="M12 2.05 19.95 6.58v10.84L12 21.95 4.05 17.42V6.58Z"
+          fill={`url(#${shineId})`}
+          stroke="none"
+        />
+      )}
+
       <path
         fill={letter}
         fillRule="evenodd"
-        d="M12 4.35 6.15 7.45v9.1L12 19.65V4.35 M8.55 8.15h1.55v7.7H8.55V8.15"
+        d="M11.2 4.1 5.65 7.18v9.64L11.2 19.9V4.1 M8.05 7.95h1.95v8.1H8.05V7.95"
       />
-      <rect x="11.35" y="4.35" width="1.3" height="15.3" fill={letter} />
       <path
         fill={letter}
         fillRule="evenodd"
-        d="M12 4.35l5.85 3.1v9.1L12 19.65V4.35 M13.85 8.15h2.4v7.7h-2.4v-2.3h1.2v-1.1h-1.2V8.15"
+        d="M12.8 4.1l5.55 3.08v9.64L12.8 19.9V4.1 M14.95 7.95h2.5v8.1h-2.5v-2.35h1.35v-1.15h-1.35V7.95"
       />
     </>
   );
 }
 
-export function OgBadgeMarkFromColor({ color }: { color: string }): ReactNode {
-  const palette = ogBadgePalette(color);
-  return <OgBadgeMark {...palette} />;
+export function OgBadgeMarkFromColor({
+  color,
+}: {
+  color: string;
+}): ReactNode {
+  return <OgBadgeMark monochrome={isMonochromeColor(color)} />;
 }

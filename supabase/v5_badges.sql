@@ -124,7 +124,7 @@ insert into public.badges (slug, name, icon, color, description, category, rarit
   ('contributor', 'Contributor', 'contributor', '#6366f1', 'Contributed assets or code', 'community', 'rare', 130, true, null),
   ('community-choice', 'Community Choice', 'community-choice', '#d946ef', 'Awarded by staff for community impact', 'community', 'epic', 140, true, null),
   -- Milestones
-  ('og', 'OG', 'og', '#00685e', 'Joined during the cried.bio launch era', 'milestone', 'legendary', 150, true, 'milestone_og'),
+  ('og', 'OG', 'og', '#fbbf24', 'Joined during the cried.bio launch era', 'milestone', 'legendary', 150, true, 'milestone_og'),
   ('year-one', 'Year One', 'year-one', '#c084fc', 'Joined in cried.bio''s first year', 'milestone', 'epic', 160, true, null),
   ('views-100', '100 Views', 'views-100', '#94a3b8', 'Reached 100 profile views', 'milestone', 'common', 170, true, 'milestone_views_100'),
   ('views-1k', '1K Views', 'views-1k', '#64748b', 'Reached 1,000 profile views', 'milestone', 'rare', 180, true, 'milestone_views_1000'),

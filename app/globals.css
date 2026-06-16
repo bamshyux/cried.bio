@@ -952,7 +952,8 @@ body {
 }
 
 .bf-badge-medallion--milestone[data-badge-slug="og"] .bf-profile-badge-icon {
-  animation: bf-badge-og-gleam 4s ease-in-out infinite;
+  animation: bf-badge-og-gleam 3.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.35));
 }
 
 .bf-badge-medallion--milestone[data-badge-slug="year-one"] .bf-profile-badge-icon {
@@ -962,10 +963,10 @@ body {
 @keyframes bf-badge-og-gleam {
   0%,
   100% {
-    filter: brightness(1) saturate(1);
+    filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.35)) brightness(1) saturate(1);
   }
   50% {
-    filter: brightness(1.12) saturate(1.15);
+    filter: drop-shadow(0 0 5px rgba(253, 224, 71, 0.55)) brightness(1.18) saturate(1.22);
   }
 }
 

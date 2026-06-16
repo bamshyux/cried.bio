@@ -130,7 +130,7 @@ const paths: Record<string, (p: IconProps) => React.ReactNode> = {
   ),
   og: (p) => (
     <Svg {...p}>
-      <OgBadgeMark fill="currentColor" letter="#ffffff" border="#ffffff" />
+      <OgBadgeMark />
     </Svg>
   ),
   "year-one": (p) => (
