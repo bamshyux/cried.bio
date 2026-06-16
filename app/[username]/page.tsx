@@ -57,11 +57,15 @@ export default async function UsernamePage({ params }: PageProps) {
   await syncMilestoneBadges(profile.id);
 
   if (currentUserId === profile.id) {
-    const { refreshDiscordProfileAction, sanitizeDiscordConnectionAction } = await import(
-      "@/app/actions/discord"
-    );
-    await sanitizeDiscordConnectionAction();
-    await refreshDiscordProfileAction();
+    try {
+      const { refreshDiscordProfileAction, sanitizeDiscordConnectionAction } = await import(
+        "@/app/actions/discord"
+      );
+      await sanitizeDiscordConnectionAction();
+      await refreshDiscordProfileAction();
+    } catch {
+      // Discord sync is best-effort — never block the public profile from rendering.
+    }
   }
 
   const [

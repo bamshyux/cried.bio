@@ -16,7 +16,7 @@ import {
 import type { DiscordCardConfig } from "@/lib/types/discord-widget";
 import { formatSchemaError } from "@/lib/db/schema";
 import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
-import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
+import { revalidatePath } from "next/cache";
 
 async function getAuthenticatedUserId() {
   const supabase = await createClient();
@@ -41,7 +41,16 @@ async function getDiscordLinkState(userId: string) {
 }
 
 async function revalidateProfile(userId: string) {
-  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/widgets"]);
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", userId)
+    .maybeSingle();
+
+  revalidatePath("/dashboard/widgets");
+  revalidatePath("/dashboard", "layout");
+  if (profile?.username) revalidatePath(`/${profile.username}`);
 }
 
 export async function toggleDiscordStatusAction(show: boolean): Promise<{ error?: string }> {
@@ -210,6 +219,5 @@ export async function refreshDiscordProfileAction(): Promise<{ error?: string }>
   });
 
   await supabase.from("profile_settings").update(patch).eq("profile_id", userId);
-  await revalidateProfile(userId);
   return {};
 }
