@@ -95,6 +95,8 @@ export type StatusPreset =
   | "recording"
   | "custom";
 
+export type BioLetterSpacing = "normal" | "wide" | "wider";
+
 export type SettingsSection =
   | "customize"
   | "background"
@@ -103,7 +105,8 @@ export type SettingsSection =
   | "effects"
   | "links"
   | "guestbook"
-  | "social";
+  | "social"
+  | "profile";
 
 export type ProfileSettings = {
   profile_id: string;
@@ -133,6 +136,13 @@ export type ProfileSettings = {
   music_volume: number;
   cursor_effect: CursorEffect;
   typing_bio: boolean;
+  bio_color: string;
+  bio_font_family: string;
+  bio_font_size: number;
+  bio_font_weight: number;
+  bio_italic: boolean;
+  bio_glow: boolean;
+  bio_letter_spacing: BioLetterSpacing;
   username_effect: UsernameEffect;
   hover_animations: boolean;
   page_entrance: boolean;

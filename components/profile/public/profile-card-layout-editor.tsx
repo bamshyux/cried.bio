@@ -260,7 +260,7 @@ export function ProfileCardLayoutEditor({
               onPointerMove={onDragMove}
               onPointerUp={onDragEnd}
               onPointerCancel={onDragEnd}
-              className="absolute -top-8 left-1/2 z-20 flex -translate-x-1/2 cursor-grab touch-none items-center gap-2 rounded-full border border-white/15 bg-black/70 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-neutral-300 backdrop-blur-md active:cursor-grabbing"
+              className="absolute -bottom-10 left-1/2 z-20 flex -translate-x-1/2 cursor-grab touch-none items-center gap-2 rounded-full border border-white/15 bg-black/70 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-neutral-300 backdrop-blur-md active:cursor-grabbing"
             >
               <span className="inline-flex gap-0.5" aria-hidden>
                 <span className="h-1 w-1 rounded-full bg-neutral-500" />

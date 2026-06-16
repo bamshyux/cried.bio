@@ -47,6 +47,7 @@ async function revalidateProfile(userId: string) {
   revalidatePath("/dashboard/themes");
   revalidatePath("/dashboard/custom-theme");
   revalidatePath("/dashboard/links");
+  revalidatePath("/dashboard/profile");
   if (profile?.username) revalidatePath(`/${profile.username}`);
 }
 
@@ -278,6 +279,27 @@ function parseSectionUpdates(
           existing.enter_gate_card_opacity,
         ),
       };
+    case "profile": {
+      const fontWeight = parseIntField(formData.get("bio_font_weight"), existing.bio_font_weight);
+      const allowedWeights = [400, 500, 600, 700];
+      const letterSpacing = String(formData.get("bio_letter_spacing") ?? existing.bio_letter_spacing);
+      return {
+        bio_color: String(formData.get("bio_color") ?? existing.bio_color).slice(0, 32),
+        bio_font_family: String(formData.get("bio_font_family") ?? existing.bio_font_family).slice(0, 32),
+        bio_font_size: clampEnterGate(
+          parseIntField(formData.get("bio_font_size"), existing.bio_font_size),
+          12,
+          32,
+          existing.bio_font_size,
+        ),
+        bio_font_weight: allowedWeights.includes(fontWeight) ? fontWeight : existing.bio_font_weight,
+        bio_italic: parseBool(formData.get("bio_italic")),
+        bio_glow: parseBool(formData.get("bio_glow")),
+        bio_letter_spacing: (["normal", "wide", "wider"].includes(letterSpacing)
+          ? letterSpacing
+          : existing.bio_letter_spacing) as import("@/lib/types/settings").BioLetterSpacing,
+      };
+    }
     default:
       return {};
   }
@@ -318,6 +340,7 @@ export async function updateSettingsAction(
     themes: "Theme saved.",
     music: "Music settings saved.",
     effects: "Effects saved.",
+    profile: "Bio styling saved.",
     guestbook: "Guestbook settings saved.",
     social: "Social settings saved.",
   };

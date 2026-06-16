@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { CursorEffect } from "@/lib/types/settings";
+import type { CSSProperties } from "react";
+import { resolveBioStyle } from "@/lib/bio-style";
 import { BRAND } from "@/lib/design/tokens";
+import type { CursorEffect, ProfileSettings } from "@/lib/types/settings";
 
 export function CursorEffectCanvas({
   effect,
@@ -111,7 +113,23 @@ const TYPING_BIO_DELETE_MS = 50;
 const TYPING_BIO_PAUSE_FULL_MS = 2500;
 const TYPING_BIO_PAUSE_EMPTY_MS = 800;
 
-export function TypingBio({ text, enabled }: { text: string; enabled: boolean }) {
+export function TypingBio({
+  text,
+  enabled,
+  settings,
+  className,
+  style,
+}: {
+  text: string;
+  enabled: boolean;
+  settings?: ProfileSettings;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const bioStyle = settings ? resolveBioStyle(settings) : style;
+  const mergedStyle = bioStyle ? { ...bioStyle, ...style } : style;
+  const bioClassName = ["bf-profile-bio leading-relaxed", className].filter(Boolean).join(" ");
+
   const [displayed, setDisplayed] = useState(enabled ? "" : text);
 
   useEffect(() => {
@@ -176,10 +194,16 @@ export function TypingBio({ text, enabled }: { text: string; enabled: boolean })
     };
   }, [text, enabled]);
 
-  if (!enabled) return <p className="bf-profile-bio leading-relaxed">{text}</p>;
+  if (!enabled) {
+    return (
+      <p className={bioClassName} style={mergedStyle}>
+        {text}
+      </p>
+    );
+  }
 
   return (
-    <p className="bf-profile-bio bf-profile-bio--typing leading-relaxed">
+    <p className={`${bioClassName} bf-profile-bio--typing`} style={mergedStyle}>
       <span className="bf-profile-bio-text">
         {displayed}
         <span className="bf-cursor-blink ml-0.5 inline-block w-0.5 text-current opacity-80">|</span>

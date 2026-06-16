@@ -74,15 +74,41 @@ export async function adminUpdateUidAction(
   if (!existing) return { error: "User not found." };
   if (existing.uid === uid) return { success: "UID unchanged." };
 
-  const { error } = await supabase.rpc("admin_update_profile_uid", {
+  // Must use the logged-in admin session — service role calls have no auth.uid(),
+  // so admin_update_profile_uid would always raise Forbidden.
+  const authClient = await createClient();
+  let { error } = await authClient.rpc("admin_update_profile_uid", {
     p_user_id: userId,
     p_uid: uid,
   });
 
+  if (error?.message === "Forbidden") {
+    const admin = createAdminClient();
+    if (admin) {
+      const { data: conflict } = await admin
+        .from("profiles")
+        .select("id")
+        .eq("uid", uid)
+        .neq("id", userId)
+        .maybeSingle();
+
+      if (conflict) return { error: "That UID is already taken." };
+
+      const { error: updateError } = await admin
+        .from("profiles")
+        .update({ uid, updated_at: new Date().toISOString() })
+        .eq("id", userId);
+
+      error = updateError;
+    }
+  }
+
   if (error) {
-    const message = error.message.includes("admin_update_profile_uid")
-      ? `${error.message} Run supabase/v46_admin_uid_update.sql in the Supabase SQL Editor.`
-      : error.message;
+    const message =
+      error.message.includes("admin_update_profile_uid") ||
+      error.message.includes("Could not find the function")
+        ? `${error.message} Run supabase/v46_admin_uid_update.sql in the Supabase SQL Editor.`
+        : error.message;
     return { error: message };
   }
 

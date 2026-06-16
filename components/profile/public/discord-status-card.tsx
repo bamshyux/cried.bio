@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { getActivityTypeLabel } from "@/lib/discord/activity-images";
 import { resolveDiscordCardAppearance } from "@/lib/discord/card-appearance";
 import { configFromProfileSettings } from "@/lib/discord/card-config";
@@ -12,17 +13,27 @@ function CustomStatusLine({
   activity,
   secondaryClass,
   primaryClass,
+  secondaryStyle,
+  primaryStyle,
 }: {
   activity: DiscordActivity;
   secondaryClass: string;
   primaryClass: string;
+  secondaryStyle?: CSSProperties;
+  primaryStyle?: CSSProperties;
 }) {
   const text = activity.state?.trim() || activity.name?.trim();
   if (!text) return null;
 
   return (
-    <p className={`profile-discord-status__custom-status text-xs leading-snug ${secondaryClass}`}>
-      Custom Status: <span className={`font-medium ${primaryClass}`}>{text}</span>
+    <p
+      className={`profile-discord-status__custom-status text-xs leading-snug ${secondaryClass}`}
+      style={secondaryStyle}
+    >
+      Custom Status:{" "}
+      <span className={`font-medium ${primaryClass}`} style={primaryStyle}>
+        {text}
+      </span>
     </p>
   );
 }
@@ -190,34 +201,44 @@ export function DiscordStatusCard({
 
   return (
     <div
-      className={`profile-discord-status bf-profile-block mb-5 w-full ${appearance.shellOverflowClass} ${appearance.maxWidthClass} ${appearance.shellClass}`}
-      style={appearance.shellStyle}
+      className={`profile-discord-status bf-profile-block mb-5 w-full ${appearance.shellOverflowClass} ${appearance.maxWidthClass} ${appearance.cardAlignClass} ${appearance.shellClass}`}
+      style={{ ...appearance.shellStyle, ...appearance.cardFontStyle }}
+      data-discord-header-layout={appearance.dataAttributes.headerLayout}
+      data-discord-text-align={appearance.dataAttributes.textAlign}
+      data-discord-card-align={appearance.dataAttributes.cardAlign}
     >
       <div
-        className={`profile-discord-status__header flex items-center gap-3 px-3 ${appearance.headerPadding} ${
-          appearance.isPill ? "pr-4" : ""
-        }`}
+        className={`profile-discord-status__header flex items-center ${appearance.headerClass}`}
+        style={appearance.headerStyle}
       >
         {config.show_avatar && presence.avatarUrl ? (
           <div className="relative shrink-0">
             <img
               src={presence.avatarUrl}
               alt=""
-              className={`${appearance.avatarSize} rounded-full object-cover`}
+              className={`${appearance.avatarSize} ${appearance.avatarShapeClass} object-cover`}
             />
-            <span
-              className={`absolute -bottom-0.5 -right-0.5 box-content h-2 w-2 rounded-full border-[2px] ${appearance.statusBorderClass}`}
-              style={{ backgroundColor: statusColor }}
-              title={statusLabel}
-            />
+            {config.show_status_dot ? (
+              <span
+                className={`absolute -bottom-0.5 -right-0.5 box-content h-2 w-2 rounded-full border-[2px] ${appearance.statusBorderClass}`}
+                style={{ backgroundColor: statusColor }}
+                title={statusLabel}
+              />
+            ) : null}
           </div>
         ) : null}
-        <div className="profile-discord-status__header-text min-w-0 flex-1">
-          <p className={`truncate font-semibold leading-tight ${appearance.textPrimaryClass}`}>
+        <div className={appearance.headerTextClass}>
+          <p
+            className={`truncate font-semibold leading-tight ${appearance.textPrimaryClass}`}
+            style={{ ...appearance.primaryTextStyle, ...appearance.nameStyle }}
+          >
             {displayName}
           </p>
           {config.show_status_text ? (
-            <p className={`truncate text-sm leading-snug ${appearance.textSecondaryClass}`}>
+            <p
+              className={`truncate leading-snug ${appearance.textSecondaryClass}`}
+              style={{ ...appearance.secondaryTextStyle, ...appearance.statusStyle }}
+            >
               {statusLabel}
             </p>
           ) : null}
@@ -226,6 +247,8 @@ export function DiscordStatusCard({
               activity={customStatusActivity}
               secondaryClass={appearance.textSecondaryClass}
               primaryClass={appearance.textPrimaryClass}
+              secondaryStyle={appearance.secondaryTextStyle}
+              primaryStyle={appearance.primaryTextStyle}
             />
           ) : null}
         </div>

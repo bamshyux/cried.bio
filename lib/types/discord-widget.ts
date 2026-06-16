@@ -11,6 +11,16 @@ export type DiscordCardRadius = "sharp" | "soft" | "round" | "pill";
 
 export type DiscordCardWidth = "narrow" | "default" | "wide" | "full";
 
+export type DiscordHeaderLayout = "row" | "centered" | "stacked";
+
+export type DiscordTextAlign = "left" | "center" | "right";
+
+export type DiscordCardAlign = "inherit" | "left" | "center" | "right";
+
+export type DiscordAvatarSize = "small" | "medium" | "large" | "xlarge";
+
+export type DiscordAvatarShape = "circle" | "rounded" | "square";
+
 export type DiscordCardConfig = {
   style: DiscordCardStyle;
   theme: DiscordCardTheme;
@@ -27,6 +37,20 @@ export type DiscordCardConfig = {
   show_activity: boolean;
   glow: boolean;
   backdrop_blur: boolean;
+  header_layout: DiscordHeaderLayout;
+  text_align: DiscordTextAlign;
+  card_align: DiscordCardAlign;
+  avatar_size: DiscordAvatarSize;
+  avatar_shape: DiscordAvatarShape;
+  show_status_dot: boolean;
+  primary_text_color: string;
+  secondary_text_color: string;
+  font_family: string;
+  name_font_size: number;
+  status_font_size: number;
+  header_gap: number;
+  padding_x: number;
+  padding_y: number;
 };
 
 export const DEFAULT_DISCORD_CARD_CONFIG: DiscordCardConfig = {
@@ -45,4 +69,18 @@ export const DEFAULT_DISCORD_CARD_CONFIG: DiscordCardConfig = {
   show_activity: true,
   glow: false,
   backdrop_blur: false,
+  header_layout: "row",
+  text_align: "left",
+  card_align: "inherit",
+  avatar_size: "medium",
+  avatar_shape: "circle",
+  show_status_dot: true,
+  primary_text_color: "",
+  secondary_text_color: "",
+  font_family: "",
+  name_font_size: 0,
+  status_font_size: 0,
+  header_gap: 12,
+  padding_x: 12,
+  padding_y: 0,
 };

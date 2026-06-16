@@ -102,9 +102,12 @@ function GuestbookWhisper({ entry, isOwner }: { entry: GuestbookEntry; isOwner: 
   };
 
   return (
-    <li className={`bf-guestbook__entry${entry.is_pinned ? " bf-guestbook__entry--pinned" : ""}`}>
+    <li
+      className={`bf-guestbook__entry${entry.is_pinned ? " bf-guestbook__entry--pinned" : ""}`}
+      aria-label={entry.is_pinned ? "Profile pinned this" : undefined}
+    >
       {entry.is_pinned && !isOwner ? (
-        <span className="bf-guestbook__pin-badge" title="Pinned message" aria-hidden>
+        <span className="bf-guestbook__pin-badge" aria-hidden>
           <PinIcon filled />
         </span>
       ) : null}
@@ -128,12 +131,22 @@ function GuestbookWhisper({ entry, isOwner }: { entry: GuestbookEntry; isOwner: 
 
 function PinIcon({ filled = false }: { filled?: boolean }) {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden>
+    <svg
+      width="11"
+      height="11"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M12 17v5" />
       <path
-        d="M16 4v2h2.25l-3 7H9.5l-3-7H9V4H7V2h10v2h-1zm-2.5 10.5 1.5 4.5H9l1.5-4.5h3z"
+        d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3.76z"
         fill={filled ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth={filled ? 0 : 1.5}
+        stroke={filled ? "none" : "currentColor"}
       />
     </svg>
   );

@@ -1,13 +1,26 @@
 import type { CSSProperties } from "react";
-import type { DiscordCardConfig, DiscordCardRadius, DiscordCardWidth } from "@/lib/types/discord-widget";
+import { FONT_OPTIONS } from "@/lib/settings";
+import type {
+  DiscordAvatarShape,
+  DiscordAvatarSize,
+  DiscordCardConfig,
+  DiscordCardRadius,
+  DiscordCardWidth,
+  DiscordHeaderLayout,
+  DiscordTextAlign,
+} from "@/lib/types/discord-widget";
 
 export type ResolvedDiscordCardAppearance = {
   shellClass: string;
   shellStyle: CSSProperties;
   shellOverflowClass: string;
   maxWidthClass: string;
+  cardAlignClass: string;
   textPrimaryClass: string;
   textSecondaryClass: string;
+  primaryTextStyle: CSSProperties;
+  secondaryTextStyle: CSSProperties;
+  cardFontStyle: CSSProperties;
   activityShellClass: string;
   activityWrapClass: string;
   activityImageSize: string;
@@ -15,7 +28,17 @@ export type ResolvedDiscordCardAppearance = {
   accentColor: string;
   hintBorderClass: string;
   avatarSize: string;
-  headerPadding: string;
+  avatarShapeClass: string;
+  headerStyle: CSSProperties;
+  headerClass: string;
+  headerTextClass: string;
+  nameStyle: CSSProperties;
+  statusStyle: CSSProperties;
+  dataAttributes: {
+    headerLayout: DiscordHeaderLayout;
+    textAlign: DiscordTextAlign;
+    cardAlign: DiscordCardConfig["card_align"];
+  };
   isCompact: boolean;
   isPill: boolean;
 };
@@ -45,6 +68,50 @@ function widthClass(width: DiscordCardWidth) {
     default:
       return "max-w-[320px]";
   }
+}
+
+function cardAlignClass(cardAlign: DiscordCardConfig["card_align"]) {
+  switch (cardAlign) {
+    case "left":
+      return "mr-auto ml-0";
+    case "center":
+      return "mx-auto";
+    case "right":
+      return "ml-auto mr-0";
+    default:
+      return "";
+  }
+}
+
+function avatarSizeClass(size: DiscordAvatarSize, compact: boolean, pill: boolean) {
+  switch (size) {
+    case "small":
+      return "h-7 w-7";
+    case "large":
+      return "h-12 w-12";
+    case "xlarge":
+      return "h-16 w-16";
+    case "medium":
+    default:
+      return compact || pill ? "h-8 w-8" : "h-10 w-10";
+  }
+}
+
+function avatarShapeClass(shape: DiscordAvatarShape) {
+  switch (shape) {
+    case "rounded":
+      return "rounded-lg";
+    case "square":
+      return "rounded-none";
+    default:
+      return "rounded-full";
+  }
+}
+
+function resolveFontFamily(fontKey: string): string | undefined {
+  if (!fontKey) return undefined;
+  const option = FONT_OPTIONS.find((entry) => entry.value === fontKey);
+  return option?.css;
 }
 
 function hexToRgba(hex: string, alpha: number) {
@@ -100,6 +167,15 @@ export function resolveDiscordCardAppearance(
   const pill = config.style === "pill";
   const pillWithActivity = pill && hasActivity;
 
+  const defaultPrimaryClass = minimal || config.theme === "glass" ? "text-white" : "text-[#f2f3f5]";
+  const defaultSecondaryClass =
+    minimal || config.theme === "glass" ? "text-neutral-400" : "text-[#b5bac1]";
+
+  const defaultNameSize = compact || pill ? 14 : 15;
+  const defaultStatusSize = compact || pill ? 12 : 14;
+  const paddingY = config.padding_y > 0 ? config.padding_y : compact || pill ? 8 : 12;
+  const fontFamily = resolveFontFamily(config.font_family);
+
   return {
     shellClass: [
       radiusClass(radius, pillWithActivity),
@@ -115,11 +191,15 @@ export function resolveDiscordCardAppearance(
       borderStyle: borderWidth > 0 ? "solid" : undefined,
       borderColor: minimal ? undefined : borderColor,
       boxShadow: minimal ? undefined : glowShadow,
+      fontFamily,
     },
     maxWidthClass: widthClass(config.card_width),
-    textPrimaryClass: minimal || config.theme === "glass" ? "text-white" : "text-[#f2f3f5]",
-    textSecondaryClass:
-      minimal || config.theme === "glass" ? "text-neutral-400" : "text-[#b5bac1]",
+    cardAlignClass: cardAlignClass(config.card_align),
+    textPrimaryClass: config.primary_text_color ? "" : defaultPrimaryClass,
+    textSecondaryClass: config.secondary_text_color ? "" : defaultSecondaryClass,
+    primaryTextStyle: config.primary_text_color ? { color: config.primary_text_color } : {},
+    secondaryTextStyle: config.secondary_text_color ? { color: config.secondary_text_color } : {},
+    cardFontStyle: fontFamily ? { fontFamily } : {},
     activityShellClass:
       pillWithActivity
         ? config.theme === "glass"
@@ -135,8 +215,28 @@ export function resolveDiscordCardAppearance(
     hintBorderClass:
       minimal || config.theme === "glass" ? "border-white/10" : "border-[#1e1f22]",
     accentColor: themeAccent,
-    avatarSize: compact || pill ? "h-8 w-8" : "h-10 w-10",
-    headerPadding: compact || pill ? "py-2" : "py-3",
+    avatarSize: avatarSizeClass(config.avatar_size, compact, pill),
+    avatarShapeClass: avatarShapeClass(config.avatar_shape),
+    headerStyle: {
+      gap: config.header_gap,
+      paddingLeft: config.padding_x,
+      paddingRight: config.padding_x,
+      paddingTop: paddingY,
+      paddingBottom: paddingY,
+    },
+    headerClass: pill ? "pr-4" : "",
+    headerTextClass:
+      config.header_layout === "centered"
+        ? "profile-discord-status__header-text profile-discord-status__header-text--centered w-full flex-none"
+        : "profile-discord-status__header-text min-w-0 flex-1",
+    nameStyle: config.name_font_size > 0 ? { fontSize: config.name_font_size } : { fontSize: defaultNameSize },
+    statusStyle:
+      config.status_font_size > 0 ? { fontSize: config.status_font_size } : { fontSize: defaultStatusSize },
+    dataAttributes: {
+      headerLayout: config.header_layout,
+      textAlign: config.text_align,
+      cardAlign: config.card_align,
+    },
     isCompact: compact,
     isPill: pill,
   };

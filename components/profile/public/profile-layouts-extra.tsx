@@ -2,7 +2,7 @@
 
 import { BadgeRow } from "@/components/badges/badge-ui";
 import { resolveLayoutLabel } from "@/lib/layout-labels";
-import { TypingBio } from "./profile-effects";
+import { ProfileBio } from "./profile-bio";
 import {
   ProfileAvatar,
   ProfileHandle,
@@ -87,9 +87,11 @@ function NewspaperLayout(props: LayoutProps) {
       <div className="mt-6 columns-1 gap-8 sm:columns-2">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         {profile.bio && (
-          <p className="mb-4 text-sm leading-relaxed text-neutral-300 first-letter:float-left first-letter:mr-2 first-letter:text-4xl first-letter:font-serif first-letter:leading-none">
-            <TypingBio text={profile.bio} enabled={settings.typing_bio} />
-          </p>
+          <ProfileBio
+            text={profile.bio}
+            settings={settings}
+            className="mb-4 text-sm leading-relaxed first-letter:float-left first-letter:mr-2 first-letter:text-4xl first-letter:font-serif first-letter:leading-none !mb-4"
+          />
         )}
       </div>
       <div className="mt-4 border-t border-white/10 pt-6">
@@ -200,8 +202,8 @@ function DiscordLayout(props: LayoutProps) {
           </div>
         </div>
         {profile.bio && (
-          <div className="mb-4 rounded-lg bg-[#0f0f0f] px-3 py-2 text-sm text-neutral-300">
-            <TypingBio text={profile.bio} enabled={settings.typing_bio} />
+          <div className="mb-4 rounded-lg bg-[#0f0f0f] px-3 py-2 text-sm">
+            <ProfileBio text={profile.bio} settings={settings} className="!mb-0" />
           </div>
         )}
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
@@ -275,8 +277,8 @@ function IdcardLayout(props: LayoutProps) {
         </div>
       </div>
       {profile.bio && (
-        <div className="border-t border-white/10 px-5 py-3 text-center text-sm text-neutral-300 sm:text-left">
-          <TypingBio text={profile.bio} enabled={settings.typing_bio} />
+        <div className="border-t border-white/10 px-5 py-3 text-center sm:text-left">
+          <ProfileBio text={profile.bio} settings={settings} className="!mb-0 text-sm" />
         </div>
       )}
       <div className="flex h-7 items-end gap-px bg-black/40 px-5 pb-1.5" aria-hidden>
@@ -358,9 +360,7 @@ function ComicLayout(props: LayoutProps) {
         </div>
         {profile.bio && (
           <div className="relative mt-5 overflow-hidden rounded-2xl border-2 border-black bg-white px-4 py-3 after:absolute after:-bottom-2 after:left-8 after:h-4 after:w-4 after:rotate-45 after:border-b-2 after:border-r-2 after:border-black after:bg-white">
-            <p className="text-sm font-medium text-black">
-              <TypingBio text={profile.bio} enabled={settings.typing_bio} />
-            </p>
+            <ProfileBio text={profile.bio} settings={settings} className="!mb-0 text-sm font-medium" />
           </div>
         )}
         <div className="mt-6 border-t-2 border-dashed border-black/20 pt-5 text-black [&_*]:text-inherit">

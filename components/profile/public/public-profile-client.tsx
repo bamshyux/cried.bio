@@ -17,7 +17,8 @@ import { BadgeRow } from "@/components/badges/badge-ui";
 import { MusicPlayer } from "./music-player";
 import { ParticleCanvas } from "./particle-canvas";
 import { ProfileBackground } from "./profile-background";
-import { CursorEffectCanvas, TypingBio } from "./profile-effects";
+import { CursorEffectCanvas } from "./profile-effects";
+import { ProfileBio } from "./profile-bio";
 import { ProfileEnterGate } from "./profile-enter-gate";
 import type { DiscordPresence } from "@/lib/discord/types";
 import type { ActivityEvent } from "@/lib/types/activity";
@@ -292,9 +293,7 @@ function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, f
 
         {profile.bio && (
           <TerminalSection label="About">
-            <p className="leading-relaxed text-neutral-300">
-              <TypingBio text={profile.bio} enabled={settings.typing_bio} />
-            </p>
+            <ProfileBio text={profile.bio} settings={settings} className="!mb-0" />
           </TerminalSection>
         )}
 
@@ -454,9 +453,7 @@ function BentoLayout({ profile, links, settings, badges, viewCount, embeds, feat
         {profile.bio && (
           <div className="rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4 sm:col-span-2">
             <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-neutral-600">About</p>
-            <div className="text-sm text-neutral-300">
-              <TypingBio text={profile.bio} enabled={settings.typing_bio} />
-            </div>
+            <ProfileBio text={profile.bio} settings={settings} className="!mb-0 text-sm" />
           </div>
         )}
         <div className="rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4 sm:col-span-2">

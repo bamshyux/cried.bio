@@ -7,7 +7,9 @@ import {
   saveProfileImageAction,
   updateProfileAction,
 } from "@/app/actions/profile";
+import { BioStyleEditor } from "@/components/dashboard/bio-style-editor";
 import type { Profile, ProfileFormState } from "@/lib/types/profile";
+import type { ProfileSettings } from "@/lib/types/settings";
 import { uploadProfileImageToStorage } from "@/lib/uploads/profile-client";
 import {
   buttonPrimaryClassName,
@@ -24,10 +26,17 @@ const initialState: ProfileFormState = {};
 const fileInputClassName =
   "block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#fafafa] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]";
 
-export function ProfileEditor({ profile }: { profile: Profile | null }) {
+export function ProfileEditor({
+  profile,
+  settings,
+}: {
+  profile: Profile | null;
+  settings?: ProfileSettings;
+}) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
   const [state, formAction, isPending] = useActionState(updateProfileAction, initialState);
+  const [bioPreview, setBioPreview] = useState(profile?.bio ?? "");
 
   const [avatarInputKey, setAvatarInputKey] = useState(0);
   const [bannerInputKey, setBannerInputKey] = useState(0);
@@ -53,6 +62,10 @@ export function ProfileEditor({ profile }: { profile: Profile | null }) {
     setAvatarPreview(null);
     setBannerPreview(null);
   }, [profile?.avatar_url, profile?.banner_url]);
+
+  useEffect(() => {
+    setBioPreview(profile?.bio ?? "");
+  }, [profile?.bio]);
 
   const handleImageUpload = async (type: "avatar" | "banner", file: File | undefined) => {
     if (!file) return;
@@ -153,10 +166,15 @@ export function ProfileEditor({ profile }: { profile: Profile | null }) {
           name="bio"
           rows={4}
           defaultValue={profile?.bio ?? ""}
+          onChange={(event) => setBioPreview(event.target.value)}
           placeholder="Tell the world about yourself..."
           className={`${inputClassName} resize-none`}
         />
       </div>
+
+      {settings ? (
+        <BioStyleEditor settings={settings} bioPreview={bioPreview} embedded />
+      ) : null}
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>

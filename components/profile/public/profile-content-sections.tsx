@@ -15,7 +15,7 @@ import { ProfileFeaturedSection } from "./profile-featured";
 import { ProfileGuestbookSection } from "./profile-guestbook";
 import { ProfileFriendsSection, ProfileSocialBar, ProfileStatusLine } from "./profile-social";
 import { ProfileLinks, SocialIconOnlyRow, SocialIconRow } from "./profile-links";
-import { TypingBio } from "./profile-effects";
+import { ProfileBio } from "./profile-bio";
 
 export function ProfileContentSections({
   profile,
@@ -69,11 +69,7 @@ export function ProfileContentSections({
         />
       )}
       <ProfileFriendsSection friends={friends} visibility={settings.friends_visibility} />
-      {!hideBio && profile.bio && (
-        <div className="bf-profile-block bf-profile-bio-block profile-bio mb-5 max-w-2xl text-neutral-300">
-          <TypingBio text={profile.bio} enabled={settings.typing_bio} />
-        </div>
-      )}
+      {!hideBio && profile.bio && <ProfileBio text={profile.bio} settings={settings} />}
       <ProfileEmbedsSection embeds={embeds} settings={settings} />
       <ProfileFeaturedSection blocks={featured} settings={settings} />
       {settings.links_style === "icons" ? (

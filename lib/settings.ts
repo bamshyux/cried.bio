@@ -44,6 +44,13 @@ export const DEFAULT_SETTINGS: Omit<
   music_volume: 50,
   cursor_effect: "none",
   typing_bio: false,
+  bio_color: "",
+  bio_font_family: "",
+  bio_font_size: 16,
+  bio_font_weight: 400,
+  bio_italic: false,
+  bio_glow: false,
+  bio_letter_spacing: "normal",
   username_effect: "none",
   hover_animations: true,
   page_entrance: true,
@@ -215,6 +222,19 @@ export const USERNAME_EFFECT_OPTIONS: { value: UsernameEffect; label: string }[]
   { value: "gradient", label: "Gradient Text" },
 ];
 
+export const BIO_FONT_WEIGHT_OPTIONS = [
+  { value: 400, label: "Regular" },
+  { value: 500, label: "Medium" },
+  { value: 600, label: "Semibold" },
+  { value: 700, label: "Bold" },
+] as const;
+
+export const BIO_LETTER_SPACING_OPTIONS: { value: import("@/lib/types/settings").BioLetterSpacing; label: string }[] = [
+  { value: "normal", label: "Normal" },
+  { value: "wide", label: "Wide" },
+  { value: "wider", label: "Wider" },
+];
+
 export const LINK_ANIMATION_OPTIONS: { value: LinkAnimation; label: string }[] = [
   { value: "none", label: "None" },
   { value: "pulse", label: "Pulse" },
@@ -294,6 +314,14 @@ export function mergeSettings(
     music_volume: row?.music_volume ?? DEFAULT_SETTINGS.music_volume,
     cursor_effect: (row?.cursor_effect ?? legacyCursor ?? DEFAULT_SETTINGS.cursor_effect) as CursorEffect,
     typing_bio: row?.typing_bio ?? DEFAULT_SETTINGS.typing_bio,
+    bio_color: row?.bio_color ?? DEFAULT_SETTINGS.bio_color,
+    bio_font_family: row?.bio_font_family ?? DEFAULT_SETTINGS.bio_font_family,
+    bio_font_size: row?.bio_font_size ?? DEFAULT_SETTINGS.bio_font_size,
+    bio_font_weight: row?.bio_font_weight ?? DEFAULT_SETTINGS.bio_font_weight,
+    bio_italic: row?.bio_italic ?? DEFAULT_SETTINGS.bio_italic,
+    bio_glow: row?.bio_glow ?? DEFAULT_SETTINGS.bio_glow,
+    bio_letter_spacing:
+      (row?.bio_letter_spacing ?? DEFAULT_SETTINGS.bio_letter_spacing) as import("@/lib/types/settings").BioLetterSpacing,
     username_effect: (row?.username_effect ?? legacyUsername ?? DEFAULT_SETTINGS.username_effect) as UsernameEffect,
     hover_animations: row?.hover_animations ?? DEFAULT_SETTINGS.hover_animations,
     page_entrance: row?.page_entrance ?? DEFAULT_SETTINGS.page_entrance,
