@@ -1,4 +1,4 @@
-import type { EmbedType } from "@/lib/types/embed";
+import type { EmbedConfig, EmbedType } from "@/lib/types/embed";
 import type { ParsedEmbed } from "@/lib/types/embed";
 import { buildRobloxProfileUrl } from "@/lib/embeds/roblox-profile";
 
@@ -18,6 +18,17 @@ const PATTERNS: { type: EmbedType; regex: RegExp; title: string }[] = [
   { type: "roblox", regex: /roblox\.com\/games\/(\d+)/i, title: "Roblox Game" },
   { type: "discord", regex: /discord(?:\.gg|(?:app)?\.com\/invite)\/([\w-]+)/i, title: "Discord Server" },
 ];
+
+function spotifyTheme(config?: Pick<EmbedConfig, "theme">) {
+  return config?.theme === "light" ? "0" : "0";
+}
+
+function soundcloudColor(config?: Pick<EmbedConfig, "accent_color" | "theme">) {
+  if (config?.accent_color) {
+    return encodeURIComponent(config.accent_color.replace("#", "%23"));
+  }
+  return config?.theme === "light" ? "%23fafafa" : "%23fafafa";
+}
 
 export function parseEmbedUrl(raw: string): ParsedEmbed | null {
   const inputUrl = raw.trim();
@@ -39,41 +50,28 @@ export function parseEmbedUrl(raw: string): ParsedEmbed | null {
   return null;
 }
 
-export function getEmbedIframeSrc(type: EmbedType, embedId: string): string | null {
-  switch (type) {
-    case "youtube":
-      return `https://www.youtube.com/embed/${embedId}`;
-    case "twitch":
-      return embedId.match(/^\d+$/)
-        ? `https://player.twitch.tv/?video=${embedId}&parent=${typeof window !== "undefined" ? window.location.hostname : "localhost"}`
-        : `https://player.twitch.tv/?channel=${embedId}&parent=${typeof window !== "undefined" ? window.location.hostname : "localhost"}`;
-    case "tiktok":
-      return `https://www.tiktok.com/embed/v2/${embedId}`;
-    case "spotify_track":
-      return `https://open.spotify.com/embed/track/${embedId}`;
-    case "spotify_playlist":
-      return `https://open.spotify.com/embed/playlist/${embedId}`;
-    case "soundcloud":
-      return `https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/${embedId}&color=%23fafafa`;
-    case "roblox":
-      return `https://www.roblox.com/games/${embedId}`;
-    case "roblox_profile":
-      return null;
-    case "discord":
-      if (/^\d{17,20}$/.test(embedId)) {
-        return `https://discord.com/widget?id=${embedId}&theme=dark`;
-      }
-      return `https://discord.com/widget?invite=${encodeURIComponent(embedId)}&theme=dark`;
-    default:
-      return null;
-  }
+export function getEmbedIframeSrc(
+  type: EmbedType,
+  embedId: string,
+  config?: Partial<EmbedConfig>,
+  hostname = typeof window !== "undefined" ? window.location.hostname : "localhost",
+): string | null {
+  return getEmbedIframeSrcServer(type, embedId, hostname, config);
 }
 
 /** Server-safe embed src without window */
-export function getEmbedIframeSrcServer(type: EmbedType, embedId: string, hostname = "localhost"): string | null {
+export function getEmbedIframeSrcServer(
+  type: EmbedType,
+  embedId: string,
+  hostname = "localhost",
+  config?: Partial<EmbedConfig>,
+): string | null {
+  const theme = config?.theme === "light" ? "light" : "dark";
+  const autoplay = config?.autoplay ? "1" : "0";
+
   switch (type) {
     case "youtube":
-      return `https://www.youtube.com/embed/${embedId}`;
+      return `https://www.youtube.com/embed/${embedId}?autoplay=${autoplay}&rel=0`;
     case "twitch":
       return embedId.match(/^\d+$/)
         ? `https://player.twitch.tv/?video=${embedId}&parent=${hostname}`
@@ -81,18 +79,17 @@ export function getEmbedIframeSrcServer(type: EmbedType, embedId: string, hostna
     case "tiktok":
       return `https://www.tiktok.com/embed/v2/${embedId}`;
     case "spotify_track":
-      return `https://open.spotify.com/embed/track/${embedId}`;
+      return `https://open.spotify.com/embed/track/${embedId}?theme=${spotifyTheme(config)}&utm_source=generator`;
     case "spotify_playlist":
-      return `https://open.spotify.com/embed/playlist/${embedId}`;
+      return `https://open.spotify.com/embed/playlist/${embedId}?theme=${spotifyTheme(config)}&utm_source=generator`;
     case "soundcloud":
-      return `https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/${embedId}&color=%23fafafa`;
+      return `https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/${embedId}&color=${soundcloudColor(config)}&auto_play=${autoplay === "1"}`;
     case "discord":
       if (/^\d{17,20}$/.test(embedId)) {
-        return `https://discord.com/widget?id=${embedId}&theme=dark`;
+        return `https://discord.com/widget?id=${embedId}&theme=${theme}`;
       }
-      return `https://discord.com/widget?invite=${encodeURIComponent(embedId)}&theme=dark`;
+      return `https://discord.com/widget?invite=${encodeURIComponent(embedId)}&theme=${theme}`;
     case "roblox":
-      return null;
     case "roblox_profile":
       return null;
     default:

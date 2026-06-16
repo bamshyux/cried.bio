@@ -8,6 +8,7 @@ import {
   reorderEmbedsAction,
   toggleEmbedAction,
 } from "@/app/actions/embeds";
+import { EmbedCustomizer } from "@/components/dashboard/embed-customizer";
 import {
   buttonPrimaryClassName,
   cardClassName,
@@ -18,12 +19,20 @@ import {
 } from "@/components/dashboard/form-fields";
 import { useClearUnsavedOnSuccess } from "@/components/dashboard/unsaved-changes";
 import { EMBED_TYPE_OPTIONS, type EmbedFormState, type ProfileEmbed } from "@/lib/types/embed";
+import type { ProfileSettings } from "@/lib/types/settings";
 
 const initial: EmbedFormState = {};
 
-export function EmbedsEditor({ embeds: initialEmbeds }: { embeds: ProfileEmbed[] }) {
+export function EmbedsEditor({
+  embeds: initialEmbeds,
+  settings,
+}: {
+  embeds: ProfileEmbed[];
+  settings: ProfileSettings;
+}) {
   const router = useRouter();
   const [embeds, setEmbeds] = useState(initialEmbeds);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [state, formAction, isPending] = useActionState(createEmbedAction, initial);
   useClearUnsavedOnSuccess(state, isPending);
@@ -68,6 +77,7 @@ export function EmbedsEditor({ embeds: initialEmbeds }: { embeds: ProfileEmbed[]
   };
 
   const handleDelete = (embedId: string) => {
+    if (expandedId === embedId) setExpandedId(null);
     setEmbeds((current) => current.filter((embed) => embed.id !== embedId));
     startTransition(async () => {
       await deleteEmbedAction(embedId);
@@ -77,7 +87,10 @@ export function EmbedsEditor({ embeds: initialEmbeds }: { embeds: ProfileEmbed[]
 
   return (
     <>
-      <PageHeader title="Embeds" description="Add YouTube, Twitch, Spotify, and more to your profile." />
+      <PageHeader
+        title="Embeds"
+        description="Add YouTube, Twitch, Spotify, Roblox, and more — then customize how each one looks on your profile."
+      />
       <div className={`${cardClassName} mb-6`}>
         <form key={formKey} action={formAction} className="space-y-4">
           <div>
@@ -97,43 +110,62 @@ export function EmbedsEditor({ embeds: initialEmbeds }: { embeds: ProfileEmbed[]
       {embeds.length > 0 ? (
         <div className="space-y-3">
           <h2 className="text-sm font-medium text-white">Your embeds ({embeds.length})</h2>
-          <div className="space-y-2">
-            {embeds.map((embed, index) => (
-              <div
-                key={embed.id}
-                draggable
-                onDragStart={() => setDragIndex(index)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => handleDrop(index)}
-                className={`flex items-center gap-3 rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4 ${dragIndex === index ? "opacity-40" : ""}`}
-              >
-                <span className="cursor-grab select-none text-neutral-600" aria-hidden>⠿</span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-white">{embed.title}</p>
-                  <p className="truncate text-xs text-neutral-500">{embed.embed_type} · {embed.url}</p>
+          <div className="space-y-3">
+            {embeds.map((embed, index) => {
+              const expanded = expandedId === embed.id;
+              return (
+                <div
+                  key={embed.id}
+                  draggable={!expanded}
+                  onDragStart={() => !expanded && setDragIndex(index)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleDrop(index)}
+                  className={`rounded-xl border border-white/[0.06] bg-[#0f0f0f] ${dragIndex === index ? "opacity-40" : ""}`}
+                >
+                  <div className="flex items-center gap-3 p-4">
+                    <span className={`select-none text-neutral-600 ${expanded ? "opacity-30" : "cursor-grab"}`} aria-hidden>⠿</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-white">{embed.config.custom_title || embed.title}</p>
+                      <p className="truncate text-xs text-neutral-500">{embed.embed_type} · {embed.url}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(expanded ? null : embed.id)}
+                      className={`rounded-lg px-3 py-1 text-xs font-medium ${
+                        expanded ? "bg-[#fafafa]/15 text-white" : "bg-white/[0.04] text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      {expanded ? "Close" : "Customize"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isPendingAction}
+                      onClick={() => handleToggle(embed.id, !embed.is_visible)}
+                      className={`rounded-lg px-3 py-1 text-xs font-medium ${
+                        embed.is_visible ? "bg-[#fafafa]/10 text-[#fafafa]" : "bg-white/[0.04] text-neutral-500"
+                      }`}
+                    >
+                      {embed.is_visible ? "Visible" : "Hidden"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isPendingAction}
+                      onClick={() => handleDelete(embed.id)}
+                      className="rounded-lg border border-red-500/20 px-3 py-1 text-xs text-red-400 hover:bg-red-500/10"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  {expanded ? (
+                    <div className="border-t border-white/[0.06] p-4">
+                      <EmbedCustomizer embed={embed} settings={settings} />
+                    </div>
+                  ) : null}
                 </div>
-                <button
-                  type="button"
-                  disabled={isPendingAction}
-                  onClick={() => handleToggle(embed.id, !embed.is_visible)}
-                  className={`rounded-lg px-3 py-1 text-xs font-medium ${
-                    embed.is_visible ? "bg-[#fafafa]/10 text-[#fafafa]" : "bg-white/[0.04] text-neutral-500"
-                  }`}
-                >
-                  {embed.is_visible ? "Visible" : "Hidden"}
-                </button>
-                <button
-                  type="button"
-                  disabled={isPendingAction}
-                  onClick={() => handleDelete(embed.id)}
-                  className="rounded-lg border border-red-500/20 px-3 py-1 text-xs text-red-400 hover:bg-red-500/10"
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          {isPendingAction && <p className="text-xs text-neutral-600">Saving...</p>}
+          {isPendingAction ? <p className="text-xs text-neutral-600">Saving...</p> : null}
         </div>
       ) : (
         <p className="text-sm text-neutral-600">No embeds yet. Add one above to show it on your profile.</p>

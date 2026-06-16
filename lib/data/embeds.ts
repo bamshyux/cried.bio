@@ -1,5 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
-import type { ProfileEmbed } from "@/lib/types/embed";
+import { mergeEmbedConfig } from "@/lib/embeds/enrich";
+import type { EmbedType, ProfileEmbed } from "@/lib/types/embed";
+
+function normalizeEmbed(row: Record<string, unknown>): ProfileEmbed {
+  const embedType = row.embed_type as EmbedType;
+  return {
+    ...(row as ProfileEmbed),
+    config: mergeEmbedConfig(embedType, row.config),
+  };
+}
 
 export async function getEmbedsByProfileId(profileId: string, publicOnly = false) {
   const supabase = await createClient();
@@ -13,5 +22,5 @@ export async function getEmbedsByProfileId(profileId: string, publicOnly = false
 
   const { data, error } = await query;
   if (error) return [];
-  return (data ?? []) as ProfileEmbed[];
+  return (data ?? []).map((row) => normalizeEmbed(row as Record<string, unknown>));
 }

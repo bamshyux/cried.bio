@@ -2,9 +2,9 @@
 
 import { revalidateUserProfile, getAuthenticatedUserId } from "@/lib/actions/auth";
 import { parseEmbedUrl } from "@/lib/embeds/parse";
-import { enrichRobloxProfileEmbed } from "@/lib/embeds/roblox-profile";
+import { buildInitialEmbedConfig, enrichRobloxProfileEmbed, mergeEmbedConfig, refreshEmbedMediaConfig } from "@/lib/embeds/enrich";
 import { logActivity } from "@/lib/data/activity";
-import type { EmbedFormState } from "@/lib/types/embed";
+import type { EmbedConfig, EmbedFormState, EmbedType } from "@/lib/types/embed";
 import { createClient } from "@/lib/supabase/server";
 
 export async function createEmbedAction(_prev: EmbedFormState, formData: FormData): Promise<EmbedFormState> {
@@ -16,6 +16,7 @@ export async function createEmbedAction(_prev: EmbedFormState, formData: FormDat
   if (!parsedRaw) return { error: "Unsupported or invalid embed URL." };
 
   const parsed = await enrichRobloxProfileEmbed(parsedRaw);
+  const config = await buildInitialEmbedConfig(parsed);
 
   const supabase = await createClient();
   const { count } = await supabase
@@ -30,12 +31,43 @@ export async function createEmbedAction(_prev: EmbedFormState, formData: FormDat
     title: parsed.title,
     embed_id: parsed.embed_id,
     sort_order: count ?? 0,
+    config,
   });
 
   if (error) return { error: error.message };
   await logActivity(userId, "profile_updated", `Added ${parsed.title} embed`);
   await revalidateUserProfile(userId, ["/dashboard/embeds"]);
   return { success: "Embed added." };
+}
+
+export async function updateEmbedConfigAction(embedId: string, config: Partial<EmbedConfig>) {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "You must be logged in." };
+
+  const supabase = await createClient();
+  const { data: existing, error: fetchError } = await supabase
+    .from("profile_embeds")
+    .select("embed_type, embed_id, config")
+    .eq("id", embedId)
+    .eq("profile_id", userId)
+    .maybeSingle();
+
+  if (fetchError || !existing) return { error: "Embed not found." };
+
+  const embedType = existing.embed_type as EmbedType;
+  const current = mergeEmbedConfig(embedType, existing.config);
+  let next = mergeEmbedConfig(embedType, { ...current, ...config });
+  next = await refreshEmbedMediaConfig(embedType, existing.embed_id, next);
+
+  const { error } = await supabase
+    .from("profile_embeds")
+    .update({ config: next })
+    .eq("id", embedId)
+    .eq("profile_id", userId);
+
+  if (error) return { error: error.message };
+  await revalidateUserProfile(userId, ["/dashboard/embeds"]);
+  return { success: true, config: next };
 }
 
 export async function toggleEmbedAction(embedId: string, visible: boolean) {

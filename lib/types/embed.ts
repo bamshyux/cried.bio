@@ -9,6 +9,38 @@ export type EmbedType =
   | "roblox_profile"
   | "discord";
 
+export type EmbedDisplayMode = "iframe" | "card" | "minimal";
+export type EmbedAspectRatio = "16:9" | "4:3" | "1:1" | "9:16" | "auto";
+export type EmbedCardStyle = "default" | "minimal" | "glass" | "bordered";
+export type EmbedAlignment = "left" | "center" | "right" | "stretch";
+export type EmbedTheme = "dark" | "light";
+
+export type EmbedConfig = {
+  display_mode: EmbedDisplayMode;
+  aspect_ratio: EmbedAspectRatio;
+  card_style: EmbedCardStyle;
+  alignment: EmbedAlignment;
+  show_title: boolean;
+  custom_title: string;
+  description: string;
+  accent_color: string;
+  background_color: string;
+  border_radius: number;
+  show_border: boolean;
+  border_color: string;
+  theme: EmbedTheme;
+  compact_player: boolean;
+  autoplay: boolean;
+  show_avatar: boolean;
+  show_username: boolean;
+  show_stats: boolean;
+  show_thumbnail: boolean;
+  avatar_url: string;
+  thumbnail_url: string;
+  username: string;
+  display_name: string;
+};
+
 export type ProfileEmbed = {
   id: string;
   profile_id: string;
@@ -18,6 +50,7 @@ export type ProfileEmbed = {
   embed_id: string;
   is_visible: boolean;
   sort_order: number;
+  config: EmbedConfig;
   created_at: string;
   updated_at: string;
 };
