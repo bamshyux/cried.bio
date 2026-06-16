@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { fetchLanyardDiscordUser } from "@/lib/discord/lanyard";
 import { DISCORD_LANYARD_SAVE_ERROR } from "@/lib/discord/messages";
 import { inferPremiumTypeFromProfileSignals } from "@/lib/discord/profile-badges";
+import { isDiscordLinked, needsDiscordProfileRefresh } from "@/lib/discord/connection";
 import {
   removeDiscordStatusWidget,
   setDiscordStatusWidgetEnabled,
