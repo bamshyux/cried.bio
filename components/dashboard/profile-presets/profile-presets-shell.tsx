@@ -13,6 +13,7 @@ import {
 } from "@/components/dashboard/form-fields";
 import { useUnsavedChangesOptional } from "@/components/dashboard/unsaved-changes";
 import type { CommunityThemeListing } from "@/lib/types/community-theme";
+import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfilePreset } from "@/lib/types/profile-preset";
 import { MAX_PROFILE_PRESETS } from "@/lib/types/profile-preset";
 
@@ -20,6 +21,8 @@ export function ProfilePresetsShell({
   presets: initialPresets,
   activePresetId,
   presetListings = {},
+  username = "user",
+  badges = [],
 }: {
   presets: ProfilePreset[];
   activePresetId: string | null;
@@ -30,6 +33,8 @@ export function ProfilePresetsShell({
       "id" | "title" | "description" | "tags" | "category" | "visibility" | "preview_image_url"
     >
   >;
+  username?: string;
+  badges?: ProfileBadge[];
 }) {
   const router = useRouter();
   const unsaved = useUnsavedChangesOptional();
@@ -146,6 +151,8 @@ export function ProfilePresetsShell({
               preset={preset}
               isActive={activeId === preset.id}
               existingListing={presetListings[preset.id] ?? null}
+              username={username}
+              badges={badges}
               onApplied={handleApplied}
               onMutated={refresh}
               checkUnsavedBeforeApply={checkUnsavedBeforeApply}

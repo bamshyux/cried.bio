@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { ProfilePresetsShell } from "@/components/dashboard/profile-presets/profile-presets-shell";
 import { getMyPublishedThemes } from "@/lib/data/community-themes";
 import { getProfilePresetsByUserId, resolveAppliedPresetId } from "@/lib/data/profile-presets";
+import { getProfileByUserId } from "@/lib/data/profiles";
+import { getBadgesByProfileId } from "@/lib/data/badges";
 import type { CommunityThemeListing } from "@/lib/types/community-theme";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,10 +38,12 @@ export default async function ProfilePresetsPage() {
   if (error || !data?.claims) redirect("/login");
 
   const userId = data.claims.sub as string;
-  const [presets, activePresetId, myPublished] = await Promise.all([
+  const [presets, activePresetId, myPublished, profile, earnedBadges] = await Promise.all([
     getProfilePresetsByUserId(userId),
     resolveAppliedPresetId(userId),
     getMyPublishedThemes(userId),
+    getProfileByUserId(userId),
+    getBadgesByProfileId(userId),
   ]);
 
   const presetListings = buildPresetListingMap(myPublished);
@@ -49,6 +53,8 @@ export default async function ProfilePresetsPage() {
       presets={presets}
       activePresetId={activePresetId}
       presetListings={presetListings}
+      username={profile?.username ?? "user"}
+      badges={earnedBadges}
     />
   );
 }

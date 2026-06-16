@@ -13,6 +13,7 @@ import { PresetProfilePreview } from "@/components/dashboard/profile-presets/pre
 import { PublishPresetModal } from "@/components/dashboard/profile-presets/publish-preset-modal";
 import { FormFeedback } from "@/components/dashboard/form-fields";
 import type { CommunityThemeListing } from "@/lib/types/community-theme";
+import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfilePreset } from "@/lib/types/profile-preset";
 
 function formatPresetDate(value: string) {
@@ -41,6 +42,8 @@ export function PresetCard({
   preset,
   isActive,
   existingListing,
+  username = "user",
+  badges = [],
   onApplied,
   onMutated,
   checkUnsavedBeforeApply,
@@ -51,6 +54,8 @@ export function PresetCard({
     CommunityThemeListing,
     "id" | "title" | "description" | "tags" | "category" | "visibility" | "preview_image_url"
   > | null;
+  username?: string;
+  badges?: ProfileBadge[];
   onApplied: (presetId: string) => void;
   onMutated: () => void;
   checkUnsavedBeforeApply: () => boolean;
@@ -75,7 +80,12 @@ export function PresetCard({
 
   return (
     <article className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111]">
-      <PresetProfilePreview data={preset.preset_data} name={preset.name} />
+      <PresetProfilePreview
+        data={preset.preset_data}
+        name={preset.name}
+        username={username}
+        badges={badges}
+      />
 
       <div className="space-y-3 p-4">
         <div className="flex items-start justify-between gap-2">

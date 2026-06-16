@@ -28,6 +28,7 @@ export function PublicProfileView({
   currentUserId,
   discordPresence = null,
   scopedCustomCss = null,
+  presetPreviewTitle = null,
 }: {
   profile: Profile;
   links: ProfileLink[];
@@ -46,6 +47,7 @@ export function PublicProfileView({
   currentUserId?: string | null;
   discordPresence?: DiscordPresence | null;
   scopedCustomCss?: string | null;
+  presetPreviewTitle?: string | null;
 }) {
   return (
     <PublicProfileClient
@@ -66,6 +68,7 @@ export function PublicProfileView({
       currentUserId={currentUserId}
       discordPresence={discordPresence}
       scopedCustomCss={scopedCustomCss}
+      presetPreviewTitle={presetPreviewTitle}
     />
   );
 }

@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 import { syncMilestoneBadges } from "@/app/actions/badges";
 import { getActiveCustomTheme } from "@/lib/data/custom-themes";
+import {
+  getCommunityThemeListingById,
+  getPresetPreviewData,
+} from "@/lib/data/community-themes";
 import { getDiscordPresenceForSettings } from "@/lib/data/discord-presence";
 import { scopeProfileCss } from "@/lib/themes/scope-css";
 import { getPublicViewCount } from "@/lib/data/analytics";
@@ -18,45 +22,66 @@ import {
   getFriends,
   isFollowing,
 } from "@/lib/data/social";
+import { buildProfileViewFromPreset } from "@/lib/profile-presets/preview";
+import { parsePresetData } from "@/lib/profile-presets/snapshot";
 import { PublicProfileView } from "@/components/profile/public-profile";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
+import type { Profile } from "@/lib/types/profile";
+import type { ProfileBadge } from "@/lib/types/badge";
+import type { ProfileEmbed } from "@/lib/types/embed";
+import type { FeaturedBlock } from "@/lib/types/featured";
+import type { ProfileLink } from "@/lib/types/link";
+import type { ProfileSettings } from "@/lib/types/settings";
 
-type PageProps = { params: Promise<{ username: string }> };
+type PageProps = {
+  params: Promise<{ username: string }>;
+  searchParams: Promise<{ previewPreset?: string }>;
+};
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { username } = await params;
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
+  const [{ username }, query] = await Promise.all([params, searchParams]);
   const profile = await getProfileByUsername(username);
   if (!profile) return { title: "Profile Not Found — cried.bio" };
   const displayName = profile.display_name || profile.username;
+  const isPreview = Boolean(query.previewPreset);
   return {
-    title: `${displayName} — cried.bio`,
+    title: isPreview
+      ? `Preview — ${displayName} — cried.bio`
+      : `${displayName} — cried.bio`,
     description: profile.bio || `${displayName}'s cried.bio profile`,
+    robots: isPreview ? { index: false, follow: false } : undefined,
   };
 }
 
-export default async function UsernamePage({ params }: PageProps) {
-  const { username } = await params;
+export default async function UsernamePage({ params, searchParams }: PageProps) {
+  const [{ username }, query] = await Promise.all([params, searchParams]);
   const normalized = normalizeUsername(username);
 
   if (!isValidUsername(normalized)) notFound();
 
-  const profile = await getProfileByUsername(normalized);
-  if (!profile) notFound();
+  const baseProfile = await getProfileByUsername(normalized);
+  if (!baseProfile) notFound();
 
   const supabase = await createClient();
   const { data: authData } = await supabase.auth.getClaims();
   const currentUserId = authData?.claims?.sub as string | undefined;
 
-  const visibility = await getProfileVisibility(profile.id);
-  if (visibility === "private" && currentUserId !== profile.id) {
+  const visibility = await getProfileVisibility(baseProfile.id);
+  if (visibility === "private" && currentUserId !== baseProfile.id) {
     notFound();
   }
 
-  await syncMilestoneBadges(profile.id);
+  const isOwnProfile = currentUserId === baseProfile.id;
+  const previewListingId = query.previewPreset?.trim() || null;
+  const isPresetPreview = Boolean(isOwnProfile && previewListingId);
 
-  if (currentUserId === profile.id) {
+  if (!isPresetPreview) {
+    await syncMilestoneBadges(baseProfile.id);
+  }
+
+  if (isOwnProfile && !isPresetPreview) {
     try {
       const { refreshDiscordProfileAction, sanitizeDiscordConnectionAction } = await import(
         "@/app/actions/discord"
@@ -82,29 +107,64 @@ export default async function UsernamePage({ params }: PageProps) {
     following,
     hideViewCounts,
   ] = await Promise.all([
-    getLinksByProfileId(profile.id),
-    getSettingsByProfileId(profile.id),
-    getBadgesByProfileId(profile.id),
-    getPublicViewCount(profile.id),
-    getEmbedsByProfileId(profile.id, true),
-    getFeaturedBlocksByProfileId(profile.id, true),
-    getGuestbookEntries(profile.id),
-    getActivityFeed(profile.id),
-    getFriends(profile.id),
-    getFollowCounts(profile.id),
-    currentUserId ? isFollowing(currentUserId, profile.id) : Promise.resolve(false),
-    shouldHideViewCounts(profile.id),
+    getLinksByProfileId(baseProfile.id),
+    getSettingsByProfileId(baseProfile.id),
+    getBadgesByProfileId(baseProfile.id),
+    getPublicViewCount(baseProfile.id),
+    getEmbedsByProfileId(baseProfile.id, true),
+    getFeaturedBlocksByProfileId(baseProfile.id, true),
+    getGuestbookEntries(baseProfile.id),
+    getActivityFeed(baseProfile.id),
+    getFriends(baseProfile.id),
+    getFollowCounts(baseProfile.id),
+    currentUserId ? isFollowing(currentUserId, baseProfile.id) : Promise.resolve(false),
+    shouldHideViewCounts(baseProfile.id),
   ]);
 
-  if (hideViewCounts) {
-    settings.show_view_count = false;
+  let profile: Profile = baseProfile;
+  let previewSettings: ProfileSettings = settings;
+  let previewLinks: ProfileLink[] = links;
+  let previewBadges: ProfileBadge[] = badges;
+  let previewEmbeds: ProfileEmbed[] = embeds;
+  let previewFeatured: FeaturedBlock[] = featured;
+  let scopedCustomCss: string | null = null;
+  let presetPreviewTitle: string | null = null;
+
+  if (isPresetPreview && previewListingId) {
+    const listing = await getCommunityThemeListingById(previewListingId, currentUserId);
+    if (
+      listing?.listing_type === "profile_preset" &&
+      (listing.visibility === "public" || listing.visibility === "open_source")
+    ) {
+      const preset = await getPresetPreviewData(listing.id, currentUserId);
+      const presetData = preset?.preset_data ? parsePresetData(preset.preset_data) : null;
+
+      if (presetData) {
+        const preview = buildProfileViewFromPreset({
+          baseProfile,
+          baseBadges: badges,
+          presetData,
+        });
+        profile = preview.profile;
+        previewSettings = preview.settings;
+        previewLinks = preview.links;
+        previewBadges = preview.badges;
+        previewEmbeds = preview.embeds;
+        previewFeatured = preview.featured;
+        scopedCustomCss = preview.scopedCustomCss;
+        presetPreviewTitle = listing.title;
+      }
+    }
   }
 
-  const discordPresence = await getDiscordPresenceForSettings(settings);
+  if (hideViewCounts) {
+    previewSettings.show_view_count = false;
+  }
 
-  let scopedCustomCss: string | null = null;
-  if (settings.layout === "custom" && settings.custom_theme_id) {
-    const theme = await getActiveCustomTheme(profile.id, settings.custom_theme_id);
+  const discordPresence = await getDiscordPresenceForSettings(previewSettings);
+
+  if (!scopedCustomCss && previewSettings.layout === "custom" && previewSettings.custom_theme_id) {
+    const theme = await getActiveCustomTheme(baseProfile.id, previewSettings.custom_theme_id);
     if (theme?.css) {
       scopedCustomCss = scopeProfileCss(theme.css).css || null;
     }
@@ -113,15 +173,15 @@ export default async function UsernamePage({ params }: PageProps) {
   return (
     <PublicProfileView
       profile={profile}
-      links={links}
-      settings={settings}
-      badges={badges}
+      links={previewLinks}
+      settings={previewSettings}
+      badges={previewBadges}
       viewCount={viewCount}
-      embeds={embeds}
-      featured={featured}
+      embeds={previewEmbeds}
+      featured={previewFeatured}
       guestbook={guestbook}
       activity={activity}
-      friends={settings.friends_visibility === "public" ? friends : []}
+      friends={previewSettings.friends_visibility === "public" ? friends : []}
       followerCount={followCounts.followers}
       followingCount={followCounts.following}
       isFollowing={following}
@@ -129,6 +189,7 @@ export default async function UsernamePage({ params }: PageProps) {
       currentUserId={currentUserId}
       discordPresence={discordPresence}
       scopedCustomCss={scopedCustomCss}
+      presetPreviewTitle={presetPreviewTitle}
     />
   );
 }

@@ -26,6 +26,7 @@ import type { FeaturedBlock } from "@/lib/types/featured";
 import type { GuestbookEntry } from "@/lib/types/guestbook";
 import type { ProfileEmbed } from "@/lib/types/embed";
 import type { SocialProfile } from "@/lib/types/social";
+import { PresetPreviewBanner } from "./preset-preview-banner";
 import { ProfileCreateCta } from "./profile-create-cta";
 import { ProfileCardLayoutEditor } from "./profile-card-layout-editor";
 import {
@@ -800,6 +801,10 @@ const LAYOUTS = {
   ...EXTENDED_LAYOUTS,
 };
 
+export function getProfileLayoutComponent(layout: ProfileSettings["layout"]) {
+  return LAYOUTS[layout] ?? ClassicLayout;
+}
+
 export function PublicProfileClient({
   profile,
   links,
@@ -818,6 +823,7 @@ export function PublicProfileClient({
   currentUserId,
   discordPresence = null,
   scopedCustomCss = null,
+  presetPreviewTitle = null,
 }: {
   profile: Profile;
   links: ProfileLink[];
@@ -836,8 +842,10 @@ export function PublicProfileClient({
   currentUserId?: string | null;
   discordPresence?: DiscordPresence | null;
   scopedCustomCss?: string | null;
+  presetPreviewTitle?: string | null;
 }) {
-  const [entered, setEntered] = useState(false);
+  const isPresetPreview = Boolean(presetPreviewTitle);
+  const [entered, setEntered] = useState(isPresetPreview);
   const playMusicRef = useRef<(() => void) | null>(null);
 
   const handleEnter = useCallback(() => {
@@ -882,7 +890,10 @@ export function PublicProfileClient({
       {entered && showParticles && settings.particle_effect ? (
         <ParticleCanvas effect={settings.particle_effect} />
       ) : null}
-      {entered ? <AnalyticsTracker profileId={profile.id} /> : null}
+      {entered && !isPresetPreview ? <AnalyticsTracker profileId={profile.id} /> : null}
+      {entered && isPresetPreview && presetPreviewTitle ? (
+        <PresetPreviewBanner title={presetPreviewTitle} />
+      ) : null}
       {entered ? (
         <CursorEffectCanvas effect={settings.cursor_effect} color={settings.accent_color} />
       ) : null}
@@ -895,7 +906,7 @@ export function PublicProfileClient({
 
       {entered ? (
         <div
-          className={`relative z-10 flex min-h-screen flex-col ${settings.cursor_image_url ? "bf-custom-cursor-active" : ""}`}
+          className={`relative z-10 flex min-h-screen flex-col ${settings.cursor_image_url ? "bf-custom-cursor-active" : ""} ${isPresetPreview ? "pt-11" : ""}`}
           style={{ color: settings.text_color, fontFamily: fontCss, "--bf-accent": settings.accent_color } as React.CSSProperties}
         >
           <header className="absolute inset-x-0 top-0 z-20 flex w-full items-center justify-between px-5 py-4 sm:px-8 sm:py-5">

@@ -13,7 +13,6 @@ import {
   unpublishCommunityThemeAction,
 } from "@/app/actions/community-themes";
 import { CustomThemePreview } from "@/components/dashboard/custom-theme-preview";
-import { PresetProfilePreview } from "@/components/dashboard/profile-presets/preset-profile-preview";
 import { CommunityThemeCard } from "@/components/dashboard/community-themes/theme-card";
 import {
   cardClassName,
@@ -34,7 +33,6 @@ import {
   COMMUNITY_THEME_CATEGORIES,
   COMMUNITY_THEME_SORTS,
 } from "@/lib/types/community-theme";
-import type { ProfilePresetData } from "@/lib/types/profile-preset";
 
 function FeaturedRow({
   title,
@@ -105,10 +103,6 @@ export function CommunityThemesShell({
   const [feedback, setFeedback] = useState<{ error?: string; success?: string }>({});
   const [busyId, setBusyId] = useState<string | null>(null);
   const [previewCss, setPreviewCss] = useState<string | null>(null);
-  const [presetPreview, setPresetPreview] = useState<{
-    data: ProfilePresetData;
-    name: string;
-  } | null>(null);
   const [previewTheme, setPreviewTheme] = useState<CommunityThemeListing | null>(null);
   const [reportTheme, setReportTheme] = useState<CommunityThemeListing | null>(null);
   const [reportReason, setReportReason] = useState<CommunityThemeReportReason>("inappropriate");
@@ -180,17 +174,24 @@ export function CommunityThemesShell({
 
   const handleThemeAction = (theme: CommunityThemeListing, action: string) => {
     if (action === "preview") {
+      if (theme.listing_type === "profile_preset") {
+        if (!username?.trim()) {
+          setFeedback({ error: "Set a username before previewing presets." });
+          return;
+        }
+        window.open(
+          `/${username.trim()}?previewPreset=${theme.id}`,
+          "_blank",
+          "noopener,noreferrer",
+        );
+        return;
+      }
+
       setPreviewTheme(theme);
       setPreviewCss(null);
-      setPresetPreview(null);
       startTransition(async () => {
         const res = await getCommunityThemePreviewAction(theme.id);
-        if (res.listingType === "profile_preset" && res.presetData) {
-          setPresetPreview({
-            data: res.presetData as ProfilePresetData,
-            name: res.presetName ?? theme.title,
-          });
-        } else if (res.css) {
+        if (res.css) {
           setPreviewCss(res.css);
         } else {
           setFeedback({ error: res.error ?? "Preview unavailable." });
@@ -593,16 +594,13 @@ export function CommunityThemesShell({
                 onClick={() => {
                   setPreviewTheme(null);
                   setPreviewCss(null);
-                  setPresetPreview(null);
                 }}
                 className="rounded-lg border border-white/[0.08] px-2 py-1 text-xs text-neutral-400 hover:text-white"
               >
                 Close
               </button>
             </div>
-            {presetPreview ? (
-              <PresetProfilePreview data={presetPreview.data} name={presetPreview.name} />
-            ) : previewCss ? (
+            {previewCss ? (
               <CustomThemePreview css={previewCss} username={username} displayName={displayName} />
             ) : (
               <div className="rounded-xl border border-white/[0.08] bg-[#0a0a0a] p-10 text-center text-sm text-neutral-500">
