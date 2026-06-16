@@ -55,6 +55,22 @@ export function OgBadgeMark({
         fillRule="evenodd"
         d="M12.95 4.1l5.55 3.08v9.64L12.95 19.9V4.1 M14.95 7.95h2.5v8.1h-2.5v-2.35h1.35v-1.15h-1.35V7.95"
       />
+
+      {!monochrome && (
+        <>
+          <path
+            d="M7.4 5.8Q12 3.95 16.6 5.8"
+            fill="none"
+            stroke="#ffffff"
+            strokeWidth="0.75"
+            strokeLinecap="round"
+            opacity="0.38"
+          />
+          <circle cx="17.85" cy="5.75" r="0.85" fill="#ffffff" opacity="0.82" />
+          <circle cx="5.95" cy="6.15" r="0.58" fill="#ffffff" opacity="0.58" />
+          <circle cx="12" cy="3.35" r="0.42" fill="#fff7cc" opacity="0.72" />
+        </>
+      )}
     </>
   );
 }

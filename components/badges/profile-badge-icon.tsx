@@ -33,7 +33,7 @@ export function ProfileBadgeIcon({
   const isVerified = slug === "verified" && !hasCustomImage;
   const isOg = slug === "og" && !hasCustomImage;
   const fillColor = monochrome ? "#e4e4e7" : color;
-  const glowStrength = getBadgeSelfGlowStrength({ hovered, featured });
+  const glowStrength = isOg ? "soft" : getBadgeSelfGlowStrength({ hovered, featured });
 
   let icon: ReactNode;
 
@@ -70,7 +70,7 @@ export function ProfileBadgeIcon({
 
   return (
     <SelfGlow
-      enabled={glowEnabled && !hasCustomImage && !isOg}
+      enabled={glowEnabled && !hasCustomImage}
       color={glowColor}
       size={size}
       strength={glowStrength}
