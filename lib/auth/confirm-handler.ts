@@ -1,3 +1,4 @@
+import { PASSWORD_RESET_NEXT, SIGNUP_EMAIL_VERIFY_NEXT } from "@/lib/auth/auth-email-shared";
 import { createClient } from "@/lib/supabase/server";
 import { getProfileByUserId } from "@/lib/data/profiles";
 import { sendWelcomeEmail } from "@/lib/email";
@@ -5,6 +6,16 @@ import { syncSignupBadges } from "@/lib/badges/signup-badges";
 import { redirect } from "next/navigation";
 import { type NextRequest } from "next/server";
 import { type EmailOtpType } from "@supabase/supabase-js";
+
+function resolvePostConfirmRedirect(type: EmailOtpType | null, next: string): string {
+  if (type === "recovery" || next.includes(PASSWORD_RESET_NEXT)) {
+    return PASSWORD_RESET_NEXT;
+  }
+  if (type === "signup" || type === "email") {
+    return SIGNUP_EMAIL_VERIFY_NEXT;
+  }
+  return next;
+}
 
 /** Shared handler for /auth/confirm and /auth/callback (Supabase may use either). */
 export async function handleAuthConfirm(request: NextRequest) {
@@ -20,7 +31,7 @@ export async function handleAuthConfirm(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      redirect(next);
+      redirect(resolvePostConfirmRedirect(type, next));
     }
 
     redirect(`/login?error=${encodeURIComponent(error.message)}`);
@@ -44,7 +55,7 @@ export async function handleAuthConfirm(request: NextRequest) {
         });
       }
 
-      redirect(next);
+      redirect(resolvePostConfirmRedirect(type, next));
     }
 
     redirect(`/login?error=${encodeURIComponent(error.message)}`);

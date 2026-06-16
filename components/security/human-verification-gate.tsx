@@ -158,8 +158,8 @@ export function HumanVerificationGate() {
             Verifying you&apos;re human
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-neutral-500">
-            One quick check helps keep cried.bio free of bots and spam. This only happens on your
-            first visit.
+            One quick check helps keep cried.bio free of bots and spam. This only appears on the
+            home page during your first visit.
           </p>
 
           {turnstile && siteKey ? (

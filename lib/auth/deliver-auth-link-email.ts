@@ -4,6 +4,7 @@ import {
   buildAuthConfirmUrl,
   buildRedirectCandidates,
   isRedirectUrlError,
+  SIGNUP_EMAIL_VERIFY_NEXT,
 } from "@/lib/auth/auth-email-shared";
 import { getResendClient } from "@/lib/email/client";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -30,7 +31,7 @@ async function sendViaResendApi(input: DeliverAuthLinkEmailInput): Promise<AuthE
   const nextPath = input.nextPath ?? "/dashboard";
   let lastError: string | undefined;
 
-  for (const redirectTo of buildRedirectCandidates(siteUrl, nextPath)) {
+  for (const redirectTo of buildRedirectCandidates(siteUrl, nextPath, input.linkType)) {
     const response =
       input.linkType === "magiclink"
         ? await admin.auth.admin.generateLink({
@@ -88,7 +89,7 @@ async function sendViaSupabaseFallback(
   const nextPath = input.nextPath ?? "/dashboard";
   let lastError: string | undefined;
 
-  for (const redirectTo of buildRedirectCandidates(siteUrl, nextPath)) {
+  for (const redirectTo of buildRedirectCandidates(siteUrl, nextPath, input.linkType)) {
     const { error } = await input.supabaseFallback(redirectTo);
     if (!error) {
       return { sent: true };
@@ -125,7 +126,7 @@ export async function deliverSignupConfirmationEmail(email: string): Promise<Aut
   return deliverAuthLinkEmail({
     email,
     linkType: "magiclink",
-    nextPath: "/dashboard",
+    nextPath: SIGNUP_EMAIL_VERIFY_NEXT,
     sendEmail: async (to, confirmUrl) => {
       const result = await sendSignupConfirmationEmail({ to, confirmUrl });
       return result.ok ? { sent: true } : { sent: false, resendError: result.error };

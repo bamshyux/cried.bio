@@ -1,6 +1,6 @@
 "use server";
 
-import { buildAuthEmailErrorMessage, isEmailDeliveryError } from "@/lib/auth/auth-email-shared";
+import { buildAuthEmailErrorMessage, isEmailDeliveryError, SIGNUP_EMAIL_VERIFY_NEXT } from "@/lib/auth/auth-email-shared";
 import { deliverSignupConfirmationEmail } from "@/lib/auth/deliver-auth-link-email";
 import { deliverPasswordResetEmail } from "@/lib/auth/send-password-reset";
 import { sendWelcomeEmail } from "@/lib/email";
@@ -94,7 +94,7 @@ async function signUpWithPublicClient(email: string, password: string): Promise<
     email,
     password,
     options: {
-      emailRedirectTo: `${siteUrl}/auth/confirm?next=/dashboard`,
+      emailRedirectTo: `${siteUrl}/auth/confirm?next=${encodeURIComponent(SIGNUP_EMAIL_VERIFY_NEXT)}`,
     },
   });
 

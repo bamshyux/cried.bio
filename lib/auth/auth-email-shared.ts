@@ -9,6 +9,12 @@ export type AuthLinkType =
   | "email_change_current"
   | "email_change_new";
 
+/** Landing page redirect after a new user confirms their signup email. */
+export const SIGNUP_EMAIL_VERIFY_NEXT = "/?email_verified=1";
+
+/** Password reset form after a recovery link is verified. */
+export const PASSWORD_RESET_NEXT = "/auth/update-password";
+
 export type AuthEmailDeliveryResult = {
   sent: boolean;
   resendError?: string;
@@ -39,8 +45,17 @@ export function isRedirectUrlError(message: string) {
   return lower.includes("redirect") && lower.includes("url");
 }
 
-export function buildRedirectCandidates(siteUrl: string, nextPath: string) {
+export function buildRedirectCandidates(siteUrl: string, nextPath: string, linkType?: AuthLinkType) {
   const encodedNext = encodeURIComponent(nextPath);
+
+  if (linkType === "recovery") {
+    return [
+      `${siteUrl}${PASSWORD_RESET_NEXT}`,
+      `${siteUrl}/auth/callback?next=${encodedNext}`,
+      `${siteUrl}/auth/confirm?next=${encodedNext}`,
+    ];
+  }
+
   return [
     `${siteUrl}/auth/callback?next=${encodedNext}`,
     `${siteUrl}/auth/confirm?next=${encodedNext}`,

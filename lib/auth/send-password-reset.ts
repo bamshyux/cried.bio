@@ -1,7 +1,6 @@
 import {
   buildAuthConfirmUrl,
-  isEmailDeliveryError,
-  isRedirectUrlError,
+  PASSWORD_RESET_NEXT,
   type AuthEmailDeliveryResult,
 } from "@/lib/auth/auth-email-shared";
 import { deliverAuthLinkEmail } from "@/lib/auth/deliver-auth-link-email";
@@ -18,7 +17,7 @@ export {
 } from "@/lib/auth/auth-email-shared";
 
 export function buildPasswordResetRedirect(siteUrl: string) {
-  const nextPath = "/auth/update-password";
+  const nextPath = PASSWORD_RESET_NEXT;
   return {
     nextPath,
     redirectTo: `${siteUrl}/auth/confirm?next=${encodeURIComponent(nextPath)}`,
@@ -33,7 +32,7 @@ export async function deliverPasswordResetEmail(email: string): Promise<Password
   return deliverAuthLinkEmail({
     email,
     linkType: "recovery",
-    nextPath: "/auth/update-password",
+    nextPath: PASSWORD_RESET_NEXT,
     sendEmail: async (to, confirmUrl) => {
       const result = await sendPasswordResetEmail({ to, resetUrl: confirmUrl });
       return result.ok ? { sent: true } : { sent: false, resendError: result.error };
