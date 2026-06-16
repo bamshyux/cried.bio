@@ -9,7 +9,7 @@ function isMonochromeColor(color: string) {
   return color.trim().toLowerCase() === MONOCHROME_FILL;
 }
 
-/** Block-letter OG inside a vertical hexagon — gold with white letters. */
+/** Block-letter OG inside a vertical hexagon — muted gold with white letters. */
 export function OgBadgeMark({
   monochrome = false,
   idPrefix,
@@ -22,28 +22,21 @@ export function OgBadgeMark({
   const goldId = `bf-og-gold-${prefix}`;
 
   const hexFill = monochrome ? "#d4d4d8" : `url(#${goldId})`;
-  const border = monochrome ? "#52525b" : "#fffef7";
-  const letter = monochrome ? "#18181b" : "#ffffff";
+  const letter = monochrome ? "#18181b" : "#f8f4ea";
 
   return (
     <>
       {!monochrome && (
         <defs>
-          <linearGradient id={goldId} x1="22%" y1="8%" x2="78%" y2="92%">
-            <stop offset="0%" stopColor="#f0c040" />
-            <stop offset="42%" stopColor="#d97706" />
-            <stop offset="100%" stopColor="#92400e" />
+          <linearGradient id={goldId} x1="28%" y1="10%" x2="72%" y2="90%">
+            <stop offset="0%" stopColor="#d9c56a" />
+            <stop offset="50%" stopColor="#b8962e" />
+            <stop offset="100%" stopColor="#8a7024" />
           </linearGradient>
         </defs>
       )}
 
-      <path
-        d="M12 2.05 19.95 6.58v10.84L12 21.95 4.05 17.42V6.58Z"
-        fill={hexFill}
-        stroke={border}
-        strokeWidth="1.08"
-        strokeLinejoin="round"
-      />
+      <path d="M12 2.05 19.95 6.58v10.84L12 21.95 4.05 17.42V6.58Z" fill={hexFill} />
 
       <path
         fill={letter}
@@ -58,17 +51,8 @@ export function OgBadgeMark({
 
       {!monochrome && (
         <>
-          <path
-            d="M7.4 5.8Q12 3.95 16.6 5.8"
-            fill="none"
-            stroke="#ffffff"
-            strokeWidth="0.75"
-            strokeLinecap="round"
-            opacity="0.38"
-          />
-          <circle cx="17.85" cy="5.75" r="0.85" fill="#ffffff" opacity="0.82" />
-          <circle cx="5.95" cy="6.15" r="0.58" fill="#ffffff" opacity="0.58" />
-          <circle cx="12" cy="3.35" r="0.42" fill="#fff7cc" opacity="0.72" />
+          <circle cx="17.6" cy="5.9" r="0.62" fill="#fff8e7" opacity="0.55" />
+          <circle cx="6.35" cy="6.35" r="0.45" fill="#fff8e7" opacity="0.38" />
         </>
       )}
     </>

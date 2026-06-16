@@ -951,9 +951,22 @@ body {
   animation: bf-badge-icon-pulse 2.6s ease-in-out infinite;
 }
 
-.bf-badge-medallion--milestone[data-badge-slug="og"] .bf-profile-badge-icon,
+.bf-badge-medallion--milestone[data-badge-slug="og"] .bf-profile-badge-icon {
+  animation: bf-badge-og-gleam 3.5s ease-in-out infinite;
+}
+
 .bf-badge-medallion--milestone[data-badge-slug="year-one"] .bf-profile-badge-icon {
   animation: bf-badge-milestone-gleam 3.5s ease-in-out infinite;
+}
+
+@keyframes bf-badge-og-gleam {
+  0%,
+  100% {
+    filter: brightness(1) saturate(0.96);
+  }
+  50% {
+    filter: brightness(1.05) saturate(0.98);
+  }
 }
 
 @keyframes bf-badge-milestone-gleam {
