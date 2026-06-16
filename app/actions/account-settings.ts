@@ -10,6 +10,8 @@ import {
   syncPrivacyToProfileSettings,
 } from "@/lib/data/account-settings";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
+import { deliverEmailChangeConfirmation } from "@/lib/auth/deliver-auth-link-email";
+import { buildAuthEmailErrorMessage } from "@/lib/auth/auth-email-shared";
 import { rejectIfModerated } from "@/lib/moderation/validate";
 import { createClient } from "@/lib/supabase/server";
 import type { AccountSettingsFormState, ProfileVisibility } from "@/lib/types/account-settings";
@@ -89,7 +91,22 @@ export async function updateEmailAction(
   const { error } = await auth.supabase.auth.updateUser({ email });
   if (error) return { error: error.message };
 
+  const delivery = await deliverEmailChangeConfirmation({
+    email: auth.email,
+    newEmail: email,
+  });
+
   revalidatePath("/dashboard/settings");
+  if (!delivery.sent) {
+    return {
+      error: buildAuthEmailErrorMessage({
+        purpose: "email_change",
+        resendError: delivery.resendError,
+        supabaseError: delivery.supabaseError,
+      }),
+    };
+  }
+
   return { success: "Confirmation sent to your new email address." };
 }
 

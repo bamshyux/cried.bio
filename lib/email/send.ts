@@ -1,6 +1,7 @@
 import { getSiteUrl } from "@/lib/site";
 import { getResendClient } from "@/lib/email/client";
 import { EMAIL_FROM } from "@/lib/email/constants";
+import { sendWithFromFallback } from "@/lib/email/delivery";
 import { emailButton, escapeHtml, renderEmailLayout } from "@/lib/email/layout";
 
 export type EmailSendResult = { ok: true; id?: string } | { ok: false; error: string };
@@ -10,32 +11,35 @@ async function sendEmail(input: {
   subject: string;
   html: string;
   text: string;
+  from?: string;
 }): Promise<EmailSendResult> {
   const client = getResendClient();
   if (!client) {
     return { ok: false, error: "Email service is not configured." };
   }
 
-  try {
-    const { data, error } = await client.emails.send({
-      from: EMAIL_FROM,
-      to: input.to,
-      subject: input.subject,
-      html: input.html,
-      text: input.text,
-    });
+  return sendWithFromFallback(async (from) => {
+    try {
+      const { data, error } = await client.emails.send({
+        from: input.from ?? from,
+        to: input.to,
+        subject: input.subject,
+        html: input.html,
+        text: input.text,
+      });
 
-    if (error) {
-      console.error("[email] send failed:", error.message);
-      return { ok: false, error: error.message };
+      if (error) {
+        console.error("[email] send failed:", error.message);
+        return { ok: false, error: error.message };
+      }
+
+      return { ok: true, id: data?.id };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to send email.";
+      console.error("[email] send failed:", message);
+      return { ok: false, error: message };
     }
-
-    return { ok: true, id: data?.id };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to send email.";
-    console.error("[email] send failed:", message);
-    return { ok: false, error: message };
-  }
+  });
 }
 
 export async function sendWelcomeEmail(input: {
@@ -147,6 +151,7 @@ export async function sendBadgeNotificationEmail(input: {
 export async function sendPasswordResetEmail(input: {
   to: string;
   resetUrl: string;
+  from?: string;
 }): Promise<EmailSendResult> {
   const subject = "Reset your cried.bio password";
 
@@ -161,6 +166,49 @@ export async function sendPasswordResetEmail(input: {
   });
 
   const text = `Reset your cried.bio password:\n\n${input.resetUrl}\n\nIf you did not request this, ignore this email.`;
+
+  return sendEmail({ to: input.to, subject, html, text, from: input.from });
+}
+
+export async function sendSignupConfirmationEmail(input: {
+  to: string;
+  confirmUrl: string;
+}): Promise<EmailSendResult> {
+  const subject = "Confirm your cried.bio account";
+
+  const html = renderEmailLayout({
+    preheader: "Confirm your email to finish setting up cried.bio.",
+    bodyHtml: `
+      <h1 style="margin:0 0 12px;font-size:20px;color:#ffffff;">Confirm your email</h1>
+      <p style="margin:0;color:#a3a3a3;">Thanks for signing up for cried.bio. Click the button below to verify your email address and activate your account.</p>
+      ${emailButton(input.confirmUrl, "Confirm email")}
+      <p style="margin:20px 0 0;font-size:13px;color:#737373;">If you did not create an account, you can safely ignore this email.</p>
+    `,
+  });
+
+  const text = `Confirm your cried.bio account:\n\n${input.confirmUrl}\n\nIf you did not create an account, ignore this email.`;
+
+  return sendEmail({ to: input.to, subject, html, text });
+}
+
+export async function sendEmailChangeConfirmationEmail(input: {
+  to: string;
+  confirmUrl: string;
+  newEmail: string;
+}): Promise<EmailSendResult> {
+  const subject = "Confirm your new cried.bio email";
+
+  const html = renderEmailLayout({
+    preheader: `Confirm changing your email to ${input.newEmail}.`,
+    bodyHtml: `
+      <h1 style="margin:0 0 12px;font-size:20px;color:#ffffff;">Confirm email change</h1>
+      <p style="margin:0;color:#a3a3a3;">You requested to change your cried.bio email to <strong style="color:#fafafa;">${escapeHtml(input.newEmail)}</strong>. Click below to confirm.</p>
+      ${emailButton(input.confirmUrl, "Confirm new email")}
+      <p style="margin:20px 0 0;font-size:13px;color:#737373;">If you did not request this change, you can safely ignore this email.</p>
+    `,
+  });
+
+  const text = `Confirm your new cried.bio email (${input.newEmail}):\n\n${input.confirmUrl}\n\nIf you did not request this, ignore this email.`;
 
   return sendEmail({ to: input.to, subject, html, text });
 }

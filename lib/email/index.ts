@@ -5,5 +5,7 @@ export {
   sendGuestbookNotificationEmail,
   sendBadgeNotificationEmail,
   sendPasswordResetEmail,
+  sendSignupConfirmationEmail,
+  sendEmailChangeConfirmationEmail,
   type EmailSendResult,
 } from "@/lib/email/send";

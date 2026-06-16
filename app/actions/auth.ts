@@ -1,7 +1,9 @@
 "use server";
 
-import { sendPasswordResetEmail, sendWelcomeEmail } from "@/lib/email";
-import { getResendClient } from "@/lib/email/client";
+import { buildAuthEmailErrorMessage, isEmailDeliveryError } from "@/lib/auth/auth-email-shared";
+import { deliverSignupConfirmationEmail } from "@/lib/auth/deliver-auth-link-email";
+import { deliverPasswordResetEmail } from "@/lib/auth/send-password-reset";
+import { sendWelcomeEmail } from "@/lib/email";
 import { syncSignupBadges } from "@/lib/badges/signup-badges";
 import { getProfileByUserId } from "@/lib/data/profiles";
 import { getSiteUrl } from "@/lib/site";
@@ -33,11 +35,6 @@ function isDuplicateEmailError(message: string) {
   return lower.includes("already") || lower.includes("registered") || lower.includes("exists");
 }
 
-function isEmailDeliveryError(message: string) {
-  const lower = message.toLowerCase();
-  return lower.includes("confirmation email") || lower.includes("error sending");
-}
-
 async function signUpWithAdmin(email: string, password: string): Promise<AuthActionState | "ok"> {
   const admin = createAdminClient();
   if (!admin) return { error: "admin_unavailable" };
@@ -45,7 +42,7 @@ async function signUpWithAdmin(email: string, password: string): Promise<AuthAct
   const { data: created, error: createError } = await admin.auth.admin.createUser({
     email,
     password,
-    email_confirm: true,
+    email_confirm: false,
   });
 
   if (createError) {
@@ -55,22 +52,37 @@ async function signUpWithAdmin(email: string, password: string): Promise<AuthAct
     return { error: createError.message };
   }
 
+  const delivery = await deliverSignupConfirmationEmail(email);
+  if (!delivery.sent) {
+    return {
+      error: buildAuthEmailErrorMessage({
+        purpose: "signup",
+        resendError: delivery.resendError,
+        supabaseError: delivery.supabaseError,
+      }),
+    };
+  }
+
   const supabase = await createClient();
   const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
-  if (signInError) {
-    return { error: signInError.message };
+  if (!signInError && signInData.user) {
+    if (signInData.user.email_confirmed_at) {
+      await finishNewSignup(signInData.user.id, email);
+    } else {
+      const { recordLoginEvent } = await import("@/lib/data/account-settings");
+      await recordLoginEvent(signInData.user.id, true);
+    }
+    return "ok";
   }
 
-  const userId = signInData.user?.id ?? created.user?.id;
-  if (userId) {
-    await finishNewSignup(userId, email);
-  }
-
-  return "ok";
+  void created;
+  return {
+    success: "Check your email for a confirmation link to activate your account.",
+  };
 }
 
 async function signUpWithPublicClient(email: string, password: string): Promise<AuthActionState | "ok"> {
@@ -90,17 +102,33 @@ async function signUpWithPublicClient(email: string, password: string): Promise<
       return { error: "An account with this email already exists. Try logging in." };
     }
     if (isEmailDeliveryError(error.message)) {
+      const delivery = await deliverSignupConfirmationEmail(email);
+      if (delivery.sent) {
+        return {
+          success: "Check your email for a confirmation link to activate your account.",
+        };
+      }
       return { error: "email_delivery_failed" };
     }
     return { error: error.message };
   }
 
   if (data.session && data.user) {
-    await finishNewSignup(data.user.id, email);
+    if (data.user.email_confirmed_at) {
+      await finishNewSignup(data.user.id, email);
+    } else {
+      void deliverSignupConfirmationEmail(email);
+      const { recordLoginEvent } = await import("@/lib/data/account-settings");
+      await recordLoginEvent(data.user.id, true);
+    }
     return "ok";
   }
 
   if (data.user) {
+    const delivery = await deliverSignupConfirmationEmail(email);
+    if (!delivery.sent) {
+      return { error: "email_delivery_failed" };
+    }
     return {
       success: "Check your email for a confirmation link to activate your account.",
     };
@@ -145,12 +173,11 @@ export async function signUpAction(
     }
 
     if (publicResult.error === "email_delivery_failed") {
-      console.error(
-        "[auth] signup email delivery failed — add SUPABASE_SERVICE_ROLE_KEY to server env, or disable Confirm email in Supabase Auth settings.",
-      );
+      console.error("[auth] signup confirmation email delivery failed");
       return {
-        error:
-          "We couldn't finish creating your account because email confirmation isn't configured. The site owner needs to add the Supabase secret key to the server or disable email confirmation in Supabase.",
+        error: buildAuthEmailErrorMessage({
+          purpose: "signup",
+        }),
       };
     }
 
@@ -232,55 +259,15 @@ export async function requestPasswordResetAction(
     return { error: "Email is required." };
   }
 
-  const siteUrl = getSiteUrl();
-  const nextPath = "/auth/update-password";
-  const redirectTo = `${siteUrl}/auth/confirm?next=${encodeURIComponent(nextPath)}`;
+  const result = await deliverPasswordResetEmail(email);
 
-  let sent = false;
-  const admin = createAdminClient();
-
-  if (admin && getResendClient()) {
-    const { data, error } = await admin.auth.admin.generateLink({
-      type: "recovery",
-      email,
-      options: { redirectTo },
-    });
-
-    if (!error && data.properties.hashed_token) {
-      const resetUrl = `${siteUrl}/auth/confirm?token_hash=${encodeURIComponent(data.properties.hashed_token)}&type=recovery&next=${encodeURIComponent(nextPath)}`;
-      const emailResult = await sendPasswordResetEmail({ to: email, resetUrl });
-      if (emailResult.ok) {
-        sent = true;
-      } else {
-        console.error("[auth] Resend password reset failed:", emailResult.error);
-      }
-    } else if (error) {
-      console.error("[auth] password reset link failed:", error.message);
-    }
-  }
-
-  if (!sent) {
-    const supabase = await createClient();
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo,
-    });
-
-    if (resetError) {
-      console.error("[auth] resetPasswordForEmail failed:", resetError.message);
-      if (isEmailDeliveryError(resetError.message)) {
-        return {
-          error:
-            "We couldn't send a reset email right now. Check Supabase Auth email settings or contact support.",
-        };
-      }
-    } else {
-      sent = true;
-    }
-  }
-
-  if (!sent) {
+  if (!result.sent) {
     return {
-      error: "Password reset is temporarily unavailable. Please try again later.",
+      error: buildAuthEmailErrorMessage({
+        purpose: "password_reset",
+        resendError: result.resendError,
+        supabaseError: result.supabaseError,
+      }),
     };
   }
 
@@ -316,4 +303,35 @@ export async function updatePasswordAction(
   }
 
   redirect("/dashboard");
+}
+
+export async function resendVerificationEmailAction(
+  _prevState: AuthActionState,
+  _formData: FormData,
+): Promise<AuthActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.email) {
+    return { error: "You must be logged in with an email address." };
+  }
+
+  if (user.email_confirmed_at) {
+    return { success: "Your email is already verified." };
+  }
+
+  const result = await deliverSignupConfirmationEmail(user.email);
+  if (!result.sent) {
+    return {
+      error: buildAuthEmailErrorMessage({
+        purpose: "signup",
+        resendError: result.resendError,
+        supabaseError: result.supabaseError,
+      }),
+    };
+  }
+
+  return { success: "Confirmation email sent. Check your inbox and spam folder." };
 }

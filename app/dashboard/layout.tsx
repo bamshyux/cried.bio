@@ -4,6 +4,7 @@ import { syncFounderBadges, syncSignupBadgesAction } from "@/app/actions/badges"
 import { CriedLogo } from "@/components/brand/logo";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { EmailVerificationBanner } from "@/components/dashboard/email-verification-banner";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { getProfileByUserId } from "@/lib/data/profiles";
 import { getAdminAccess } from "@/lib/auth/admin-access";
@@ -26,6 +27,10 @@ export default async function DashboardLayout({
   const sessionId = data.claims.session_id as string | undefined;
   const { touchUserSession } = await import("@/lib/data/account-settings");
   await touchUserSession(userId, sessionId);
+  const { data: userData } = await supabase.auth.getUser();
+  const needsEmailVerification = Boolean(
+    userData.user?.email && !userData.user.email_confirmed_at,
+  );
   const profile = await getProfileByUserId(userId);
   const adminAccess = await getAdminAccess();
   const showAdminPanel = !!adminAccess;
@@ -44,6 +49,10 @@ export default async function DashboardLayout({
           </div>
         </div>
       </header>
+
+      {needsEmailVerification && userData.user?.email ? (
+        <EmailVerificationBanner email={userData.user.email} />
+      ) : null}
 
       <DashboardShell>
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-8 lg:flex-row lg:items-start lg:px-8">
