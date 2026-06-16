@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { arePresetSnapshotsEqual } from "@/lib/profile-presets/compare";
+import { captureProfilePresetSnapshot } from "@/lib/profile-presets/snapshot";
 import type { ProfilePreset, ProfilePresetData } from "@/lib/types/profile-preset";
 import { parsePresetData } from "@/lib/profile-presets/snapshot";
 
@@ -69,6 +71,31 @@ export async function setActivePresetId(userId: string, presetId: string | null)
     .from("profile_settings")
     .update({ active_preset_id: presetId })
     .eq("profile_id", userId);
+}
+
+/** Clear the applied preset when the live profile no longer matches it. */
+export async function markProfileAppearanceChanged(userId: string) {
+  await setActivePresetId(userId, null);
+}
+
+/** Returns the active preset id only while the live profile still matches that preset. */
+export async function resolveAppliedPresetId(userId: string): Promise<string | null> {
+  const activePresetId = await getActivePresetId(userId);
+  if (!activePresetId) return null;
+
+  const preset = await getProfilePresetById(activePresetId, userId);
+  if (!preset) {
+    await setActivePresetId(userId, null);
+    return null;
+  }
+
+  const currentSnapshot = await captureProfilePresetSnapshot(userId);
+  if (!arePresetSnapshotsEqual(preset.preset_data, currentSnapshot)) {
+    await setActivePresetId(userId, null);
+    return null;
+  }
+
+  return activePresetId;
 }
 
 export type { ProfilePresetData };

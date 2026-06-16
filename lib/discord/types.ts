@@ -47,4 +47,9 @@ export type DiscordOAuthUser = {
   avatar?: string | null;
   banner?: string | null;
   premium_type?: number | null;
+  display_name_styles?: {
+    display_name_font_id?: number | null;
+    display_name_effect_id?: number | null;
+    display_name_colors?: number[] | null;
+  } | null;
 };

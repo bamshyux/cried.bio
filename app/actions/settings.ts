@@ -7,6 +7,7 @@ import { clampCursorImageSize } from "@/lib/profile/custom-cursor";
 import { backgroundUploadSizeError, MAX_BACKGROUND_UPLOAD_BYTES } from "@/lib/uploads/limits";
 import { formatSchemaError } from "@/lib/db/schema";
 import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
+import { markProfileAppearanceChanged } from "@/lib/data/profile-presets";
 import { rejectIfModerated } from "@/lib/moderation/validate";
 import type { SettingsFormState, SettingsSection } from "@/lib/types/settings";
 import type {
@@ -45,6 +46,7 @@ async function revalidateProfile(userId: string) {
   revalidatePath("/dashboard/effects");
   revalidatePath("/dashboard/themes");
   revalidatePath("/dashboard/custom-theme");
+  revalidatePath("/dashboard/profile-presets");
   revalidatePath("/dashboard/links");
   revalidatePath("/dashboard/profile");
   if (profile?.username) revalidatePath(`/${profile.username}`);
@@ -90,6 +92,7 @@ async function patchProfileSettings(
     .eq("profile_id", userId);
 
   if (error) return { error: formatSchemaError(error.message) };
+  await markProfileAppearanceChanged(userId);
   return {};
 }
 

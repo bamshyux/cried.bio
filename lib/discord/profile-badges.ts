@@ -10,10 +10,17 @@ export const EMPTY_DISCORD_PROFILE_BADGES: DiscordProfileBadges = {
   hypesquad: null,
 };
 
+export type DiscordDisplayNameStyles = {
+  display_name_font_id?: number | null;
+  display_name_effect_id?: number | null;
+  display_name_colors?: number[] | null;
+};
+
 export type DiscordBadgeHints = {
   premiumType?: number | null;
   avatar?: string | null;
   banner?: string | null;
+  displayNameStyles?: DiscordDisplayNameStyles | null;
 };
 
 type LanyardGuildIdentity = {
@@ -43,8 +50,16 @@ export type LanyardDiscordUser = {
   premium_type?: number | null;
   avatar_decoration_data?: LanyardAvatarDecoration | null;
   collectibles?: LanyardCollectibles | null;
+  display_name_styles?: DiscordDisplayNameStyles | null;
   primary_guild?: LanyardGuildIdentity | null;
   clan?: LanyardGuildIdentity | null;
+};
+
+export type NitroSignalInput = {
+  premiumType?: number | null;
+  avatar?: string | null;
+  banner?: string | null;
+  displayNameStyles?: DiscordDisplayNameStyles | null;
 };
 
 export function getGuildTagBadgeUrl(guildId: string, badgeHash: string, size = 32): string {
@@ -94,36 +109,63 @@ function hasProfileBanner(banner: string | null | undefined): boolean {
   return Boolean(banner?.trim());
 }
 
+/** Saved display name styles are a Nitro-only profile feature on Discord. */
+export function hasDisplayNameStyles(
+  styles: DiscordDisplayNameStyles | null | undefined,
+): boolean {
+  if (!styles || typeof styles !== "object") return false;
+
+  const fontId = Number(styles.display_name_font_id ?? 0);
+  const effectId = Number(styles.display_name_effect_id ?? 0);
+  const colors = styles.display_name_colors;
+
+  if (Number.isFinite(fontId) && fontId > 0) return true;
+  if (Number.isFinite(effectId) && effectId > 0) return true;
+  if (Array.isArray(colors) && colors.length > 0) return true;
+  return false;
+}
+
+export function collectNitroSignals(input: NitroSignalInput): NitroSignalInput {
+  return {
+    premiumType: input.premiumType,
+    avatar: input.avatar,
+    banner: input.banner,
+    displayNameStyles: input.displayNameStyles,
+  };
+}
+
+export function collectNitroSignalsFromUser(user: LanyardDiscordUser | null | undefined): NitroSignalInput {
+  if (!user) {
+    return collectNitroSignals({});
+  }
+
+  return collectNitroSignals({
+    premiumType: user.premium_type,
+    avatar: user.avatar,
+    banner: user.banner,
+    displayNameStyles: user.display_name_styles,
+  });
+}
+
 /** Infer a storable premium_type from Discord API or Lanyard-visible signals. */
-export function inferPremiumTypeFromProfileSignals(input: {
-  premiumType?: number | null;
-  avatar?: string | null;
-  banner?: string | null;
-}): number {
+export function inferPremiumTypeFromProfileSignals(input: NitroSignalInput): number {
   if (hasPremiumType(input.premiumType)) return Number(input.premiumType);
   if (hasAnimatedAvatar(input.avatar) || hasProfileBanner(input.banner)) return 2;
+  if (hasDisplayNameStyles(input.displayNameStyles)) return 2;
   return 0;
 }
 
-function hasNitroSignals(input: {
-  premiumType?: number | null;
-  avatar?: string | null;
-  banner?: string | null;
-}): boolean {
+export function hasDiscordNitroFromSignals(input: NitroSignalInput): boolean {
   return inferPremiumTypeFromProfileSignals(input) > 0;
 }
 
 function parseNitro(user: LanyardDiscordUser): boolean {
-  return hasNitroSignals({
-    premiumType: user.premium_type,
-    avatar: user.avatar,
-    banner: user.banner,
-  });
+  return hasDiscordNitroFromSignals(collectNitroSignalsFromUser(user));
 }
 
 export function hasDiscordNitroFromHints(hints: DiscordBadgeHints | null | undefined): boolean {
   if (!hints) return false;
-  return hasNitroSignals(hints);
+  return hasDiscordNitroFromSignals(hints);
 }
 
 export function mergeDiscordProfileBadges(

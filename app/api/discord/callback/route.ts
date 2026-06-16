@@ -80,6 +80,7 @@ export async function GET(request: Request) {
     premiumType: discordUser.premium_type,
     avatar: discordUser.avatar,
     banner: discordUser.banner,
+    displayNameStyles: discordUser.display_name_styles,
   });
   const patch = await omitUnsupportedSettingsColumns({
     widgets_discord_user_id: discordUser.id,

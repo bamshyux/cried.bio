@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidateUserProfile, getAuthenticatedUserId } from "@/lib/actions/auth";
+import { getAuthenticatedUserId } from "@/lib/actions/auth";
+import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
 import { parseEmbedUrl } from "@/lib/embeds/parse";
 import { buildInitialEmbedConfig, enrichRobloxProfileEmbed, mergeEmbedConfig, refreshEmbedMediaConfig } from "@/lib/embeds/enrich";
 import { logActivity } from "@/lib/data/activity";
@@ -36,7 +37,7 @@ export async function createEmbedAction(_prev: EmbedFormState, formData: FormDat
 
   if (error) return { error: error.message };
   await logActivity(userId, "profile_updated", `Added ${parsed.title} embed`);
-  await revalidateUserProfile(userId, ["/dashboard/embeds"]);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/embeds"]);
   return { success: "Embed added." };
 }
 
@@ -66,7 +67,7 @@ export async function updateEmbedConfigAction(embedId: string, config: Partial<E
     .eq("profile_id", userId);
 
   if (error) return { error: error.message };
-  await revalidateUserProfile(userId, ["/dashboard/embeds"]);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/embeds"]);
   return { success: true, config: next };
 }
 
@@ -82,7 +83,7 @@ export async function toggleEmbedAction(embedId: string, visible: boolean) {
     .eq("profile_id", userId);
 
   if (error) return { error: error.message };
-  await revalidateUserProfile(userId, ["/dashboard/embeds"]);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/embeds"]);
   return { success: true };
 }
 
@@ -98,7 +99,7 @@ export async function deleteEmbedAction(embedId: string) {
     .eq("profile_id", userId);
 
   if (error) return { error: error.message };
-  await revalidateUserProfile(userId, ["/dashboard/embeds"]);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/embeds"]);
   return { success: true };
 }
 
@@ -117,6 +118,6 @@ export async function reorderEmbedsAction(ids: string[]) {
     ),
   );
 
-  await revalidateUserProfile(userId, ["/dashboard/embeds"]);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/embeds"]);
   return { success: true };
 }

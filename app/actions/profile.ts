@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUsernameChangeBlockReason } from "@/lib/username-cooldown";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import type { ProfileFormState } from "@/lib/types/profile";
+import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
 import { revalidatePath } from "next/cache";
 
 async function getAuthenticatedUserId() {
@@ -60,10 +61,7 @@ export async function removeProfileImageAction(
   if (error) return { error: error.message };
 
   await deleteStoragePrefix(userId, "profiles", `${type}.`);
-
-  revalidatePath("/dashboard/profile");
-  revalidatePath("/dashboard");
-  if (profile?.username) revalidatePath(`/${profile.username}`);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/profile"]);
 
   return { success: `${type === "avatar" ? "Avatar" : "Banner"} removed.` };
 }
@@ -93,9 +91,7 @@ export async function saveProfileImageAction(
 
   if (error) return { error: error.message };
 
-  revalidatePath("/dashboard/profile");
-  revalidatePath("/dashboard");
-  if (profile?.username) revalidatePath(`/${profile.username}`);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/profile"]);
 
   return { success: `${type === "avatar" ? "Avatar" : "Banner"} updated.` };
 }
@@ -210,6 +206,8 @@ export async function updateProfileAction(
   if (existingProfile?.username && existingProfile.username !== username) {
     revalidatePath(`/${existingProfile.username}`);
   }
+
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/profile"]);
 
   return { success: "Profile saved successfully." };
 }

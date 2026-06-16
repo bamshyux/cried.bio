@@ -6,7 +6,7 @@ import { rejectIfModerated } from "@/lib/moderation/validate";
 import { getPlatform } from "@/lib/social-platforms";
 import type { LinkFormState } from "@/lib/types/link";
 import type { LinkAnimation } from "@/lib/types/settings";
-import { revalidatePath } from "next/cache";
+import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
 
 async function getAuthenticatedUserId() {
   const supabase = await createClient();
@@ -36,18 +36,7 @@ async function ensureProfileRow(userId: string) {
 }
 
 async function revalidateProfilePaths(userId: string) {
-  const supabase = await createClient();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("username")
-    .eq("id", userId)
-    .maybeSingle();
-
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/links");
-  if (profile?.username) {
-    revalidatePath(`/${profile.username}`);
-  }
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/links"]);
 }
 
 function validateLinkInput(title: string, url: string) {

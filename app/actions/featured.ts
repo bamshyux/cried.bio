@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidateUserProfile, getAuthenticatedUserId } from "@/lib/actions/auth";
+import { getAuthenticatedUserId } from "@/lib/actions/auth";
+import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
 import { countFeaturedBlocks } from "@/lib/data/featured";
 import { getPremiumEntitlements } from "@/lib/data/premium";
 import { logActivity } from "@/lib/data/activity";
@@ -105,7 +106,7 @@ export async function createFeaturedBlockAction(
 
   if (error) return { error: error.message };
   await logActivity(userId, "profile_updated", `Added featured block: ${title}`);
-  await revalidateUserProfile(userId, ["/dashboard/featured"]);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/featured"]);
   return { success: "Featured block created." };
 }
 
@@ -135,7 +136,7 @@ export async function updateFeaturedBlockAction(
     .eq("profile_id", userId);
 
   if (error) return { error: error.message };
-  await revalidateUserProfile(userId, ["/dashboard/featured"]);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/featured"]);
   return { success: "Block updated." };
 }
 
@@ -150,7 +151,7 @@ export async function toggleFeaturedBlockAction(blockId: string, enabled: boolea
     .eq("id", blockId)
     .eq("profile_id", userId);
 
-  await revalidateUserProfile(userId, ["/dashboard/featured"]);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/featured"]);
   return { success: true };
 }
 
@@ -160,7 +161,7 @@ export async function deleteFeaturedBlockAction(blockId: string) {
 
   const supabase = await createClient();
   await supabase.from("featured_blocks").delete().eq("id", blockId).eq("profile_id", userId);
-  await revalidateUserProfile(userId, ["/dashboard/featured"]);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/featured"]);
   return { success: true };
 }
 
@@ -179,6 +180,6 @@ export async function reorderFeaturedBlocksAction(ids: string[]) {
     ),
   );
 
-  await revalidateUserProfile(userId, ["/dashboard/featured"]);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/featured"]);
   return { success: true };
 }

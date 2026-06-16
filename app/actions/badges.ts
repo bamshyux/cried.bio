@@ -18,6 +18,7 @@ import { createNotification } from "@/lib/data/notifications";
 import { formatSchemaError } from "@/lib/db/schema";
 import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
 import type { BadgeFormState } from "@/lib/types/badge";
+import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
 import { revalidatePath } from "next/cache";
 
 async function getAuthenticatedUserId() {
@@ -80,7 +81,7 @@ export async function updateBadgeDisplaySettingsAction(
 
   if (error) return { error: formatSchemaError(error.message) };
 
-  await revalidateProfile(userId);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/badges"]);
   return { success: "Badge display settings saved." };
 }
 
@@ -100,7 +101,7 @@ export async function updateProfileBadgeAction(
 
   if (error) return { error: error.message };
 
-  await revalidateProfile(userId);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/badges"]);
   return { success: "Badge updated." };
 }
 
@@ -122,7 +123,7 @@ export async function reorderProfileBadgesAction(
     if (error) return { error: error.message };
   }
 
-  await revalidateProfile(userId);
+  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/badges"]);
   return { success: "Badge order saved." };
 }
 

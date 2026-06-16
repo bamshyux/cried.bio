@@ -27,6 +27,11 @@ type LanyardResponse = {
       public_flags?: number | null;
       flags?: number | null;
       premium_type?: number | null;
+      display_name_styles?: {
+        display_name_font_id?: number | null;
+        display_name_effect_id?: number | null;
+        display_name_colors?: number[] | null;
+      } | null;
       avatar_decoration_data?: {
         asset?: string | null;
         sku_id?: string | null;

@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidateUserProfile, getAuthenticatedUserId } from "@/lib/actions/auth";
+import { getAuthenticatedUserId } from "@/lib/actions/auth";
+import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
 import { rejectIfModerated } from "@/lib/moderation/validate";
 import { DEFAULT_CUSTOM_THEME_CSS } from "@/lib/themes/default-template";
 import { scopeProfileCss } from "@/lib/themes/scope-css";
@@ -61,7 +62,7 @@ export async function createCustomThemeAction(
 
   if (error) return { error: error.message };
 
-  await revalidateUserProfile(userId, REVALIDATE_PATHS);
+  await revalidateAfterProfileAppearanceChange(userId, REVALIDATE_PATHS);
   return { success: "Theme created.", themeId: data.id };
 }
 
@@ -92,7 +93,7 @@ export async function saveCustomThemeAction(
 
   if (error) return { error: error.message };
 
-  await revalidateUserProfile(userId, REVALIDATE_PATHS);
+  await revalidateAfterProfileAppearanceChange(userId, REVALIDATE_PATHS);
   return { success: "Theme saved." };
 }
 
@@ -136,7 +137,7 @@ export async function duplicateCustomThemeAction(themeId: string): Promise<Custo
 
   if (error) return { error: error.message };
 
-  await revalidateUserProfile(userId, REVALIDATE_PATHS);
+  await revalidateAfterProfileAppearanceChange(userId, REVALIDATE_PATHS);
   return { success: "Theme duplicated.", themeId: data.id };
 }
 
@@ -160,7 +161,7 @@ export async function deleteCustomThemeAction(themeId: string): Promise<CustomTh
 
   if (error) return { error: error.message };
 
-  await revalidateUserProfile(userId, REVALIDATE_PATHS);
+  await revalidateAfterProfileAppearanceChange(userId, REVALIDATE_PATHS);
   return { success: "Theme deleted." };
 }
 
@@ -185,7 +186,7 @@ export async function applyCustomThemeAction(themeId: string): Promise<CustomThe
 
   if (error) return { error: error.message };
 
-  await revalidateUserProfile(userId, REVALIDATE_PATHS);
+  await revalidateAfterProfileAppearanceChange(userId, REVALIDATE_PATHS);
   return { success: "Custom theme applied to your profile." };
 }
 
