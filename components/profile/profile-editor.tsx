@@ -8,6 +8,7 @@ import {
   updateProfileAction,
 } from "@/app/actions/profile";
 import { BioStyleEditor } from "@/components/dashboard/bio-style-editor";
+import { getUsernameChangeCooldown, formatUsernameChangeAvailableDate, USERNAME_CHANGE_COOLDOWN_DAYS } from "@/lib/username-cooldown";
 import type { Profile, ProfileFormState } from "@/lib/types/profile";
 import type { ProfileSettings } from "@/lib/types/settings";
 import { uploadProfileImageToStorage } from "@/lib/uploads/profile-client";
@@ -143,6 +144,8 @@ export function ProfileEditor({
 
   const avatarDisplayUrl = avatarPreview ?? profile?.avatar_url ?? null;
   const bannerDisplayUrl = bannerPreview ?? profile?.banner_url ?? null;
+  const usernameCooldown = getUsernameChangeCooldown(profile?.username_changed_at);
+  const usernameLocked = Boolean(profile?.username) && !usernameCooldown.canChange;
 
   return (
     <div className="space-y-6">
@@ -161,11 +164,18 @@ export function ProfileEditor({
               placeholder="yourname"
               pattern="[a-z0-9_]{3,20}"
               className={inputClassName}
+              readOnly={usernameLocked}
             />
           </div>
           <p className="mt-1.5 text-xs text-neutral-500">
-            Lowercase letters, numbers, and underscores only.
+            Lowercase letters, numbers, and underscores only. Usernames can be changed once every{" "}
+            {USERNAME_CHANGE_COOLDOWN_DAYS} days.
           </p>
+          {usernameLocked && usernameCooldown.nextChangeAt ? (
+            <p className="mt-1 text-xs text-amber-400/90">
+              Username locked until {formatUsernameChangeAvailableDate(usernameCooldown.nextChangeAt)}.
+            </p>
+          ) : null}
         </div>
 
         <div>

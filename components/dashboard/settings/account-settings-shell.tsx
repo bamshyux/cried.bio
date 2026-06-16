@@ -26,6 +26,10 @@ import {
 import { MfaSettings } from "./mfa-settings";
 import { SettingRow, SettingsNav, SettingsSection } from "./settings-ui";
 import type { AccountSettingsData, AccountSettingsFormState, SettingsCategory } from "@/lib/types/account-settings";
+import {
+  formatUsernameChangeAvailableDate,
+  USERNAME_CHANGE_COOLDOWN_DAYS,
+} from "@/lib/username-cooldown";
 
 const initial: AccountSettingsFormState = {};
 
@@ -84,7 +88,10 @@ export function AccountSettingsShell({ data }: { data: AccountSettingsData }) {
           {category === "account" ? (
             <>
               <SettingsSection title="Account" description="Your cried.bio identity and login credentials.">
-                <SettingRow label="Username" description="Your public profile URL. 3–20 characters, lowercase.">
+                <SettingRow
+                  label="Username"
+                  description={`Your public profile URL. 3–20 characters, lowercase. Can be changed once every ${USERNAME_CHANGE_COOLDOWN_DAYS} days.`}
+                >
                   <form action={usernameAction} className="space-y-3">
                     <input
                       name="username"
@@ -92,9 +99,20 @@ export function AccountSettingsShell({ data }: { data: AccountSettingsData }) {
                       className={inputClassName}
                       placeholder="username"
                       autoComplete="username"
+                      readOnly={!data.usernameChangeCooldown.canChange}
                     />
+                    {!data.usernameChangeCooldown.canChange && data.usernameChangeCooldown.nextChangeAt ? (
+                      <p className="text-xs text-amber-400/90">
+                        Username locked until{" "}
+                        {formatUsernameChangeAvailableDate(data.usernameChangeCooldown.nextChangeAt)}.
+                      </p>
+                    ) : null}
                     <FormFeedback error={usernameState.error} success={usernameState.success} />
-                    <button type="submit" disabled={usernamePending} className={buttonPrimaryClassName}>
+                    <button
+                      type="submit"
+                      disabled={usernamePending || !data.usernameChangeCooldown.canChange}
+                      className={buttonPrimaryClassName}
+                    >
                       {usernamePending ? "Saving..." : "Save username"}
                     </button>
                   </form>

@@ -9,6 +9,7 @@ import {
   hashRecoveryCode,
   syncPrivacyToProfileSettings,
 } from "@/lib/data/account-settings";
+import { getUsernameChangeBlockReason } from "@/lib/username-cooldown";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import { deliverEmailChangeConfirmation } from "@/lib/auth/deliver-auth-link-email";
 import { buildAuthEmailErrorMessage } from "@/lib/auth/auth-email-shared";
@@ -59,13 +60,27 @@ export async function updateUsernameAction(
 
   const { data: existing } = await auth.supabase
     .from("profiles")
-    .select("username")
+    .select("username, username_changed_at")
     .eq("id", auth.userId)
     .maybeSingle();
 
+  const blockReason = getUsernameChangeBlockReason({
+    currentUsername: existing?.username,
+    nextUsername: username,
+    usernameChangedAt: existing?.username_changed_at,
+  });
+  if (blockReason) return { error: blockReason };
+
+  const usernameChanged =
+    (existing?.username?.trim().toLowerCase() ?? "") !== username.toLowerCase();
+
   const { error } = await auth.supabase
     .from("profiles")
-    .update({ username })
+    .update(
+      usernameChanged
+        ? { username, username_changed_at: new Date().toISOString() }
+        : { username },
+    )
     .eq("id", auth.userId);
 
   if (error) return { error: error.message };

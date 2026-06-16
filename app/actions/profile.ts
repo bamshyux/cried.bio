@@ -3,6 +3,7 @@
 import { sendNewAccountDiscordAlert } from "@/lib/discord/signup-webhook";
 import { rejectIfModerated } from "@/lib/moderation/validate";
 import { createClient } from "@/lib/supabase/server";
+import { getUsernameChangeBlockReason } from "@/lib/username-cooldown";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import type { ProfileFormState } from "@/lib/types/profile";
 import { revalidatePath } from "next/cache";
@@ -140,9 +141,16 @@ export async function updateProfileAction(
 
   const { data: existingProfile } = await supabase
     .from("profiles")
-    .select("username, avatar_url, banner_url")
+    .select("username, avatar_url, banner_url, username_changed_at")
     .eq("id", userId)
     .maybeSingle();
+
+  const blockReason = getUsernameChangeBlockReason({
+    currentUsername: existingProfile?.username,
+    nextUsername: username,
+    usernameChangedAt: existingProfile?.username_changed_at,
+  });
+  if (blockReason) return { error: blockReason };
 
   const { data: usernameTaken } = await supabase
     .from("profiles")
@@ -158,6 +166,9 @@ export async function updateProfileAction(
   let avatarUrl = existingProfile?.avatar_url ?? null;
   let bannerUrl = existingProfile?.banner_url ?? null;
 
+  const usernameChanged =
+    (existingProfile?.username?.trim().toLowerCase() ?? "") !== username.toLowerCase();
+
   const profileData = {
     id: userId,
     username,
@@ -166,6 +177,7 @@ export async function updateProfileAction(
     location,
     avatar_url: avatarUrl,
     banner_url: bannerUrl,
+    ...(usernameChanged ? { username_changed_at: new Date().toISOString() } : {}),
   };
 
   const { error } = existingProfile

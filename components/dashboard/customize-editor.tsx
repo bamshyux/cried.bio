@@ -21,27 +21,8 @@ import {
   getLayoutLabelPlaceholder,
   layoutSupportsCustomLabel,
 } from "@/lib/layout-labels";
-import type { ContentAlignment, ProfileLayout, ProfileSettings } from "@/lib/types/settings";
-
-type CustomizeFormState = {
-  accent_color: string;
-  text_color: string;
-  font_family: string;
-  content_alignment: ContentAlignment;
-  layout_label: string;
-  border_radius: number;
-  profile_opacity: number;
-  profile_blur: number;
-  glassmorphism: boolean;
-  neon_glow: boolean;
-  hide_card_border: boolean;
-  show_view_count: boolean;
-  show_join_date: boolean;
-  profile_parallax: boolean;
-  profile_status: string;
-  profile_status_use_accent: boolean;
-  profile_status_color: string;
-};
+import { CustomizePreview, type CustomizeFormState } from "@/components/dashboard/customize-preview";
+import type { ProfileLayout, ProfileSettings } from "@/lib/types/settings";
 
 function readCustomizeForm(settings: ProfileSettings): CustomizeFormState {
   return {
@@ -81,8 +62,14 @@ export function CustomizeEditor({ settings }: { settings: ProfileSettings }) {
   return (
     <>
       <PageHeader title="Customize" description="Colors, typography, card styling, and profile display options." />
-      <div className={cardClassName}>
-        <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-6">
+
+      <div className="mb-6 lg:hidden">
+        <CustomizePreview settings={settings} form={form} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className={cardClassName}>
+          <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-6">
           <div className="grid gap-5 sm:grid-cols-2">
             <ColorField
               name="accent_color"
@@ -104,6 +91,9 @@ export function CustomizeEditor({ settings }: { settings: ProfileSettings }) {
             onChange={(font_family) => patchForm({ font_family })}
             options={FONT_OPTIONS.map((f) => ({ value: f.value, label: f.label }))}
           />
+          <p className="-mt-3 text-xs text-neutral-600">
+            See the live preview for how this font looks on your profile.
+          </p>
 
           <div>
             <label className={labelClassName}>Text alignment</label>
@@ -261,6 +251,13 @@ export function CustomizeEditor({ settings }: { settings: ProfileSettings }) {
             {isPending ? "Saving..." : "Save customization"}
           </button>
         </form>
+        </div>
+
+        <div className="hidden lg:block">
+          <div className="sticky top-24">
+            <CustomizePreview settings={settings} form={form} />
+          </div>
+        </div>
       </div>
     </>
   );

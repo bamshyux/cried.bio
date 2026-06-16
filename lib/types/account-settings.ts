@@ -1,3 +1,5 @@
+import type { UsernameChangeCooldownInfo } from "@/lib/username-cooldown";
+
 export type ProfileVisibility = "public" | "unlisted" | "private";
 
 export type AccountPreferences = {
@@ -43,6 +45,7 @@ export type MfaRecoveryCodeSummary = {
 export type AccountSettingsData = {
   email: string;
   username: string | null;
+  usernameChangeCooldown: UsernameChangeCooldownInfo;
   preferences: AccountPreferences;
   mfaEnabled: boolean;
   mfaFactorId: string | null;

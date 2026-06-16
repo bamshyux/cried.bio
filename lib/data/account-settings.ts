@@ -1,7 +1,8 @@
 import { createHash } from "crypto";
 import { headers } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
+import { getUsernameChangeCooldown } from "@/lib/username-cooldown";
 import { mergeSettings } from "@/lib/settings";
+import { createClient } from "@/lib/supabase/server";
 import type {
   AccountPreferences,
   AccountSettingsData,
@@ -153,7 +154,7 @@ export async function getAccountSettingsData(userId: string, email: string): Pro
   const [preferences, profile, settingsRow, recoveryCodes, loginHistory, sessions, mfaFactors] =
     await Promise.all([
       getAccountPreferences(userId),
-      supabase.from("profiles").select("username").eq("id", userId).maybeSingle(),
+      supabase.from("profiles").select("username, username_changed_at").eq("id", userId).maybeSingle(),
       supabase.from("profile_settings").select("*").eq("profile_id", userId).maybeSingle(),
       getRecoveryCodeSummary(userId),
       getLoginHistory(userId),
@@ -167,6 +168,7 @@ export async function getAccountSettingsData(userId: string, email: string): Pro
   return {
     email,
     username: profile.data?.username ?? null,
+    usernameChangeCooldown: getUsernameChangeCooldown(profile.data?.username_changed_at),
     preferences,
     mfaEnabled: !!verifiedFactor,
     mfaFactorId: verifiedFactor?.id ?? null,

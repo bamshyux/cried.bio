@@ -10,6 +10,7 @@ export type Profile = {
   view_count?: number;
   premium_tier?: "free" | "premium";
   premium_expires_at?: string | null;
+  username_changed_at?: string | null;
   created_at: string;
   updated_at: string;
 };
