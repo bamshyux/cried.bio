@@ -29,27 +29,27 @@ export function ProfileBadgeIcon({
   featured?: boolean;
   className?: string;
 }) {
-  const isVerified = slug === "verified" && !iconUrl && !monochrome;
+  const hasCustomImage = Boolean(iconUrl?.trim());
+  const isVerified = slug === "verified" && !hasCustomImage;
   const fillColor = monochrome ? "#e4e4e7" : color;
-  const glowColor = isVerified ? VERIFIED_COLOR : fillColor;
   const glowStrength = getBadgeSelfGlowStrength({ hovered, featured });
 
   let icon: ReactNode;
 
-  if (isVerified) {
-    icon = <VerifiedBadgeIcon size={size} />;
-  } else if (iconUrl && !monochrome) {
+  if (hasCustomImage) {
     icon = (
       <img
-        src={iconUrl}
+        src={iconUrl!}
         alt=""
         width={size}
         height={size}
         draggable={false}
-        className={`bf-profile-badge-icon block object-contain ${className}`.trim()}
+        className={`bf-profile-badge-icon bf-profile-badge-icon--photo block object-contain ${className}`.trim()}
         aria-hidden
       />
     );
+  } else if (isVerified) {
+    icon = <VerifiedBadgeIcon size={size} monochrome={monochrome} className={className} />;
   } else {
     icon = (
       <svg
@@ -65,14 +65,16 @@ export function ProfileBadgeIcon({
     );
   }
 
+  const glowColor = isVerified ? VERIFIED_COLOR : fillColor;
+
   return (
     <SelfGlow
-      enabled={glowEnabled}
+      enabled={glowEnabled && !hasCustomImage}
       color={glowColor}
       size={size}
       strength={glowStrength}
-      rounded="full"
-      className={className}
+      rounded={hasCustomImage ? "none" : "full"}
+      className={[hasCustomImage ? "bf-self-glow--natural" : "", className].filter(Boolean).join(" ")}
     >
       {icon}
     </SelfGlow>

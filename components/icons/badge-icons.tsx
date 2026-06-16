@@ -129,25 +129,31 @@ const paths: Record<string, (p: IconProps) => React.ReactNode> = {
   ),
   og: (p) => (
     <Svg {...p}>
+      <rect x="4.1" y="3.2" width="2.1" height="17.2" rx="0.55" fill="currentColor" opacity="0.5" />
+      <circle cx="5.15" cy="3.2" r="1.35" fill="currentColor" />
+      <path d="M6.4 5.8v12.4L20.2 12 6.4 5.8z" fill="currentColor" fillOpacity={p.premium ? 1 : 0.92} />
       <path
-        d="M12 2.8 14.3 9h6.7l-5.4 3.9 2.1 6.4L12 15.2 6.3 19.3l2.1-6.4L3 9h6.7L12 2.8z"
-        fill="currentColor"
-        opacity="0.28"
+        d="M6.4 5.8v12.4L20.2 12 6.4 5.8z"
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity="0.22"
+        strokeWidth="0.75"
+        strokeLinejoin="round"
       />
-      <circle cx="12" cy="12.5" r="7.5" fill="currentColor" fillOpacity={p.premium ? 0.95 : 0.85} />
-      <circle cx="12" cy="12.5" r="6.1" fill="none" stroke="currentColor" strokeWidth="1.1" strokeOpacity="0.35" />
-      <path
+      <path d="M6.4 5.8l6.8 3.4v5.6l-6.8 3.4" fill="currentColor" fillOpacity="0.22" />
+      <text
+        x="12.6"
+        y="13.6"
+        textAnchor="middle"
         fill="currentColor"
-        fillOpacity="0.45"
-        fillRule="evenodd"
-        d="M8.6 12.5a2.65 2.65 0 1 1 5.3 0 2.65 2.65 0 1 1-5.3 0Zm1.15 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0Z"
-      />
-      <path
-        fill="currentColor"
-        fillOpacity="0.45"
-        d="M13.9 10.1a2.65 2.65 0 1 0 0 4.8H16v-1.35h-1.25a1.3 1.3 0 1 1 0-2.1H16v-1.35h-2.1z"
-      />
-      <path d="M8.5 9.2a4.8 4.8 0 0 1 7 0" fill="none" stroke="currentColor" strokeWidth="0.9" strokeOpacity="0.35" />
+        fillOpacity="0.55"
+        fontSize="7.2"
+        fontWeight="900"
+        fontFamily="Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif"
+        letterSpacing="-0.35"
+      >
+        OG
+      </text>
     </Svg>
   ),
   "year-one": (p) => (
@@ -281,28 +287,6 @@ export function BadgeIcon({
   premium?: boolean;
 }) {
   const glyphClass = sharp ? `bf-badge-glyph ${className}`.trim() : className;
-
-  if (iconUrl && monochrome) {
-    return (
-      <span
-        className={`inline-block shrink-0 ${glyphClass}`}
-        style={{
-          width: size,
-          height: size,
-          backgroundColor: color,
-          WebkitMaskImage: `url(${iconUrl})`,
-          WebkitMaskSize: "contain",
-          WebkitMaskRepeat: "no-repeat",
-          WebkitMaskPosition: "center",
-          maskImage: `url(${iconUrl})`,
-          maskSize: "contain",
-          maskRepeat: "no-repeat",
-          maskPosition: "center",
-        }}
-        aria-hidden
-      />
-    );
-  }
 
   if (iconUrl) {
     return (

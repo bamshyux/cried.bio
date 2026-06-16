@@ -17,37 +17,47 @@ function buildScallopPath(cx: number, cy: number, outerR: number, innerR: number
 }
 
 export function VerifiedBadgeIcon({
-  size = 20,
+  size = 22,
+  monochrome = false,
   className = "",
 }: {
   size?: number;
+  monochrome?: boolean;
   className?: string;
 }) {
   const uid = useId().replace(/:/g, "");
   const gradId = `bf-verified-grad-${uid}`;
-  const shape = buildScallopPath(24, 24, 22.2, 19.4, 12);
+  const shape = buildScallopPath(12, 12, 11.1, 9.65, 12);
 
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 48 48"
+      viewBox="0 0 24 24"
       fill="none"
       className={`bf-verified-badge ${className}`.trim()}
       aria-hidden
     >
-      <defs>
-        <linearGradient id={gradId} x1="8%" y1="6%" x2="92%" y2="94%">
-          <stop offset="0%" stopColor="#5CC4FF" />
-          <stop offset="38%" stopColor="#1D9BF0" />
-          <stop offset="100%" stopColor="#1574B8" />
-        </linearGradient>
-      </defs>
-      <path d={shape} fill={`url(#${gradId})`} />
+      {!monochrome && (
+        <defs>
+          <linearGradient id={gradId} x1="8%" y1="6%" x2="92%" y2="94%">
+            <stop offset="0%" stopColor="#5CC4FF" />
+            <stop offset="38%" stopColor="#1D9BF0" />
+            <stop offset="100%" stopColor="#1574B8" />
+          </linearGradient>
+        </defs>
+      )}
       <path
-        d="M17.2 24.4 21.6 28.8 31.2 18.6"
-        stroke="#ffffff"
-        strokeWidth="3.4"
+        d={shape}
+        fill={monochrome ? "#d4d4d8" : `url(#${gradId})`}
+        stroke={monochrome ? "#52525b" : "#0b4f86"}
+        strokeWidth="1.1"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8.6 12.2 10.8 14.4 15.6 9.3"
+        stroke={monochrome ? "#18181b" : "#ffffff"}
+        strokeWidth="1.85"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

@@ -106,47 +106,40 @@ function GuestbookWhisper({ entry, isOwner }: { entry: GuestbookEntry; isOwner: 
       className={`bf-guestbook__entry${entry.is_pinned ? " bf-guestbook__entry--pinned" : ""}`}
       aria-label={entry.is_pinned ? "Profile pinned this" : undefined}
     >
-      {entry.is_pinned && !isOwner ? (
-        <span className="bf-guestbook__pin-badge" aria-hidden>
-          <PinIcon filled />
-        </span>
-      ) : null}
-      <span className="bf-guestbook__quote">&ldquo;{entry.message}&rdquo;</span>
-      <span className="bf-guestbook__by">{handle}</span>
-      {isOwner ? (
-        <button
-          type="button"
-          onClick={togglePin}
-          disabled={isPending}
-          className={`bf-guestbook__pin-action${entry.is_pinned ? " bf-guestbook__pin-action--active" : ""}`}
-          title={entry.is_pinned ? "Unpin message" : "Pin message"}
-          aria-label={entry.is_pinned ? "Unpin message" : "Pin message"}
-        >
-          <PinIcon filled={entry.is_pinned} />
-        </button>
-      ) : null}
+      <div className="bf-guestbook__entry-row">
+        {entry.is_pinned && !isOwner ? (
+          <span className="bf-guestbook__pin-badge" aria-hidden>
+            <PinIcon filled />
+          </span>
+        ) : null}
+        <span className="bf-guestbook__quote">&ldquo;{entry.message}&rdquo;</span>
+        <span className="bf-guestbook__by">{handle}</span>
+        {isOwner ? (
+          <button
+            type="button"
+            onClick={togglePin}
+            disabled={isPending}
+            className={`bf-guestbook__pin-action${entry.is_pinned ? " bf-guestbook__pin-action--active" : ""}`}
+            title={entry.is_pinned ? "Unpin message" : "Pin message"}
+            aria-label={entry.is_pinned ? "Unpin message" : "Pin message"}
+          >
+            <PinIcon filled={entry.is_pinned} />
+          </button>
+        ) : null}
+      </div>
     </li>
   );
 }
 
 function PinIcon({ filled = false }: { filled?: boolean }) {
   return (
-    <svg
-      width="11"
-      height="11"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M12 17v5" />
+    <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden>
       <path
-        d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3.76z"
+        d="M8 1.25a3.75 3.75 0 0 0-3.75 3.75c0 2.75 3.75 8.5 3.75 8.5s3.75-5.75 3.75-8.5A3.75 3.75 0 0 0 8 1.25Zm0 5.25a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"
         fill={filled ? "currentColor" : "none"}
-        stroke={filled ? "none" : "currentColor"}
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinejoin="round"
       />
     </svg>
   );
