@@ -19,11 +19,11 @@ const PATTERNS: { type: EmbedType; regex: RegExp; title: string }[] = [
   { type: "discord", regex: /discord(?:\.gg|(?:app)?\.com\/invite)\/([\w-]+)/i, title: "Discord Server" },
 ];
 
-function spotifyTheme(config?: Pick<EmbedConfig, "theme">) {
+function spotifyTheme(config?: Partial<EmbedConfig>) {
   return config?.theme === "light" ? "0" : "0";
 }
 
-function soundcloudColor(config?: Pick<EmbedConfig, "accent_color" | "theme">) {
+function soundcloudColor(config?: Partial<EmbedConfig>) {
   if (config?.accent_color) {
     return encodeURIComponent(config.accent_color.replace("#", "%23"));
   }
