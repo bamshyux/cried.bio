@@ -114,6 +114,20 @@ export async function recordProfileView(
   return recordViaRpc(profileId, hash, countryLabel);
 }
 
+async function countAnalyticsProfileViews(profileId: string): Promise<number | null> {
+  const admin = createAdminClient();
+  if (!admin) return null;
+
+  const { count, error } = await admin
+    .from("analytics_events")
+    .select("*", { count: "exact", head: true })
+    .eq("profile_id", profileId)
+    .eq("event_type", "profile_view");
+
+  if (error) return null;
+  return count ?? 0;
+}
+
 export async function readPublicViewCount(profileId: string): Promise<number> {
   const supabase = await createClient();
 
@@ -128,6 +142,22 @@ export async function readPublicViewCount(profileId: string): Promise<number> {
     return BAM_FROZEN_VIEW_COUNT;
   }
 
+  const { data, error } = await supabase.rpc("get_public_profile_view_count", {
+    p_profile_id: profileId,
+  });
+
+  if (!error && data != null) {
+    const rpcCount = Number(data);
+    if (Number.isFinite(rpcCount)) {
+      return rpcCount;
+    }
+  }
+
+  const analyticsCount = await countAnalyticsProfileViews(profileId);
+  if (analyticsCount != null) {
+    return analyticsCount;
+  }
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("view_count")
@@ -136,26 +166,10 @@ export async function readPublicViewCount(profileId: string): Promise<number> {
     .maybeSingle();
 
   if (profile?.view_count != null) {
-    return Number(profile.view_count) || 0;
-  }
-
-  const { data, error } = await supabase.rpc("get_public_profile_view_count", {
-    p_profile_id: profileId,
-  });
-
-  if (!error && data != null) {
-    return Number(data) || 0;
-  }
-
-  const admin = createAdminClient();
-  if (admin) {
-    const { count } = await admin
-      .from("analytics_events")
-      .select("*", { count: "exact", head: true })
-      .eq("profile_id", profileId)
-      .eq("event_type", "profile_view");
-
-    return count ?? 0;
+    const stored = Number(profile.view_count);
+    if (Number.isFinite(stored)) {
+      return stored;
+    }
   }
 
   return 0;

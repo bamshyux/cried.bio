@@ -14,7 +14,6 @@ import { HomeOurUsers, HomeStatsSection } from "@/components/home/home-our-users
 import { HomePreview } from "@/components/home/home-preview";
 import { HomeRoadmap } from "@/components/home/home-roadmap";
 import { HomeTestimonials } from "@/components/home/home-testimonials";
-import { HomeThemeMarketplace } from "@/components/home/home-theme-marketplace";
 import { HomeWhyChoose } from "@/components/home/home-why-choose";
 import {
   getFeaturedProfiles,
@@ -24,7 +23,6 @@ import {
   getLandingStats,
   getLandingTestimonials,
   getRandomPublicProfiles,
-  getThemeMarketplacePreview,
 } from "@/lib/data/landing";
 import { getProfileByUserId } from "@/lib/data/profiles";
 import { createClient } from "@/lib/supabase/server";
@@ -50,7 +48,6 @@ export default async function Home() {
     activityFeed,
     testimonials,
     roadmap,
-    themePreviews,
     floatingProfiles,
   ] = await Promise.all([
     getLandingStats(),
@@ -59,7 +56,6 @@ export default async function Home() {
     getLandingActivityFeed(20),
     getLandingTestimonials(),
     getLandingRoadmap(),
-    getThemeMarketplacePreview(),
     getFloatingProfileCards(6),
   ]);
 
@@ -130,7 +126,6 @@ export default async function Home() {
         <HomeFeaturedProfiles profiles={featuredProfiles} />
         <HomeOurUsers profiles={randomProfiles} totalUsers={stats.total_users} />
         <HomeWhyChoose />
-        <HomeThemeMarketplace themes={themePreviews} />
         <HomeRoadmap items={roadmap} />
         <HomeTestimonials testimonials={testimonials} />
       </main>

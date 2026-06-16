@@ -107,6 +107,9 @@ export function ProfileMeta({
   const showLocation = location.length > 0;
   const showJoin = settings.show_join_date;
   const showStatsRow = showViews || showLocation;
+  const formattedViewCount = Number.isFinite(viewCount)
+    ? Math.max(0, Math.floor(viewCount)).toLocaleString()
+    : "0";
 
   return (
     <div
@@ -117,7 +120,7 @@ export function ProfileMeta({
           {showViews && (
             <span className="inline-flex items-center gap-1.5">
               <ProfileStatEyeIcon className="shrink-0 opacity-80" />
-              <span className="tabular-nums text-neutral-300">{viewCount.toLocaleString()}</span>
+              <span className="tabular-nums text-neutral-300">{formattedViewCount}</span>
             </span>
           )}
           {showViews && showLocation && (

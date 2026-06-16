@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { getActivityTypeLabel } from "@/lib/discord/activity-images";
+import { getActivityTypeLabel, pickActivityImageUrl } from "@/lib/discord/activity-images";
 import { resolveDiscordCardAppearance } from "@/lib/discord/card-appearance";
 import { configFromProfileSettings } from "@/lib/discord/card-config";
 import { getDiscordStatusColor, getDiscordStatusLabel } from "@/lib/discord/status-colors";
@@ -132,7 +132,7 @@ function renderActivity(
       title={activity.name}
       line1={activity.details}
       line2={activity.state}
-      imageUrl={activity.largeImageUrl ?? activity.smallImageUrl}
+      imageUrl={pickActivityImageUrl(activity)}
       {...props}
     />
   );

@@ -1,5 +1,6 @@
 import { getDiscordAvatarUrl } from "@/lib/discord/config";
-import { resolveActivityAssetUrl } from "@/lib/discord/activity-images";
+import { pickActivityImageUrl, resolveActivityAssetUrl } from "@/lib/discord/activity-images";
+import { resolveDetectableGameIconUrl } from "@/lib/discord/detectable-apps";
 import type { DiscordActivity, DiscordPresence, DiscordPresenceStatus } from "@/lib/discord/types";
 
 type LanyardActivity = {
@@ -39,10 +40,10 @@ function normalizeStatus(raw?: string): DiscordPresenceStatus {
   return "offline";
 }
 
-function mapActivity(activity: LanyardActivity): DiscordActivity | null {
+async function mapActivity(activity: LanyardActivity): Promise<DiscordActivity | null> {
   if (!activity?.name) return null;
   const applicationId = activity.application_id ?? null;
-  return {
+  const mapped: DiscordActivity = {
     name: activity.name,
     details: activity.details ?? undefined,
     state: activity.state ?? undefined,
@@ -51,9 +52,18 @@ function mapActivity(activity: LanyardActivity): DiscordActivity | null {
     largeImageUrl: resolveActivityAssetUrl(activity.assets?.large_image, applicationId),
     smallImageUrl: resolveActivityAssetUrl(activity.assets?.small_image, applicationId),
   };
+
+  if (!pickActivityImageUrl(mapped)) {
+    const gameIcon = await resolveDetectableGameIconUrl(applicationId, activity.name);
+    if (gameIcon) {
+      mapped.largeImageUrl = gameIcon;
+    }
+  }
+
+  return mapped;
 }
 
-function pickActivity(activities?: LanyardActivity[]): DiscordActivity | null {
+async function pickActivity(activities?: LanyardActivity[]): Promise<DiscordActivity | null> {
   if (!activities?.length) return null;
   const custom = activities.find((a) => a.type === 4 && a.name);
   const playing = activities.find((a) => a.name && a.type !== 4 && a.type !== 2);
@@ -101,7 +111,7 @@ export async function fetchLanyardPresence(discordUserId: string): Promise<Disco
     username: user.username,
     avatarUrl: getDiscordAvatarUrl(user.id, user.avatar),
     status: normalizeStatus(data.discord_status),
-    activity: pickActivity(data.activities),
+    activity: await pickActivity(data.activities),
     spotify: spotify?.song
       ? {
           song: spotify.song,
