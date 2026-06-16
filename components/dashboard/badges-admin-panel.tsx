@@ -35,7 +35,9 @@ export function BadgesAdminPanel({ catalog }: { catalog: Badge[] }) {
   const [assignState, assignAction, assignPending] = useActionState(assignBadgeByUsernameAction, initial);
   const [createState, createAction, createPending] = useActionState(createCustomBadgeAction, initial);
 
-  const assignableBadges = catalog.filter((b) => b.is_assignable);
+  const assignableBadges = catalog.filter(
+    (b) => b.is_assignable && b.category !== "custom",
+  );
 
   const refreshLookup = (targetUsername: string) => {
     startLookup(async () => {
@@ -80,6 +82,9 @@ export function BadgesAdminPanel({ catalog }: { catalog: Badge[] }) {
   useEffect(() => {
     if (!createState.success) return;
     router.refresh();
+    const target = username.trim();
+    if (target) refreshLookup(target);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createState.success, router]);
 
   return (
@@ -180,9 +185,29 @@ export function BadgesAdminPanel({ catalog }: { catalog: Badge[] }) {
 
         <details className="rounded-lg border border-white/[0.06] bg-[#0f0f0f] p-4">
           <summary className="cursor-pointer text-xs font-medium uppercase tracking-wider text-neutral-500">
-            Create custom badge
+            Create custom badge for a user
           </summary>
-          <form action={createAction} encType="multipart/form-data" className="mt-4 space-y-3">
+          <p className="mt-3 text-xs text-neutral-600">
+            Custom badges are created for one person only — they are assigned immediately and
+            do not appear in the badge list above.
+          </p>
+          <form
+            key={lookupProfile?.username ?? "standalone"}
+            action={createAction}
+            encType="multipart/form-data"
+            className="mt-4 space-y-3"
+          >
+            <div>
+              <label htmlFor="custom-badge-username" className={labelClassName}>Username</label>
+              <input
+                id="custom-badge-username"
+                name="username"
+                required
+                className={inputClassName}
+                placeholder="bamshy"
+                defaultValue={lookupProfile?.username ?? ""}
+              />
+            </div>
             <div>
               <label htmlFor="badge-name" className={labelClassName}>Name</label>
               <input id="badge-name" name="name" required className={inputClassName} placeholder="VIP Member" />
@@ -221,7 +246,7 @@ export function BadgesAdminPanel({ catalog }: { catalog: Badge[] }) {
             </div>
             <FormFeedback error={createState.error} success={createState.success} />
             <button type="submit" disabled={createPending} className={buttonSecondaryClassName}>
-              {createPending ? "Creating..." : "Create badge"}
+              {createPending ? "Creating..." : "Create & assign badge"}
             </button>
           </form>
         </details>

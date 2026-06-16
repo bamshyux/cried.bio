@@ -96,6 +96,7 @@ export async function getBadgeInventory(profileId: string): Promise<BadgeInvento
 
   return catalog
     .filter((badge) => showFounderBadge || badge.slug !== FOUNDER_BADGE_SLUG)
+    .filter((badge) => badge.category !== "custom" || earnedMap.has(badge.id))
     .map((badge) => {
     const owned = earnedMap.get(badge.id);
     return {

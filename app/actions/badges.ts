@@ -308,11 +308,13 @@ export async function createCustomBadgeAction(
   if (!userId) return { error: "You must be logged in." };
   if (!(await isAdmin(userId))) return { error: "Admin access required." };
 
+  const username = String(formData.get("username") ?? "").trim().toLowerCase();
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const color = String(formData.get("color") ?? "#fafafa").trim();
   const rarity = String(formData.get("rarity") ?? "rare");
 
+  if (!username) return { error: "Username is required." };
   if (!name) return { error: "Badge name is required." };
 
   const iconFile = formData.get("icon_image");
@@ -321,6 +323,15 @@ export async function createCustomBadgeAction(
   }
 
   const supabase = await createClient();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, username")
+    .eq("username", username)
+    .maybeSingle();
+
+  if (!profile) return { error: "User not found." };
+
   const slug = await resolveUniqueBadgeSlug(supabase, name);
 
   let iconUrl: string | null = null;
@@ -332,26 +343,57 @@ export async function createCustomBadgeAction(
     };
   }
 
-  const { error } = await supabase.from("badges").insert({
-    slug,
-    name,
-    icon: slug,
-    icon_url: iconUrl,
-    color,
-    description,
-    category: "custom",
-    rarity,
-    is_system: false,
-    is_assignable: true,
-  });
+  const { data: badge, error } = await supabase
+    .from("badges")
+    .insert({
+      slug,
+      name,
+      icon: slug,
+      icon_url: iconUrl,
+      color,
+      description,
+      category: "custom",
+      rarity,
+      is_system: false,
+      is_assignable: false,
+    })
+    .select("id, slug, name, description")
+    .single();
 
   if (error) {
     if (error.code === "23505") return { error: "Badge slug already exists." };
     return { error: error.message };
   }
 
+  const { error: assignError } = await supabase.from("profile_badges").insert({
+    profile_id: profile.id,
+    badge_id: badge.id,
+    assigned_by: userId,
+    award_source: "manual",
+  });
+
+  if (assignError) {
+    if (assignError.code === "23505") {
+      return { error: "That user already has this badge." };
+    }
+    return { error: assignError.message };
+  }
+
+  await createNotification({
+    userId: profile.id,
+    type: "badge_earned",
+    title: `You earned the ${badge.name} badge`,
+    body: badge.description ?? "",
+    data: { badge_name: badge.name, badge_slug: badge.slug },
+  });
+
   revalidatePath("/dashboard/badges");
-  return { success: `Custom badge "${name}" created.` };
+  revalidatePath("/dashboard/admin/badges");
+  if (profile.username) revalidatePath(`/${profile.username}`);
+
+  return {
+    success: `Custom badge "${name}" created and assigned to @${profile.username}.`,
+  };
 }
 
 /** Auto-award analytics milestone badges (idempotent) */
