@@ -22,6 +22,7 @@ import type {
   ProfileSettings,
 } from "@/lib/types/settings";
 import { revalidatePath } from "next/cache";
+import { revalidateProfileOg } from "@/lib/og/revalidate";
 
 async function getAuthenticatedUserId() {
   const supabase = await createClient();
@@ -49,7 +50,10 @@ async function revalidateProfile(userId: string) {
   revalidatePath("/dashboard/profile-presets");
   revalidatePath("/dashboard/links");
   revalidatePath("/dashboard/profile");
-  if (profile?.username) revalidatePath(`/${profile.username}`);
+  if (profile?.username) {
+    revalidatePath(`/${profile.username}`);
+    revalidateProfileOg(profile.username);
+  }
 }
 
 async function getExistingSettings(userId: string): Promise<ProfileSettings> {

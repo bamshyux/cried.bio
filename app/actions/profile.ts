@@ -7,6 +7,7 @@ import { getUsernameChangeBlockReason } from "@/lib/username-cooldown";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import type { ProfileFormState } from "@/lib/types/profile";
 import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
+import { revalidateProfileOg } from "@/lib/og/revalidate";
 import { revalidatePath } from "next/cache";
 
 async function getAuthenticatedUserId() {
@@ -205,6 +206,7 @@ export async function updateProfileAction(
 
   if (existingProfile?.username && existingProfile.username !== username) {
     revalidatePath(`/${existingProfile.username}`);
+    revalidateProfileOg(existingProfile.username);
   }
 
   await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/profile"]);

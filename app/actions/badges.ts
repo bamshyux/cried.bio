@@ -20,6 +20,7 @@ import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
 import type { BadgeFormState } from "@/lib/types/badge";
 import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
 import { revalidatePath } from "next/cache";
+import { revalidateProfileOg } from "@/lib/og/revalidate";
 
 async function getAuthenticatedUserId() {
   const supabase = await createClient();
@@ -38,7 +39,10 @@ async function revalidateProfile(userId: string) {
 
   revalidatePath("/dashboard/badges");
   revalidatePath("/dashboard", "layout");
-  if (profile?.username) revalidatePath(`/${profile.username}`);
+  if (profile?.username) {
+    revalidatePath(`/${profile.username}`);
+    revalidateProfileOg(profile.username);
+  }
 }
 
 async function isAdmin(userId: string) {

@@ -27,6 +27,8 @@ import { parsePresetData } from "@/lib/profile-presets/snapshot";
 import { PublicProfileView } from "@/components/profile/public-profile";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
+import { buildProfileOgMetadata } from "@/lib/og/build-metadata";
+import { getOgProfileSnapshot } from "@/lib/og/profile-data";
 import type { Metadata } from "next";
 import type { Profile } from "@/lib/types/profile";
 import type { ProfileBadge } from "@/lib/types/badge";
@@ -42,17 +44,11 @@ type PageProps = {
 
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const [{ username }, query] = await Promise.all([params, searchParams]);
-  const profile = await getProfileByUsername(username);
-  if (!profile) return { title: "Profile Not Found — cried.bio" };
-  const displayName = profile.display_name || profile.username;
-  const isPreview = Boolean(query.previewPreset);
-  return {
-    title: isPreview
-      ? `Preview — ${displayName} — cried.bio`
-      : `${displayName} — cried.bio`,
-    description: profile.bio || `${displayName}'s cried.bio profile`,
-    robots: isPreview ? { index: false, follow: false } : undefined,
-  };
+  const snapshot = await getOgProfileSnapshot(username);
+  if (!snapshot) return { title: "Profile Not Found — cried.bio" };
+  return buildProfileOgMetadata(snapshot, {
+    preview: Boolean(query.previewPreset),
+  });
 }
 
 export default async function UsernamePage({ params, searchParams }: PageProps) {

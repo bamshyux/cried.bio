@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateProfileOg } from "@/lib/og/revalidate";
 
 export async function revalidateUserProfile(userId: string, extraPaths: string[] = []) {
   const supabase = await createClient();
@@ -13,7 +14,10 @@ export async function revalidateUserProfile(userId: string, extraPaths: string[]
 
   revalidatePath("/dashboard", "layout");
   for (const path of extraPaths) revalidatePath(path);
-  if (profile?.username) revalidatePath(`/${profile.username}`);
+  if (profile?.username) {
+    revalidatePath(`/${profile.username}`);
+    revalidateProfileOg(profile.username);
+  }
 }
 
 export async function getAuthenticatedUserId() {
