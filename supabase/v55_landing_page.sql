@@ -105,8 +105,22 @@ as $$
     'total_users', (select count(*)::int from public.profiles),
     'total_profiles', (select count(*)::int from public.profiles where username is not null),
     'total_profile_views', coalesce(
-      nullif((select sum(view_count)::bigint from public.profiles where username is not null), 0),
-      (select count(*)::bigint from public.analytics_events where event_type = 'profile_view'),
+      nullif(
+        (
+          select sum(view_count)::bigint
+          from public.profiles
+          where username is not null
+            and coalesce(uid, -1) <> 1
+        ),
+        0
+      ),
+      (
+        select count(*)::bigint
+        from public.analytics_events ae
+        inner join public.profiles p on p.id = ae.profile_id
+        where ae.event_type = 'profile_view'
+          and coalesce(p.uid, -1) <> 1
+      ),
       0::bigint
     ),
     'total_guestbook_posts', (select count(*)::int from public.guestbook_entries),

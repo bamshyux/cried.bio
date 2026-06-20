@@ -73,6 +73,35 @@ function extractPresetSettings(settings: ProfileSettings): Record<string, unknow
   return { ...result, ...background };
 }
 
+export type CapturePresetOptions = {
+  /** Omit username, bio, links, and badges — shareable style/template only */
+  styleOnly?: boolean;
+};
+
+export type ApplyPresetOptions = {
+  /** Keep the installer's display name, bio, links, and badge visibility */
+  preservePersonalContent?: boolean;
+};
+
+function finalizeStylePresetSnapshot(data: ProfilePresetData): ProfilePresetData {
+  return {
+    ...data,
+    profile: {
+      display_name: "",
+      bio: "",
+      avatar_url: data.profile.avatar_url,
+      banner_url: data.profile.banner_url,
+    },
+    links: [],
+    profileBadges: [],
+    featuredLinkIndex: null,
+    settings: {
+      ...data.settings,
+      featured_link_id: null,
+    },
+  };
+}
+
 function resolveFeaturedLinkIndex(
   links: Awaited<ReturnType<typeof getLinksByProfileId>>,
   featuredLinkId: string | null,
@@ -82,7 +111,10 @@ function resolveFeaturedLinkIndex(
   return index >= 0 ? index : null;
 }
 
-export async function captureProfilePresetSnapshot(userId: string): Promise<ProfilePresetData> {
+export async function captureProfilePresetSnapshot(
+  userId: string,
+  options?: CapturePresetOptions,
+): Promise<ProfilePresetData> {
   const [profile, settings, backgroundColumns, links, embeds, featuredBlocks, profileBadges, discordWidget] =
     await Promise.all([
       getProfileByUserId(userId),
@@ -123,7 +155,7 @@ export async function captureProfilePresetSnapshot(userId: string): Promise<Prof
         }
       : null;
 
-  return {
+  const snapshot: ProfilePresetData = {
     version: 1 satisfies typeof PRESET_DATA_VERSION,
     profile: {
       display_name: profile?.display_name ?? "",
@@ -171,6 +203,8 @@ export async function captureProfilePresetSnapshot(userId: string): Promise<Prof
     customTheme,
     featuredLinkIndex: resolveFeaturedLinkIndex(links, settingsForPreset.featured_link_id),
   };
+
+  return options?.styleOnly ? finalizeStylePresetSnapshot(snapshot) : snapshot;
 }
 
 export function resolvePresetThumbnailUrl(data: ProfilePresetData): string | null {
@@ -253,11 +287,22 @@ async function resolveCustomThemeId(
 export async function applyProfilePresetSnapshot(
   userId: string,
   rawData: unknown,
+  options?: ApplyPresetOptions,
 ): Promise<{ error?: string }> {
   const data = parsePresetData(rawData);
   if (!data) return { error: "Invalid preset data." };
 
   const supabase = await createClient();
+  const preservePersonal = options?.preservePersonalContent === true;
+
+  const { data: currentProfile } = preservePersonal
+    ? await supabase
+        .from("profiles")
+        .select("display_name, bio")
+        .eq("id", userId)
+        .maybeSingle()
+    : { data: null };
+
   const customThemeId = await resolveCustomThemeId(userId, data);
 
   const normalizedBackground = normalizePresetBackgroundSettings(data.settings);
@@ -281,8 +326,10 @@ export async function applyProfilePresetSnapshot(
   const { error: profileError } = await supabase
     .from("profiles")
     .update({
-      display_name: data.profile.display_name,
-      bio: data.profile.bio,
+      display_name: preservePersonal
+        ? (currentProfile?.display_name ?? data.profile.display_name)
+        : data.profile.display_name,
+      bio: preservePersonal ? (currentProfile?.bio ?? data.profile.bio) : data.profile.bio,
       avatar_url: data.profile.avatar_url,
       banner_url: data.profile.banner_url,
     })
@@ -297,56 +344,58 @@ export async function applyProfilePresetSnapshot(
 
   if (settingsError) return { error: formatSchemaError(settingsError.message) };
 
-  await supabase.from("links").delete().eq("profile_id", userId);
+  if (!preservePersonal) {
+    await supabase.from("links").delete().eq("profile_id", userId);
 
-  let featuredLinkId: string | null = null;
-  const sortedLinks = [...data.links].sort((a, b) => a.sort_order - b.sort_order);
-  if (sortedLinks.length > 0) {
-    const { data: insertedLinks, error: linksError } = await supabase
-      .from("links")
-      .insert(
-        sortedLinks.map((link, index) => ({
-          profile_id: userId,
-          title: link.title,
-          url: link.url,
-          icon: link.icon,
-          color: link.color,
-          background_color: link.background_color,
-          animation: link.animation,
-          is_featured: link.is_featured,
-          sort_order: index,
-        })),
-      )
-      .select("id");
+    let featuredLinkId: string | null = null;
+    const sortedLinks = [...data.links].sort((a, b) => a.sort_order - b.sort_order);
+    if (sortedLinks.length > 0) {
+      const { data: insertedLinks, error: linksError } = await supabase
+        .from("links")
+        .insert(
+          sortedLinks.map((link, index) => ({
+            profile_id: userId,
+            title: link.title,
+            url: link.url,
+            icon: link.icon,
+            color: link.color,
+            background_color: link.background_color,
+            animation: link.animation,
+            is_featured: link.is_featured,
+            sort_order: index,
+          })),
+        )
+        .select("id");
 
-    if (linksError) return { error: formatSchemaError(linksError.message) };
+      if (linksError) return { error: formatSchemaError(linksError.message) };
 
-    if (
-      insertedLinks &&
-      data.featuredLinkIndex != null &&
-      data.featuredLinkIndex >= 0 &&
-      data.featuredLinkIndex < insertedLinks.length
-    ) {
-      featuredLinkId = insertedLinks[data.featuredLinkIndex].id as string;
+      if (
+        insertedLinks &&
+        data.featuredLinkIndex != null &&
+        data.featuredLinkIndex >= 0 &&
+        data.featuredLinkIndex < insertedLinks.length
+      ) {
+        featuredLinkId = insertedLinks[data.featuredLinkIndex].id as string;
+      } else {
+        const featuredIndex = sortedLinks.findIndex((link) => link.is_featured);
+        featuredLinkId =
+          featuredIndex >= 0 && insertedLinks?.[featuredIndex]
+            ? (insertedLinks[featuredIndex].id as string)
+            : null;
+      }
+
+      if (featuredLinkId) {
+        await supabase
+          .from("profile_settings")
+          .update({ featured_link_id: featuredLinkId })
+          .eq("profile_id", userId);
+      }
     } else {
-      const featuredIndex = sortedLinks.findIndex((link) => link.is_featured);
-      featuredLinkId =
-        featuredIndex >= 0 && insertedLinks?.[featuredIndex]
-          ? (insertedLinks[featuredIndex].id as string)
-          : null;
-    }
-
-    if (featuredLinkId) {
       await supabase
         .from("profile_settings")
-        .update({ featured_link_id: featuredLinkId })
+        .update({ featured_link_id: null })
         .eq("profile_id", userId);
     }
-  } else {
-    await supabase
-      .from("profile_settings")
-      .update({ featured_link_id: null })
-      .eq("profile_id", userId);
   }
 
   await supabase.from("profile_embeds").delete().eq("profile_id", userId);
@@ -384,16 +433,18 @@ export async function applyProfilePresetSnapshot(
     if (featuredError) return { error: featuredError.message };
   }
 
-  for (const badge of data.profileBadges) {
-    await supabase
-      .from("profile_badges")
-      .update({
-        is_visible: badge.is_visible,
-        is_featured: badge.is_featured,
-        sort_order: badge.sort_order,
-      })
-      .eq("profile_id", userId)
-      .eq("badge_id", badge.badge_id);
+  if (!preservePersonal) {
+    for (const badge of data.profileBadges) {
+      await supabase
+        .from("profile_badges")
+        .update({
+          is_visible: badge.is_visible,
+          is_featured: badge.is_featured,
+          sort_order: badge.sort_order,
+        })
+        .eq("profile_id", userId)
+        .eq("badge_id", badge.badge_id);
+    }
   }
 
   if (data.discordWidget) {

@@ -56,7 +56,7 @@ export async function saveCurrentProfilePresetAction(name: string): Promise<Prof
     return { error: `Maximum ${MAX_PROFILE_PRESETS} presets allowed.` };
   }
 
-  const presetData = await captureProfilePresetSnapshot(userId);
+  const presetData = await captureProfilePresetSnapshot(userId, { styleOnly: true });
   const thumbnailUrl = resolvePresetThumbnailUrl(presetData);
 
   const { data, error } = await supabase
@@ -93,7 +93,7 @@ export async function quickSaveActivePresetAction(): Promise<ProfilePresetFormSt
     return { error: "No active preset. Save a preset from Profile Presets first." };
   }
 
-  const presetData = await captureProfilePresetSnapshot(userId);
+  const presetData = await captureProfilePresetSnapshot(userId, { styleOnly: true });
   const thumbnailUrl = resolvePresetThumbnailUrl(presetData);
 
   const { error } = await supabase
@@ -246,7 +246,7 @@ export async function updateProfilePresetSnapshotAction(
   const preset = await getProfilePresetById(presetId, userId);
   if (!preset) return { error: "Preset not found." };
 
-  const presetData = await captureProfilePresetSnapshot(userId);
+  const presetData = await captureProfilePresetSnapshot(userId, { styleOnly: true });
   const thumbnailUrl = resolvePresetThumbnailUrl(presetData);
 
   const supabase = await createClient();

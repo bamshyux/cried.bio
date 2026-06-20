@@ -35,6 +35,42 @@ function shuffle<T>(items: T[]): T[] {
   return copy;
 }
 
+/** UID #1 (founder) view count is excluded from public landing totals. */
+const LANDING_EXCLUDED_VIEW_UID = 1;
+
+async function sumPublicProfileViews(
+  supabase: Awaited<ReturnType<typeof db>>,
+): Promise<number> {
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("view_count, uid")
+    .not("username", "is", null);
+
+  const fromViewCounts = (profiles ?? [])
+    .filter((row) => row.uid !== LANDING_EXCLUDED_VIEW_UID)
+    .reduce((sum, row) => sum + (Number(row.view_count) || 0), 0);
+
+  if (fromViewCounts > 0) return fromViewCounts;
+
+  const { data: founderRow } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("uid", LANDING_EXCLUDED_VIEW_UID)
+    .maybeSingle();
+
+  let query = supabase
+    .from("analytics_events")
+    .select("*", { count: "exact", head: true })
+    .eq("event_type", "profile_view");
+
+  if (founderRow?.id) {
+    query = query.neq("profile_id", founderRow.id);
+  }
+
+  const { count } = await query;
+  return count ?? 0;
+}
+
 function mapProfile(row: {
   id: string;
   username: string | null;
@@ -74,20 +110,20 @@ export async function getLandingStats(): Promise<LandingStats> {
     guestbook,
     themes,
     badges,
-    views,
+    totalProfileViews,
   ] = await Promise.all([
     supabase.from("profiles").select("*", { count: "exact", head: true }),
     supabase.from("profiles").select("*", { count: "exact", head: true }).not("username", "is", null),
     supabase.from("guestbook_entries").select("*", { count: "exact", head: true }),
     supabase.from("custom_themes").select("*", { count: "exact", head: true }),
     supabase.from("profile_badges").select("*", { count: "exact", head: true }),
-    supabase.from("analytics_events").select("*", { count: "exact", head: true }).eq("event_type", "profile_view"),
+    sumPublicProfileViews(supabase),
   ]);
 
   return {
     total_users: users.count ?? 0,
     total_profiles: profiles.count ?? 0,
-    total_profile_views: views.count ?? 0,
+    total_profile_views: totalProfileViews,
     total_guestbook_posts: guestbook.count ?? 0,
     total_custom_themes: themes.count ?? 0,
     total_badges_granted: badges.count ?? 0,

@@ -1,7 +1,7 @@
 "use server";
 
 import { applyCustomThemeAction } from "@/app/actions/custom-themes";
-import { applyProfilePresetSnapshot } from "@/lib/profile-presets/snapshot";
+import { applyProfilePresetSnapshot, captureProfilePresetSnapshot } from "@/lib/profile-presets/snapshot";
 import { setActivePresetId } from "@/lib/data/profile-presets";
 import { revalidateUserProfile, getAuthenticatedUserId } from "@/lib/actions/auth";
 import { getCommunityThemeListingById, isMissingPublishedPresetSnapshotColumn } from "@/lib/data/community-themes";
@@ -170,15 +170,14 @@ export async function publishCommunityProfilePresetAction(input: {
   const supabase = await createClient();
   const { data: preset } = await supabase
     .from("profile_presets")
-    .select("id, preset_data, thumbnail_url")
+    .select("id, thumbnail_url")
     .eq("id", input.presetId)
     .eq("user_id", userId)
     .maybeSingle();
 
   if (!preset) return { error: "Preset not found." };
 
-  const presetData = parsePresetData(preset.preset_data);
-  if (!presetData) return { error: "Invalid preset data." };
+  const presetData = await captureProfilePresetSnapshot(userId, { styleOnly: true });
 
   const visibility = input.visibility === "open_source" ? "public" : input.visibility;
   const thumbnail =
@@ -453,7 +452,9 @@ async function installCommunityProfilePresetListing(
       );
       if (!installedSnapshot) return { error: "Preset source not found." };
 
-      const result = await applyProfilePresetSnapshot(userId, installedSnapshot);
+      const result = await applyProfilePresetSnapshot(userId, installedSnapshot, {
+        preservePersonalContent: true,
+      });
       if (result.error) return { error: result.error };
       await setActivePresetId(userId, existingInstall.installed_preset_id);
     }
@@ -500,7 +501,9 @@ async function installCommunityProfilePresetListing(
   if (installError) return { error: installError.message };
 
   if (applyAfter) {
-    const applyResult = await applyProfilePresetSnapshot(userId, snapshot);
+    const applyResult = await applyProfilePresetSnapshot(userId, snapshot, {
+      preservePersonalContent: true,
+    });
     if (applyResult.error) {
       return {
         success: "Preset saved to your library, but could not apply automatically.",
