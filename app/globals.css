@@ -996,50 +996,51 @@ body {
   align-items: flex-end;
 }
 
-/* Row + center/right: avatar in column 1, text centered across full card width */
-.profile-discord-status__header--text-overlay {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-}
-
-.profile-discord-status__header--text-overlay .profile-discord-status__avatar {
-  grid-column: 1;
-  grid-row: 1;
-  z-index: 1;
-}
-
-.profile-discord-status__header--text-overlay .profile-discord-status__header-text {
-  grid-column: 1 / -1;
-  grid-row: 1;
-  z-index: 0;
+/* Row + center: avatar left, matching spacer right, text centered in middle — independent of card position */
+.profile-discord-status__header--row-center {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.profile-discord-status__header--row-center .profile-discord-status__avatar {
+  flex-shrink: 0;
+}
+
+.profile-discord-status__header--row-center .profile-discord-status__header-text {
+  flex: 1 1 auto;
   min-width: 0;
-  width: max-content;
-  max-width: calc(100% - 0.5rem);
+  text-align: center !important;
+}
+
+.profile-discord-status__header--row-center .profile-discord-status__name-row {
+  justify-content: center;
+}
+
+.profile-discord-status__header--row-center .profile-discord-status__avatar-spacer {
+  flex-shrink: 0;
   pointer-events: none;
 }
 
-.profile-discord-status__header--text-overlay .profile-discord-status__header-text > * {
-  pointer-events: auto;
-}
-
-.profile-discord-status[data-discord-text-align="center"] .profile-discord-status__header--text-overlay .profile-discord-status__header-text {
-  justify-self: center;
+.profile-discord-status__header--row-right {
+  display: flex;
   align-items: center;
-  text-align: center;
+  width: 100%;
 }
 
-.profile-discord-status[data-discord-text-align="right"] .profile-discord-status__header--text-overlay .profile-discord-status__header-text {
-  justify-self: end;
-  align-items: flex-end;
-  text-align: right;
-}
-
-.profile-discord-status[data-discord-header-layout="row"] .profile-discord-status__header:not(.profile-discord-status__header--text-overlay) .profile-discord-status__header-text {
-  flex: 1;
+.profile-discord-status__header--row-right .profile-discord-status__header-text {
+  flex: 1 1 auto;
   min-width: 0;
+  text-align: right !important;
+}
+
+.profile-discord-status__header--row-right .profile-discord-status__name-row {
+  justify-content: flex-end;
+}
+
+.profile-discord-status-wrap .profile-discord-status {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Card position on profile — overrides profile content alignment when set explicitly */

@@ -33,6 +33,7 @@ export type ResolvedDiscordCardAppearance = {
   headerClass: string;
   headerRowClass: string;
   headerTextClass: string;
+  rowCenterBalance: boolean;
   nameStyle: CSSProperties;
   statusStyle: CSSProperties;
   dataAttributes: {
@@ -44,13 +45,16 @@ export type ResolvedDiscordCardAppearance = {
   isPill: boolean;
 };
 
-function isRowTextOverlay(
+function isRowCenterBalance(
   config: Pick<DiscordCardConfig, "header_layout" | "text_align">,
 ): boolean {
-  return (
-    config.header_layout === "row" &&
-    (config.text_align === "center" || config.text_align === "right")
-  );
+  return config.header_layout === "row" && config.text_align === "center";
+}
+
+function isRowRightText(
+  config: Pick<DiscordCardConfig, "header_layout" | "text_align">,
+): boolean {
+  return config.header_layout === "row" && config.text_align === "right";
 }
 
 function radiusClass(radius: DiscordCardRadius, pillWithActivity: boolean) {
@@ -207,7 +211,8 @@ export function resolveDiscordCardAppearance(
   const defaultStatusSize = compact || pill ? 12 : 14;
   const paddingY = config.padding_y > 0 ? config.padding_y : compact || pill ? 8 : 12;
   const fontFamily = resolveFontFamily(config.font_family);
-  const rowTextOverlay = isRowTextOverlay(config);
+  const rowCenterBalance = isRowCenterBalance(config);
+  const rowRightText = isRowRightText(config);
 
   return {
     shellClass: [
@@ -258,15 +263,16 @@ export function resolveDiscordCardAppearance(
       paddingBottom: paddingY,
     },
     headerClass: pill ? "pr-4" : "",
-    headerRowClass: rowTextOverlay
-      ? "profile-discord-status__header--text-overlay"
-      : "flex",
+    headerRowClass: rowCenterBalance
+      ? "profile-discord-status__header--row-center flex w-full"
+      : rowRightText
+        ? "profile-discord-status__header--row-right flex w-full"
+        : "flex w-full",
+    rowCenterBalance,
     headerTextClass:
       config.header_layout === "centered"
         ? "profile-discord-status__header-text profile-discord-status__header-text--centered w-full flex-none"
-        : rowTextOverlay
-          ? "profile-discord-status__header-text"
-          : "profile-discord-status__header-text min-w-0 flex-1",
+        : "profile-discord-status__header-text min-w-0 flex-1",
     nameStyle: config.name_font_size > 0 ? { fontSize: config.name_font_size } : { fontSize: defaultNameSize },
     statusStyle:
       config.status_font_size > 0 ? { fontSize: config.status_font_size } : { fontSize: defaultStatusSize },

@@ -285,6 +285,12 @@ export function DiscordStatusCard({
             />
           ) : null}
         </div>
+        {appearance.rowCenterBalance && config.show_avatar && presence.avatarUrl ? (
+          <div
+            className={`profile-discord-status__avatar-spacer shrink-0 ${appearance.avatarSize}`}
+            aria-hidden="true"
+          />
+        ) : null}
       </div>
 
       {showActivity && presence.spotify ? (
