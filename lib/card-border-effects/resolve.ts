@@ -87,8 +87,9 @@ export function resolveCardBorderEffect(
   if (!isCardBorderTargetEnabled(config, target)) return null;
 
   const radius = borderRadius ?? settings.border_radius;
-  const glow = Math.min(100, Math.max(0, config.glowIntensity)) / 100;
   const thickness = Math.min(12, Math.max(1, config.thickness));
+  const glowPct = Math.min(100, Math.max(0, config.glowIntensity));
+  const glow = glowPct / 100;
 
   return {
     effect: config.effect,
@@ -98,6 +99,7 @@ export function resolveCardBorderEffect(
       "--cbe-thickness": `${thickness}px`,
       "--cbe-duration": `${speedToDuration(config.speed)}s`,
       "--cbe-glow": String(glow),
+      "--cbe-glow-pct": String(glowPct),
       "--cbe-color": config.color,
       "--cbe-color-2": config.secondaryColor,
     },

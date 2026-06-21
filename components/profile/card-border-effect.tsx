@@ -27,6 +27,7 @@ export function CardBorderEffect({
   }
 
   const showGlow = resolved.effect !== "standard";
+  const showSparks = resolved.effect === "lightning";
 
   return (
     <div
@@ -34,8 +35,9 @@ export function CardBorderEffect({
       style={{ ...resolved.style, ...style }}
       data-cbe-effect={resolved.effect}
     >
-      <div className="bf-cbe__border" aria-hidden="true" />
       {showGlow ? <div className="bf-cbe__glow" aria-hidden="true" /> : null}
+      <div className="bf-cbe__border" aria-hidden="true" />
+      {showSparks ? <div className="bf-cbe__sparks" aria-hidden="true" /> : null}
       <div className="bf-cbe__inner">{children}</div>
     </div>
   );
