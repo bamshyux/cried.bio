@@ -934,6 +934,9 @@ body {
   width: min(22rem, calc(100vw - 5rem));
   max-height: min(28rem, calc(100vh - 4rem));
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(251, 191, 36, 0.32) transparent;
   border: 1px solid rgba(251, 191, 36, 0.14);
   border-radius: 1rem;
   background: rgba(10, 10, 10, 0.96);
@@ -942,6 +945,37 @@ body {
     0 0 0 1px rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+}
+
+.bf-platform-updates__panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bf-platform-updates__panel::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.bf-platform-updates__panel::-webkit-scrollbar-track {
+  margin: 0.625rem 0;
+  background: transparent;
+}
+
+.bf-platform-updates__panel::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.14);
+  background-clip: padding-box;
+}
+
+.bf-platform-updates__panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(251, 191, 36, 0.42);
+  background-clip: padding-box;
+}
+
+.bf-platform-updates__panel::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .bf-platform-updates__panel-header {
