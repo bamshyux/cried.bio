@@ -67,6 +67,17 @@ function speedToDuration(speed: number): number {
   return Math.round((6000 / clamped) * 10) / 10;
 }
 
+export function getCardBorderInnerRadius(
+  settings: ProfileSettings,
+  target: CardBorderTarget,
+  outerRadius?: number,
+): number {
+  const config = readCardBorderConfig(settings);
+  const outer = outerRadius ?? settings.border_radius;
+  if (!isCardBorderTargetEnabled(config, target)) return outer;
+  return Math.max(0, outer - Math.min(12, Math.max(1, config.thickness)));
+}
+
 export function resolveCardBorderEffect(
   settings: ProfileSettings,
   target: CardBorderTarget,
@@ -85,11 +96,11 @@ export function resolveCardBorderEffect(
     style: {
       "--cbe-radius": `${radius}px`,
       "--cbe-thickness": `${thickness}px`,
+      "--cbe-inner-radius": `${Math.max(0, radius - thickness)}px`,
       "--cbe-duration": `${speedToDuration(config.speed)}s`,
       "--cbe-glow": String(glow),
       "--cbe-color": config.color,
       "--cbe-color-2": config.secondaryColor,
-      borderRadius: `${radius}px`,
     },
   };
 }

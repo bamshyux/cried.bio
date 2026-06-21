@@ -32,8 +32,6 @@ export function CardBorderEffect({
       style={{ ...resolved.style, ...style }}
       data-cbe-effect={resolved.effect}
     >
-      <div className="bf-cbe__ring" aria-hidden="true" />
-      {resolved.showGlow ? <div className="bf-cbe__glow" aria-hidden="true" /> : null}
       <div className="bf-cbe__inner">{children}</div>
     </div>
   );

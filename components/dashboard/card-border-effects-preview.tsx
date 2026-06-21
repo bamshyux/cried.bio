@@ -2,6 +2,7 @@
 
 import { CardBorderEffect } from "@/components/profile/card-border-effect";
 import { buildCardStyle } from "@/lib/settings";
+import { getCardBorderInnerRadius } from "@/lib/card-border-effects/resolve";
 import type { CardBorderEffectPreset, ProfileSettings } from "@/lib/types/settings";
 import { parseCardBorderTargets } from "@/lib/card-border-effects/resolve";
 
@@ -41,6 +42,7 @@ export function CardBorderEffectsPreview({
 }) {
   const preview = buildCardBorderPreviewSettings(settings, form);
   const cardStyle = buildCardStyle(preview);
+  const innerRadius = getCardBorderInnerRadius(preview, "main");
 
   return (
     <div className="sticky top-24 space-y-3">
@@ -54,7 +56,7 @@ export function CardBorderEffectsPreview({
           }}
         />
         <CardBorderEffect settings={preview} target="main" borderRadius={preview.border_radius}>
-          <div className="relative w-full px-6 py-8" style={cardStyle}>
+          <div className="relative w-full px-6 py-8" style={{ ...cardStyle, borderRadius: innerRadius }}>
             <div className="flex flex-col items-center text-center">
               <div
                 className="mb-3 h-14 w-14 rounded-full border-2"

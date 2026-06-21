@@ -1,6 +1,7 @@
 "use client";
 
 import { formatLinkHostname, getLinksIconBoxSize } from "@/lib/links";
+import { getCardBorderInnerRadius } from "@/lib/card-border-effects/resolve";
 import { buildLinkAnimationProps, resolveLinkAnimation } from "@/lib/link-animation";
 import { buildLinkIconProps } from "@/lib/link-icon-effects";
 import type { ProfileLink } from "@/lib/types/link";
@@ -23,6 +24,8 @@ export function ProfileLinkButton({
   const { animClass, hoverClass, animStyle } = buildLinkAnimationProps(link, settings);
   const iconSize = settings.links_icon_size;
 
+  const linkRadius = getCardBorderInnerRadius(settings, "links");
+
   return (
     <CardBorderEffect settings={settings} target="links" borderRadius={settings.border_radius}>
       <a
@@ -37,7 +40,7 @@ export function ProfileLinkButton({
           color: link.color ?? settings.text_color,
           backgroundColor: featured ? undefined : (link.background_color ?? "rgba(255,255,255,0.03)"),
           borderColor: featured ? undefined : `${settings.accent_color}15`,
-          borderRadius: settings.border_radius,
+          borderRadius: linkRadius,
           ...animStyle,
         }}
       >

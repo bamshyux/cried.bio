@@ -1,316 +1,227 @@
-/* Card border effects — animated outlines only; content stays untouched */
+/* Card border effects — animated gradient sits in the wrapper padding (true border ring) */
+
+@property --cbe-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
 
 .bf-cbe {
+  --cbe-inner-radius: calc(var(--cbe-radius, 12px) - var(--cbe-thickness, 2px));
+  display: block;
+  width: 100%;
   position: relative;
+  box-sizing: border-box;
+  padding: var(--cbe-thickness, 2px);
+  border-radius: var(--cbe-radius, 12px);
   isolation: isolate;
 }
 
 .bf-cbe__inner {
   position: relative;
   z-index: 1;
+  width: 100%;
+  border-radius: var(--cbe-inner-radius);
+  overflow: hidden;
 }
 
-.bf-cbe__ring,
-.bf-cbe__glow {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--cbe-radius, 12px);
-  pointer-events: none;
-}
-
-.bf-cbe__ring {
-  z-index: 3;
-  padding: var(--cbe-thickness, 2px);
-  background: var(--cbe-color, #fafafa);
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-}
-
-.bf-cbe__glow {
-  z-index: 0;
-  inset: calc(var(--cbe-thickness, 2px) * -1.5);
-  border-radius: calc(var(--cbe-radius, 12px) + 3px);
-  opacity: calc(0.25 + var(--cbe-glow, 0.6) * 0.65);
-  filter: blur(calc(4px + var(--cbe-glow, 0.6) * 14px));
-  background: var(--cbe-color, #fafafa);
-}
-
-@keyframes bf-cbe-spin {
+@keyframes bf-cbe-angle-spin {
   to {
-    transform: rotate(360deg);
+    --cbe-angle: 360deg;
   }
 }
 
 @keyframes bf-cbe-pulse {
   0%,
   100% {
-    opacity: 0.45;
+    background: color-mix(in srgb, var(--cbe-color) 40%, transparent);
   }
   50% {
-    opacity: 1;
+    background: var(--cbe-color);
   }
 }
 
 @keyframes bf-cbe-flicker {
   0%,
   100% {
-    opacity: 1;
+    box-shadow: 0 0 calc(4px + var(--cbe-glow, 0.6) * 16px)
+      color-mix(in srgb, var(--cbe-color) 70%, transparent);
   }
-  40% {
-    opacity: 0.35;
+  45% {
+    box-shadow: 0 0 calc(2px + var(--cbe-glow, 0.6) * 6px)
+      color-mix(in srgb, var(--cbe-color) 25%, transparent);
   }
-  42% {
-    opacity: 1;
-  }
-  55% {
-    opacity: 0.5;
-  }
-  57% {
-    opacity: 0.95;
+  47% {
+    box-shadow: 0 0 calc(8px + var(--cbe-glow, 0.6) * 24px) #ffffffaa;
   }
 }
 
-@keyframes bf-cbe-hue {
-  to {
-    filter: hue-rotate(360deg);
-  }
-}
-
-@keyframes bf-cbe-scan {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes bf-cbe-shimmer {
-  0% {
-    background-position: 0% 50%;
-  }
+@keyframes bf-cbe-glow-pulse {
+  0%,
   100% {
-    background-position: 200% 50%;
+    box-shadow: 0 0 calc(2px + var(--cbe-glow, 0.6) * 10px)
+      color-mix(in srgb, var(--cbe-color) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 calc(6px + var(--cbe-glow, 0.6) * 22px)
+      color-mix(in srgb, var(--cbe-color) 70%, transparent);
   }
 }
 
-/* Standard */
-.bf-cbe[data-cbe-effect="standard"] .bf-cbe__ring {
+/* Standard — static border fill in padding gap */
+.bf-cbe[data-cbe-effect="standard"] {
   background: color-mix(in srgb, var(--cbe-color) 85%, white 15%);
 }
 
-.bf-cbe[data-cbe-effect="standard"] .bf-cbe__glow {
-  display: none;
-}
-
 /* Neon glow */
-.bf-cbe[data-cbe-effect="neon-glow"] .bf-cbe__ring {
+.bf-cbe[data-cbe-effect="neon-glow"] {
   background: var(--cbe-color);
-  animation: bf-cbe-pulse var(--cbe-duration) ease-in-out infinite;
+  animation: bf-cbe-pulse var(--cbe-duration) ease-in-out infinite,
+    bf-cbe-glow-pulse calc(var(--cbe-duration) * 1.2) ease-in-out infinite;
 }
 
-.bf-cbe[data-cbe-effect="neon-glow"] .bf-cbe__glow {
-  background: var(--cbe-color);
-  animation: bf-cbe-pulse var(--cbe-duration) ease-in-out infinite;
-}
-
-/* Snake */
-.bf-cbe[data-cbe-effect="snake"] .bf-cbe__ring {
+/* Snake — bright segment travels the perimeter via conic angle */
+.bf-cbe[data-cbe-effect="snake"] {
+  --cbe-angle: 0deg;
   background: conic-gradient(
-    from 0deg,
+    from var(--cbe-angle),
     transparent 0deg 300deg,
     var(--cbe-color) 300deg 340deg,
     transparent 340deg 360deg
   );
-  animation: bf-cbe-spin var(--cbe-duration) linear infinite;
-}
-
-.bf-cbe[data-cbe-effect="snake"] .bf-cbe__glow {
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg 300deg,
-    color-mix(in srgb, var(--cbe-color) 70%, transparent) 300deg 340deg,
-    transparent 340deg 360deg
-  );
-  animation: bf-cbe-spin var(--cbe-duration) linear infinite;
+  animation: bf-cbe-angle-spin var(--cbe-duration) linear infinite,
+    bf-cbe-glow-pulse calc(var(--cbe-duration) * 1.5) ease-in-out infinite;
 }
 
 /* Dual snake */
-.bf-cbe[data-cbe-effect="dual-snake"] .bf-cbe__ring {
+.bf-cbe[data-cbe-effect="dual-snake"] {
+  --cbe-angle: 0deg;
   background: conic-gradient(
-    from 0deg,
+    from var(--cbe-angle),
     transparent 0deg 140deg,
     var(--cbe-color) 140deg 180deg,
     transparent 180deg 320deg,
     var(--cbe-color-2) 320deg 360deg
   );
-  animation: bf-cbe-spin var(--cbe-duration) linear infinite;
-}
-
-.bf-cbe[data-cbe-effect="dual-snake"] .bf-cbe__glow {
-  background: conic-gradient(
-    from 180deg,
-    transparent 0deg 140deg,
-    color-mix(in srgb, var(--cbe-color-2) 65%, transparent) 140deg 180deg,
-    transparent 180deg 320deg,
-    color-mix(in srgb, var(--cbe-color) 65%, transparent) 320deg 360deg
-  );
-  animation: bf-cbe-spin var(--cbe-duration) linear infinite reverse;
+  animation: bf-cbe-angle-spin var(--cbe-duration) linear infinite,
+    bf-cbe-glow-pulse calc(var(--cbe-duration) * 1.4) ease-in-out infinite;
 }
 
 /* Energy flow */
-.bf-cbe[data-cbe-effect="energy-flow"] .bf-cbe__ring {
-  background: linear-gradient(
-    120deg,
+.bf-cbe[data-cbe-effect="energy-flow"] {
+  --cbe-angle: 0deg;
+  background: conic-gradient(
+    from var(--cbe-angle),
     var(--cbe-color),
     var(--cbe-color-2),
-    transparent,
+    transparent 25%,
     var(--cbe-color),
-    var(--cbe-color-2)
+    var(--cbe-color-2),
+    transparent 75%,
+    var(--cbe-color)
   );
-  background-size: 300% 300%;
-  animation: bf-cbe-shimmer var(--cbe-duration) linear infinite;
-}
-
-.bf-cbe[data-cbe-effect="energy-flow"] .bf-cbe__glow {
-  background: linear-gradient(120deg, var(--cbe-color), var(--cbe-color-2), var(--cbe-color));
-  background-size: 250% 250%;
-  animation: bf-cbe-shimmer calc(var(--cbe-duration) * 1.2) linear infinite;
+  animation: bf-cbe-angle-spin var(--cbe-duration) linear infinite,
+    bf-cbe-glow-pulse calc(var(--cbe-duration) * 1.2) ease-in-out infinite;
 }
 
 /* Pulse */
-.bf-cbe[data-cbe-effect="pulse"] .bf-cbe__ring {
+.bf-cbe[data-cbe-effect="pulse"] {
   background: var(--cbe-color);
-  animation: bf-cbe-pulse var(--cbe-duration) ease-in-out infinite;
-}
-
-.bf-cbe[data-cbe-effect="pulse"] .bf-cbe__glow {
-  background: var(--cbe-color);
-  animation: bf-cbe-pulse var(--cbe-duration) ease-in-out infinite;
+  animation: bf-cbe-pulse var(--cbe-duration) ease-in-out infinite,
+    bf-cbe-glow-pulse calc(var(--cbe-duration) * 1.3) ease-in-out infinite;
 }
 
 /* Lightning */
-.bf-cbe[data-cbe-effect="lightning"] .bf-cbe__ring {
+.bf-cbe[data-cbe-effect="lightning"] {
+  --cbe-angle: 0deg;
   background: conic-gradient(
-    from 0deg,
-    transparent 0deg 330deg,
-    #ffffff 330deg 350deg,
-    var(--cbe-color) 350deg 360deg
+    from var(--cbe-angle),
+    transparent 0deg 328deg,
+    #ffffff 328deg 344deg,
+    var(--cbe-color) 344deg 360deg
   );
-  animation: bf-cbe-spin calc(var(--cbe-duration) * 0.65) linear infinite,
+  animation: bf-cbe-angle-spin calc(var(--cbe-duration) * 0.7) linear infinite,
     bf-cbe-flicker calc(var(--cbe-duration) * 0.35) steps(2, end) infinite;
 }
 
-.bf-cbe[data-cbe-effect="lightning"] .bf-cbe__glow {
-  background: var(--cbe-color);
-  animation: bf-cbe-flicker calc(var(--cbe-duration) * 0.4) steps(3, end) infinite;
-}
-
 /* RGB flow */
-.bf-cbe[data-cbe-effect="rgb-flow"] .bf-cbe__ring {
+.bf-cbe[data-cbe-effect="rgb-flow"] {
+  --cbe-angle: 0deg;
   background: conic-gradient(
-    from 0deg,
+    from var(--cbe-angle),
     #ff0080,
     #7928ca,
     #0070f3,
     #00dfd8,
     #ff0080
   );
-  animation: bf-cbe-spin var(--cbe-duration) linear infinite;
-}
-
-.bf-cbe[data-cbe-effect="rgb-flow"] .bf-cbe__glow {
-  background: conic-gradient(from 0deg, #ff0080, #0070f3, #00dfd8, #ff0080);
-  animation: bf-cbe-spin calc(var(--cbe-duration) * 1.4) linear infinite reverse;
-  filter: blur(calc(6px + var(--cbe-glow, 0.6) * 16px)) saturate(1.4);
+  animation: bf-cbe-angle-spin var(--cbe-duration) linear infinite,
+    bf-cbe-glow-pulse calc(var(--cbe-duration) * 1.6) ease-in-out infinite;
 }
 
 /* White aura */
-.bf-cbe[data-cbe-effect="white-aura"] .bf-cbe__ring {
+.bf-cbe[data-cbe-effect="white-aura"] {
+  --cbe-angle: 0deg;
   background: conic-gradient(
-    from 0deg,
-    rgba(255, 255, 255, 0.25),
+    from var(--cbe-angle),
+    rgba(255, 255, 255, 0.2),
     rgba(255, 255, 255, 0.95),
-    rgba(255, 255, 255, 0.25)
+    rgba(255, 255, 255, 0.2)
   );
-  animation: bf-cbe-spin calc(var(--cbe-duration) * 2) linear infinite;
-}
-
-.bf-cbe[data-cbe-effect="white-aura"] .bf-cbe__glow {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.95), transparent 70%);
-  animation: bf-cbe-pulse calc(var(--cbe-duration) * 1.5) ease-in-out infinite;
+  animation: bf-cbe-angle-spin calc(var(--cbe-duration) * 2) linear infinite,
+    bf-cbe-glow-pulse calc(var(--cbe-duration) * 1.8) ease-in-out infinite;
 }
 
 /* Particle trail */
-.bf-cbe[data-cbe-effect="particle-trail"] .bf-cbe__ring {
+.bf-cbe[data-cbe-effect="particle-trail"] {
+  --cbe-angle: 0deg;
   background: repeating-conic-gradient(
-    from 0deg,
+    from var(--cbe-angle),
     transparent 0deg 8deg,
     var(--cbe-color) 8deg 11deg,
     transparent 11deg 22deg,
     color-mix(in srgb, var(--cbe-color-2) 80%, white) 22deg 24deg,
     transparent 24deg 36deg
   );
-  animation: bf-cbe-spin var(--cbe-duration) linear infinite;
-}
-
-.bf-cbe[data-cbe-effect="particle-trail"] .bf-cbe__glow {
-  background: repeating-conic-gradient(
-    from 180deg,
-    transparent 0deg 10deg,
-    color-mix(in srgb, var(--cbe-color) 50%, transparent) 10deg 12deg,
-    transparent 12deg 24deg
-  );
-  animation: bf-cbe-spin calc(var(--cbe-duration) * 1.3) linear infinite reverse;
+  animation: bf-cbe-angle-spin var(--cbe-duration) linear infinite,
+    bf-cbe-glow-pulse calc(var(--cbe-duration) * 1.3) ease-in-out infinite;
 }
 
 /* Liquid chrome */
-.bf-cbe[data-cbe-effect="liquid-chrome"] .bf-cbe__ring {
-  background: linear-gradient(
-    135deg,
-    #d4d4d8 0%,
-    #ffffff 20%,
-    #71717a 40%,
-    #ffffff 60%,
-    #a1a1aa 80%,
-    #ffffff 100%
+.bf-cbe[data-cbe-effect="liquid-chrome"] {
+  --cbe-angle: 0deg;
+  background: conic-gradient(
+    from var(--cbe-angle),
+    #71717a,
+    #ffffff,
+    #d4d4d8,
+    #ffffff,
+    #a1a1aa,
+    #ffffff,
+    #71717a
   );
-  background-size: 250% 250%;
-  animation: bf-cbe-shimmer var(--cbe-duration) ease-in-out infinite;
-}
-
-.bf-cbe[data-cbe-effect="liquid-chrome"] .bf-cbe__glow {
-  background: linear-gradient(135deg, var(--cbe-color), var(--cbe-color-2), var(--cbe-color));
-  background-size: 200% 200%;
-  animation: bf-cbe-shimmer calc(var(--cbe-duration) * 1.1) ease-in-out infinite;
-  opacity: calc(0.15 + var(--cbe-glow, 0.6) * 0.45);
+  animation: bf-cbe-angle-spin var(--cbe-duration) linear infinite;
 }
 
 /* Cyber scan */
-.bf-cbe[data-cbe-effect="cyber-scan"] .bf-cbe__ring {
+.bf-cbe[data-cbe-effect="cyber-scan"] {
+  --cbe-angle: 0deg;
   background: conic-gradient(
-    from 0deg,
-    transparent 0deg 340deg,
-    var(--cbe-color) 340deg 352deg,
-    #ffffff 352deg 356deg,
-    transparent 356deg 360deg
+    from var(--cbe-angle),
+    transparent 0deg 338deg,
+    var(--cbe-color) 338deg 350deg,
+    #ffffff 350deg 354deg,
+    transparent 354deg 360deg
   );
-  animation: bf-cbe-scan var(--cbe-duration) linear infinite;
-}
-
-.bf-cbe[data-cbe-effect="cyber-scan"] .bf-cbe__glow {
-  background: conic-gradient(
-    from 180deg,
-    transparent 0deg 350deg,
-    color-mix(in srgb, var(--cbe-color-2) 75%, transparent) 350deg 360deg
-  );
-  animation: bf-cbe-scan calc(var(--cbe-duration) * 1.6) linear infinite reverse;
+  animation: bf-cbe-angle-spin var(--cbe-duration) linear infinite,
+    bf-cbe-glow-pulse calc(var(--cbe-duration) * 1.1) ease-in-out infinite;
 }
 
 /* Fire */
-.bf-cbe[data-cbe-effect="fire"] .bf-cbe__ring {
+.bf-cbe[data-cbe-effect="fire"] {
+  --cbe-angle: 0deg;
   background: conic-gradient(
-    from 0deg,
+    from var(--cbe-angle),
     #7f1d1d,
     #ef4444,
     #f97316,
@@ -318,56 +229,42 @@
     #ef4444,
     #7f1d1d
   );
-  animation: bf-cbe-spin var(--cbe-duration) linear infinite;
-}
-
-.bf-cbe[data-cbe-effect="fire"] .bf-cbe__glow {
-  background: radial-gradient(circle, #f97316, transparent 70%);
-  animation: bf-cbe-pulse calc(var(--cbe-duration) * 0.8) ease-in-out infinite;
+  animation: bf-cbe-angle-spin var(--cbe-duration) linear infinite,
+    bf-cbe-glow-pulse calc(var(--cbe-duration) * 0.9) ease-in-out infinite;
 }
 
 /* Ice */
-.bf-cbe[data-cbe-effect="ice"] .bf-cbe__ring {
+.bf-cbe[data-cbe-effect="ice"] {
+  --cbe-angle: 0deg;
   background: conic-gradient(
-    from 0deg,
+    from var(--cbe-angle),
     #0c4a6e,
     #38bdf8,
     #e0f2fe,
     #38bdf8,
     #0c4a6e
   );
-  animation: bf-cbe-spin calc(var(--cbe-duration) * 1.2) linear infinite;
-}
-
-.bf-cbe[data-cbe-effect="ice"] .bf-cbe__glow {
-  background: radial-gradient(circle, #7dd3fc, transparent 72%);
-  animation: bf-cbe-pulse calc(var(--cbe-duration) * 1.1) ease-in-out infinite;
+  animation: bf-cbe-angle-spin calc(var(--cbe-duration) * 1.15) linear infinite,
+    bf-cbe-glow-pulse calc(var(--cbe-duration) * 1.2) ease-in-out infinite;
 }
 
 /* Void */
-.bf-cbe[data-cbe-effect="void"] .bf-cbe__ring {
+.bf-cbe[data-cbe-effect="void"] {
+  --cbe-angle: 0deg;
   background: conic-gradient(
-    from 0deg,
+    from var(--cbe-angle),
     #090909,
     #581c87,
     #a855f7,
     #312e81,
     #090909
   );
-  animation: bf-cbe-spin calc(var(--cbe-duration) * 1.35) linear infinite;
-}
-
-.bf-cbe[data-cbe-effect="void"] .bf-cbe__glow {
-  background: radial-gradient(circle, #581c87, transparent 75%);
-  animation: bf-cbe-pulse calc(var(--cbe-duration) * 1.5) ease-in-out infinite;
-  filter: blur(calc(8px + var(--cbe-glow, 0.6) * 18px));
+  animation: bf-cbe-angle-spin calc(var(--cbe-duration) * 1.25) linear infinite,
+    bf-cbe-glow-pulse calc(var(--cbe-duration) * 1.4) ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bf-cbe[data-cbe-effect]:not([data-cbe-effect="none"]):not([data-cbe-effect="standard"])
-    .bf-cbe__ring,
-  .bf-cbe[data-cbe-effect]:not([data-cbe-effect="none"]):not([data-cbe-effect="standard"])
-    .bf-cbe__glow {
+  .bf-cbe[data-cbe-effect]:not([data-cbe-effect="none"]):not([data-cbe-effect="standard"]) {
     animation: none !important;
   }
 }
