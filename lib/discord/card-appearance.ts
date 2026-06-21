@@ -31,6 +31,7 @@ export type ResolvedDiscordCardAppearance = {
   avatarShapeClass: string;
   headerStyle: CSSProperties;
   headerClass: string;
+  headerRowClass: string;
   headerTextClass: string;
   nameStyle: CSSProperties;
   statusStyle: CSSProperties;
@@ -42,6 +43,15 @@ export type ResolvedDiscordCardAppearance = {
   isCompact: boolean;
   isPill: boolean;
 };
+
+function isRowTextOverlay(
+  config: Pick<DiscordCardConfig, "header_layout" | "text_align">,
+): boolean {
+  return (
+    config.header_layout === "row" &&
+    (config.text_align === "center" || config.text_align === "right")
+  );
+}
 
 function radiusClass(radius: DiscordCardRadius, pillWithActivity: boolean) {
   if (pillWithActivity) return "rounded-3xl";
@@ -197,6 +207,7 @@ export function resolveDiscordCardAppearance(
   const defaultStatusSize = compact || pill ? 12 : 14;
   const paddingY = config.padding_y > 0 ? config.padding_y : compact || pill ? 8 : 12;
   const fontFamily = resolveFontFamily(config.font_family);
+  const rowTextOverlay = isRowTextOverlay(config);
 
   return {
     shellClass: [
@@ -247,10 +258,15 @@ export function resolveDiscordCardAppearance(
       paddingBottom: paddingY,
     },
     headerClass: pill ? "pr-4" : "",
+    headerRowClass: rowTextOverlay
+      ? "profile-discord-status__header--text-overlay"
+      : "flex",
     headerTextClass:
       config.header_layout === "centered"
         ? "profile-discord-status__header-text profile-discord-status__header-text--centered w-full flex-none"
-        : "profile-discord-status__header-text min-w-0 flex-1",
+        : rowTextOverlay
+          ? "profile-discord-status__header-text"
+          : "profile-discord-status__header-text min-w-0 flex-1",
     nameStyle: config.name_font_size > 0 ? { fontSize: config.name_font_size } : { fontSize: defaultNameSize },
     statusStyle:
       config.status_font_size > 0 ? { fontSize: config.status_font_size } : { fontSize: defaultStatusSize },

@@ -996,61 +996,48 @@ body {
   align-items: flex-end;
 }
 
-/* Row layout: avatar stays left; text alignment centers within the full card header */
-.profile-discord-status[data-discord-header-layout="row"][data-discord-text-align="center"] .profile-discord-status__header,
-.profile-discord-status[data-discord-header-layout="row"][data-discord-text-align="right"] .profile-discord-status__header {
-  position: relative;
-  justify-content: flex-start;
-}
-
-.profile-discord-status[data-discord-header-layout="row"][data-discord-text-align="center"] .profile-discord-status__avatar {
-  position: relative;
-  z-index: 1;
-}
-
-.profile-discord-status[data-discord-header-layout="row"][data-discord-text-align="center"] .profile-discord-status__header-text {
-  position: absolute;
-  inset: 0;
-  flex: none;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
+/* Row + center/right: avatar in column 1, text centered across full card width */
+.profile-discord-status__header--text-overlay {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
-  text-align: center;
-  pointer-events: none;
 }
 
-.profile-discord-status[data-discord-header-layout="row"][data-discord-text-align="center"] .profile-discord-status__header-text > * {
-  pointer-events: auto;
-  max-width: 100%;
-}
-
-.profile-discord-status[data-discord-header-layout="row"][data-discord-text-align="right"] .profile-discord-status__avatar {
-  position: relative;
+.profile-discord-status__header--text-overlay .profile-discord-status__avatar {
+  grid-column: 1;
+  grid-row: 1;
   z-index: 1;
 }
 
-.profile-discord-status[data-discord-header-layout="row"][data-discord-text-align="right"] .profile-discord-status__header-text {
-  position: absolute;
-  inset: 0;
-  flex: none;
-  width: 100%;
+.profile-discord-status__header--text-overlay .profile-discord-status__header-text {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  z-index: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-  text-align: right;
+  min-width: 0;
+  width: max-content;
+  max-width: calc(100% - 0.5rem);
   pointer-events: none;
 }
 
-.profile-discord-status[data-discord-header-layout="row"][data-discord-text-align="right"] .profile-discord-status__header-text > * {
+.profile-discord-status__header--text-overlay .profile-discord-status__header-text > * {
   pointer-events: auto;
-  max-width: 100%;
 }
 
-.profile-discord-status[data-discord-header-layout="row"][data-discord-text-align="left"] .profile-discord-status__header-text,
-.profile-discord-status[data-discord-header-layout="row"]:not([data-discord-text-align="center"]):not([data-discord-text-align="right"]) .profile-discord-status__header-text {
+.profile-discord-status[data-discord-text-align="center"] .profile-discord-status__header--text-overlay .profile-discord-status__header-text {
+  justify-self: center;
+  align-items: center;
+  text-align: center;
+}
+
+.profile-discord-status[data-discord-text-align="right"] .profile-discord-status__header--text-overlay .profile-discord-status__header-text {
+  justify-self: end;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.profile-discord-status[data-discord-header-layout="row"] .profile-discord-status__header:not(.profile-discord-status__header--text-overlay) .profile-discord-status__header-text {
   flex: 1;
   min-width: 0;
 }

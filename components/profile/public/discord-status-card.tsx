@@ -238,7 +238,7 @@ export function DiscordStatusCard({
           data-discord-text-align={appearance.dataAttributes.textAlign}
         >
       <div
-        className={`profile-discord-status__header flex items-center ${appearance.headerClass}`}
+        className={`profile-discord-status__header w-full items-center ${appearance.headerRowClass} ${appearance.headerClass}`}
         style={appearance.headerStyle}
       >
         {config.show_avatar && presence.avatarUrl ? (
