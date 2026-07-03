@@ -165,14 +165,16 @@ export function DiscordCardCustomizer({
     () => JSON.stringify(configFromProfileSettings(settings)),
     [settings],
   );
+  const lastPersistedRef = useRef(persistedConfigJson);
 
   useEffect(() => {
+    if (persistedConfigJson === lastPersistedRef.current) return;
+    lastPersistedRef.current = persistedConfigJson;
     const next = configFromProfileSettings(settings);
     setSavedConfig(next);
     setConfig(next);
     setStatus("idle");
-    unsaved?.markClean();
-  }, [persistedConfigJson, unsaved]);
+  }, [persistedConfigJson, settings]);
 
   useEffect(() => {
     const handleDashboardReset = () => {
@@ -470,59 +472,52 @@ export function DiscordCardCustomizer({
         <SectionTitle>Visibility</SectionTitle>
         <div className="grid gap-3 sm:grid-cols-2">
           <ToggleField
-            key={`avatar-${String(config.show_avatar)}`}
             name="discord_show_avatar"
             label="Show avatar"
             description="Display your Discord profile picture."
-            defaultChecked={config.show_avatar}
+            checked={config.show_avatar}
             onCheckedChange={(show_avatar) => patch({ show_avatar })}
           />
           <ToggleField
-            key={`status-dot-${String(config.show_status_dot)}`}
             name="discord_show_status_dot"
             label="Show status dot"
             description="Green/yellow/red dot on the avatar."
-            defaultChecked={config.show_status_dot}
+            checked={config.show_status_dot}
             onCheckedChange={(show_status_dot) => patch({ show_status_dot })}
           />
           <ToggleField
-            key={`status-${String(config.show_status_text)}`}
             name="discord_show_status"
             label="Show status text"
             description="Online, idle, DND, or offline label."
-            defaultChecked={config.show_status_text}
+            checked={config.show_status_text}
             onCheckedChange={(show_status_text) => patch({ show_status_text })}
           />
           <ToggleField
-            key={`activity-${String(config.show_activity)}`}
             name="discord_show_activity"
             label="Show activity"
             description="Games, Spotify, and custom status blocks."
-            defaultChecked={config.show_activity}
+            checked={config.show_activity}
             onCheckedChange={(show_activity) => patch({ show_activity })}
           />
           <ToggleField
-            key={`hint-${String(config.show_lanyard_hint)}`}
             name="discord_show_lanyard_hint"
             label="Show Lanyard setup hint"
             description="Small note when offline with no activity."
-            defaultChecked={config.show_lanyard_hint}
+            checked={config.show_lanyard_hint}
             onCheckedChange={(show_lanyard_hint) => patch({ show_lanyard_hint })}
           />
           <ToggleField
-            key={`glow-${String(config.glow)}`}
             name="discord_glow"
             label="Accent glow"
             description="Soft outer glow using your accent color."
-            defaultChecked={config.glow}
+            checked={config.glow}
             onCheckedChange={(glow) => patch({ glow })}
           />
           <ToggleField
-            key={`blur-${String(config.backdrop_blur)}`}
             name="discord_blur"
             label="Backdrop blur"
             description="Frosted glass effect behind the card."
-            defaultChecked={config.backdrop_blur}
+            checked={config.backdrop_blur}
             onCheckedChange={(backdrop_blur) => patch({ backdrop_blur })}
           />
         </div>
