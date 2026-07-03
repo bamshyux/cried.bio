@@ -18,3 +18,8 @@ export function setCookieConsent(level: CookieConsentLevel): void {
 export function hasAnalyticsConsent(): boolean {
   return getCookieConsent() === "all";
 }
+
+/** Profile view counts are first-party, essential product behavior — not gated on marketing cookies. */
+export function canRecordProfileView(): boolean {
+  return true;
+}

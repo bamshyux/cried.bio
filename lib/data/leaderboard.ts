@@ -29,6 +29,7 @@ type ProfileRow = {
   bio: string | null;
   view_count: number | null;
   uid: number | null;
+  view_count_frozen: boolean | null;
 };
 
 type RankedProfile = ProfileRow & {
@@ -136,7 +137,7 @@ async function fetchProfiles(): Promise<ProfileRow[]> {
   const supabase = await db();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, username, display_name, avatar_url, bio, view_count, uid")
+    .select("id, username, display_name, avatar_url, bio, view_count, uid, view_count_frozen")
     .not("username", "is", null);
 
   if (error || !data) return [];
@@ -151,6 +152,7 @@ async function fetchProfiles(): Promise<ProfileRow[]> {
       bio: row.bio,
       view_count: row.view_count,
       uid: row.uid,
+      view_count_frozen: row.view_count_frozen,
     }));
 }
 

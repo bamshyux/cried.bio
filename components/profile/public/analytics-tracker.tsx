@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { hasAnalyticsConsent } from "@/lib/analytics/consent";
+import { canRecordProfileView, hasAnalyticsConsent } from "@/lib/analytics/consent";
 import {
   getSessionId,
   getVisitorId,
@@ -14,7 +14,7 @@ export function AnalyticsTracker({ profileId }: { profileId: string }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!hasAnalyticsConsent()) return;
+    if (!canRecordProfileView()) return;
     if (hasRecordedProfileView(profileId)) return;
 
     const visitorHash = getVisitorId();

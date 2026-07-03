@@ -3,23 +3,56 @@ const SESSION_KEY = "bf_session_id";
 /** Per-profile flag so reopening the browser does not send duplicate view events. */
 const VIEW_RECORD_PREFIX = "bf_profile_view:";
 
+function readStorage(store: Storage, key: string): string | null {
+  try {
+    return store.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(store: Storage, key: string, value: string): boolean {
+  try {
+    store.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function createVisitorId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `v-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
 export function getVisitorId(): string {
   if (typeof window === "undefined") return "";
-  let id = localStorage.getItem(VISITOR_KEY);
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem(VISITOR_KEY, id);
+
+  const fromLocal = readStorage(localStorage, VISITOR_KEY);
+  if (fromLocal) return fromLocal;
+
+  const fromSession = readStorage(sessionStorage, VISITOR_KEY);
+  if (fromSession) {
+    writeStorage(localStorage, VISITOR_KEY, fromSession);
+    return fromSession;
   }
+
+  const id = createVisitorId();
+  writeStorage(localStorage, VISITOR_KEY, id);
+  writeStorage(sessionStorage, VISITOR_KEY, id);
   return id;
 }
 
 export function getSessionId(): string {
   if (typeof window === "undefined") return "";
-  let id = sessionStorage.getItem(SESSION_KEY);
-  if (!id) {
-    id = crypto.randomUUID();
-    sessionStorage.setItem(SESSION_KEY, id);
-  }
+
+  const existing = readStorage(sessionStorage, SESSION_KEY);
+  if (existing) return existing;
+
+  const id = createVisitorId();
+  writeStorage(sessionStorage, SESSION_KEY, id);
   return id;
 }
 
@@ -35,10 +68,13 @@ export function normalizeVisitorKey(storedHash: string): string {
 
 export function hasRecordedProfileView(profileId: string): boolean {
   if (typeof window === "undefined") return false;
-  return localStorage.getItem(`${VIEW_RECORD_PREFIX}${profileId}`) === "1";
+  const key = `${VIEW_RECORD_PREFIX}${profileId}`;
+  return readStorage(localStorage, key) === "1" || readStorage(sessionStorage, key) === "1";
 }
 
 export function markProfileViewRecorded(profileId: string): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(`${VIEW_RECORD_PREFIX}${profileId}`, "1");
+  const key = `${VIEW_RECORD_PREFIX}${profileId}`;
+  writeStorage(localStorage, key, "1");
+  writeStorage(sessionStorage, key, "1");
 }

@@ -846,7 +846,7 @@ export function PublicProfileClient({
   presetPreviewTitle?: string | null;
 }) {
   const isPresetPreview = Boolean(presetPreviewTitle);
-  const [entered, setEntered] = useState(isPresetPreview);
+  const [entered, setEntered] = useState(isPresetPreview || !settings.enter_gate_enabled);
   const playMusicRef = useRef<(() => void) | null>(null);
 
   const handleEnter = useCallback(() => {
@@ -962,7 +962,7 @@ export function PublicProfileClient({
         </div>
       ) : null}
 
-      {!entered ? (
+      {!entered && settings.enter_gate_enabled ? (
         <ProfileEnterGate profile={profile} settings={settings} onEnter={handleEnter} />
       ) : null}
     </>

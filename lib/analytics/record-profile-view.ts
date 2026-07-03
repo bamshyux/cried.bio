@@ -17,6 +17,29 @@ function isUniqueViolation(code: string | undefined): boolean {
   return code === "23505";
 }
 
+async function bumpProfileViewCount(profileId: string): Promise<void> {
+  const admin = createAdminClient();
+  if (!admin) return;
+
+  const { error: rpcError } = await admin.rpc("increment_profile_view_count", {
+    p_profile_id: profileId,
+  });
+
+  if (!rpcError) return;
+
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("view_count, view_count_frozen")
+    .eq("id", profileId)
+    .not("username", "is", null)
+    .maybeSingle();
+
+  if (!profile || isFrozenViewCountProfile(profile)) return;
+
+  const next = (Number(profile.view_count) || 0) + 1;
+  await admin.from("profiles").update({ view_count: next }).eq("id", profileId);
+}
+
 async function recordViaRpc(
   profileId: string,
   visitorHash: string,
@@ -62,7 +85,7 @@ export async function recordProfileView(
     const client = admin ?? (await createClient());
     const { data: profile } = await client
       .from("profiles")
-      .select("username, uid")
+      .select("username, uid, view_count_frozen")
       .eq("id", profileId)
       .not("username", "is", null)
       .maybeSingle();
@@ -87,6 +110,17 @@ export async function recordProfileView(
       return { ok: false, error: "profile_not_found" };
     }
 
+    const { count: existingViews } = await admin
+      .from("analytics_events")
+      .select("*", { count: "exact", head: true })
+      .eq("profile_id", profileId)
+      .eq("event_type", "profile_view")
+      .eq("visitor_hash", hash);
+
+    if ((existingViews ?? 0) > 0) {
+      return { ok: true, deduplicated: true };
+    }
+
     const { data: inserted, error } = await admin
       .from("analytics_events")
       .insert({
@@ -99,6 +133,7 @@ export async function recordProfileView(
       .maybeSingle();
 
     if (!error && inserted) {
+      await bumpProfileViewCount(profileId);
       return { ok: true, recorded: true };
     }
 
