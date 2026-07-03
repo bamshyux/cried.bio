@@ -22,7 +22,7 @@ import {
   ENTER_GATE_BUTTON_STYLE_OPTIONS,
   ENTER_GATE_TEXT_ALIGN_OPTIONS,
 } from "@/lib/enter-gate";
-import { PARTICLE_OPTIONS } from "@/lib/settings";
+import { PARTICLE_OPTIONS, FONT_OPTIONS } from "@/lib/settings";
 import { uploadEnterGateBackgroundToStorage } from "@/lib/uploads/enter-gate-client";
 import { MAX_BACKGROUND_UPLOAD_LABEL } from "@/lib/uploads/limits";
 import type { ParticleEffect, ProfileSettings } from "@/lib/types/settings";
@@ -56,6 +56,8 @@ export type EnterGateFormFields = {
   enter_gate_animation: ProfileSettings["enter_gate_animation"];
   enter_gate_glass_card: boolean;
   enter_gate_card_opacity: number;
+  enter_gate_font_family: string;
+  enter_gate_use_profile_font: boolean;
 };
 
 export function readEnterGateForm(settings: ProfileSettings): EnterGateFormFields {
@@ -84,6 +86,8 @@ export function readEnterGateForm(settings: ProfileSettings): EnterGateFormField
     enter_gate_animation: settings.enter_gate_animation,
     enter_gate_glass_card: settings.enter_gate_glass_card,
     enter_gate_card_opacity: settings.enter_gate_card_opacity,
+    enter_gate_font_family: settings.enter_gate_font_family,
+    enter_gate_use_profile_font: !settings.enter_gate_font_family?.trim(),
   };
 }
 
@@ -96,6 +100,7 @@ function buildPreviewSettings(settings: ProfileSettings, form: EnterGateFormFiel
   return {
     ...settings,
     ...form,
+    enter_gate_font_family: form.enter_gate_use_profile_font ? "" : form.enter_gate_font_family,
     enter_gate_gradient_colors:
       gradientColors.length >= 2 ? gradientColors : settings.enter_gate_gradient_colors,
     enter_gate_particle_effect: form.enter_gate_particle_effect || null,
@@ -493,6 +498,32 @@ export function EnterGateEditor({
             }
             options={ENTER_GATE_TEXT_ALIGN_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
           />
+
+          <ToggleField
+            name="enter_gate_use_profile_font"
+            label="Use profile font"
+            description={`When on, enter gate uses your profile font (${FONT_OPTIONS.find((f) => f.value === settings.font_family)?.label ?? settings.font_family})`}
+            checked={form.enter_gate_use_profile_font}
+            onCheckedChange={(enter_gate_use_profile_font) =>
+              patchForm({
+                enter_gate_use_profile_font,
+                enter_gate_font_family: enter_gate_use_profile_font
+                  ? ""
+                  : form.enter_gate_font_family || settings.font_family,
+              })
+            }
+          />
+
+          {!form.enter_gate_use_profile_font ? (
+            <ControlledSelect
+              label="Enter gate font"
+              value={form.enter_gate_font_family || settings.font_family}
+              onChange={(enter_gate_font_family) =>
+                patchForm({ enter_gate_font_family, enter_gate_use_profile_font: false })
+              }
+              options={FONT_OPTIONS.map((font) => ({ value: font.value, label: font.label }))}
+            />
+          ) : null}
 
           <ControlledSelect
             label="Button style"

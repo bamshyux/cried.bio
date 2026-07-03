@@ -338,6 +338,9 @@ function parseSectionUpdates(
           100,
           existing.enter_gate_card_opacity,
         ),
+        enter_gate_font_family: String(
+          formData.get("enter_gate_font_family") ?? existing.enter_gate_font_family,
+        ).slice(0, 32),
       };
     case "profile": {
       const fontWeight = parseIntField(formData.get("bio_font_weight"), existing.bio_font_weight);

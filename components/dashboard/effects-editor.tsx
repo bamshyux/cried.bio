@@ -95,7 +95,11 @@ export function EffectsEditor({
 
   const handleSave = (event: React.FormEvent) => {
     event.preventDefault();
-    submit(formRef.current);
+    const current = formRef.current;
+    submit({
+      ...current,
+      enter_gate_font_family: current.enter_gate_use_profile_font ? "" : current.enter_gate_font_family,
+    });
   };
 
   const handleCursorUpload = async (file: File | undefined) => {

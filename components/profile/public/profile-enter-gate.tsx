@@ -7,9 +7,11 @@ import {
   getEnterGateButtonClasses,
   getEnterGateButtonStyle,
   resolveEnterGateAccent,
+  resolveEnterGateFontKey,
   resolveEnterGateSubtitleColor,
   resolveEnterGateTitleColor,
 } from "@/lib/enter-gate";
+import { getFontCss, getGoogleFontsUrl } from "@/lib/settings";
 import { EnterGateBackground } from "./enter-gate-background";
 import { ParticleCanvas } from "./particle-canvas";
 
@@ -32,6 +34,9 @@ export function ProfileEnterGate({ profile, settings, onEnter, preview = false }
   const btnAnimClass = getEnterGateButtonClasses(settings.enter_gate_animation);
   const btnStyle = getEnterGateButtonStyle(settings.enter_gate_button_style, accent);
   const cardOpacity = settings.enter_gate_card_opacity / 100;
+  const fontKey = resolveEnterGateFontKey(settings);
+  const fontCss = getFontCss(fontKey);
+  const fontUrl = getGoogleFontsUrl(fontKey);
 
   const showSubtitle = subtitle || (settings.enter_gate_show_username && profile.username);
 
@@ -41,6 +46,7 @@ export function ProfileEnterGate({ profile, settings, onEnter, preview = false }
 
   const content = (
     <>
+      {fontUrl ? <link rel="stylesheet" href={fontUrl} /> : null}
       <EnterGateBackground settings={settings} />
 
       {settings.enter_gate_particle_effect && !preview ? (
@@ -53,14 +59,15 @@ export function ProfileEnterGate({ profile, settings, onEnter, preview = false }
             ? "rounded-2xl border border-white/[0.08] px-8 py-10 backdrop-blur-xl"
             : ""
         }`}
-        style={
-          settings.enter_gate_glass_card
+        style={{
+          fontFamily: fontCss,
+          ...(settings.enter_gate_glass_card
             ? {
                 backgroundColor: `rgba(10, 10, 10, ${cardOpacity})`,
                 boxShadow: `0 24px 64px rgba(0,0,0,${Math.min(cardOpacity + 0.2, 0.6)})`,
               }
-            : undefined
-        }
+            : {}),
+        }}
       >
         {settings.enter_gate_show_avatar ? (
           profile.avatar_url ? (

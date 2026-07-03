@@ -280,6 +280,7 @@ export type ProfileSettings = {
   enter_gate_animation: EnterGateAnimation;
   enter_gate_glass_card: boolean;
   enter_gate_card_opacity: number;
+  enter_gate_font_family: string;
   layout_label: string;
   hide_card_border: boolean;
   card_border_effect: CardBorderEffectPreset;

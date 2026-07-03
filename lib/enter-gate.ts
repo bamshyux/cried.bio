@@ -48,6 +48,10 @@ export function resolveEnterGateSubtitleColor(settings: ProfileSettings) {
   return settings.enter_gate_subtitle_color.trim() || "#a3a3a3";
 }
 
+export function resolveEnterGateFontKey(settings: ProfileSettings) {
+  return settings.enter_gate_font_family.trim() || settings.font_family;
+}
+
 export function getEnterGateAlignClasses(align: EnterGateTextAlign) {
   switch (align) {
     case "left":

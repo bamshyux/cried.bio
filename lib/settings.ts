@@ -129,6 +129,7 @@ export const DEFAULT_SETTINGS: Omit<
   enter_gate_animation: "pulse",
   enter_gate_glass_card: false,
   enter_gate_card_opacity: 20,
+  enter_gate_font_family: "",
   layout_label: "",
   hide_card_border: false,
   card_border_effect: "none",
@@ -512,6 +513,7 @@ export function mergeSettings(
       (row?.enter_gate_animation ?? DEFAULT_SETTINGS.enter_gate_animation) as import("@/lib/types/settings").EnterGateAnimation,
     enter_gate_glass_card: row?.enter_gate_glass_card ?? DEFAULT_SETTINGS.enter_gate_glass_card,
     enter_gate_card_opacity: row?.enter_gate_card_opacity ?? DEFAULT_SETTINGS.enter_gate_card_opacity,
+    enter_gate_font_family: row?.enter_gate_font_family ?? DEFAULT_SETTINGS.enter_gate_font_family,
     layout_label: row?.layout_label ?? DEFAULT_SETTINGS.layout_label,
     hide_card_border: row?.hide_card_border ?? DEFAULT_SETTINGS.hide_card_border,
     card_border_effect:
