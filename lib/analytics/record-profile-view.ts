@@ -131,15 +131,22 @@ async function countAnalyticsProfileViews(profileId: string): Promise<number | n
 export async function readPublicViewCount(profileId: string): Promise<number> {
   const supabase = await createClient();
 
-  const { data: identity } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
-    .select("username, uid")
+    .select("username, uid, view_count, view_count_frozen")
     .eq("id", profileId)
     .not("username", "is", null)
     .maybeSingle();
 
-  if (isFrozenViewCountProfile(identity)) {
+  if (isFrozenViewCountProfile(profile)) {
     return BAM_FROZEN_VIEW_COUNT;
+  }
+
+  if (profile?.view_count != null) {
+    const stored = Number(profile.view_count);
+    if (Number.isFinite(stored)) {
+      return stored;
+    }
   }
 
   const { data, error } = await supabase.rpc("get_public_profile_view_count", {
@@ -156,20 +163,6 @@ export async function readPublicViewCount(profileId: string): Promise<number> {
   const analyticsCount = await countAnalyticsProfileViews(profileId);
   if (analyticsCount != null) {
     return analyticsCount;
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("view_count")
-    .eq("id", profileId)
-    .not("username", "is", null)
-    .maybeSingle();
-
-  if (profile?.view_count != null) {
-    const stored = Number(profile.view_count);
-    if (Number.isFinite(stored)) {
-      return stored;
-    }
   }
 
   return 0;

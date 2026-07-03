@@ -13,7 +13,7 @@ import {
   ToggleField,
 } from "@/components/dashboard/form-fields";
 import { ProfileBio } from "@/components/profile/public/profile-bio";
-import { BIO_FONT_WEIGHT_OPTIONS, BIO_LETTER_SPACING_OPTIONS, FONT_OPTIONS } from "@/lib/settings";
+import { BIO_FONT_WEIGHT_OPTIONS, BIO_LETTER_SPACING_OPTIONS, FONT_OPTIONS, getProfileAlignClass } from "@/lib/settings";
 import type { BioLetterSpacing, ProfileSettings } from "@/lib/types/settings";
 
 type BioStyleFormState = {
@@ -144,7 +144,9 @@ export function BioStyleEditor({
       >
         <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0a] p-4">
           <p className="mb-3 text-[10px] font-medium uppercase tracking-wider text-neutral-600">Preview</p>
-          <ProfileBio text={sampleText} settings={preview} className="!mb-0" />
+          <div className={getProfileAlignClass(settings.content_alignment)}>
+            <ProfileBio text={sampleText} settings={preview} className="!mb-0" />
+          </div>
         </div>
 
         <BioTextColorField

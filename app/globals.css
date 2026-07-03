@@ -12,6 +12,10 @@
   --bf-text-muted: #737373;
   --background: var(--bf-bg);
   --foreground: var(--bf-text);
+  --bf-scrollbar-size: 6px;
+  --bf-scrollbar-thumb: rgba(255, 255, 255, 0.14);
+  --bf-scrollbar-thumb-hover: rgba(255, 255, 255, 0.24);
+  --bf-scrollbar-track: transparent;
 }
 
 @theme inline {
@@ -25,6 +29,51 @@ body {
   background: var(--bf-bg);
   color: var(--bf-text);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Global minimal scrollbars — all pages, profiles, panels, and nested scroll areas */
+html,
+body,
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bf-scrollbar-thumb) var(--bf-scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: var(--bf-scrollbar-size);
+  height: var(--bf-scrollbar-size);
+}
+
+*::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button:single-button,
+*::-webkit-scrollbar-button:vertical:start:decrement,
+*::-webkit-scrollbar-button:vertical:end:increment,
+*::-webkit-scrollbar-button:horizontal:start:decrement,
+*::-webkit-scrollbar-button:horizontal:end:increment {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+*::-webkit-scrollbar-track {
+  margin: 2px 0;
+  background: var(--bf-scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background: var(--bf-scrollbar-thumb);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--bf-scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 @keyframes bf-gradient-shift {
@@ -935,7 +984,6 @@ body {
   max-height: min(28rem, calc(100vh - 4rem));
   overflow: auto;
   overscroll-behavior: contain;
-  scrollbar-width: thin;
   scrollbar-color: rgba(251, 191, 36, 0.32) transparent;
   border: 1px solid rgba(251, 191, 36, 0.14);
   border-radius: 1rem;
@@ -947,24 +995,7 @@ body {
   -webkit-backdrop-filter: blur(16px);
 }
 
-.bf-platform-updates__panel::-webkit-scrollbar {
-  width: 6px;
-}
-
-.bf-platform-updates__panel::-webkit-scrollbar-button {
-  display: none;
-  width: 0;
-  height: 0;
-}
-
-.bf-platform-updates__panel::-webkit-scrollbar-track {
-  margin: 0.625rem 0;
-  background: transparent;
-}
-
 .bf-platform-updates__panel::-webkit-scrollbar-thumb {
-  border: 2px solid transparent;
-  border-radius: 9999px;
   background: rgba(255, 255, 255, 0.14);
   background-clip: padding-box;
 }
@@ -972,10 +1003,6 @@ body {
 .bf-platform-updates__panel::-webkit-scrollbar-thumb:hover {
   background: rgba(251, 191, 36, 0.42);
   background-clip: padding-box;
-}
-
-.bf-platform-updates__panel::-webkit-scrollbar-corner {
-  background: transparent;
 }
 
 .bf-platform-updates__panel-header {
@@ -1170,13 +1197,29 @@ body {
   margin-right: auto;
 }
 
-.bf-profile-align--center .bf-profile-bio-block,
-.bf-profile-align--center .bf-profile-bio:not(.bf-profile-bio--typing) {
+.bf-profile-align--center .bf-profile-bio-block {
+  width: fit-content;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   text-align: center;
 }
 
-.bf-profile-align--right .bf-profile-bio-block,
-.bf-profile-align--right .bf-profile-bio:not(.bf-profile-bio--typing) {
+.bf-profile-align--center .bf-profile-bio,
+.bf-profile-align--center .bf-profile-bio-text {
+  text-align: center;
+}
+
+.bf-profile-align--right .bf-profile-bio-block {
+  width: fit-content;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: 0;
+  text-align: right;
+}
+
+.bf-profile-align--right .bf-profile-bio,
+.bf-profile-align--right .bf-profile-bio-text {
   text-align: right;
 }
 
@@ -1191,16 +1234,18 @@ body {
 
 .bf-profile-align--center .bf-profile-bio--typing {
   justify-content: center;
+  text-align: center;
 }
 
 .bf-profile-align--right .bf-profile-bio--typing {
   justify-content: flex-end;
+  text-align: right;
 }
 
 .bf-profile-bio-text {
   display: inline-block;
   max-width: 100%;
-  text-align: left;
+  text-align: inherit;
 }
 
 .bf-profile-align--right .bf-profile-block {
@@ -1711,7 +1756,6 @@ body {
 
 /* Dashboard sidebar */
 .bf-dash-sidebar {
-  scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
 }
 
@@ -2694,7 +2738,6 @@ body {
 }
 
 .bf-home-activity-scroll {
-  scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 

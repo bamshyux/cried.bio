@@ -29,6 +29,13 @@ export function resolveBioLetterSpacing(spacing: BioLetterSpacing) {
   }
 }
 
+export function resolveBioTextAlign(settings: ProfileSettings): CSSProperties["textAlign"] {
+  const alignment = settings.content_alignment ?? "left";
+  if (alignment === "center") return "center";
+  if (alignment === "right") return "right";
+  return "left";
+}
+
 export function resolveBioStyle(settings: ProfileSettings): CSSProperties {
   const color = resolveBioColor(settings);
   const style: CSSProperties = {
@@ -38,6 +45,7 @@ export function resolveBioStyle(settings: ProfileSettings): CSSProperties {
     fontWeight: settings.bio_font_weight || 400,
     fontStyle: settings.bio_italic ? "italic" : "normal",
     letterSpacing: resolveBioLetterSpacing(settings.bio_letter_spacing),
+    textAlign: resolveBioTextAlign(settings),
   };
 
   if (settings.bio_glow) {
