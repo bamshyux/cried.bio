@@ -13,7 +13,14 @@ import {
 } from "@/lib/data/support";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { SupportActionState, SupportConversationStatus, AdminSupportDetailResult } from "@/lib/types/support";
+import type {
+  AdminSupportDetailResult,
+  AdminSupportInboxResult,
+  SupportActionState,
+  SupportConversationDetailResult,
+  SupportConversationStatus,
+  UserSupportInboxResult,
+} from "@/lib/types/support";
 
 const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
 const ALLOWED_ATTACHMENT_TYPES = new Set([
@@ -535,7 +542,7 @@ export async function uploadSupportAttachmentAction(
 export async function fetchSupportConversationAction(input: {
   conversationId: string;
   asStaff?: boolean;
-}) {
+}): Promise<SupportConversationDetailResult> {
   const asStaff = Boolean(input.asStaff);
   let userId: string;
   let isStaff = asStaff;
@@ -570,7 +577,9 @@ export async function fetchSupportConversationAction(input: {
   return { conversation, messages: messagesWithUrls };
 }
 
-export async function fetchUserSupportInboxAction(search?: string) {
+export async function fetchUserSupportInboxAction(
+  search?: string,
+): Promise<UserSupportInboxResult> {
   const user = await requireUser();
   if ("error" in user) return { error: user.error };
 
@@ -578,7 +587,9 @@ export async function fetchUserSupportInboxAction(search?: string) {
   return { conversations, userId: user.userId };
 }
 
-export async function openSupportConversationAsStaffAction(conversationId: string) {
+export async function openSupportConversationAsStaffAction(
+  conversationId: string,
+): Promise<SupportConversationDetailResult> {
   const access = await requireStaff();
   if ("error" in access) return { error: access.error };
 
@@ -605,7 +616,7 @@ export async function fetchAdminSupportInboxAction(filters?: {
   assigned?: string;
   search?: string;
   priorityOnly?: boolean;
-}) {
+}): Promise<AdminSupportInboxResult> {
   const access = await requireStaff();
   if ("error" in access) return { error: access.error };
 

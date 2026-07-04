@@ -9,6 +9,7 @@ import {
 } from "@/app/actions/support";
 import { SupportChatThread } from "@/components/support/support-chat-thread";
 import { useSupportRealtime } from "@/hooks/use-support-realtime";
+import { supportUnreadTotal } from "@/lib/support/format";
 import type { SupportConversation, SupportMessage } from "@/lib/types/support";
 
 export function SupportWidgetTrigger({
@@ -50,11 +51,8 @@ export function SupportWidgetUnreadPoller({
   const refreshUnread = useCallback(async () => {
     if (!userId) return;
     const result = await fetchUserSupportInboxAction();
-    if ("conversations" in result) {
-      onUnreadChange(
-        result.conversations.reduce((sum, item) => sum + (item.unread_count ?? 0), 0),
-      );
-    }
+    if ("error" in result) return;
+    onUnreadChange(supportUnreadTotal(result.conversations));
   }, [onUnreadChange, userId]);
 
   useEffect(() => {
@@ -93,7 +91,7 @@ export function SupportWidgetBody({
   const [otherTyping, setOtherTyping] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const unreadTotal = conversations.reduce((sum, item) => sum + (item.unread_count ?? 0), 0);
+  const unreadTotal = supportUnreadTotal(conversations);
 
   useEffect(() => {
     onUnreadChange(unreadTotal);

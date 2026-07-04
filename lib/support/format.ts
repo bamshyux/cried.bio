@@ -43,3 +43,9 @@ export function supportDisplayName(
   if (!profile) return "User";
   return profile.display_name || (profile.username ? `@${profile.username}` : "User");
 }
+
+export function supportUnreadTotal(
+  conversations: Array<{ unread_count?: number }>,
+) {
+  return conversations.reduce((sum, item) => sum + (item.unread_count ?? 0), 0);
+}

@@ -83,13 +83,31 @@ export type SupportActionState = {
   messageId?: string;
 };
 
+export type SupportActionError = { error: string };
+
 export type SupportConversationDetail = {
   conversation: SupportConversation;
   messages: SupportMessage[];
 };
 
+export type SupportConversationDetailResult = SupportActionError | SupportConversationDetail;
+
+export type UserSupportInboxResult =
+  | SupportActionError
+  | {
+      conversations: SupportConversation[];
+      userId: string;
+    };
+
+export type AdminSupportInboxResult =
+  | SupportActionError
+  | {
+      conversations: SupportConversation[];
+      staffUserId: string;
+    };
+
 export type AdminSupportDetailResult =
-  | { error: string }
+  | SupportActionError
   | (SupportConversationDetail & {
       notes: SupportInternalNote[];
       staffUserId: string;
