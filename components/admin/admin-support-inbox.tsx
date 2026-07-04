@@ -57,9 +57,8 @@ export function AdminSupportInbox({
       search,
       priorityOnly,
     });
-    if ("conversations" in result) {
-      setConversations(result.conversations);
-    }
+    if ("error" in result) return;
+    setConversations(result.conversations);
   }, [assignedFilter, priorityOnly, search, statusFilter]);
 
   const openConversation = useCallback(async (conversationId: string) => {
@@ -69,6 +68,7 @@ export function AdminSupportInbox({
       setFeedback(result.error);
       return;
     }
+    if (!result.conversation || !result.messages) return;
     setActiveConversation(result.conversation);
     setMessages(result.messages);
     setNotes(result.notes ?? []);
