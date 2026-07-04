@@ -29,6 +29,7 @@ export function PublicProfileView({
   discordPresence = null,
   scopedCustomCss = null,
   presetPreviewTitle = null,
+  presetPreviewMode = false,
 }: {
   profile: Profile;
   links: ProfileLink[];
@@ -48,6 +49,7 @@ export function PublicProfileView({
   discordPresence?: DiscordPresence | null;
   scopedCustomCss?: string | null;
   presetPreviewTitle?: string | null;
+  presetPreviewMode?: boolean;
 }) {
   return (
     <PublicProfileClient
@@ -69,6 +71,7 @@ export function PublicProfileView({
       discordPresence={discordPresence}
       scopedCustomCss={scopedCustomCss}
       presetPreviewTitle={presetPreviewTitle}
+      presetPreviewMode={presetPreviewMode}
     />
   );
 }

@@ -825,6 +825,7 @@ export function PublicProfileClient({
   discordPresence = null,
   scopedCustomCss = null,
   presetPreviewTitle = null,
+  presetPreviewMode = false,
 }: {
   profile: Profile;
   links: ProfileLink[];
@@ -844,8 +845,10 @@ export function PublicProfileClient({
   discordPresence?: DiscordPresence | null;
   scopedCustomCss?: string | null;
   presetPreviewTitle?: string | null;
+  presetPreviewMode?: boolean;
 }) {
-  const isPresetPreview = Boolean(presetPreviewTitle);
+  const isPresetPreview = presetPreviewMode || Boolean(presetPreviewTitle);
+  const showPresetPreviewBanner = Boolean(presetPreviewTitle) && !presetPreviewMode;
   const [entered, setEntered] = useState(isPresetPreview || !settings.enter_gate_enabled);
   const playMusicRef = useRef<(() => void) | null>(null);
 
@@ -892,9 +895,6 @@ export function PublicProfileClient({
         <ParticleCanvas effect={settings.particle_effect} />
       ) : null}
       {entered && !isPresetPreview ? <AnalyticsTracker profileId={profile.id} /> : null}
-      {entered && isPresetPreview && presetPreviewTitle ? (
-        <PresetPreviewBanner title={presetPreviewTitle} />
-      ) : null}
       {entered ? (
         <CursorEffectCanvas effect={settings.cursor_effect} color={settings.accent_color} />
       ) : null}
@@ -907,9 +907,12 @@ export function PublicProfileClient({
 
       {entered ? (
         <div
-          className={`relative z-10 flex min-h-screen flex-col ${settings.cursor_image_url ? "bf-custom-cursor-active" : ""} ${isPresetPreview ? "pt-11" : ""}`}
+          className={`relative z-10 flex flex-col ${presetPreviewMode ? "min-h-full" : "min-h-screen"} ${settings.cursor_image_url ? "bf-custom-cursor-active" : ""}`}
           style={{ color: settings.text_color, fontFamily: fontCss, "--bf-accent": settings.accent_color } as React.CSSProperties}
         >
+          {showPresetPreviewBanner && presetPreviewTitle ? (
+            <PresetPreviewBanner title={presetPreviewTitle} />
+          ) : null}
           <header className="absolute inset-x-0 top-0 z-20 flex w-full items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
             <Link href="/" className="group opacity-90 transition-opacity hover:opacity-100">
               <CriedLogo size={24} variant="muted" />

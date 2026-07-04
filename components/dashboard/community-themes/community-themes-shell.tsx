@@ -176,7 +176,7 @@ export function CommunityThemesShell({
     if (action === "preview") {
       if (theme.listing_type === "profile_preset") {
         window.open(
-          `/dashboard/explore/themes/preview/${theme.id}`,
+          `/preview/preset/${theme.id}`,
           "_blank",
           "noopener,noreferrer",
         );
