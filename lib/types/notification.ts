@@ -4,7 +4,11 @@ export type NotificationType =
   | "friend_accepted"
   | "badge_earned"
   | "guestbook"
-  | "milestone";
+  | "milestone"
+  | "support_reply"
+  | "support_closed"
+  | "support_reopened"
+  | "support_new_ticket";
 
 export type Notification = {
   id: string;

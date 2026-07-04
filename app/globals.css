@@ -2794,3 +2794,187 @@ body,
     animation: none !important;
   }
 }
+
+/* ─── Floating site dock + support widget ─── */
+
+.bf-site-dock {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .bf-site-dock {
+    right: 1.5rem;
+    bottom: 1.5rem;
+  }
+}
+
+.bf-site-dock__buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.bf-site-dock__button {
+  position: relative;
+  display: flex;
+  height: 2.75rem;
+  width: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: radial-gradient(circle at 50% 35%, #3a3a3a 0%, #1a1a1a 55%, #0d0d0d 100%);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .bf-site-dock__button {
+    height: 3rem;
+    width: 3rem;
+  }
+}
+
+.bf-site-dock__button:hover {
+  transform: scale(1.05);
+}
+
+.bf-site-dock__button:active {
+  transform: scale(0.95);
+}
+
+.bf-site-dock__button--support.bf-site-dock__button--active,
+.bf-site-dock__button--support:hover {
+  border-color: rgba(167, 139, 250, 0.65);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    0 0 24px rgba(124, 58, 237, 0.25);
+}
+
+.bf-site-dock__badge {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  min-width: 1.125rem;
+  border-radius: 9999px;
+  background: #7c3aed;
+  padding: 0.125rem 0.3125rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.45);
+}
+
+.bf-support-panel {
+  display: flex;
+  width: min(100vw - 1.5rem, 24rem);
+  height: min(78vh, 640px);
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(18, 12, 24, 0.96) 0%, rgba(9, 9, 9, 0.98) 100%);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(124, 58, 237, 0.08) inset;
+  backdrop-filter: blur(18px);
+  animation: bf-support-panel-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes bf-support-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.bf-support-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1rem 1rem 0.875rem;
+}
+
+.bf-support-panel__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.bf-support-panel__subtitle {
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.bf-support-chat-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.bf-support-chat-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bf-support-chat-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.bf-support-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.bf-support-typing span {
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 9999px;
+  background: rgba(167, 139, 250, 0.85);
+  animation: bf-support-typing 1.2s ease-in-out infinite;
+}
+
+.bf-support-typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.bf-support-typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes bf-support-typing {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  40% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bf-support-panel,
+  .bf-site-dock__button {
+    animation: none !important;
+    transition: none !important;
+  }
+}

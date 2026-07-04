@@ -8,6 +8,7 @@ const ADMIN_LINKS = [
   { href: "/dashboard/admin/users", label: "Users" },
   { href: "/dashboard/admin/badges", label: "Badges" },
   { href: "/dashboard/admin/moderation", label: "Moderation" },
+  { href: "/dashboard/admin/support", label: "Support Inbox" },
   { href: "/dashboard/admin/announcements", label: "Announcements" },
   { href: "/dashboard/admin/updates", label: "Updates" },
   { href: "/dashboard/admin/notifications", label: "Notifications" },
