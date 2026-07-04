@@ -13,7 +13,7 @@ import {
 } from "@/lib/data/support";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { SupportActionState, SupportConversationStatus } from "@/lib/types/support";
+import type { SupportActionState, SupportConversationStatus, AdminSupportDetailResult } from "@/lib/types/support";
 
 const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
 const ALLOWED_ATTACHMENT_TYPES = new Set([
@@ -626,15 +626,22 @@ export async function fetchAdminSupportInboxAction(filters?: {
   return { conversations, staffUserId: access.userId };
 }
 
-export async function fetchAdminSupportDetailAction(conversationId: string) {
+export async function fetchAdminSupportDetailAction(
+  conversationId: string,
+): Promise<AdminSupportDetailResult> {
   const access = await requireStaff();
   if ("error" in access) return { error: access.error };
 
   const opened = await openSupportConversationAsStaffAction(conversationId);
-  if ("error" in opened) return opened;
+  if ("error" in opened) return { error: opened.error ?? "Could not open conversation." };
 
   const { getSupportInternalNotes } = await import("@/lib/data/support");
   const notes = await getSupportInternalNotes(conversationId);
 
-  return { ...opened, notes, staffUserId: access.userId };
+  return {
+    conversation: opened.conversation,
+    messages: opened.messages,
+    notes,
+    staffUserId: access.userId,
+  };
 }

@@ -83,6 +83,18 @@ export type SupportActionState = {
   messageId?: string;
 };
 
+export type SupportConversationDetail = {
+  conversation: SupportConversation;
+  messages: SupportMessage[];
+};
+
+export type AdminSupportDetailResult =
+  | { error: string }
+  | (SupportConversationDetail & {
+      notes: SupportInternalNote[];
+      staffUserId: string;
+    });
+
 export const SUPPORT_STATUS_LABELS: Record<SupportConversationStatus, string> = {
   open: "Open",
   waiting_on_staff: "Waiting on Staff",

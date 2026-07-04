@@ -68,10 +68,9 @@ export function AdminSupportInbox({
       setFeedback(result.error ?? null);
       return;
     }
-    if (!result.conversation || !result.messages) return;
     setActiveConversation(result.conversation);
     setMessages(result.messages);
-    setNotes(result.notes ?? []);
+    setNotes(result.notes);
     void refreshInbox();
   }, [refreshInbox]);
 
