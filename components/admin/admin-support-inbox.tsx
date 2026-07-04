@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
   addSupportInternalNoteAction,
   assignSupportConversationAction,
@@ -46,6 +46,9 @@ export function AdminSupportInbox({
   const [otherTyping, setOtherTyping] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const selectedIdRef = useRef<string | null>(null);
+
+  selectedIdRef.current = selectedId;
 
   const refreshInbox = useCallback(async () => {
     try {
@@ -84,13 +87,30 @@ export function AdminSupportInbox({
     conversationId: selectedId,
     isStaff: true,
     enabled: true,
-    onConversationChange: () => void refreshInbox(),
+    onConversationChange: () => {
+      void refreshInbox();
+      const openId = selectedIdRef.current;
+      if (openId) void openConversation(openId);
+    },
     onMessageInsert: (conversationId) => {
-      if (selectedId === conversationId) void openConversation(conversationId);
+      if (selectedIdRef.current === conversationId) void openConversation(conversationId);
       else void refreshInbox();
     },
     onTyping: ({ isTyping }) => setOtherTyping(isTyping),
   });
+
+  const refreshActiveConversation = useCallback(async () => {
+    const openId = selectedIdRef.current;
+    if (openId) await openConversation(openId);
+  }, [openConversation]);
+
+  const handleTicketDeleted = useCallback(() => {
+    setSelectedId(null);
+    setActiveConversation(null);
+    setMessages([]);
+    setNotes([]);
+    void refreshInbox();
+  }, [refreshInbox]);
 
   function run(action: () => Promise<{ error?: string; success?: string }>) {
     startTransition(async () => {
@@ -280,9 +300,8 @@ export function AdminSupportInbox({
                     isStaff
                     isOtherTyping={otherTyping}
                     quickReplies
-                    onRefresh={() => {
-                      if (selectedId) void openConversation(selectedId);
-                    }}
+                    onRefresh={refreshActiveConversation}
+                    onDeleted={handleTicketDeleted}
                   />
                 </div>
 

@@ -15,15 +15,18 @@ export function useSupportRealtime(options: {
   const onConversationChangeRef = useRef(options.onConversationChange);
   const onMessageInsertRef = useRef(options.onMessageInsert);
   const onTypingRef = useRef(options.onTyping);
+  const conversationIdRef = useRef(options.conversationId);
 
   onConversationChangeRef.current = options.onConversationChange;
   onMessageInsertRef.current = options.onMessageInsert;
   onTypingRef.current = options.onTyping;
+  conversationIdRef.current = options.conversationId;
 
   useEffect(() => {
     if (!options.enabled || !options.userId) return;
 
     let cancelled = false;
+    const role = options.isStaff ? "staff" : "user";
 
     try {
       const supabase = createClient();
@@ -34,7 +37,7 @@ export function useSupportRealtime(options: {
         : `user_id=eq.${options.userId}`;
 
       const inboxChannel = supabase
-        .channel(`support-inbox:${options.userId}`)
+        .channel(`support-inbox:${options.userId}:${role}`)
         .on(
           "postgres_changes",
           {
@@ -52,15 +55,16 @@ export function useSupportRealtime(options: {
       channels.push(inboxChannel);
 
       if (options.conversationId) {
+        const activeConversationId = options.conversationId;
         const messageChannel = supabase
-          .channel(`support-messages:${options.conversationId}`)
+          .channel(`support-messages:${activeConversationId}:${options.userId}:${role}`)
           .on(
             "postgres_changes",
             {
               event: "INSERT",
               schema: "public",
               table: "support_messages",
-              filter: `conversation_id=eq.${options.conversationId}`,
+              filter: `conversation_id=eq.${activeConversationId}`,
             },
             (payload) => {
               const row = payload.new as { conversation_id?: string };
@@ -75,12 +79,20 @@ export function useSupportRealtime(options: {
               event: "UPDATE",
               schema: "public",
               table: "support_messages",
-              filter: `conversation_id=eq.${options.conversationId}`,
+              filter: `conversation_id=eq.${activeConversationId}`,
             },
             () => {
-              if (!cancelled) onMessageInsertRef.current(options.conversationId!);
+              if (!cancelled) {
+                onMessageInsertRef.current(conversationIdRef.current ?? activeConversationId);
+              }
             },
           )
+          .subscribe();
+
+        channels.push(messageChannel);
+
+        const typingChannel = supabase
+          .channel(`support-typing:${activeConversationId}`)
           .on("broadcast", { event: "typing" }, ({ payload }) => {
             const data = payload as { userId?: string; isTyping?: boolean };
             if (!data.userId || data.userId === options.userId) return;
@@ -90,7 +102,7 @@ export function useSupportRealtime(options: {
           })
           .subscribe();
 
-        channels.push(messageChannel);
+        channels.push(typingChannel);
       }
 
       return () => {
@@ -117,7 +129,7 @@ export function broadcastSupportTyping(
   isTyping: boolean,
 ) {
   const supabase = createClient();
-  const channel = supabase.channel(`support-messages:${conversationId}`);
+  const channel = supabase.channel(`support-typing:${conversationId}`);
   void channel.subscribe((status) => {
     if (status === "SUBSCRIBED") {
       void channel.send({
@@ -125,6 +137,7 @@ export function broadcastSupportTyping(
         event: "typing",
         payload: { userId, isTyping },
       });
+      void supabase.removeChannel(channel);
     }
   });
 }

@@ -3355,7 +3355,6 @@ body,
 }
 
 .bf-support-thread__close-btn {
-  margin-left: auto;
   flex-shrink: 0;
   border-radius: 9999px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -3370,6 +3369,36 @@ body,
 .bf-support-thread__close-btn:hover {
   border-color: rgba(255, 255, 255, 0.18);
   color: #fff;
+}
+
+.bf-support-thread__actions {
+  margin-left: auto;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.bf-support-thread__delete-btn {
+  border-radius: 9999px;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.08);
+  padding: 0.3125rem 0.625rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: rgba(252, 165, 165, 0.92);
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.bf-support-thread__delete-btn:hover:not(:disabled) {
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(239, 68, 68, 0.14);
+  color: #fecaca;
+}
+
+.bf-support-thread__delete-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .bf-support-bubble {

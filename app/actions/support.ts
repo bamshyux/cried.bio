@@ -351,6 +351,71 @@ export async function reopenSupportConversationAction(
   return { success: "Conversation reopened." };
 }
 
+export async function deleteSupportConversationAction(
+  conversationId: string,
+  asStaff = false,
+): Promise<SupportActionState> {
+  const supabase = await db();
+  let userId: string;
+  let isStaff = asStaff;
+  let staffEmail = "";
+
+  if (asStaff) {
+    const access = await requireStaff();
+    if ("error" in access) return access;
+    userId = access.userId;
+    staffEmail = access.email;
+  } else {
+    const user = await requireUser();
+    if ("error" in user) return user;
+    userId = user.userId;
+    isStaff = false;
+  }
+
+  const conversation = await getSupportConversationById(conversationId, userId, isStaff);
+  if (!conversation) return { error: "Conversation not found." };
+  if (conversation.status !== "closed") {
+    return { error: "Only closed tickets can be deleted." };
+  }
+
+  const messages = await getSupportMessages(conversationId);
+  const storagePaths = messages.flatMap(
+    (message) => message.attachments?.map((attachment) => attachment.storage_path) ?? [],
+  );
+
+  const { error } = await supabase
+    .from("support_conversations")
+    .delete()
+    .eq("id", conversationId);
+
+  if (error) return { error: error.message };
+
+  if (storagePaths.length > 0) {
+    const admin = createAdminClient();
+    if (admin) {
+      const { error: storageError } = await admin.storage
+        .from("support-attachments")
+        .remove(storagePaths);
+      if (storageError) {
+        console.error("[support] attachment cleanup failed:", storageError.message);
+      }
+    }
+  }
+
+  if (isStaff && staffEmail) {
+    await logAdminAudit({
+      actorId: userId,
+      actorEmail: staffEmail,
+      action: "support_delete",
+      targetUserId: conversation.user_id,
+      details: { conversationId, subject: conversation.subject },
+    });
+  }
+
+  revalidateSupport();
+  return { success: "Ticket deleted." };
+}
+
 export async function assignSupportConversationAction(
   conversationId: string,
   assigneeId?: string | null,

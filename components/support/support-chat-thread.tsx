@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   closeSupportConversationAction,
+  deleteSupportConversationAction,
   markSupportMessagesReadAction,
   reopenSupportConversationAction,
   sendSupportMessageAction,
@@ -14,6 +15,7 @@ import {
   formatSupportDateSeparator,
   formatSupportTimestamp,
   isSameSupportDay,
+  isSupportMessageMine,
   supportDisplayName,
 } from "@/lib/support/format";
 import type { SupportConversation, SupportMessage } from "@/lib/types/support";
@@ -32,6 +34,7 @@ export function SupportChatThread({
   isStaff,
   onBack,
   onRefresh,
+  onDeleted,
   quickReplies = false,
   isOtherTyping = false,
 }: {
@@ -40,7 +43,8 @@ export function SupportChatThread({
   viewerId: string;
   isStaff: boolean;
   onBack?: () => void;
-  onRefresh: () => void;
+  onRefresh: () => void | Promise<void>;
+  onDeleted?: () => void;
   quickReplies?: boolean;
   isOtherTyping?: boolean;
 }) {
@@ -60,8 +64,17 @@ export function SupportChatThread({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length, isOtherTyping]);
 
-  const isClosed = conversation.status === "closed";
+  // Poll while thread is open so messages appear even if Realtime is delayed.
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      void onRefresh();
+    }, 4000);
+    return () => window.clearInterval(interval);
+  }, [conversation.id, onRefresh]);
+
   const groupedMessages = useMemo(() => messages, [messages]);
+
+  const isClosed = conversation.status === "closed";
 
   function notifyTyping(isTyping: boolean) {
     broadcastSupportTyping(conversation.id, viewerId, isTyping);
@@ -106,7 +119,7 @@ export function SupportChatThread({
       setDraft("");
       setFile(null);
       notifyTyping(false);
-      onRefresh();
+      await onRefresh();
     });
   }
 
@@ -117,7 +130,24 @@ export function SupportChatThread({
         ? await closeSupportConversationAction(conversation.id, isStaff)
         : await reopenSupportConversationAction(conversation.id, isStaff);
       if (result.error) setError(result.error);
-      else onRefresh();
+      else await onRefresh();
+    });
+  }
+
+  function deleteTicket() {
+    if (
+      !window.confirm(
+        "Delete this closed ticket permanently? All messages and attachments will be removed.",
+      )
+    ) {
+      return;
+    }
+
+    startTransition(async () => {
+      setError(null);
+      const result = await deleteSupportConversationAction(conversation.id, isStaff);
+      if (result.error) setError(result.error);
+      else onDeleted?.();
     });
   }
 
@@ -138,14 +168,26 @@ export function SupportChatThread({
             {SUPPORT_STATUS_LABELS[conversation.status]}
           </span>
         </div>
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={() => toggleClosed(!isClosed)}
-          className="bf-support-thread__close-btn"
-        >
-          {isClosed ? "Re-open" : "Close"}
-        </button>
+        <div className="bf-support-thread__actions">
+          {isClosed ? (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={deleteTicket}
+              className="bf-support-thread__delete-btn"
+            >
+              Delete
+            </button>
+          ) : null}
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => toggleClosed(!isClosed)}
+            className="bf-support-thread__close-btn"
+          >
+            {isClosed ? "Re-open" : "Close"}
+          </button>
+        </div>
       </div>
 
       <div ref={scrollRef} className="bf-support-chat-scroll min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4">
@@ -153,7 +195,7 @@ export function SupportChatThread({
           const previous = groupedMessages[index - 1];
           const showDate =
             !previous || !isSameSupportDay(previous.created_at, message.created_at);
-          const isMine = message.author_id === viewerId;
+          const isMine = isSupportMessageMine(message, isStaff);
 
           return (
             <div key={message.id}>

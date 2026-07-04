@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
   createSupportConversationAction,
   fetchSupportConversationAction,
@@ -124,6 +124,9 @@ export function SupportWidgetBody({
   const [error, setError] = useState<string | null>(null);
   const [otherTyping, setOtherTyping] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const activeConversationIdRef = useRef<string | null>(null);
+
+  activeConversationIdRef.current = activeConversation?.id ?? null;
 
   const unreadTotal = supportUnreadTotal(conversations);
   const openTicketCount = conversations.filter((c) => c.status !== "closed").length;
@@ -163,13 +166,22 @@ export function SupportWidgetBody({
     conversationId: activeConversation?.id ?? null,
     isStaff: false,
     enabled: Boolean(userId),
-    onConversationChange: () => void loadInbox(),
+    onConversationChange: () => {
+      void loadInbox();
+      const openId = activeConversationIdRef.current;
+      if (openId) void loadConversation(openId);
+    },
     onMessageInsert: (conversationId) => {
-      if (activeConversation?.id === conversationId) void loadConversation(conversationId);
+      if (activeConversationIdRef.current === conversationId) void loadConversation(conversationId);
       else void loadInbox();
     },
     onTyping: ({ isTyping }) => setOtherTyping(isTyping),
   });
+
+  const refreshActiveConversation = useCallback(async () => {
+    const openId = activeConversationIdRef.current;
+    if (openId) await loadConversation(openId);
+  }, [loadConversation]);
 
   function startNewConversation() {
     startTransition(async () => {
@@ -226,8 +238,9 @@ export function SupportWidgetBody({
             isStaff={false}
             onBack={resetToHome}
             isOtherTyping={otherTyping}
-            onRefresh={() => {
-              void loadConversation(activeConversation.id);
+            onRefresh={refreshActiveConversation}
+            onDeleted={() => {
+              resetToHome();
               void loadInbox();
             }}
           />

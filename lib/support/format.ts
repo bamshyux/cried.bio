@@ -56,3 +56,11 @@ export function supportUnreadTotal(
 ) {
   return conversations.reduce((sum, item) => sum + (item.unread_count ?? 0), 0);
 }
+
+/** Purple/right = current viewer's side; gray/left = the other party. */
+export function isSupportMessageMine(
+  message: { is_staff: boolean },
+  isStaffViewer: boolean,
+) {
+  return isStaffViewer ? message.is_staff : !message.is_staff;
+}
