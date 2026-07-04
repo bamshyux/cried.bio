@@ -13,16 +13,13 @@ import { AdminStatCard } from "@/components/admin/admin-ui";
 import { SupportChatThread } from "@/components/support/support-chat-thread";
 import { useSupportRealtime } from "@/hooks/use-support-realtime";
 import { formatSupportTimestamp, supportDisplayName } from "@/lib/support/format";
-import type {
-  SupportAnalytics,
-  SupportConversation,
-  SupportInternalNote,
-  SupportMessage,
-  SupportProfileSummary,
-} from "@/lib/types/support";
 import {
-  SUPPORT_STATUS_EMOJI,
-  SUPPORT_STATUS_LABELS,
+  getSupportStatusDisplay,
+  type SupportAnalytics,
+  type SupportConversation,
+  type SupportInternalNote,
+  type SupportMessage,
+  type SupportProfileSummary,
 } from "@/lib/types/support";
 
 export function AdminSupportInbox({
@@ -51,14 +48,18 @@ export function AdminSupportInbox({
   const [isPending, startTransition] = useTransition();
 
   const refreshInbox = useCallback(async () => {
-    const result = await fetchAdminSupportInboxAction({
-      status: statusFilter,
-      assigned: assignedFilter,
-      search,
-      priorityOnly,
-    });
-    if ("error" in result) return;
-    setConversations(result.conversations);
+    try {
+      const result = await fetchAdminSupportInboxAction({
+        status: statusFilter,
+        assigned: assignedFilter,
+        search,
+        priorityOnly,
+      });
+      if (!result || "error" in result) return;
+      setConversations(Array.isArray(result.conversations) ? result.conversations : []);
+    } catch (error) {
+      console.error("[admin/support] refreshInbox:", error);
+    }
   }, [assignedFilter, priorityOnly, search, statusFilter]);
 
   const openConversation = useCallback(async (conversationId: string) => {
@@ -173,6 +174,7 @@ export function AdminSupportInbox({
               <tbody>
                 {conversations.map((conversation) => {
                   const selected = selectedId === conversation.id;
+                  const status = getSupportStatusDisplay(conversation.status);
                   return (
                     <tr
                       key={conversation.id}
@@ -196,13 +198,14 @@ export function AdminSupportInbox({
                         {conversation.last_message_preview ?? "—"}
                       </td>
                       <td className="px-4 py-3 text-neutral-400">
-                        {SUPPORT_STATUS_EMOJI[conversation.status]}{" "}
-                        {SUPPORT_STATUS_LABELS[conversation.status]}
+                        {status.emoji} {status.label}
                       </td>
                       <td className="px-4 py-3 text-neutral-400">
-                        {supportDisplayName(conversation.assignee) || "Unassigned"}
+                        {conversation.assignee
+                          ? supportDisplayName(conversation.assignee)
+                          : "Unassigned"}
                       </td>
-                      <td className="px-4 py-3 text-neutral-500">
+                      <td className="px-4 py-3 text-neutral-500" suppressHydrationWarning>
                         {conversation.updated_at
                           ? formatSupportTimestamp(conversation.updated_at)
                           : "—"}

@@ -23,72 +23,86 @@ export function useSupportRealtime(options: {
   useEffect(() => {
     if (!options.enabled || !options.userId) return;
 
-    const supabase = createClient();
-    const channels: ReturnType<typeof supabase.channel>[] = [];
+    let cancelled = false;
 
-    const conversationFilter = options.isStaff
-      ? undefined
-      : `user_id=eq.${options.userId}`;
+    try {
+      const supabase = createClient();
+      const channels: ReturnType<typeof supabase.channel>[] = [];
 
-    const inboxChannel = supabase
-      .channel(`support-inbox:${options.userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "support_conversations",
-          ...(conversationFilter ? { filter: conversationFilter } : {}),
-        },
-        () => onConversationChangeRef.current(),
-      )
-      .subscribe();
+      const conversationFilter = options.isStaff
+        ? undefined
+        : `user_id=eq.${options.userId}`;
 
-    channels.push(inboxChannel);
-
-    if (options.conversationId) {
-      const messageChannel = supabase
-        .channel(`support-messages:${options.conversationId}`)
+      const inboxChannel = supabase
+        .channel(`support-inbox:${options.userId}`)
         .on(
           "postgres_changes",
           {
-            event: "INSERT",
+            event: "*",
             schema: "public",
-            table: "support_messages",
-            filter: `conversation_id=eq.${options.conversationId}`,
+            table: "support_conversations",
+            ...(conversationFilter ? { filter: conversationFilter } : {}),
           },
-          (payload) => {
-            const row = payload.new as { conversation_id?: string };
-            if (row.conversation_id) {
-              onMessageInsertRef.current(row.conversation_id);
-            }
+          () => {
+            if (!cancelled) onConversationChangeRef.current();
           },
         )
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "support_messages",
-            filter: `conversation_id=eq.${options.conversationId}`,
-          },
-          () => onMessageInsertRef.current(options.conversationId!),
-        )
-        .on("broadcast", { event: "typing" }, ({ payload }) => {
-          const data = payload as { userId?: string; isTyping?: boolean };
-          if (!data.userId || data.userId === options.userId) return;
-          onTypingRef.current?.({ userId: data.userId, isTyping: Boolean(data.isTyping) });
-        })
         .subscribe();
 
-      channels.push(messageChannel);
-    }
+      channels.push(inboxChannel);
 
-    return () => {
-      for (const channel of channels) {
-        void supabase.removeChannel(channel);
+      if (options.conversationId) {
+        const messageChannel = supabase
+          .channel(`support-messages:${options.conversationId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "support_messages",
+              filter: `conversation_id=eq.${options.conversationId}`,
+            },
+            (payload) => {
+              const row = payload.new as { conversation_id?: string };
+              if (!cancelled && row.conversation_id) {
+                onMessageInsertRef.current(row.conversation_id);
+              }
+            },
+          )
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "support_messages",
+              filter: `conversation_id=eq.${options.conversationId}`,
+            },
+            () => {
+              if (!cancelled) onMessageInsertRef.current(options.conversationId!);
+            },
+          )
+          .on("broadcast", { event: "typing" }, ({ payload }) => {
+            const data = payload as { userId?: string; isTyping?: boolean };
+            if (!data.userId || data.userId === options.userId) return;
+            if (!cancelled) {
+              onTypingRef.current?.({ userId: data.userId, isTyping: Boolean(data.isTyping) });
+            }
+          })
+          .subscribe();
+
+        channels.push(messageChannel);
       }
-    };
+
+      return () => {
+        cancelled = true;
+        for (const channel of channels) {
+          void supabase.removeChannel(channel);
+        }
+      };
+    } catch (error) {
+      console.error("[support] realtime setup failed:", error);
+      return undefined;
+    }
   }, [
     options.conversationId,
     options.enabled,

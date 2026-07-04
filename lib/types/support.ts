@@ -133,3 +133,26 @@ export const SUPPORT_QUICK_REPLIES = [
   "This has been resolved — let us know if you need anything else.",
   "We've escalated this to our team and will follow up shortly.",
 ];
+
+const VALID_STATUSES = new Set<SupportConversationStatus>([
+  "open",
+  "waiting_on_staff",
+  "waiting_on_user",
+  "closed",
+]);
+
+export function normalizeSupportStatus(status: unknown): SupportConversationStatus {
+  if (typeof status === "string" && VALID_STATUSES.has(status as SupportConversationStatus)) {
+    return status as SupportConversationStatus;
+  }
+  return "open";
+}
+
+export function getSupportStatusDisplay(status: unknown) {
+  const normalized = normalizeSupportStatus(status);
+  return {
+    status: normalized,
+    emoji: SUPPORT_STATUS_EMOJI[normalized],
+    label: SUPPORT_STATUS_LABELS[normalized],
+  };
+}

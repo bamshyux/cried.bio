@@ -1,14 +1,15 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import type {
-  SupportAnalytics,
-  SupportAttachment,
-  SupportConversation,
-  SupportConversationStatus,
-  SupportInboxFilters,
-  SupportInternalNote,
-  SupportMessage,
-  SupportProfileSummary,
+import {
+  normalizeSupportStatus,
+  type SupportAnalytics,
+  type SupportAttachment,
+  type SupportConversation,
+  type SupportConversationStatus,
+  type SupportInboxFilters,
+  type SupportInternalNote,
+  type SupportMessage,
+  type SupportProfileSummary,
 } from "@/lib/types/support";
 
 const PROFILE_SELECT = "id, username, display_name, avatar_url";
@@ -42,19 +43,19 @@ function mapConversationRow(
   profileMap: Map<string, SupportProfileSummary>,
 ): SupportConversation {
   return {
-    id: row.id,
-    user_id: row.user_id,
-    subject: row.subject,
-    status: row.status,
-    assigned_to: row.assigned_to,
+    id: String(row.id),
+    user_id: String(row.user_id),
+    subject: row.subject ?? "Untitled",
+    status: normalizeSupportStatus(row.status),
+    assigned_to: row.assigned_to ? String(row.assigned_to) : null,
     is_priority: Boolean(row.is_priority),
     is_pinned: Boolean(row.is_pinned),
     last_message_at: row.last_message_at,
     last_message_preview: row.last_message_preview,
     created_at: row.created_at,
     updated_at: row.updated_at,
-    customer: profileMap.get(row.user_id) ?? null,
-    assignee: row.assigned_to ? profileMap.get(row.assigned_to) ?? null : null,
+    customer: profileMap.get(String(row.user_id)) ?? null,
+    assignee: row.assigned_to ? profileMap.get(String(row.assigned_to)) ?? null : null,
   };
 }
 
@@ -173,13 +174,18 @@ async function attachUnreadCounts(
 ): Promise<SupportConversation[]> {
   if (conversations.length === 0) return conversations;
 
-  const supabase = await db();
+  const supabase = isStaff ? await adminDb() : await db();
   const ids = conversations.map((c) => c.id);
 
-  const { data: messages } = await supabase
+  const { data: messages, error } = await supabase
     .from("support_messages")
     .select("conversation_id, author_id, is_staff, read_at")
     .in("conversation_id", ids);
+
+  if (error) {
+    console.error("[support] attachUnreadCounts:", error.message);
+    return conversations;
+  }
 
   const unreadByConversation = new Map<string, number>();
   for (const message of messages ?? []) {
@@ -405,14 +411,24 @@ export async function getSupportAnalytics(): Promise<SupportAnalytics> {
 
 export async function listStaffProfiles(): Promise<SupportProfileSummary[]> {
   const supabase = await adminDb();
-  const { data, error } = await supabase
+
+  let { data, error } = await supabase
     .from("profiles")
     .select(PROFILE_SELECT)
     .or("role.eq.admin,role.eq.owner,is_admin.eq.true")
     .order("display_name");
 
   if (error) {
-    console.error("[support] listStaffProfiles:", error.message);
+    console.error("[support] listStaffProfiles primary query:", error.message);
+    ({ data, error } = await supabase
+      .from("profiles")
+      .select(PROFILE_SELECT)
+      .in("role", ["admin", "owner"])
+      .order("display_name"));
+  }
+
+  if (error) {
+    console.error("[support] listStaffProfiles fallback query:", error.message);
     return [];
   }
 

@@ -19,12 +19,16 @@ export function useAdminSupportUnread(initialUnread = 0) {
   const previousUnreadRef = useRef(initialUnread);
 
   const refresh = useCallback(async () => {
-    const result = await fetchAdminSupportUnreadAction();
-    if ("error" in result) return;
-    notifyStaffIfNeeded(result.unreadTotal, previousUnreadRef.current);
-    previousUnreadRef.current = result.unreadTotal;
-    setUnreadTotal(result.unreadTotal);
-    return result;
+    try {
+      const result = await fetchAdminSupportUnreadAction();
+      if (!result || "error" in result) return;
+      notifyStaffIfNeeded(result.unreadTotal, previousUnreadRef.current);
+      previousUnreadRef.current = result.unreadTotal;
+      setUnreadTotal(result.unreadTotal);
+      return result;
+    } catch (error) {
+      console.error("[admin/support] unread poll failed:", error);
+    }
   }, []);
 
   useEffect(() => {
