@@ -49,11 +49,20 @@ export async function dispatchNotificationEmail(input: {
     }
 
     const siteUrl = getSiteUrl();
+    const isSupportType =
+      input.type === "support_new_ticket" ||
+      input.type === "support_reply" ||
+      input.type === "support_closed" ||
+      input.type === "support_reopened";
+
     await sendNotificationEmail({
       to,
       title: input.title,
       body: input.body,
-      ctaUrl: `${siteUrl}/dashboard/notifications`,
+      ctaUrl: isSupportType
+        ? `${siteUrl}/dashboard/admin/support`
+        : `${siteUrl}/dashboard/notifications`,
+      ctaLabel: isSupportType ? "Open Support Inbox" : "View notifications",
     });
   } catch (error) {
     console.error("[email] notification dispatch failed:", error);

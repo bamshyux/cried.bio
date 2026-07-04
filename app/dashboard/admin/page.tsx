@@ -1,8 +1,20 @@
 import { AdminPageHeader, AdminStatCard } from "@/components/admin/admin-ui";
+import { AdminSupportQuickLink } from "@/components/admin/admin-support-quick-link";
+import { getAdminAccess } from "@/lib/auth/admin-access";
 import { getPlatformStats } from "@/lib/data/admin";
+import { getAdminSupportUnreadTotal } from "@/lib/data/support";
 
 export default async function AdminDashboardPage() {
   const stats = await getPlatformStats();
+  const access = await getAdminAccess();
+  let supportUnread = 0;
+  if (access) {
+    try {
+      supportUnread = await getAdminSupportUnreadTotal(access.userId);
+    } catch {
+      supportUnread = 0;
+    }
+  }
 
   return (
     <>
@@ -10,6 +22,10 @@ export default async function AdminDashboardPage() {
         title="Admin Dashboard"
         description="Platform overview and quick stats for cried.bio."
       />
+
+      <div className="mb-6">
+        <AdminSupportQuickLink initialUnread={supportUnread} />
+      </div>
 
       {!stats ? (
         <div className="bf-card p-6 text-sm text-neutral-400">

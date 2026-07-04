@@ -62,6 +62,11 @@ async function db() {
   return createAdminClient() ?? (await createClient());
 }
 
+/** Prefer service role for staff reads so admin pages work reliably under RLS. */
+async function adminDb() {
+  return createAdminClient() ?? (await createClient());
+}
+
 async function loadProfileMap(ids: string[]): Promise<Map<string, SupportProfileSummary>> {
   const unique = [...new Set(ids.filter(Boolean))];
   if (unique.length === 0) return new Map();
@@ -122,7 +127,7 @@ export async function listAdminSupportConversations(
   staffUserId: string,
   filters: SupportInboxFilters = {},
 ): Promise<SupportConversation[]> {
-  const supabase = await db();
+  const supabase = await adminDb();
   let query = supabase
     .from("support_conversations")
     .select("*")
@@ -220,11 +225,50 @@ export async function getSupportConversationById(
   return withUnread;
 }
 
+function mapAttachmentRow(item: Record<string, unknown>): SupportAttachment {
+  return {
+    id: item.id as string,
+    message_id: item.message_id as string,
+    storage_path: item.storage_path as string,
+    file_name: item.file_name as string,
+    mime_type: item.mime_type as string,
+    size_bytes: item.size_bytes as number,
+    created_at: item.created_at as string,
+  };
+}
+
+async function loadAttachmentsByMessageId(
+  messageIds: string[],
+): Promise<Map<string, SupportAttachment[]>> {
+  const map = new Map<string, SupportAttachment[]>();
+  if (messageIds.length === 0) return map;
+
+  const supabase = await db();
+  const { data, error } = await supabase
+    .from("support_attachments")
+    .select("*")
+    .in("message_id", messageIds);
+
+  if (error) {
+    console.error("[support] loadAttachmentsByMessageId:", error.message);
+    return map;
+  }
+
+  for (const row of data ?? []) {
+    const attachment = mapAttachmentRow(row as Record<string, unknown>);
+    const list = map.get(attachment.message_id) ?? [];
+    list.push(attachment);
+    map.set(attachment.message_id, list);
+  }
+
+  return map;
+}
+
 export async function getSupportMessages(conversationId: string): Promise<SupportMessage[]> {
   const supabase = await db();
   const { data, error } = await supabase
     .from("support_messages")
-    .select("*, attachments:support_attachments(*)")
+    .select("*")
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: true });
 
@@ -236,29 +280,21 @@ export async function getSupportMessages(conversationId: string): Promise<Suppor
   const rows = data ?? [];
   const authorIds = rows.map((row) => row.author_id as string);
   const profileMap = await loadProfileMap(authorIds);
+  const attachmentsByMessage = await loadAttachmentsByMessageId(
+    rows.map((row) => row.id as string),
+  );
 
-  return rows.map((row) => {
-    const attachmentsRaw = row.attachments as Record<string, unknown>[] | null;
-    return {
-      id: row.id as string,
-      conversation_id: row.conversation_id as string,
-      author_id: row.author_id as string,
-      body: row.body as string,
-      is_staff: Boolean(row.is_staff),
-      read_at: (row.read_at as string | null) ?? null,
-      created_at: row.created_at as string,
-      author: profileMap.get(row.author_id as string) ?? null,
-      attachments: (attachmentsRaw ?? []).map((item) => ({
-        id: item.id as string,
-        message_id: item.message_id as string,
-        storage_path: item.storage_path as string,
-        file_name: item.file_name as string,
-        mime_type: item.mime_type as string,
-        size_bytes: item.size_bytes as number,
-        created_at: item.created_at as string,
-      })),
-    };
-  });
+  return rows.map((row) => ({
+    id: row.id as string,
+    conversation_id: row.conversation_id as string,
+    author_id: row.author_id as string,
+    body: row.body as string,
+    is_staff: Boolean(row.is_staff),
+    read_at: (row.read_at as string | null) ?? null,
+    created_at: row.created_at as string,
+    author: profileMap.get(row.author_id as string) ?? null,
+    attachments: attachmentsByMessage.get(row.id as string) ?? [],
+  }));
 }
 
 export async function getSupportInternalNotes(
@@ -310,7 +346,7 @@ export async function listPlatformAdminUserIds(): Promise<string[]> {
 }
 
 export async function getSupportAnalytics(): Promise<SupportAnalytics> {
-  const supabase = await db();
+  const supabase = await adminDb();
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   const { data: conversations } = await supabase
@@ -368,7 +404,7 @@ export async function getSupportAnalytics(): Promise<SupportAnalytics> {
 }
 
 export async function listStaffProfiles(): Promise<SupportProfileSummary[]> {
-  const supabase = await db();
+  const supabase = await adminDb();
   const { data, error } = await supabase
     .from("profiles")
     .select(PROFILE_SELECT)

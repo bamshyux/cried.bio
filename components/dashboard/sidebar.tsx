@@ -146,7 +146,7 @@ export function DashboardSidebar({
         ))}
 
         {showAdminPanel ? (
-          <div className="mt-4 border-t border-white/[0.06] pt-4">
+          <div className="mt-4 space-y-3 border-t border-white/[0.06] pt-4">
             <Link
               href="/dashboard/admin"
               className={`bf-dash-admin-link flex items-center gap-3 rounded-xl border px-3 py-3 text-[14px] font-medium transition-all ${
@@ -166,6 +166,23 @@ export function DashboardSidebar({
                 <span className="mt-0.5 block text-[11px] font-normal text-neutral-500">Platform management</span>
               </span>
             </Link>
+            {isAdminRoute ? (
+              <Link
+                href="/dashboard/admin/support"
+                className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-[13px] font-medium transition-all ${
+                  pathname.startsWith("/dashboard/admin/support")
+                    ? "border-violet-500/30 bg-violet-500/10 text-violet-100"
+                    : "border-white/[0.06] bg-[#101010] text-neutral-400 hover:border-violet-500/20 hover:text-violet-200"
+                }`}
+              >
+                <span className="inline-flex rounded-lg bg-violet-500/10 p-1.5 text-violet-300">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
+                  </svg>
+                </span>
+                Support Inbox
+              </Link>
+            ) : null}
           </div>
         ) : null}
 

@@ -1,10 +1,18 @@
 import { redirect } from "next/navigation";
 import { getAdminAccess } from "@/lib/auth/admin-access";
 import { AdminSubnav } from "@/components/admin/admin-subnav";
+import { getAdminSupportUnreadTotal } from "@/lib/data/support";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const access = await getAdminAccess();
   if (!access) redirect("/dashboard");
+
+  let initialSupportUnread = 0;
+  try {
+    initialSupportUnread = await getAdminSupportUnreadTotal(access.userId);
+  } catch {
+    initialSupportUnread = 0;
+  }
 
   return (
     <div className="space-y-8">
@@ -15,7 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           Separate from your user dashboard. Manage users, content, and platform settings.
         </p>
       </div>
-      <AdminSubnav role={access.role} />
+      <AdminSubnav role={access.role} initialSupportUnread={initialSupportUnread} />
       {children}
     </div>
   );

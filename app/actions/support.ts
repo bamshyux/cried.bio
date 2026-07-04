@@ -623,9 +623,7 @@ export async function fetchAdminSupportInboxAction(filters?: {
   const access = await requireStaff();
   if ("error" in access) return access;
 
-  const { listAdminSupportConversations, getSupportInternalNotes } = await import(
-    "@/lib/data/support"
-  );
+  const { listAdminSupportConversations } = await import("@/lib/data/support");
 
   const conversations = await listAdminSupportConversations(access.userId, {
     status:
@@ -638,6 +636,21 @@ export async function fetchAdminSupportInboxAction(filters?: {
   });
 
   return { conversations, staffUserId: access.userId };
+}
+
+export async function fetchAdminSupportUnreadAction(): Promise<
+  { unreadTotal: number; waitingOnStaff: number } | SupportActionError
+> {
+  const access = await requireStaff();
+  if ("error" in access) return access;
+
+  const { getAdminSupportUnreadTotal, getSupportAnalytics } = await import("@/lib/data/support");
+  const [unreadTotal, analytics] = await Promise.all([
+    getAdminSupportUnreadTotal(access.userId),
+    getSupportAnalytics(),
+  ]);
+
+  return { unreadTotal, waitingOnStaff: analytics.waitingOnStaff };
 }
 
 export async function fetchAdminSupportDetailAction(

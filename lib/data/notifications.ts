@@ -1,6 +1,11 @@
 import { dispatchNotificationEmail } from "@/lib/email/dispatch";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Notification, NotificationType } from "@/lib/types/notification";
+
+async function notificationsDb() {
+  return createAdminClient() ?? (await createClient());
+}
 
 export async function createNotification(input: {
   userId: string;
@@ -10,11 +15,11 @@ export async function createNotification(input: {
   actorId?: string;
   data?: Record<string, unknown>;
 }) {
-  const supabase = await createClient();
+  const supabase = await notificationsDb();
   const body = input.body ?? "";
   const data = input.data ?? {};
 
-  await supabase.from("notifications").insert({
+  const { error } = await supabase.from("notifications").insert({
     user_id: input.userId,
     type: input.type,
     title: input.title,
@@ -22,6 +27,10 @@ export async function createNotification(input: {
     actor_id: input.actorId ?? null,
     data,
   });
+
+  if (error) {
+    console.error("[notifications] insert failed:", error.message);
+  }
 
   void dispatchNotificationEmail({
     userId: input.userId,
