@@ -407,6 +407,17 @@ export async function installCommunityThemeAction(
   };
 }
 
+async function resolveListingInstallSnapshot(
+  listing: NonNullable<Awaited<ReturnType<typeof getCommunityThemeListingById>>>,
+  userId: string,
+) {
+  const { getPresetPreviewData } = await import("@/lib/data/community-themes");
+  const published = resolveCommunityPresetSnapshot(listing.published_preset_data);
+  if (published) return published;
+  const preview = await getPresetPreviewData(listing.id, userId);
+  return preview?.preset_data ?? null;
+}
+
 async function installCommunityProfilePresetListing(
   listing: Awaited<ReturnType<typeof getCommunityThemeListingById>> & {
     profile_preset_id: string | null;
@@ -418,7 +429,7 @@ async function installCommunityProfilePresetListing(
   const admin = createAdminClient();
   const client = admin ?? (await createClient());
 
-  const snapshot = resolveCommunityPresetSnapshot(listing.published_preset_data);
+  const snapshot = await resolveListingInstallSnapshot(listing, userId);
   if (!snapshot) return { error: "Preset snapshot not found." };
 
   if (listing.author_id === userId) {
@@ -446,7 +457,7 @@ async function installCommunityProfilePresetListing(
         .eq("id", existingInstall.installed_preset_id)
         .maybeSingle();
 
-      const installedSnapshot = resolveCommunityPresetSnapshot(listing.published_preset_data);
+      const installedSnapshot = await resolveListingInstallSnapshot(listing, userId);
       if (!installedSnapshot) return { error: "Preset snapshot not found." };
 
       const result = await applyProfilePresetSnapshot(userId, installedSnapshot, {

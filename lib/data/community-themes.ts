@@ -444,6 +444,21 @@ export async function getPresetPreviewData(
     return { name: listing.title, preset_data: listing.published_preset_data };
   }
 
+  // Preview-only fallback for listings published before frozen snapshots existed.
+  if (listing.profile_preset_id) {
+    const supabase = await db();
+    const { data } = await supabase
+      .from("profile_presets")
+      .select("name, preset_data")
+      .eq("id", listing.profile_preset_id)
+      .maybeSingle();
+
+    const presetData = data?.preset_data ? parsePresetData(data.preset_data) : null;
+    if (presetData) {
+      return { name: String(data?.name ?? listing.title), preset_data: presetData };
+    }
+  }
+
   return null;
 }
 

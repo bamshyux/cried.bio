@@ -175,12 +175,8 @@ export function CommunityThemesShell({
   const handleThemeAction = (theme: CommunityThemeListing, action: string) => {
     if (action === "preview") {
       if (theme.listing_type === "profile_preset") {
-        if (!username?.trim()) {
-          setFeedback({ error: "Set a username before previewing presets." });
-          return;
-        }
         window.open(
-          `/${username.trim()}?previewPreset=${theme.id}`,
+          `/dashboard/explore/themes/preview/${theme.id}`,
           "_blank",
           "noopener,noreferrer",
         );

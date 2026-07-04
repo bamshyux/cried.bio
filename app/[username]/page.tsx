@@ -129,10 +129,13 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
 
   if (isPresetPreview && previewListingId) {
     const listing = await getCommunityThemeListingById(previewListingId, currentUserId);
-    if (
+    const canPreviewListing =
       listing?.listing_type === "profile_preset" &&
-      (listing.visibility === "public" || listing.visibility === "open_source")
-    ) {
+      (listing.visibility === "public" ||
+        listing.visibility === "open_source" ||
+        listing.author_id === currentUserId);
+
+    if (canPreviewListing) {
       const preset = await getPresetPreviewData(listing.id, currentUserId);
       const presetData = preset?.preset_data ? parsePresetData(preset.preset_data) : null;
 
