@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { logAdminAudit } from "@/lib/admin/audit";
-import { getAdminAccess, isAdminUser } from "@/lib/auth/admin-access";
+import { getAdminAccess, isAdminUser, type AdminAccess } from "@/lib/auth/admin-access";
 import { createNotification } from "@/lib/data/notifications";
 import {
   getSupportConversationById,
@@ -16,6 +16,7 @@ import { createClient } from "@/lib/supabase/server";
 import type {
   AdminSupportDetailResult,
   AdminSupportInboxResult,
+  SupportActionError,
   SupportActionState,
   SupportConversationDetailResult,
   SupportConversationStatus,
@@ -36,16 +37,18 @@ async function db() {
   return createAdminClient() ?? (await createClient());
 }
 
-async function requireUser() {
+type AuthUser = { userId: string; email: string };
+
+async function requireUser(): Promise<AuthUser | SupportActionError> {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
-  if (error || !data?.claims?.sub) return { error: "You must be signed in." } as const;
-  return { userId: data.claims.sub as string, email: (data.claims.email as string) ?? "" } as const;
+  if (error || !data?.claims?.sub) return { error: "You must be signed in." };
+  return { userId: data.claims.sub as string, email: (data.claims.email as string) ?? "" };
 }
 
-async function requireStaff() {
+async function requireStaff(): Promise<AdminAccess | SupportActionError> {
   const access = await getAdminAccess();
-  if (!access) return { error: "Admin access required." } as const;
+  if (!access) return { error: "Admin access required." };
   return access;
 }
 
@@ -81,7 +84,7 @@ export async function createSupportConversationAction(
   initialMessage: string,
 ): Promise<SupportActionState> {
   const user = await requireUser();
-  if ("error" in user) return { error: user.error };
+  if ("error" in user) return user;
 
   const trimmedSubject = subject.trim();
   const trimmedMessage = initialMessage.trim();
@@ -148,13 +151,13 @@ export async function sendSupportMessageAction(input: {
 
   if (input.asStaff) {
     const access = await requireStaff();
-    if ("error" in access) return { error: access.error };
+    if ("error" in access) return access;
     authorId = access.userId;
     isStaff = true;
     staffEmail = access.email;
   } else {
     const user = await requireUser();
-    if ("error" in user) return { error: user.error };
+    if ("error" in user) return user;
     authorId = user.userId;
   }
 
@@ -260,11 +263,11 @@ export async function closeSupportConversationAction(
 
   if (asStaff) {
     const access = await requireStaff();
-    if ("error" in access) return { error: access.error };
+    if ("error" in access) return access;
     userId = access.userId;
   } else {
     const user = await requireUser();
-    if ("error" in user) return { error: user.error };
+    if ("error" in user) return user;
     userId = user.userId;
     isStaff = false;
   }
@@ -303,11 +306,11 @@ export async function reopenSupportConversationAction(
 
   if (asStaff) {
     const access = await requireStaff();
-    if ("error" in access) return { error: access.error };
+    if ("error" in access) return access;
     userId = access.userId;
   } else {
     const user = await requireUser();
-    if ("error" in user) return { error: user.error };
+    if ("error" in user) return user;
     userId = user.userId;
     isStaff = false;
   }
@@ -353,7 +356,7 @@ export async function assignSupportConversationAction(
   assigneeId?: string | null,
 ): Promise<SupportActionState> {
   const access = await requireStaff();
-  if ("error" in access) return { error: access.error };
+  if ("error" in access) return access;
 
   const targetId = assigneeId ?? access.userId;
   if (!(await isAdminUser(targetId))) {
@@ -387,7 +390,7 @@ export async function addSupportInternalNoteAction(
   body: string,
 ): Promise<SupportActionState> {
   const access = await requireStaff();
-  if ("error" in access) return { error: access.error };
+  if ("error" in access) return access;
 
   const trimmed = body.trim();
   if (!trimmed) return { error: "Note cannot be empty." };
@@ -410,7 +413,7 @@ export async function toggleSupportPriorityAction(
   isPriority: boolean,
 ): Promise<SupportActionState> {
   const access = await requireStaff();
-  if ("error" in access) return { error: access.error };
+  if ("error" in access) return access;
 
   const supabase = await db();
   const { error } = await supabase
@@ -428,7 +431,7 @@ export async function toggleSupportPinAction(
   isPinned: boolean,
 ): Promise<SupportActionState> {
   const access = await requireStaff();
-  if ("error" in access) return { error: access.error };
+  if ("error" in access) return access;
 
   const supabase = await db();
   const { error } = await supabase
@@ -451,11 +454,11 @@ export async function markSupportMessagesReadAction(
 
   if (asStaff) {
     const access = await requireStaff();
-    if ("error" in access) return { error: access.error };
+    if ("error" in access) return access;
     userId = access.userId;
   } else {
     const user = await requireUser();
-    if ("error" in user) return { error: user.error };
+    if ("error" in user) return user;
     userId = user.userId;
   }
 
@@ -504,11 +507,11 @@ export async function uploadSupportAttachmentAction(
 
   if (asStaff) {
     const access = await requireStaff();
-    if ("error" in access) return { error: access.error };
+    if ("error" in access) return access;
     userId = access.userId;
   } else {
     const user = await requireUser();
-    if ("error" in user) return { error: user.error };
+    if ("error" in user) return user;
     userId = user.userId;
   }
 
@@ -549,11 +552,11 @@ export async function fetchSupportConversationAction(input: {
 
   if (asStaff) {
     const access = await requireStaff();
-    if ("error" in access) return { error: access.error };
+    if ("error" in access) return access;
     userId = access.userId;
   } else {
     const user = await requireUser();
-    if ("error" in user) return { error: user.error };
+    if ("error" in user) return user;
     userId = user.userId;
   }
 
@@ -581,7 +584,7 @@ export async function fetchUserSupportInboxAction(
   search?: string,
 ): Promise<UserSupportInboxResult> {
   const user = await requireUser();
-  if ("error" in user) return { error: user.error };
+  if ("error" in user) return user;
 
   const conversations = await listUserSupportConversations(user.userId, search);
   return { conversations, userId: user.userId };
@@ -591,7 +594,7 @@ export async function openSupportConversationAsStaffAction(
   conversationId: string,
 ): Promise<SupportConversationDetailResult> {
   const access = await requireStaff();
-  if ("error" in access) return { error: access.error };
+  if ("error" in access) return access;
 
   const supabase = await db();
   const conversation = await getSupportConversationById(
@@ -618,7 +621,7 @@ export async function fetchAdminSupportInboxAction(filters?: {
   priorityOnly?: boolean;
 }): Promise<AdminSupportInboxResult> {
   const access = await requireStaff();
-  if ("error" in access) return { error: access.error };
+  if ("error" in access) return access;
 
   const { listAdminSupportConversations, getSupportInternalNotes } = await import(
     "@/lib/data/support"
@@ -641,10 +644,10 @@ export async function fetchAdminSupportDetailAction(
   conversationId: string,
 ): Promise<AdminSupportDetailResult> {
   const access = await requireStaff();
-  if ("error" in access) return { error: access.error };
+  if ("error" in access) return access;
 
   const opened = await openSupportConversationAsStaffAction(conversationId);
-  if ("error" in opened) return { error: opened.error ?? "Could not open conversation." };
+  if ("error" in opened) return opened;
 
   const { getSupportInternalNotes } = await import("@/lib/data/support");
   const notes = await getSupportInternalNotes(conversationId);
