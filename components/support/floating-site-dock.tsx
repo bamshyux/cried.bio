@@ -1,15 +1,33 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import {
   SupportWidgetBody,
   SupportWidgetTrigger,
   SupportWidgetUnreadPoller,
 } from "@/components/support/support-widget";
+import { SupportReplyToast } from "@/components/support/support-reply-toast";
+import type { SupportReplyAlert } from "@/lib/support/notifications";
 import { isPublicProfilePath } from "@/lib/profile";
 
-function ScrollToTopButtonInner() {
+const SCROLL_TOP_THRESHOLD = 240;
+
+function ScrollToTopButton() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    function updateVisibility() {
+      setVisible(window.scrollY > SCROLL_TOP_THRESHOLD);
+    }
+
+    updateVisibility();
+    window.addEventListener("scroll", updateVisibility, { passive: true });
+    return () => window.removeEventListener("scroll", updateVisibility);
+  }, []);
+
+  if (!visible) return null;
+
   function scrollToTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -19,7 +37,7 @@ function ScrollToTopButtonInner() {
       type="button"
       onClick={scrollToTop}
       aria-label="Scroll to top"
-      className="bf-site-dock__button bf-site-dock__button--top"
+      className="bf-site-dock__button bf-site-dock__button--top bf-site-dock__button--visible"
     >
       <svg
         className="h-5 w-5 text-white"
@@ -42,6 +60,21 @@ export function FloatingSiteDock({ userId }: { userId: string | null }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [unreadTotal, setUnreadTotal] = useState(0);
+  const [replyAlert, setReplyAlert] = useState<SupportReplyAlert | null>(null);
+  const dismissTimerRef = useRef<number | null>(null);
+
+  const handleStaffReply = useCallback((alert: SupportReplyAlert) => {
+    setReplyAlert(alert);
+    if (dismissTimerRef.current) window.clearTimeout(dismissTimerRef.current);
+    dismissTimerRef.current = window.setTimeout(() => setReplyAlert(null), 12_000);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (dismissTimerRef.current) window.clearTimeout(dismissTimerRef.current);
+    },
+    [],
+  );
 
   if (isPublicProfilePath(pathname)) {
     return null;
@@ -49,18 +82,49 @@ export function FloatingSiteDock({ userId }: { userId: string | null }) {
 
   return (
     <div className="bf-site-dock">
+      {!open && replyAlert ? (
+        <SupportReplyToast
+          subject={replyAlert.subject}
+          preview={replyAlert.preview}
+          onOpen={() => {
+            setReplyAlert(null);
+            setOpen(true);
+          }}
+          onDismiss={() => setReplyAlert(null)}
+        />
+      ) : null}
+
       {open ? (
-        <SupportWidgetBody userId={userId} onOpenChange={setOpen} onUnreadChange={setUnreadTotal} />
+        <SupportWidgetBody
+          userId={userId}
+          onOpenChange={(nextOpen) => {
+            setOpen(nextOpen);
+            if (nextOpen) setReplyAlert(null);
+          }}
+          onUnreadChange={setUnreadTotal}
+        />
       ) : (
-        <SupportWidgetUnreadPoller userId={userId} onUnreadChange={setUnreadTotal} />
+        <SupportWidgetUnreadPoller
+          userId={userId}
+          widgetOpen={false}
+          onUnreadChange={setUnreadTotal}
+          onStaffReply={handleStaffReply}
+        />
       )}
+
       <div className="bf-site-dock__buttons">
-        <ScrollToTopButtonInner />
+        <ScrollToTopButton key={pathname} />
         <SupportWidgetTrigger
           userId={userId}
           unreadTotal={unreadTotal}
           open={open}
-          onToggle={() => setOpen((prev) => !prev)}
+          onToggle={() => {
+            setOpen((prev) => {
+              const next = !prev;
+              if (next) setReplyAlert(null);
+              return next;
+            });
+          }}
         />
       </div>
     </div>

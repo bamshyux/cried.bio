@@ -11,7 +11,7 @@ import {
 } from "@/app/actions/support";
 import { AdminStatCard } from "@/components/admin/admin-ui";
 import { SupportChatThread } from "@/components/support/support-chat-thread";
-import { useSupportRealtime } from "@/hooks/use-support-realtime";
+import { useSupportRealtime, useSupportTypingIndicator } from "@/hooks/use-support-realtime";
 import { formatSupportTimestamp, supportDisplayName } from "@/lib/support/format";
 import {
   getSupportStatusDisplay,
@@ -43,12 +43,16 @@ export function AdminSupportInbox({
   const [assignedFilter, setAssignedFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [priorityOnly, setPriorityOnly] = useState(false);
-  const [otherTyping, setOtherTyping] = useState(false);
+  const { typingLabel, handleTyping, clearTyping } = useSupportTypingIndicator();
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const selectedIdRef = useRef<string | null>(null);
 
   selectedIdRef.current = selectedId;
+
+  useEffect(() => {
+    clearTyping();
+  }, [selectedId, clearTyping]);
 
   const refreshInbox = useCallback(async () => {
     try {
@@ -96,7 +100,7 @@ export function AdminSupportInbox({
       if (selectedIdRef.current === conversationId) void openConversation(conversationId);
       else void refreshInbox();
     },
-    onTyping: ({ isTyping }) => setOtherTyping(isTyping),
+    onTyping: handleTyping,
   });
 
   const refreshActiveConversation = useCallback(async () => {
@@ -298,7 +302,7 @@ export function AdminSupportInbox({
                     messages={messages}
                     viewerId={staffUserId}
                     isStaff
-                    isOtherTyping={otherTyping}
+                    typingLabel={typingLabel}
                     quickReplies
                     onRefresh={refreshActiveConversation}
                     onDeleted={handleTicketDeleted}

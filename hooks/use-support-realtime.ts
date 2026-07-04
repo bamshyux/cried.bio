@@ -1,7 +1,48 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+
+export type SupportTypingPayload = {
+  userId: string;
+  isStaff: boolean;
+  displayName?: string;
+  isTyping: boolean;
+};
+
+export function useSupportTypingIndicator() {
+  const [typingLabel, setTypingLabel] = useState<string | null>(null);
+  const timeoutRef = useRef<number | null>(null);
+
+  const handleTyping = useCallback((payload: SupportTypingPayload) => {
+    if (!payload.isTyping) {
+      setTypingLabel(null);
+      return;
+    }
+
+    const label = payload.isStaff
+      ? payload.displayName
+        ? `${payload.displayName} (Staff)`
+        : "Staff"
+      : payload.displayName ?? "User";
+
+    setTypingLabel(label);
+
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    timeoutRef.current = window.setTimeout(() => setTypingLabel(null), 3500);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    },
+    [],
+  );
+
+  return { typingLabel, handleTyping, clearTyping: () => setTypingLabel(null) };
+}
+
+const typingSendChannels = new Map<string, ReturnType<ReturnType<typeof createClient>["channel"]>>();
 
 export function useSupportRealtime(options: {
   userId: string | null;
@@ -10,7 +51,7 @@ export function useSupportRealtime(options: {
   enabled?: boolean;
   onConversationChange: () => void;
   onMessageInsert: (conversationId: string) => void;
-  onTyping?: (payload: { userId: string; isTyping: boolean }) => void;
+  onTyping?: (payload: SupportTypingPayload) => void;
 }) {
   const onConversationChangeRef = useRef(options.onConversationChange);
   const onMessageInsertRef = useRef(options.onMessageInsert);
@@ -94,11 +135,19 @@ export function useSupportRealtime(options: {
         const typingChannel = supabase
           .channel(`support-typing:${activeConversationId}`)
           .on("broadcast", { event: "typing" }, ({ payload }) => {
-            const data = payload as { userId?: string; isTyping?: boolean };
-            if (!data.userId || data.userId === options.userId) return;
-            if (!cancelled) {
-              onTypingRef.current?.({ userId: data.userId, isTyping: Boolean(data.isTyping) });
-            }
+            const data = payload as SupportTypingPayload;
+            if (!data.userId) return;
+
+            const isSelf =
+              data.userId === options.userId && data.isStaff === options.isStaff;
+            if (isSelf || cancelled) return;
+
+            onTypingRef.current?.({
+              userId: data.userId,
+              isStaff: Boolean(data.isStaff),
+              displayName: data.displayName,
+              isTyping: Boolean(data.isTyping),
+            });
           })
           .subscribe();
 
@@ -123,21 +172,31 @@ export function useSupportRealtime(options: {
   ]);
 }
 
-export function broadcastSupportTyping(
-  conversationId: string,
-  userId: string,
-  isTyping: boolean,
-) {
+export function broadcastSupportTyping(payload: {
+  conversationId: string;
+  userId: string;
+  isStaff: boolean;
+  displayName?: string;
+  isTyping: boolean;
+}) {
   const supabase = createClient();
-  const channel = supabase.channel(`support-typing:${conversationId}`);
-  void channel.subscribe((status) => {
-    if (status === "SUBSCRIBED") {
-      void channel.send({
-        type: "broadcast",
-        event: "typing",
-        payload: { userId, isTyping },
-      });
-      void supabase.removeChannel(channel);
-    }
+  const channelKey = payload.conversationId;
+  let channel = typingSendChannels.get(channelKey);
+
+  if (!channel) {
+    channel = supabase.channel(`support-typing:${channelKey}`);
+    typingSendChannels.set(channelKey, channel);
+    void channel.subscribe();
+  }
+
+  void channel.send({
+    type: "broadcast",
+    event: "typing",
+    payload: {
+      userId: payload.userId,
+      isStaff: payload.isStaff,
+      displayName: payload.displayName,
+      isTyping: payload.isTyping,
+    },
   });
 }

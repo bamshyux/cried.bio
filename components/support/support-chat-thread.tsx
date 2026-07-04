@@ -35,8 +35,8 @@ export function SupportChatThread({
   onBack,
   onRefresh,
   onDeleted,
+  typingLabel = null,
   quickReplies = false,
-  isOtherTyping = false,
 }: {
   conversation: SupportConversation;
   messages: SupportMessage[];
@@ -45,8 +45,8 @@ export function SupportChatThread({
   onBack?: () => void;
   onRefresh: () => void | Promise<void>;
   onDeleted?: () => void;
+  typingLabel?: string | null;
   quickReplies?: boolean;
-  isOtherTyping?: boolean;
 }) {
   const [draft, setDraft] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -62,7 +62,7 @@ export function SupportChatThread({
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length, isOtherTyping]);
+  }, [messages.length, typingLabel]);
 
   // Poll while thread is open so messages appear even if Realtime is delayed.
   useEffect(() => {
@@ -74,10 +74,24 @@ export function SupportChatThread({
 
   const groupedMessages = useMemo(() => messages, [messages]);
 
+  const viewerLabel = useMemo(() => {
+    const ownMessage = messages.find((message) => isSupportMessageMine(message, isStaff));
+    if (ownMessage?.author) return supportDisplayName(ownMessage.author);
+    if (isStaff) return "Staff";
+    if (conversation.customer) return supportDisplayName(conversation.customer);
+    return "User";
+  }, [conversation.customer, isStaff, messages]);
+
   const isClosed = conversation.status === "closed";
 
   function notifyTyping(isTyping: boolean) {
-    broadcastSupportTyping(conversation.id, viewerId, isTyping);
+    broadcastSupportTyping({
+      conversationId: conversation.id,
+      userId: viewerId,
+      isStaff,
+      displayName: viewerLabel,
+      isTyping,
+    });
   }
 
   function handleDraftChange(value: string) {
@@ -257,14 +271,14 @@ export function SupportChatThread({
           );
         })}
 
-        {isOtherTyping ? (
-          <div className="flex items-center gap-2 px-1 text-xs text-neutral-500">
+        {typingLabel ? (
+          <div className="bf-support-typing-line">
             <span className="bf-support-typing">
               <span />
               <span />
               <span />
             </span>
-            Someone is typing…
+            <span>{typingLabel} is typing…</span>
           </div>
         ) : null}
       </div>

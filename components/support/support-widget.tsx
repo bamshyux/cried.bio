@@ -6,10 +6,16 @@ import {
   createSupportConversationAction,
   fetchSupportConversationAction,
   fetchUserSupportInboxAction,
+  uploadSupportAttachmentAction,
 } from "@/app/actions/support";
 import { SupportChatThread } from "@/components/support/support-chat-thread";
-import { useSupportRealtime } from "@/hooks/use-support-realtime";
+import { useSupportRealtime, useSupportTypingIndicator } from "@/hooks/use-support-realtime";
 import { formatSupportTimestamp, supportUnreadTotal } from "@/lib/support/format";
+import {
+  pickLatestUnreadConversation,
+  playSupportMessageSound,
+  type SupportReplyAlert,
+} from "@/lib/support/notifications";
 import type { SupportConversation, SupportMessage } from "@/lib/types/support";
 import {
   SUPPORT_STATUS_EMOJI,
@@ -63,7 +69,7 @@ export function SupportWidgetTrigger({
       onClick={onToggle}
       aria-label="Open customer support"
       aria-expanded={open}
-      className={`bf-site-dock__button bf-site-dock__button--support${open ? " bf-site-dock__button--active" : ""}`}
+      className={`bf-site-dock__button bf-site-dock__button--support${open ? " bf-site-dock__button--active" : ""}${!open && userId && unreadTotal > 0 ? " bf-site-dock__button--unread" : ""}`}
     >
       <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
@@ -77,17 +83,37 @@ export function SupportWidgetTrigger({
 
 export function SupportWidgetUnreadPoller({
   userId,
+  widgetOpen,
   onUnreadChange,
+  onStaffReply,
 }: {
   userId: string | null;
+  widgetOpen: boolean;
   onUnreadChange: (count: number) => void;
+  onStaffReply?: (alert: SupportReplyAlert) => void;
 }) {
+  const prevUnreadRef = useRef(0);
+  const initializedRef = useRef(false);
+
   const refreshUnread = useCallback(async () => {
     if (!userId) return;
     const result = await fetchUserSupportInboxAction();
     if ("error" in result) return;
-    onUnreadChange(supportUnreadTotal(result.conversations));
-  }, [onUnreadChange, userId]);
+
+    const unread = supportUnreadTotal(result.conversations);
+
+    if (initializedRef.current && unread > prevUnreadRef.current) {
+      playSupportMessageSound();
+      if (!widgetOpen) {
+        const alert = pickLatestUnreadConversation(result.conversations);
+        if (alert) onStaffReply?.(alert);
+      }
+    }
+
+    initializedRef.current = true;
+    prevUnreadRef.current = unread;
+    onUnreadChange(unread);
+  }, [onStaffReply, onUnreadChange, userId, widgetOpen]);
 
   useEffect(() => {
     void refreshUnread();
@@ -121,12 +147,35 @@ export function SupportWidgetBody({
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [subject, setSubject] = useState("");
   const [initialMessage, setInitialMessage] = useState("");
+  const [newTicketFile, setNewTicketFile] = useState<File | null>(null);
+  const [newTicketPreview, setNewTicketPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [otherTyping, setOtherTyping] = useState(false);
+  const { typingLabel, handleTyping, clearTyping } = useSupportTypingIndicator();
   const [isPending, startTransition] = useTransition();
   const activeConversationIdRef = useRef<string | null>(null);
+  const messageSnapshotRef = useRef<{ conversationId: string; staffCount: number } | null>(null);
+  const prevUnreadRef = useRef(0);
+  const initializedUnreadRef = useRef(false);
 
   activeConversationIdRef.current = activeConversation?.id ?? null;
+
+  useEffect(() => {
+    clearTyping();
+  }, [activeConversation?.id, clearTyping]);
+
+  useEffect(() => {
+    if (!newTicketFile) {
+      setNewTicketPreview(null);
+      return;
+    }
+    if (!newTicketFile.type.startsWith("image/")) {
+      setNewTicketPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(newTicketFile);
+    setNewTicketPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [newTicketFile]);
 
   const unreadTotal = supportUnreadTotal(conversations);
   const openTicketCount = conversations.filter((c) => c.status !== "closed").length;
@@ -142,6 +191,14 @@ export function SupportWidgetBody({
       setError(result.error);
       return;
     }
+
+    const unread = supportUnreadTotal(result.conversations);
+    if (initializedUnreadRef.current && unread > prevUnreadRef.current) {
+      playSupportMessageSound();
+    }
+    initializedUnreadRef.current = true;
+    prevUnreadRef.current = unread;
+
     setConversations(result.conversations);
   }, [search, userId]);
 
@@ -151,6 +208,14 @@ export function SupportWidgetBody({
       setError(result.error);
       return;
     }
+
+    const staffCount = result.messages.filter((message) => message.is_staff).length;
+    const snap = messageSnapshotRef.current;
+    if (snap?.conversationId === conversationId && staffCount > snap.staffCount) {
+      playSupportMessageSound();
+    }
+    messageSnapshotRef.current = { conversationId, staffCount };
+
     setActiveConversation(result.conversation);
     setMessages(result.messages);
     setView("chat");
@@ -175,7 +240,7 @@ export function SupportWidgetBody({
       if (activeConversationIdRef.current === conversationId) void loadConversation(conversationId);
       else void loadInbox();
     },
-    onTyping: ({ isTyping }) => setOtherTyping(isTyping),
+    onTyping: handleTyping,
   });
 
   const refreshActiveConversation = useCallback(async () => {
@@ -184,24 +249,61 @@ export function SupportWidgetBody({
   }, [loadConversation]);
 
   function startNewConversation() {
+    const trimmedSubject = subject.trim();
+    const trimmedMessage = initialMessage.trim();
+    if (!trimmedSubject) {
+      setError("Subject is required.");
+      return;
+    }
+    if (!trimmedMessage && !newTicketFile) {
+      setError("Add a message or attach an image.");
+      return;
+    }
+
     startTransition(async () => {
       setError(null);
-      const result = await createSupportConversationAction(subject, initialMessage);
+      const result = await createSupportConversationAction(
+        trimmedSubject,
+        trimmedMessage || "(attachment)",
+      );
       if (result.error) {
         setError(result.error);
         return;
       }
+
+      if (newTicketFile && result.conversationId && result.messageId) {
+        const formData = new FormData();
+        formData.set("file", newTicketFile);
+        const upload = await uploadSupportAttachmentAction(
+          result.conversationId,
+          result.messageId,
+          formData,
+          false,
+        );
+        if (upload.error) {
+          setError(upload.error);
+          return;
+        }
+      }
+
       setSubject("");
       setInitialMessage("");
+      setNewTicketFile(null);
       await loadInbox();
       if (result.conversationId) await loadConversation(result.conversationId);
     });
+  }
+
+  function clearNewTicketFile() {
+    setNewTicketFile(null);
   }
 
   function resetToHome() {
     setView("home");
     setActiveConversation(null);
     setMessages([]);
+    setNewTicketFile(null);
+    messageSnapshotRef.current = null;
     setError(null);
   }
 
@@ -237,7 +339,7 @@ export function SupportWidgetBody({
             viewerId={userId}
             isStaff={false}
             onBack={resetToHome}
-            isOtherTyping={otherTyping}
+            typingLabel={typingLabel}
             onRefresh={refreshActiveConversation}
             onDeleted={() => {
               resetToHome();
@@ -270,13 +372,52 @@ export function SupportWidgetBody({
               id="support-message"
               value={initialMessage}
               onChange={(e) => setInitialMessage(e.target.value)}
-              rows={6}
-              placeholder="Tell us what happened, what you expected, and any steps to reproduce. Screenshots welcome."
+              rows={5}
+              placeholder="Tell us what happened, what you expected, and any steps to reproduce."
               className="bf-support-field__textarea"
             />
           </div>
+          <div>
+            <p className="bf-support-field__label">Attach a screenshot (optional)</p>
+            {newTicketFile ? (
+              <div className="bf-support-form__attach-preview">
+                <div className="flex min-w-0 items-center gap-3">
+                  {newTicketPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={newTicketPreview} alt="" />
+                  ) : (
+                    <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/[0.06] text-lg">
+                      📎
+                    </span>
+                  )}
+                  <span className="truncate">{newTicketFile.name}</span>
+                </div>
+                <button type="button" onClick={clearNewTicketFile} className="text-neutral-500 hover:text-white">
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <label className="bf-support-form__attach">
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*,.pdf,.txt"
+                  onChange={(e) => setNewTicketFile(e.target.files?.[0] ?? null)}
+                />
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.88 16.88a2 2 0 0 1-2.83-2.83l8.49-8.49" />
+                </svg>
+                Add image or file
+              </label>
+            )}
+          </div>
           {error ? <p className="text-xs text-red-400">{error}</p> : null}
-          <button type="button" disabled={isPending} onClick={startNewConversation} className="bf-support-cta">
+          <button
+            type="button"
+            disabled={isPending || !subject.trim() || (!initialMessage.trim() && !newTicketFile)}
+            onClick={startNewConversation}
+            className="bf-support-cta"
+          >
             <span className="bf-support-cta__icon" aria-hidden>
               <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M12 5v14M5 12h14" />

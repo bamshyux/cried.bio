@@ -61,7 +61,14 @@ function nextStatusAfterMessage(isStaff: boolean): SupportConversationStatus {
   return isStaff ? "waiting_on_user" : "waiting_on_staff";
 }
 
-async function notifyAdminsNewTicket(conversationId: string, subject: string, customerId: string) {
+async function notifyAdminsNewTicket(
+  conversationId: string,
+  subject: string,
+  customerId: string,
+  customerEmail: string,
+  messagePreview: string,
+  customerProfile?: { username?: string | null; display_name?: string | null },
+) {
   const adminIds = await listPlatformAdminUserIds();
   await Promise.all(
     adminIds
@@ -77,6 +84,17 @@ async function notifyAdminsNewTicket(conversationId: string, subject: string, cu
         }),
       ),
   );
+
+  const { sendSupportTicketDiscordAlert } = await import("@/lib/discord/support-webhook");
+  await sendSupportTicketDiscordAlert({
+    conversationId,
+    subject,
+    messagePreview,
+    customerEmail,
+    customerId,
+    customerUsername: customerProfile?.username,
+    customerDisplayName: customerProfile?.display_name,
+  });
 }
 
 export async function createSupportConversationAction(
@@ -89,7 +107,10 @@ export async function createSupportConversationAction(
   const trimmedSubject = subject.trim();
   const trimmedMessage = initialMessage.trim();
   if (!trimmedSubject) return { error: "Subject is required." };
-  if (!trimmedMessage) return { error: "Message is required." };
+  if (!trimmedMessage) return { error: "Message or attachment is required." };
+
+  const messageBody = trimmedMessage;
+  const previewBody = messageBody === "(attachment)" ? "Sent an attachment" : messageBody;
 
   const supabase = await db();
   const now = new Date().toISOString();
@@ -101,7 +122,7 @@ export async function createSupportConversationAction(
       subject: trimmedSubject,
       status: "waiting_on_staff",
       last_message_at: now,
-      last_message_preview: trimmedMessage.slice(0, 160),
+      last_message_preview: previewBody.slice(0, 160),
       updated_at: now,
     })
     .select("id")
@@ -116,7 +137,7 @@ export async function createSupportConversationAction(
     .insert({
       conversation_id: conversation.id,
       author_id: user.userId,
-      body: trimmedMessage,
+      body: messageBody,
       is_staff: false,
     })
     .select("id")
@@ -126,7 +147,20 @@ export async function createSupportConversationAction(
     return { error: messageError.message };
   }
 
-  await notifyAdminsNewTicket(conversation.id, trimmedSubject, user.userId);
+  const { data: customerProfile } = await supabase
+    .from("profiles")
+    .select("username, display_name")
+    .eq("id", user.userId)
+    .maybeSingle();
+
+  await notifyAdminsNewTicket(
+    conversation.id,
+    trimmedSubject,
+    user.userId,
+    user.email,
+    previewBody,
+    customerProfile ?? undefined,
+  );
   revalidateSupport();
 
   return {
@@ -716,6 +750,45 @@ export async function fetchAdminSupportUnreadAction(): Promise<
   ]);
 
   return { unreadTotal, waitingOnStaff: analytics.waitingOnStaff };
+}
+
+export async function fetchAdminSupportLatestAlertAction(): Promise<
+  | {
+      kind: "new_ticket" | "customer_reply";
+      subject: string;
+      preview: string;
+      conversationId: string;
+      customerName: string;
+    }
+  | SupportActionError
+  | null
+> {
+  const access = await requireStaff();
+  if ("error" in access) return access;
+
+  const { listAdminSupportConversations } = await import("@/lib/data/support");
+  const conversations = await listAdminSupportConversations(access.userId);
+  const unread = conversations.filter((item) => (item.unread_count ?? 0) > 0);
+  if (unread.length === 0) return null;
+
+  const sorted = [...unread].sort(
+    (a, b) =>
+      new Date(b.last_message_at ?? 0).getTime() - new Date(a.last_message_at ?? 0).getTime(),
+  );
+  const top = sorted[0];
+  const createdAt = new Date(top.created_at).getTime();
+  const lastMessageAt = new Date(top.last_message_at ?? top.created_at).getTime();
+  const isNewTicket = Math.abs(lastMessageAt - createdAt) < 60_000;
+
+  return {
+    kind: isNewTicket ? "new_ticket" : "customer_reply",
+    subject: top.subject,
+    preview: top.last_message_preview ?? "",
+    conversationId: top.id,
+    customerName:
+      top.customer?.display_name?.trim() ||
+      (top.customer?.username ? `@${top.customer.username}` : "Customer"),
+  };
 }
 
 export async function fetchAdminSupportDetailAction(
