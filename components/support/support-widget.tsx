@@ -13,9 +13,13 @@ import { useSupportRealtime, useSupportTypingIndicator } from "@/hooks/use-suppo
 import { formatSupportTimestamp, supportUnreadTotal } from "@/lib/support/format";
 import {
   pickLatestUnreadConversation,
-  playSupportMessageSound,
   type SupportReplyAlert,
 } from "@/lib/support/notifications";
+import {
+  createSupportMessageSoundTracker,
+  playSoundsForConversationMessages,
+  resetSupportMessageSoundTracker,
+} from "@/lib/support/message-sounds";
 import type { SupportConversation, SupportMessage } from "@/lib/types/support";
 import {
   SUPPORT_STATUS_EMOJI,
@@ -63,21 +67,31 @@ export function SupportWidgetTrigger({
   open: boolean;
   onToggle: () => void;
 }) {
+  const hasUnreadStaffReplies = Boolean(userId && unreadTotal > 0);
+  const showPulse = hasUnreadStaffReplies && !open;
+
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-label="Open customer support"
-      aria-expanded={open}
-      className={`bf-site-dock__button bf-site-dock__button--support${open ? " bf-site-dock__button--active" : ""}${!open && userId && unreadTotal > 0 ? " bf-site-dock__button--unread" : ""}`}
-    >
-      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
-      </svg>
-      {userId && unreadTotal > 0 ? (
-        <span className="bf-site-dock__badge">{unreadTotal > 9 ? "9+" : unreadTotal}</span>
-      ) : null}
-    </button>
+    <div className={`bf-site-dock__support-wrap${showPulse ? " bf-site-dock__support-wrap--unread" : ""}`}>
+      {showPulse ? <span className="bf-site-dock__support-glow" aria-hidden /> : null}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={
+          hasUnreadStaffReplies
+            ? `Open customer support, ${unreadTotal} unread staff ${unreadTotal === 1 ? "reply" : "replies"}`
+            : "Open customer support"
+        }
+        aria-expanded={open}
+        className={`bf-site-dock__button bf-site-dock__button--support${open ? " bf-site-dock__button--active" : ""}${showPulse ? " bf-site-dock__button--unread" : ""}`}
+      >
+        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
+        </svg>
+        {hasUnreadStaffReplies ? (
+          <span className="bf-site-dock__badge">{unreadTotal > 9 ? "9+" : unreadTotal}</span>
+        ) : null}
+      </button>
+    </div>
   );
 }
 
@@ -94,6 +108,7 @@ export function SupportWidgetUnreadPoller({
 }) {
   const prevUnreadRef = useRef(0);
   const initializedRef = useRef(false);
+  const messageSoundTrackerRef = useRef(createSupportMessageSoundTracker());
 
   const refreshUnread = useCallback(async () => {
     if (!userId) return;
@@ -103,7 +118,23 @@ export function SupportWidgetUnreadPoller({
     const unread = supportUnreadTotal(result.conversations);
 
     if (initializedRef.current && unread > prevUnreadRef.current) {
-      playSupportMessageSound();
+      const latest = result.conversations
+        .filter((item) => (item.unread_count ?? 0) > 0)
+        .sort(
+          (a, b) =>
+            new Date(b.last_message_at ?? 0).getTime() -
+            new Date(a.last_message_at ?? 0).getTime(),
+        )[0];
+
+      if (latest) {
+        await playSoundsForConversationMessages(
+          latest.id,
+          false,
+          messageSoundTrackerRef.current,
+          async (conversationId) => fetchSupportConversationAction({ conversationId }),
+        );
+      }
+
       if (!widgetOpen) {
         const alert = pickLatestUnreadConversation(result.conversations);
         if (alert) onStaffReply?.(alert);
@@ -153,9 +184,7 @@ export function SupportWidgetBody({
   const { typingLabel, handleTyping, clearTyping } = useSupportTypingIndicator();
   const [isPending, startTransition] = useTransition();
   const activeConversationIdRef = useRef<string | null>(null);
-  const messageSnapshotRef = useRef<{ conversationId: string; staffCount: number } | null>(null);
-  const prevUnreadRef = useRef(0);
-  const initializedUnreadRef = useRef(false);
+  const backgroundSoundTrackerRef = useRef(createSupportMessageSoundTracker());
 
   activeConversationIdRef.current = activeConversation?.id ?? null;
 
@@ -192,13 +221,6 @@ export function SupportWidgetBody({
       return;
     }
 
-    const unread = supportUnreadTotal(result.conversations);
-    if (initializedUnreadRef.current && unread > prevUnreadRef.current) {
-      playSupportMessageSound();
-    }
-    initializedUnreadRef.current = true;
-    prevUnreadRef.current = unread;
-
     setConversations(result.conversations);
   }, [search, userId]);
 
@@ -209,16 +231,18 @@ export function SupportWidgetBody({
       return;
     }
 
-    const staffCount = result.messages.filter((message) => message.is_staff).length;
-    const snap = messageSnapshotRef.current;
-    if (snap?.conversationId === conversationId && staffCount > snap.staffCount) {
-      playSupportMessageSound();
-    }
-    messageSnapshotRef.current = { conversationId, staffCount };
-
     setActiveConversation(result.conversation);
     setMessages(result.messages);
     setView("chat");
+  }, []);
+
+  const notifyBackgroundMessageSounds = useCallback(async (conversationId: string) => {
+    await playSoundsForConversationMessages(
+      conversationId,
+      false,
+      backgroundSoundTrackerRef.current,
+      async (id) => fetchSupportConversationAction({ conversationId: id }),
+    );
   }, []);
 
   useEffect(() => {
@@ -237,8 +261,12 @@ export function SupportWidgetBody({
       if (openId) void loadConversation(openId);
     },
     onMessageInsert: (conversationId) => {
-      if (activeConversationIdRef.current === conversationId) void loadConversation(conversationId);
-      else void loadInbox();
+      if (activeConversationIdRef.current === conversationId) {
+        void loadConversation(conversationId);
+      } else {
+        void loadInbox();
+        void notifyBackgroundMessageSounds(conversationId);
+      }
     },
     onTyping: handleTyping,
   });
@@ -303,7 +331,7 @@ export function SupportWidgetBody({
     setActiveConversation(null);
     setMessages([]);
     setNewTicketFile(null);
-    messageSnapshotRef.current = null;
+    resetSupportMessageSoundTracker(backgroundSoundTrackerRef.current);
     setError(null);
   }
 

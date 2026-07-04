@@ -12,6 +12,10 @@ import {
 import { AdminStatCard } from "@/components/admin/admin-ui";
 import { SupportChatThread } from "@/components/support/support-chat-thread";
 import { useSupportRealtime, useSupportTypingIndicator } from "@/hooks/use-support-realtime";
+import {
+  createSupportMessageSoundTracker,
+  playSoundsForConversationMessages,
+} from "@/lib/support/message-sounds";
 import { formatSupportTimestamp, supportDisplayName } from "@/lib/support/format";
 import {
   getSupportStatusDisplay,
@@ -47,6 +51,7 @@ export function AdminSupportInbox({
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const selectedIdRef = useRef<string | null>(null);
+  const backgroundSoundTrackerRef = useRef(createSupportMessageSoundTracker());
 
   selectedIdRef.current = selectedId;
 
@@ -82,6 +87,15 @@ export function AdminSupportInbox({
     void refreshInbox();
   }, [refreshInbox]);
 
+  const notifyBackgroundMessageSounds = useCallback(async (conversationId: string) => {
+    await playSoundsForConversationMessages(
+      conversationId,
+      true,
+      backgroundSoundTrackerRef.current,
+      async (id) => fetchAdminSupportDetailAction(id),
+    );
+  }, []);
+
   useEffect(() => {
     void refreshInbox();
   }, [refreshInbox]);
@@ -97,8 +111,12 @@ export function AdminSupportInbox({
       if (openId) void openConversation(openId);
     },
     onMessageInsert: (conversationId) => {
-      if (selectedIdRef.current === conversationId) void openConversation(conversationId);
-      else void refreshInbox();
+      if (selectedIdRef.current === conversationId) {
+        void openConversation(conversationId);
+      } else {
+        void refreshInbox();
+        void notifyBackgroundMessageSounds(conversationId);
+      }
     },
     onTyping: handleTyping,
   });

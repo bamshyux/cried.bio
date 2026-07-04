@@ -4,11 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  fetchAdminSupportDetailAction,
   fetchAdminSupportLatestAlertAction,
   fetchAdminSupportUnreadAction,
 } from "@/app/actions/support";
 import { useSupportRealtime } from "@/hooks/use-support-realtime";
-import { playSupportMessageSound } from "@/lib/support/notifications";
+import {
+  createSupportMessageSoundTracker,
+  playSoundsForConversationMessages,
+} from "@/lib/support/message-sounds";
 
 export type StaffSupportAlert = {
   kind: "new_ticket" | "customer_reply";
@@ -33,8 +37,10 @@ export function StaffSupportAlertBanner({
   const prevWaitingRef = useRef(0);
   const initializedRef = useRef(false);
   const dismissTimerRef = useRef<number | null>(null);
+  const messageSoundTrackerRef = useRef(createSupportMessageSoundTracker());
 
   const onAdminPanel = pathname.startsWith("/dashboard/admin");
+  const onSupportInbox = pathname.startsWith("/dashboard/admin/support");
 
   const refresh = useCallback(async () => {
     if (!isStaff || !staffUserId) return;
@@ -45,27 +51,34 @@ export function StaffSupportAlertBanner({
     const shouldAlert =
       initializedRef.current && unreadResult.unreadTotal > prevUnreadRef.current;
 
-    if (shouldAlert && !onAdminPanel) {
-      playSupportMessageSound();
-
+    if (shouldAlert && !onSupportInbox) {
       const alertResult = await fetchAdminSupportLatestAlertAction();
       if (alertResult && !("error" in alertResult)) {
-        const kind =
-          unreadResult.waitingOnStaff > prevWaitingRef.current
-            ? ("new_ticket" as const)
-            : ("customer_reply" as const);
+        await playSoundsForConversationMessages(
+          alertResult.conversationId,
+          true,
+          messageSoundTrackerRef.current,
+          async (conversationId) => fetchAdminSupportDetailAction(conversationId),
+        );
 
-        setAlert({ ...alertResult, kind });
+        if (!onAdminPanel) {
+          const kind =
+            unreadResult.waitingOnStaff > prevWaitingRef.current
+              ? ("new_ticket" as const)
+              : ("customer_reply" as const);
 
-        if (dismissTimerRef.current) window.clearTimeout(dismissTimerRef.current);
-        dismissTimerRef.current = window.setTimeout(() => setAlert(null), 20_000);
+          setAlert({ ...alertResult, kind });
+
+          if (dismissTimerRef.current) window.clearTimeout(dismissTimerRef.current);
+          dismissTimerRef.current = window.setTimeout(() => setAlert(null), 20_000);
+        }
       }
     }
 
     initializedRef.current = true;
     prevUnreadRef.current = unreadResult.unreadTotal;
     prevWaitingRef.current = unreadResult.waitingOnStaff;
-  }, [isStaff, onAdminPanel, staffUserId]);
+  }, [isStaff, onAdminPanel, onSupportInbox, staffUserId]);
 
   useEffect(() => {
     prevUnreadRef.current = initialUnread;
@@ -76,12 +89,12 @@ export function StaffSupportAlertBanner({
   }, [onAdminPanel]);
 
   useEffect(() => {
-    if (!isStaff || !staffUserId || onAdminPanel) return;
+    if (!isStaff || !staffUserId || onSupportInbox) return;
 
     void refresh();
     const interval = window.setInterval(() => void refresh(), 20_000);
     return () => window.clearInterval(interval);
-  }, [isStaff, onAdminPanel, refresh, staffUserId]);
+  }, [isStaff, onSupportInbox, refresh, staffUserId]);
 
   useEffect(
     () => () => {
@@ -94,7 +107,7 @@ export function StaffSupportAlertBanner({
     userId: staffUserId,
     conversationId: null,
     isStaff: true,
-    enabled: Boolean(isStaff && staffUserId && !onAdminPanel),
+    enabled: Boolean(isStaff && staffUserId && !onSupportInbox),
     onConversationChange: () => void refresh(),
     onMessageInsert: () => void refresh(),
   });

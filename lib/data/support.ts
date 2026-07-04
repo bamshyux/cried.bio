@@ -189,9 +189,12 @@ async function attachUnreadCounts(
 
   const unreadByConversation = new Map<string, number>();
   for (const message of messages ?? []) {
-    const isFromOther = isStaff ? message.is_staff === false : message.author_id !== viewerId;
-    if (!isFromOther) continue;
     if (message.read_at) continue;
+
+    const isUnreadStaffReply = !isStaff && message.is_staff === true;
+    const isUnreadCustomerReply = isStaff && message.is_staff === false;
+    if (!isUnreadStaffReply && !isUnreadCustomerReply) continue;
+
     unreadByConversation.set(
       message.conversation_id,
       (unreadByConversation.get(message.conversation_id) ?? 0) + 1,

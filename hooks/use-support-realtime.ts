@@ -12,7 +12,6 @@ export type SupportTypingPayload = {
 
 export function useSupportTypingIndicator() {
   const [typingLabel, setTypingLabel] = useState<string | null>(null);
-  const timeoutRef = useRef<number | null>(null);
 
   const handleTyping = useCallback((payload: SupportTypingPayload) => {
     if (!payload.isTyping) {
@@ -27,17 +26,7 @@ export function useSupportTypingIndicator() {
       : payload.displayName ?? "User";
 
     setTypingLabel(label);
-
-    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-    timeoutRef.current = window.setTimeout(() => setTypingLabel(null), 3500);
   }, []);
-
-  useEffect(
-    () => () => {
-      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-    },
-    [],
-  );
 
   return { typingLabel, handleTyping, clearTyping: () => setTypingLabel(null) };
 }

@@ -12,6 +12,11 @@ import {
 import { SupportAvatar } from "@/components/support/support-avatar";
 import { broadcastSupportTyping } from "@/hooks/use-support-realtime";
 import {
+  createSupportMessageSoundTracker,
+  playSoundsForNewIncomingMessages,
+  resetSupportMessageSoundTracker,
+} from "@/lib/support/message-sounds";
+import {
   formatSupportDateSeparator,
   formatSupportTimestamp,
   isSameSupportDay,
@@ -54,7 +59,16 @@ export function SupportChatThread({
   const [showEmoji, setShowEmoji] = useState(false);
   const [isPending, startTransition] = useTransition();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<number | null>(null);
+  const typingActiveRef = useRef(false);
+  const messageSoundTrackerRef = useRef(createSupportMessageSoundTracker());
+
+  useEffect(() => {
+    resetSupportMessageSoundTracker(messageSoundTrackerRef.current);
+  }, [conversation.id]);
+
+  useEffect(() => {
+    playSoundsForNewIncomingMessages(messages, isStaff, messageSoundTrackerRef.current);
+  }, [messages, isStaff]);
 
   useEffect(() => {
     void markSupportMessagesReadAction(conversation.id, isStaff);
@@ -82,9 +96,26 @@ export function SupportChatThread({
     return "User";
   }, [conversation.customer, isStaff, messages]);
 
+  useEffect(() => {
+    typingActiveRef.current = false;
+    return () => {
+      if (typingActiveRef.current) {
+        broadcastSupportTyping({
+          conversationId: conversation.id,
+          userId: viewerId,
+          isStaff,
+          displayName: viewerLabel,
+          isTyping: false,
+        });
+      }
+    };
+  }, [conversation.id, isStaff, viewerId, viewerLabel]);
+
   const isClosed = conversation.status === "closed";
 
   function notifyTyping(isTyping: boolean) {
+    if (isTyping === typingActiveRef.current) return;
+    typingActiveRef.current = isTyping;
     broadcastSupportTyping({
       conversationId: conversation.id,
       userId: viewerId,
@@ -96,9 +127,7 @@ export function SupportChatThread({
 
   function handleDraftChange(value: string) {
     setDraft(value);
-    notifyTyping(true);
-    if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current);
-    typingTimeoutRef.current = window.setTimeout(() => notifyTyping(false), 1200);
+    notifyTyping(value.length > 0);
   }
 
   function sendMessage(body: string) {
@@ -229,7 +258,7 @@ export function SupportChatThread({
                   </div>
                   <div className={`bf-support-bubble${isMine ? " bf-support-bubble--mine" : " bf-support-bubble--theirs"}`}>
                     {message.body !== "(attachment)" ? (
-                      <p className="whitespace-pre-wrap break-words">{message.body}</p>
+                      <p className="bf-support-bubble__text">{message.body}</p>
                     ) : null}
                     {message.attachments?.map((attachment) =>
                       attachment.mime_type.startsWith("image/") ? (
