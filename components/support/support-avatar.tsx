@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import type { SupportProfileSummary } from "@/lib/types/support";
 import { supportDisplayName } from "@/lib/support/format";
 
@@ -29,12 +28,15 @@ export function SupportAvatar({
         aria-hidden
       >
         {profile?.avatar_url ? (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={profile.avatar_url}
             alt=""
             width={size}
             height={size}
             className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           initials

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   closeSupportConversationAction,
@@ -61,9 +60,7 @@ export function SupportChatThread({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length, isOtherTyping]);
 
-  const statusLabel = `${SUPPORT_STATUS_EMOJI[conversation.status]} ${SUPPORT_STATUS_LABELS[conversation.status]}`;
   const isClosed = conversation.status === "closed";
-
   const groupedMessages = useMemo(() => messages, [messages]);
 
   function notifyTyping(isTyping: boolean) {
@@ -125,34 +122,30 @@ export function SupportChatThread({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="border-b border-white/[0.08] px-4 py-3">
-        <div className="flex items-start gap-3">
-          {onBack ? (
-            <button
-              type="button"
-              onClick={onBack}
-              className="mt-0.5 rounded-lg p-1.5 text-neutral-400 transition-colors hover:bg-white/[0.06] hover:text-white"
-              aria-label="Back to conversations"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M15 18 9 12l6-6" />
-              </svg>
-            </button>
-          ) : null}
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-white">{conversation.subject}</p>
-            <p className="mt-0.5 text-xs text-neutral-500">{statusLabel}</p>
-          </div>
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={() => toggleClosed(!isClosed)}
-            className="shrink-0 rounded-lg border border-white/[0.08] px-2.5 py-1 text-[11px] text-neutral-300 transition-colors hover:border-white/[0.16] hover:text-white"
-          >
-            {isClosed ? "Re-open" : "Close"}
+    <div className="bf-support-thread">
+      <div className="bf-support-thread__toolbar">
+        {onBack ? (
+          <button type="button" onClick={onBack} className="bf-support-thread__back" aria-label="Back to conversations">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M15 18 9 12l6-6" />
+            </svg>
           </button>
+        ) : null}
+        <div className="bf-support-thread__info">
+          <p className="bf-support-thread__subject">{conversation.subject}</p>
+          <span className="bf-support-status-pill mt-1">
+            {SUPPORT_STATUS_EMOJI[conversation.status]}{" "}
+            {SUPPORT_STATUS_LABELS[conversation.status]}
+          </span>
         </div>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => toggleClosed(!isClosed)}
+          className="bf-support-thread__close-btn"
+        >
+          {isClosed ? "Re-open" : "Close"}
+        </button>
       </div>
 
       <div ref={scrollRef} className="bf-support-chat-scroll min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4">
@@ -166,67 +159,53 @@ export function SupportChatThread({
             <div key={message.id}>
               {showDate ? (
                 <div className="my-4 flex justify-center">
-                  <span className="rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-[10px] uppercase tracking-[0.12em] text-neutral-500">
+                  <span className="bf-support-date-chip">
                     {formatSupportDateSeparator(message.created_at)}
                   </span>
                 </div>
               ) : null}
-              <div className={`flex gap-2.5 ${isMine ? "flex-row-reverse" : ""}`}>
-                <SupportAvatar
-                  profile={message.author}
-                  size={28}
-                  staff={message.is_staff}
-                />
-                <div className={`max-w-[78%] ${isMine ? "items-end" : "items-start"} flex flex-col`}>
-                  <div className="mb-1 flex items-center gap-2 text-[10px] text-neutral-500">
+              <div className={`bf-support-msg${isMine ? " bf-support-msg--mine" : ""}`}>
+                <SupportAvatar profile={message.author} size={28} staff={message.is_staff} />
+                <div className="bf-support-msg__body">
+                  <div className="bf-support-msg__meta">
                     <span>{supportDisplayName(message.author)}</span>
-                    {message.is_staff ? (
-                      <span className="rounded bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-violet-200">
-                        Staff
-                      </span>
-                    ) : null}
+                    {message.is_staff ? <span className="bf-support-staff-badge">Staff</span> : null}
                   </div>
-                  <div
-                    className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-lg ${
-                      isMine
-                        ? "rounded-br-md bg-violet-600/90 text-white"
-                        : "rounded-bl-md border border-white/[0.08] bg-white/[0.06] text-neutral-100"
-                    }`}
-                  >
+                  <div className={`bf-support-bubble${isMine ? " bf-support-bubble--mine" : " bf-support-bubble--theirs"}`}>
                     {message.body !== "(attachment)" ? (
                       <p className="whitespace-pre-wrap break-words">{message.body}</p>
                     ) : null}
                     {message.attachments?.map((attachment) =>
-                      attachment.mime_type.startsWith("image/") && attachment.url ? (
+                      attachment.mime_type.startsWith("image/") ? (
                         <a
                           key={attachment.id}
-                          href={attachment.url}
+                          href={`/api/support/attachment/${attachment.id}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="mt-2 block overflow-hidden rounded-xl border border-white/10"
+                          className="bf-support-attachment"
                         >
-                          <Image
-                            src={attachment.url}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={`/api/support/attachment/${attachment.id}`}
                             alt={attachment.file_name}
-                            width={280}
-                            height={180}
-                            className="max-h-48 w-auto object-cover"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </a>
                       ) : (
                         <a
                           key={attachment.id}
-                          href={attachment.url ?? "#"}
+                          href={`/api/support/attachment/${attachment.id}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="mt-2 block rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-violet-200"
+                          className="bf-support-attachment bf-support-attachment--file"
                         >
                           {attachment.file_name}
                         </a>
                       ),
                     )}
                   </div>
-                  <div className={`mt-1 flex items-center gap-2 text-[10px] text-neutral-600 ${isMine ? "flex-row-reverse" : ""}`}>
+                  <div className="bf-support-msg__time">
                     <span>{formatSupportTimestamp(message.created_at)}</span>
                     {isMine && message.read_at ? <span>Read</span> : null}
                   </div>
@@ -265,23 +244,40 @@ export function SupportChatThread({
         </div>
       ) : null}
 
-      <div className="border-t border-white/[0.08] p-3">
+      <div className="bf-support-composer">
         {isClosed ? (
-          <p className="text-center text-xs text-neutral-500">
-            This conversation is closed. Re-open it to send another message.
+          <p className="bf-support-composer__closed">
+            This ticket is closed. Re-open it to send another message.
           </p>
         ) : (
           <>
             {file ? (
-              <div className="mb-2 flex items-center justify-between rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-neutral-300">
+              <div className="bf-support-composer__file">
                 <span className="truncate">{file.name}</span>
                 <button type="button" onClick={() => setFile(null)} className="text-neutral-500 hover:text-white">
                   Remove
                 </button>
               </div>
             ) : null}
-            <div className="flex items-end gap-2">
-              <div className="relative min-w-0 flex-1">
+            <div className="relative">
+              {showEmoji ? (
+                <div className="bf-support-composer__emoji">
+                  {COMMON_EMOJIS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => {
+                        setDraft((prev) => `${prev}${emoji}`);
+                        setShowEmoji(false);
+                      }}
+                      className="bf-support-composer__emoji-btn"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              <div className="bf-support-composer__row">
                 <textarea
                   value={draft}
                   onChange={(e) => handleDraftChange(e.target.value)}
@@ -291,60 +287,43 @@ export function SupportChatThread({
                       sendMessage(draft);
                     }
                   }}
-                  rows={2}
+                  rows={1}
                   placeholder="Type a message…"
-                  className="w-full resize-none rounded-xl border border-white/[0.08] bg-[#0d0d0d] px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-violet-500/40"
+                  className="bf-support-composer__input"
                 />
-                {showEmoji ? (
-                  <div className="absolute bottom-full left-0 mb-2 flex gap-1 rounded-xl border border-white/[0.08] bg-[#121212] p-2 shadow-xl">
-                    {COMMON_EMOJIS.map((emoji) => (
-                      <button
-                        key={emoji}
-                        type="button"
-                        onClick={() => {
-                          setDraft((prev) => `${prev}${emoji}`);
-                          setShowEmoji(false);
-                        }}
-                        className="rounded p-1 text-lg hover:bg-white/[0.06]"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-              <div className="flex shrink-0 flex-col gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setShowEmoji((prev) => !prev)}
-                  className="rounded-lg border border-white/[0.08] p-2 text-neutral-400 hover:text-white"
-                  aria-label="Insert emoji"
-                >
-                  🙂
-                </button>
-                <label className="cursor-pointer rounded-lg border border-white/[0.08] p-2 text-neutral-400 hover:text-white">
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*,.pdf,.txt"
-                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                  />
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.88 16.88a2 2 0 0 1-2.83-2.83l8.49-8.49" />
-                  </svg>
-                </label>
-                <button
-                  type="button"
-                  disabled={isPending || (!draft.trim() && !file)}
-                  onClick={() => sendMessage(draft)}
-                  className="rounded-lg bg-violet-600 p-2 text-white transition-colors hover:bg-violet-500 disabled:opacity-40"
-                  aria-label="Send message"
-                >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="m22 2-7 20-4-9-9-4Z" />
-                    <path d="M22 2 11 13" />
-                  </svg>
-                </button>
+                <div className="bf-support-composer__actions">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmoji((prev) => !prev)}
+                    className="bf-support-composer__btn"
+                    aria-label="Insert emoji"
+                  >
+                    <span className="text-base leading-none">🙂</span>
+                  </button>
+                  <label className="bf-support-composer__btn cursor-pointer">
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*,.pdf,.txt"
+                      onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                    />
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.88 16.88a2 2 0 0 1-2.83-2.83l8.49-8.49" />
+                    </svg>
+                  </label>
+                  <button
+                    type="button"
+                    disabled={isPending || (!draft.trim() && !file)}
+                    onClick={() => sendMessage(draft)}
+                    className="bf-support-composer__send"
+                    aria-label="Send message"
+                  >
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="m22 2-7 20-4-9-9-4Z" />
+                      <path d="M22 2 11 13" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </>

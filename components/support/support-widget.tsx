@@ -9,8 +9,42 @@ import {
 } from "@/app/actions/support";
 import { SupportChatThread } from "@/components/support/support-chat-thread";
 import { useSupportRealtime } from "@/hooks/use-support-realtime";
-import { supportUnreadTotal } from "@/lib/support/format";
+import { formatSupportTimestamp, supportUnreadTotal } from "@/lib/support/format";
 import type { SupportConversation, SupportMessage } from "@/lib/types/support";
+import {
+  SUPPORT_STATUS_EMOJI,
+  SUPPORT_STATUS_LABELS,
+} from "@/lib/types/support";
+
+const SUPPORT_TOPICS = [
+  { icon: "🐛", label: "Report a bug" },
+  { icon: "💳", label: "Billing & premium" },
+  { icon: "🔐", label: "Account access" },
+  { icon: "✨", label: "Profile help" },
+];
+
+function SupportPanelHeader({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="bf-support-panel__header">
+      <div className="bf-support-panel__brand">
+        <div className="bf-support-panel__brand-icon" aria-hidden>
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
+          </svg>
+        </div>
+        <div>
+          <p className="bf-support-panel__title">Support</p>
+          <p className="bf-support-panel__subtitle">Real people · Usually replies within a few hours</p>
+        </div>
+      </div>
+      <button type="button" onClick={onClose} className="bf-support-panel__close" aria-label="Close support">
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  );
+}
 
 export function SupportWidgetTrigger({
   userId,
@@ -92,6 +126,7 @@ export function SupportWidgetBody({
   const [isPending, startTransition] = useTransition();
 
   const unreadTotal = supportUnreadTotal(conversations);
+  const openTicketCount = conversations.filter((c) => c.status !== "closed").length;
 
   useEffect(() => {
     onUnreadChange(unreadTotal);
@@ -158,36 +193,28 @@ export function SupportWidgetBody({
     setError(null);
   }
 
+  function handleClose() {
+    onOpenChange(false);
+    resetToHome();
+  }
+
   return (
     <div className="bf-support-panel" role="dialog" aria-label="Customer support">
-      <div className="bf-support-panel__header">
-        <div>
-          <p className="bf-support-panel__title">Customer Support</p>
-          <p className="bf-support-panel__subtitle">We typically reply within a few hours.</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            onOpenChange(false);
-            resetToHome();
-          }}
-          className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-white/[0.06] hover:text-white"
-          aria-label="Close support"
-        >
-          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M18 6 6 18M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+      <SupportPanelHeader onClose={handleClose} />
 
       {!userId ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-10 text-center">
-          <p className="text-sm text-neutral-400">Sign in to start a private support conversation.</p>
-          <Link
-            href="/login"
-            className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-500"
-          >
-            Sign in
+          <div className="bf-support-panel__brand-icon" aria-hidden>
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
+            </svg>
+          </div>
+          <p className="text-sm text-neutral-300">Sign in to message our team directly.</p>
+          <p className="max-w-[220px] text-xs leading-relaxed text-neutral-500">
+            Account help, billing questions, bug reports — all handled in private tickets.
+          </p>
+          <Link href="/login" className="bf-support-cta mt-1 w-auto px-6">
+            Sign in to get help
           </Link>
         </div>
       ) : view === "chat" && activeConversation ? (
@@ -206,83 +233,141 @@ export function SupportWidgetBody({
           />
         </div>
       ) : view === "new" ? (
-        <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 py-4">
-          <button type="button" onClick={resetToHome} className="self-start text-xs text-neutral-500 hover:text-white">
-            ← Back
+        <div className="bf-support-form">
+          <button type="button" onClick={resetToHome} className="bf-support-form__back">
+            ← Back to inbox
           </button>
-          <input
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            placeholder="Subject"
-            className="rounded-xl border border-white/[0.08] bg-[#0d0d0d] px-3 py-2.5 text-sm text-white outline-none focus:border-violet-500/40"
-          />
-          <textarea
-            value={initialMessage}
-            onChange={(e) => setInitialMessage(e.target.value)}
-            rows={5}
-            placeholder="How can we help?"
-            className="rounded-xl border border-white/[0.08] bg-[#0d0d0d] px-3 py-2.5 text-sm text-white outline-none focus:border-violet-500/40"
-          />
+          <div>
+            <label htmlFor="support-subject" className="bf-support-field__label">
+              What do you need help with?
+            </label>
+            <input
+              id="support-subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="e.g. Profile not saving, billing question…"
+              className="bf-support-field__input"
+            />
+          </div>
+          <div className="min-h-0 flex-1">
+            <label htmlFor="support-message" className="bf-support-field__label">
+              Describe the issue
+            </label>
+            <textarea
+              id="support-message"
+              value={initialMessage}
+              onChange={(e) => setInitialMessage(e.target.value)}
+              rows={6}
+              placeholder="Tell us what happened, what you expected, and any steps to reproduce. Screenshots welcome."
+              className="bf-support-field__textarea"
+            />
+          </div>
           {error ? <p className="text-xs text-red-400">{error}</p> : null}
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={startNewConversation}
-            className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-40"
-          >
-            Start conversation
+          <button type="button" disabled={isPending} onClick={startNewConversation} className="bf-support-cta">
+            <span className="bf-support-cta__icon" aria-hidden>
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+            Send to support
           </button>
         </div>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="space-y-3 px-4 py-4">
-            <div className="rounded-2xl border border-violet-500/20 bg-violet-500/[0.08] px-4 py-3">
-              <p className="text-sm font-medium text-white">Welcome to cried.bio Support</p>
-              <p className="mt-1 text-xs leading-relaxed text-violet-100/80">
-                Private tickets for your account only. Search past conversations or start a new one.
-              </p>
+        <div className="bf-support-home">
+          <div className="bf-support-hero">
+            <p className="bf-support-hero__title">How can we help?</p>
+            <p className="bf-support-hero__text">
+              Message our team about bugs, billing, account access, or anything on your profile.
+              {openTicketCount > 0
+                ? ` You have ${openTicketCount} open ticket${openTicketCount === 1 ? "" : "s"}.`
+                : " Start a ticket and we'll get back to you."}
+            </p>
+            <div className="bf-support-topics">
+              {SUPPORT_TOPICS.map((topic) => (
+                <button
+                  key={topic.label}
+                  type="button"
+                  onClick={() => {
+                    setSubject(topic.label);
+                    setView("new");
+                  }}
+                  className="bf-support-topic"
+                >
+                  <span aria-hidden>{topic.icon}</span>
+                  {topic.label}
+                </button>
+              ))}
             </div>
+          </div>
+
+          <div className="bf-support-search">
+            <svg className="bf-support-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search conversations…"
-              className="w-full rounded-xl border border-white/[0.08] bg-[#0d0d0d] px-3 py-2.5 text-sm text-white outline-none focus:border-violet-500/40"
+              placeholder="Search your tickets…"
+              className="bf-support-search__input"
             />
-            <button
-              type="button"
-              onClick={() => setView("new")}
-              className="w-full rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-violet-500"
-            >
-              Start new conversation
-            </button>
           </div>
 
-          <div className="bf-support-chat-scroll min-h-0 flex-1 overflow-y-auto px-2 pb-3">
+          <button type="button" onClick={() => setView("new")} className="bf-support-cta">
+            <span className="bf-support-cta__icon" aria-hidden>
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+            New conversation
+          </button>
+
+          <p className="bf-support-inbox-label">Your tickets</p>
+
+          <div className="bf-support-chat-scroll min-h-0 flex-1 overflow-y-auto">
             {conversations.length === 0 ? (
-              <p className="px-3 py-8 text-center text-xs text-neutral-500">No conversations yet.</p>
+              <div className="bf-support-empty">
+                <p className="bf-support-empty__title">No tickets yet</p>
+                <p className="bf-support-empty__text">
+                  Hit &ldquo;New conversation&rdquo; above — we&apos;ll reply here when we&apos;ve got an answer.
+                </p>
+              </div>
             ) : (
-              conversations.map((conversation) => (
-                <button
-                  key={conversation.id}
-                  type="button"
-                  onClick={() => loadConversation(conversation.id)}
-                  className="mb-1 flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-white/[0.05]"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-medium text-white">{conversation.subject}</p>
-                      {(conversation.unread_count ?? 0) > 0 ? (
-                        <span className="rounded-full bg-violet-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                          {conversation.unread_count}
-                        </span>
-                      ) : null}
+              conversations.map((conversation) => {
+                const unread = (conversation.unread_count ?? 0) > 0;
+                return (
+                  <button
+                    key={conversation.id}
+                    type="button"
+                    onClick={() => loadConversation(conversation.id)}
+                    className={`bf-support-convo${unread ? " bf-support-convo--unread" : ""}`}
+                  >
+                    <div className="bf-support-convo__icon" aria-hidden>
+                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
+                      </svg>
                     </div>
-                    <p className="mt-1 truncate text-xs text-neutral-500">
-                      {conversation.last_message_preview ?? "No messages yet"}
-                    </p>
-                  </div>
-                </button>
-              ))
+                    <div className="min-w-0 flex-1">
+                      <p className="bf-support-convo__title">{conversation.subject}</p>
+                      <p className="bf-support-convo__preview">
+                        {conversation.last_message_preview ?? "No messages yet"}
+                      </p>
+                      <div className="bf-support-convo__meta">
+                        <span className="bf-support-status-pill">
+                          {SUPPORT_STATUS_EMOJI[conversation.status]}{" "}
+                          {SUPPORT_STATUS_LABELS[conversation.status]}
+                        </span>
+                        {conversation.last_message_at ? (
+                          <span>{formatSupportTimestamp(conversation.last_message_at)}</span>
+                        ) : null}
+                      </div>
+                    </div>
+                    {unread ? (
+                      <span className="bf-support-unread-badge">{conversation.unread_count}</span>
+                    ) : null}
+                  </button>
+                );
+              })
             )}
           </div>
         </div>
