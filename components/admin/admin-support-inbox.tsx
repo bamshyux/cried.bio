@@ -65,7 +65,7 @@ export function AdminSupportInbox({
     setSelectedId(conversationId);
     const result = await fetchAdminSupportDetailAction(conversationId);
     if ("error" in result) {
-      setFeedback(result.error);
+      setFeedback(result.error ?? null);
       return;
     }
     if (!result.conversation || !result.messages) return;
