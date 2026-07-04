@@ -8,9 +8,46 @@ import type { ProfileLink } from "@/lib/types/link";
 import type { Profile } from "@/lib/types/profile";
 import type { ProfilePresetData } from "@/lib/types/profile-preset";
 import type { ProfileSettings, ProfileLayout } from "@/lib/types/settings";
+import type { GuestbookEntry } from "@/lib/types/guestbook";
 
 function previewTimestamp() {
   return new Date().toISOString();
+}
+
+export function createPresetPreviewGuestbookEntries(profileId: string): GuestbookEntry[] {
+  const now = previewTimestamp();
+  const samples = [
+    { message: "this layout is fire", username: "guest" },
+    { message: "clean preset", username: "visitor" },
+  ];
+
+  return samples.map((sample, index) => ({
+    id: `preview-guestbook-${index}`,
+    profile_id: profileId,
+    author_id: `preview-author-${index}`,
+    message: sample.message,
+    is_approved: true,
+    is_pinned: false,
+    pinned_at: null,
+    created_at: now,
+    author: {
+      username: sample.username,
+      display_name: sample.username,
+      avatar_url: null,
+    },
+    reactions: [],
+  }));
+}
+
+export function guestbookEntriesForPresetPreview(
+  profileId: string,
+  settings: ProfileSettings,
+  liveEntries: GuestbookEntry[] = [],
+  useLiveEntries = false,
+): GuestbookEntry[] {
+  if (!settings.guestbook_enabled) return [];
+  if (useLiveEntries && liveEntries.length > 0) return liveEntries;
+  return createPresetPreviewGuestbookEntries(profileId);
 }
 
 export function buildProfileViewFromPreset({

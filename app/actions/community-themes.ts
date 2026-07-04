@@ -150,6 +150,8 @@ export async function publishCommunityProfilePresetAction(input: {
   visibility: CommunityThemeVisibility;
   previewImageUrl?: string;
   previewStyle?: string;
+  /** When false, only listing metadata is updated — the frozen public snapshot is kept. */
+  refreshSnapshot?: boolean;
 }): Promise<CommunityThemeFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "You must be logged in." };
@@ -170,26 +172,39 @@ export async function publishCommunityProfilePresetAction(input: {
   const supabase = await createClient();
   const { data: preset } = await supabase
     .from("profile_presets")
-    .select("id, thumbnail_url")
+    .select("id, thumbnail_url, preset_data")
     .eq("id", input.presetId)
     .eq("user_id", userId)
     .maybeSingle();
 
   if (!preset) return { error: "Preset not found." };
 
-  const presetData = await captureProfilePresetSnapshot(userId, { styleOnly: true });
+  const { data: existing } = await supabase
+    .from("community_theme_listings")
+    .select("id")
+    .eq("profile_preset_id", input.presetId)
+    .maybeSingle();
+
+  const isUpdate = Boolean(existing?.id);
+  const shouldRefreshSnapshot = input.refreshSnapshot ?? !isUpdate;
+
+  let presetData: ProfilePresetData | undefined;
+  if (shouldRefreshSnapshot) {
+    const storedSnapshot = parsePresetData(preset.preset_data);
+    presetData =
+      storedSnapshot ?? (await captureProfilePresetSnapshot(userId, { styleOnly: true }));
+  }
 
   const visibility = input.visibility === "open_source" ? "public" : input.visibility;
   const thumbnail =
     input.previewImageUrl?.trim() ||
     preset.thumbnail_url ||
-    resolvePresetThumbnailUrl(presetData);
+    (presetData ? resolvePresetThumbnailUrl(presetData) : null);
 
-  const payload = {
+  const payload: Record<string, unknown> = {
     listing_type: "profile_preset" as const,
     theme_id: null,
     profile_preset_id: input.presetId,
-    published_preset_data: presetData,
     author_id: userId,
     title,
     description,
@@ -203,11 +218,9 @@ export async function publishCommunityProfilePresetAction(input: {
     published_at: publishedAtForVisibility(visibility),
   };
 
-  const { data: existing } = await supabase
-    .from("community_theme_listings")
-    .select("id")
-    .eq("profile_preset_id", input.presetId)
-    .maybeSingle();
+  if (shouldRefreshSnapshot && presetData) {
+    payload.published_preset_data = presetData;
+  }
 
   let listingId: string;
 
@@ -405,21 +418,8 @@ async function installCommunityProfilePresetListing(
   const admin = createAdminClient();
   const client = admin ?? (await createClient());
 
-  let fallbackPresetData: unknown = null;
-  if (listing.profile_preset_id) {
-    const { data: sourcePreset } = await client
-      .from("profile_presets")
-      .select("preset_data, thumbnail_url")
-      .eq("id", listing.profile_preset_id)
-      .maybeSingle();
-    fallbackPresetData = sourcePreset?.preset_data ?? null;
-  }
-
-  const snapshot = resolveCommunityPresetSnapshot(
-    listing.published_preset_data,
-    fallbackPresetData,
-  );
-  if (!snapshot) return { error: "Preset source not found." };
+  const snapshot = resolveCommunityPresetSnapshot(listing.published_preset_data);
+  if (!snapshot) return { error: "Preset snapshot not found." };
 
   if (listing.author_id === userId) {
     const applyResult = await applyProfilePresetSnapshot(userId, snapshot);
@@ -446,11 +446,8 @@ async function installCommunityProfilePresetListing(
         .eq("id", existingInstall.installed_preset_id)
         .maybeSingle();
 
-      const installedSnapshot = resolveCommunityPresetSnapshot(
-        listing.published_preset_data,
-        installedPreset?.preset_data ?? snapshot,
-      );
-      if (!installedSnapshot) return { error: "Preset source not found." };
+      const installedSnapshot = resolveCommunityPresetSnapshot(listing.published_preset_data);
+      if (!installedSnapshot) return { error: "Preset snapshot not found." };
 
       const result = await applyProfilePresetSnapshot(userId, installedSnapshot, {
         preservePersonalContent: true,

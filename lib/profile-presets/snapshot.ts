@@ -18,6 +18,10 @@ import {
   normalizePresetBackgroundSettings,
   pickBackgroundPresetSettings,
 } from "@/lib/profile-presets/background-settings";
+import {
+  pickPresetExtraSettings,
+  PRESET_SETTINGS_EXTRA_SELECT,
+} from "@/lib/profile-presets/preset-settings-keys";
 import { createClient } from "@/lib/supabase/server";
 
 const SETTINGS_EXCLUDE = new Set([
@@ -61,6 +65,17 @@ async function readBackgroundColumnsFromDb(profileId: string): Promise<Record<st
   return (data ?? {}) as Record<string, unknown>;
 }
 
+async function readExtraPresetColumnsFromDb(profileId: string): Promise<Record<string, unknown>> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profile_settings")
+    .select(PRESET_SETTINGS_EXTRA_SELECT)
+    .eq("profile_id", profileId)
+    .maybeSingle();
+
+  return (data ?? {}) as Record<string, unknown>;
+}
+
 function extractPresetSettings(settings: ProfileSettings): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(settings)) {
@@ -70,7 +85,8 @@ function extractPresetSettings(settings: ProfileSettings): Record<string, unknow
   }
 
   const background = pickBackgroundPresetSettings({ ...result, ...settings });
-  return { ...result, ...background };
+  const extra = pickPresetExtraSettings({ ...result, ...settings });
+  return { ...result, ...background, ...extra };
 }
 
 export type CapturePresetOptions = {
@@ -115,11 +131,12 @@ export async function captureProfilePresetSnapshot(
   userId: string,
   options?: CapturePresetOptions,
 ): Promise<ProfilePresetData> {
-  const [profile, settings, backgroundColumns, links, embeds, featuredBlocks, profileBadges, discordWidget] =
+  const [profile, settings, backgroundColumns, extraColumns, links, embeds, featuredBlocks, profileBadges, discordWidget] =
     await Promise.all([
       getProfileByUserId(userId),
       getSettingsByProfileId(userId),
       readBackgroundColumnsFromDb(userId),
+      readExtraPresetColumnsFromDb(userId),
       getLinksByProfileId(userId),
       getEmbedsByProfileId(userId),
       getFeaturedBlocksByProfileId(userId),
@@ -132,6 +149,7 @@ export async function captureProfilePresetSnapshot(
     ...normalizePresetBackgroundSettings({
       ...settings,
       ...backgroundColumns,
+      ...extraColumns,
     }),
   } as ProfileSettings;
 

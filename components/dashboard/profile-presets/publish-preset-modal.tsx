@@ -54,6 +54,7 @@ export function PublishPresetModal({
     existingListing?.visibility === "open_source" ? "public" : (existingListing?.visibility ?? "public"),
   );
   const [previewImageUrl, setPreviewImageUrl] = useState(existingListing?.preview_image_url ?? "");
+  const [refreshSnapshot, setRefreshSnapshot] = useState(!existingListing);
   const [feedback, setFeedback] = useState<{ error?: string; success?: string }>({});
   const [isPending, startTransition] = useTransition();
 
@@ -67,6 +68,7 @@ export function PublishPresetModal({
         category,
         visibility,
         previewImageUrl: previewImageUrl || undefined,
+        refreshSnapshot: existingListing ? refreshSnapshot : true,
       });
       setFeedback(result.error ? { error: result.error } : { success: result.success });
       if (!result.error) {
@@ -168,6 +170,27 @@ export function PublishPresetModal({
               placeholder="https://..."
             />
           </div>
+
+          {existingListing ? (
+            <label className="flex cursor-pointer gap-3 rounded-xl border border-white/[0.06] p-3">
+              <input
+                type="checkbox"
+                checked={refreshSnapshot}
+                onChange={(e) => setRefreshSnapshot(e.target.checked)}
+                className="mt-1"
+              />
+              <span>
+                <span className="block text-sm font-medium text-white">
+                  Update public look from saved preset
+                </span>
+                <span className="mt-0.5 block text-xs text-neutral-500">
+                  Freezes whatever is currently saved in your preset library — background, music,
+                  guestbook styling, and layout. Your live profile changes won&apos;t affect this
+                  listing unless you check this after updating the preset itself.
+                </span>
+              </span>
+            </label>
+          ) : null}
 
           <fieldset className="space-y-2">
             <legend className={labelClassName}>Visibility</legend>

@@ -134,6 +134,7 @@ function normalizeListingQueryResult(raw: RawListingQueryResult): ListingQueryRe
 
 async function queryListingsWithFallback(
   run: (select: string) => PromiseLike<RawListingQueryResult>,
+  options?: { allowLivePresetFallback?: boolean },
 ): Promise<ListingQueryResult> {
   let result = normalizeListingQueryResult(await run(listingSelect(true)));
   if (!missingPublishedSnapshotColumn(result.error)) {
@@ -141,12 +142,13 @@ async function queryListingsWithFallback(
   }
 
   result = normalizeListingQueryResult(await run(listingSelect(false)));
-  if (result.data?.length) {
+  if (options?.allowLivePresetFallback && result.data?.length) {
     await attachLivePresetSnapshots(await db(), result.data);
   }
   return result;
 }
 
+/** Only used for an author's own dashboard when the snapshot column is missing. */
 async function attachLivePresetSnapshots(
   supabase: Awaited<ReturnType<typeof db>>,
   rows: ListingRow[],
@@ -337,12 +339,14 @@ export async function getFeaturedCommunityThemeSections(userId?: string) {
 
 export async function getMyPublishedThemes(userId: string): Promise<CommunityThemeListing[]> {
   const supabase = await db();
-  const { data } = await queryListingsWithFallback((select) =>
-    supabase
-      .from("community_theme_listings")
-      .select(select)
-      .eq("author_id", userId)
-      .order("updated_at", { ascending: false }),
+  const { data } = await queryListingsWithFallback(
+    (select) =>
+      supabase
+        .from("community_theme_listings")
+        .select(select)
+        .eq("author_id", userId)
+        .order("updated_at", { ascending: false }),
+    { allowLivePresetFallback: true },
   );
 
   return (data ?? [])
@@ -367,9 +371,6 @@ export async function getCommunityThemeListingById(
       .select(listingSelect(false))
       .eq("id", listingId)
       .maybeSingle());
-    if (data) {
-      await attachLivePresetSnapshots(supabase, [data as unknown as ListingRow]);
-    }
   } else if (error) {
     return null;
   }
@@ -443,18 +444,7 @@ export async function getPresetPreviewData(
     return { name: listing.title, preset_data: listing.published_preset_data };
   }
 
-  if (!listing.profile_preset_id) return null;
-
-  const supabase = createAdminClient() ?? (await createClient());
-  const { data } = await supabase
-    .from("profile_presets")
-    .select("name, preset_data")
-    .eq("id", listing.profile_preset_id)
-    .maybeSingle();
-
-  const presetData = data?.preset_data ? parsePresetData(data.preset_data) : null;
-  if (!presetData) return null;
-  return { name: String(data?.name ?? listing.title), preset_data: presetData };
+  return null;
 }
 
 export async function getThemePreviewCss(listingId: string, userId?: string): Promise<string | null> {

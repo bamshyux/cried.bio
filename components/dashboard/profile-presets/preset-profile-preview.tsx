@@ -9,6 +9,7 @@ import { getProfileAlignClass, getFontCss, getGoogleFontsUrl } from "@/lib/setti
 import {
   buildProfileViewFromPreset,
   createPreviewBaseProfile,
+  createPresetPreviewGuestbookEntries,
 } from "@/lib/profile-presets/preview";
 import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfilePresetData } from "@/lib/types/profile-preset";
@@ -54,7 +55,9 @@ export function PresetProfilePreview({
     viewCount: 128,
     embeds: preview.embeds,
     featured: preview.featured,
-    guestbook: [],
+    guestbook: preview.settings.guestbook_enabled
+      ? createPresetPreviewGuestbookEntries(preview.profile.id)
+      : [],
     activity: [],
     friends: [],
     followerCount: 0,

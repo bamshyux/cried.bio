@@ -22,7 +22,7 @@ import {
   getFriends,
   isFollowing,
 } from "@/lib/data/social";
-import { buildProfileViewFromPreset } from "@/lib/profile-presets/preview";
+import { buildProfileViewFromPreset, guestbookEntriesForPresetPreview } from "@/lib/profile-presets/preview";
 import { parsePresetData } from "@/lib/profile-presets/snapshot";
 import { PublicProfileView } from "@/components/profile/public-profile";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
@@ -125,6 +125,7 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
   let previewFeatured: FeaturedBlock[] = featured;
   let scopedCustomCss: string | null = null;
   let presetPreviewTitle: string | null = null;
+  let previewGuestbook = guestbook;
 
   if (isPresetPreview && previewListingId) {
     const listing = await getCommunityThemeListingById(previewListingId, currentUserId);
@@ -150,6 +151,12 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
         previewFeatured = preview.featured;
         scopedCustomCss = preview.scopedCustomCss;
         presetPreviewTitle = listing.title;
+        previewGuestbook = guestbookEntriesForPresetPreview(
+          baseProfile.id,
+          previewSettings,
+          guestbook,
+          false,
+        );
       }
     }
   }
@@ -160,7 +167,12 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
 
   const discordPresence = await getDiscordPresenceForSettings(previewSettings);
 
-  if (!scopedCustomCss && previewSettings.layout === "custom" && previewSettings.custom_theme_id) {
+  if (
+    !isPresetPreview &&
+    !scopedCustomCss &&
+    previewSettings.layout === "custom" &&
+    previewSettings.custom_theme_id
+  ) {
     const theme = await getActiveCustomTheme(baseProfile.id, previewSettings.custom_theme_id);
     if (theme?.css) {
       scopedCustomCss = scopeProfileCss(theme.css).css || null;
@@ -176,7 +188,7 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
       viewCount={viewCount}
       embeds={previewEmbeds}
       featured={previewFeatured}
-      guestbook={guestbook}
+      guestbook={previewGuestbook}
       activity={activity}
       friends={previewSettings.friends_visibility === "public" ? friends : []}
       followerCount={followCounts.followers}
