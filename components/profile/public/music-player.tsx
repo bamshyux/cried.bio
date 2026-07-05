@@ -32,6 +32,17 @@ function formatTime(seconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+function contrastOnAccent(hex: string): string {
+  const rgb = hex.replace("#", "").trim();
+  if (rgb.length !== 6) return "#ffffff";
+  const r = parseInt(rgb.slice(0, 2), 16);
+  const g = parseInt(rgb.slice(2, 4), 16);
+  const b = parseInt(rgb.slice(4, 6), 16);
+  if ([r, g, b].some((v) => Number.isNaN(v))) return "#ffffff";
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.62 ? "#0a0a0a" : "#ffffff";
+}
+
 type MusicPlayerProps = {
   settings: ProfileSettings;
   deferAutoplay?: boolean;
@@ -60,6 +71,7 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
     "--bf-audio-accent": accent,
     "--bf-audio-accent-rgb": accentRgb,
     "--bf-audio-text": textColor,
+    "--bf-audio-on-accent": contrastOnAccent(accent),
     "--bf-range-accent": accent,
   } as CSSProperties;
 
