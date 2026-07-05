@@ -1,12 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import {
-  HiMiniPause,
-  HiMiniPlay,
-  HiMiniSpeakerWave,
-  HiMiniSpeakerXMark,
-} from "react-icons/hi2";
 import { resolveMusicPlayerColor } from "@/lib/settings";
 import type { ProfileSettings } from "@/lib/types/settings";
 
@@ -28,6 +22,43 @@ function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function PlayIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M8 5.5v13a1 1 0 0 0 1.52.86l9.02-5.5a1 1 0 0 0 0-1.72L9.52 4.64A1 1 0 0 0 8 5.5z" />
+    </svg>
+  );
+}
+
+function PauseIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <rect x="6" y="5" width="4" height="14" rx="1" />
+      <rect x="14" y="5" width="4" height="14" rx="1" />
+    </svg>
+  );
+}
+
+function VolumeIcon({ muted }: { muted: boolean }) {
+  if (muted) {
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+        <path d="M11 5 6 9H3v6h3l5 4V5z" />
+        <line x1="16" y1="9" x2="20" y2="13" />
+        <line x1="20" y1="9" x2="16" y2="13" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+      <path d="M11 5 6 9H3v6h3l5 4V5z" />
+      <path d="M15.5 12a3.5 3.5 0 0 0 0-7" />
+      <path d="M18.5 8.5a7 7 0 0 1 0 7" />
+    </svg>
+  );
 }
 
 type MusicPlayerProps = {
@@ -205,6 +236,13 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
     setCurrentTime(next);
   };
 
+  const statusLine =
+    duration > 0
+      ? `${playing ? "Now playing" : "Paused"} · ${formatTime(currentTime)} / ${formatTime(duration)}`
+      : playing
+        ? "Now playing"
+        : "Paused";
+
   return (
     <div
       className="bf-music-player fixed bottom-5 right-5 z-50"
@@ -212,7 +250,7 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
     >
       <div
         ref={shellRef}
-        className={`bf-music-player__shell ${expanded ? "bf-music-player__shell--expanded" : ""}`}
+        className={`bf-music-player__shell ${expanded ? "bf-music-player__shell--open" : ""}`}
         onMouseEnter={openPanel}
         onMouseLeave={scheduleCollapse}
         onFocusCapture={openPanel}
@@ -224,60 +262,50 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
       >
         <audio ref={audioRef} src={settings.music_url} preload="metadata" playsInline />
 
-        <div className="bf-music-player__head">
+        <div className="bf-music-player__top">
           <button
             type="button"
             onClick={toggle}
-            className={`bf-music-player__play ${playing ? "bf-music-player__play--active" : ""}`}
+            className={`bf-music-player__play ${playing ? "bf-music-player__play--on" : ""}`}
             aria-label={playing ? "Pause" : "Play"}
           >
-            <span className="bf-music-player__play-icon">
-              {playing ? <HiMiniPause aria-hidden /> : <HiMiniPlay aria-hidden />}
-            </span>
+            {playing ? <PauseIcon /> : <PlayIcon />}
           </button>
 
           {expanded ? (
-            <div className="bf-music-player__info">
+            <div className="bf-music-player__copy">
               <p className="bf-music-player__title">{title}</p>
-              <p className="bf-music-player__subtitle">
-                {playing ? "Now playing" : "Paused"}
-                {duration > 0 ? ` · ${formatTime(currentTime)} / ${formatTime(duration)}` : ""}
-              </p>
+              <p className="bf-music-player__meta">{statusLine}</p>
             </div>
           ) : null}
         </div>
 
         {expanded ? (
-          <div className="bf-music-player__controls">
-            <div className="bf-music-player__progress">
-              <div className="bf-music-player__progress-track">
-                <div className="bf-music-player__progress-fill" style={{ width: `${progress}%` }} />
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={0.1}
-                  value={progress}
-                  onChange={seek}
-                  className="bf-music-player__scrub"
-                  aria-label="Seek"
-                  disabled={duration <= 0}
-                />
-              </div>
+          <div className="bf-music-player__bottom">
+            <div className="bf-music-player__seek">
+              <div className="bf-music-player__seek-fill" style={{ width: `${progress}%` }} />
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={0.1}
+                value={progress}
+                onChange={seek}
+                className="bf-music-player__seek-input"
+                aria-label="Seek"
+                disabled={duration <= 0}
+              />
             </div>
 
-            <div className="bf-music-player__volume-row">
+            <div className="bf-music-player__vol">
               <button
                 type="button"
                 onClick={toggleMute}
-                className={`bf-music-player__mute ${isMuted ? "bf-music-player__mute--off" : ""}`}
+                className="bf-music-player__vol-icon"
                 aria-label={isMuted ? "Unmute" : "Mute"}
                 aria-pressed={isMuted}
               >
-                <span className="bf-music-player__mute-icon">
-                  {isMuted ? <HiMiniSpeakerXMark aria-hidden /> : <HiMiniSpeakerWave aria-hidden />}
-                </span>
-                <span className="bf-music-player__mute-label">{isMuted ? "Unmute" : "Mute"}</span>
+                <VolumeIcon muted={isMuted} />
               </button>
               <input
                 type="range"
@@ -285,7 +313,7 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
                 max={100}
                 value={volume}
                 onChange={(event) => setVolumeLevel(Number(event.target.value))}
-                className="bf-music-player__volume"
+                className="bf-music-player__vol-input"
                 aria-label="Volume"
                 style={{ "--bf-music-fill": `${volume}%` } as CSSProperties}
               />
