@@ -2216,238 +2216,98 @@ body,
   }
 }
 
-/* Profile music player — guns.lol-style minimal widget */
+/* Profile music player — themed to profile accent */
 .bf-music-player {
   --bf-music-accent: #fafafa;
-  pointer-events: auto;
-}
-
-.bf-music-player__shell {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  width: 46px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  transition: width 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.bf-music-player__shell--open {
-  width: min(268px, calc(100vw - 2.5rem));
-  padding: 10px 12px;
-  gap: 10px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(8, 8, 10, 0.94);
-  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55);
-}
-
-.bf-music-player__top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
+  --bf-music-accent-rgb: 250, 250, 250;
+  --bf-music-on-accent: #000;
+  --bf-music-text: #fafafa;
 }
 
 .bf-music-player__play {
-  box-sizing: border-box;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 46px;
-  height: 46px;
-  margin: 0;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.95);
-  color: #111;
-  cursor: pointer;
-  line-height: 0;
-  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
-}
-
-.bf-music-player__play svg {
-  display: block;
-  flex-shrink: 0;
-}
-
-.bf-music-player__play--on {
-  background: #fff;
-  color: #111;
-  border-color: rgba(0, 0, 0, 0.08);
-}
-
-.bf-music-player__play:hover {
-  transform: scale(1.03);
-}
-
-.bf-music-player__play:active {
-  transform: scale(0.97);
-}
-
-.bf-music-player__copy {
-  min-width: 0;
-  flex: 1;
+  background: var(--bf-music-accent);
+  color: var(--bf-music-on-accent);
 }
 
 .bf-music-player__title {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.2;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--bf-music-text);
 }
 
 .bf-music-player__meta {
-  margin-top: 2px;
-  font-size: 11px;
-  line-height: 1.25;
-  color: rgba(255, 255, 255, 0.42);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: color-mix(in srgb, var(--bf-music-accent) 42%, var(--bf-music-text));
 }
 
-.bf-music-player__bottom {
-  display: grid;
-  gap: 8px;
+.bf-music-track {
+  background: rgba(var(--bf-music-accent-rgb), 0.18);
 }
 
-.bf-music-player__seek {
-  position: relative;
-  height: 4px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.14);
+.bf-music-track__fill {
+  background: var(--bf-music-accent);
 }
 
-.bf-music-player__seek-fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: inherit;
-  background: #fff;
-  pointer-events: none;
-}
-
-.bf-music-player__seek-input {
-  position: absolute;
-  inset: -9px 0;
-  width: 100%;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-/* Volume pill — icon + slider in one capsule */
 .bf-music-player__vol {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 34px;
-  padding: 0 12px 0 10px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--bf-music-accent-rgb), 0.1);
+  border: 1px solid rgba(var(--bf-music-accent-rgb), 0.16);
 }
 
-.bf-music-player__vol-icon {
-  box-sizing: border-box;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.88);
-  cursor: pointer;
-  line-height: 0;
-  transition: color 0.15s ease, opacity 0.15s ease;
+.bf-music-player__vol-btn {
+  color: var(--bf-music-accent);
+  opacity: 0.88;
 }
 
-.bf-music-player__vol-icon svg {
-  display: block;
+.bf-music-player__vol-btn[aria-pressed="true"] {
+  opacity: 0.45;
 }
 
-.bf-music-player__vol-icon:hover {
-  color: #fff;
-}
-
-.bf-music-player__vol-icon[aria-pressed="true"] {
-  color: rgba(255, 255, 255, 0.38);
-}
-
-.bf-music-player__vol-input {
-  flex: 1;
-  min-width: 0;
+.bf-music-track__range {
   height: 4px;
   margin: 0;
   border-radius: 9999px;
   background: linear-gradient(
     to right,
-    #fff 0%,
-    #fff var(--bf-music-fill, 50%),
-    rgba(255, 255, 255, 0.18) var(--bf-music-fill, 50%),
-    rgba(255, 255, 255, 0.18) 100%
+    var(--bf-music-accent) 0%,
+    var(--bf-music-accent) var(--bf-music-fill, 50%),
+    rgba(var(--bf-music-accent-rgb), 0.2) var(--bf-music-fill, 50%),
+    rgba(var(--bf-music-accent-rgb), 0.2) 100%
   );
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
 }
 
-.bf-music-player__vol-input::-webkit-slider-runnable-track {
+.bf-music-track__range::-webkit-slider-runnable-track {
   height: 4px;
   background: transparent;
 }
 
-.bf-music-player__vol-input::-webkit-slider-thumb {
+.bf-music-track__range::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  margin-top: -4px;
+  width: 11px;
+  height: 11px;
+  margin-top: -3.5px;
   border: none;
   border-radius: 9999px;
-  background: #fff;
+  background: var(--bf-music-accent);
 }
 
-.bf-music-player__vol-input::-moz-range-track {
+.bf-music-track__range::-moz-range-track {
   height: 4px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(var(--bf-music-accent-rgb), 0.2);
 }
 
-.bf-music-player__vol-input::-moz-range-progress {
+.bf-music-track__range::-moz-range-progress {
   height: 4px;
   border-radius: 9999px;
-  background: #fff;
+  background: var(--bf-music-accent);
 }
 
-.bf-music-player__vol-input::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
+.bf-music-track__range::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
   border: none;
   border-radius: 9999px;
-  background: #fff;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bf-music-player__shell {
-    transition: none;
-  }
-
-  .bf-music-player__play:hover,
-  .bf-music-player__play:active {
-    transform: none;
-  }
+  background: var(--bf-music-accent);
 }
 
 /* Range sliders — guns.lol-style pill track + glowing thumb */
