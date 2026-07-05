@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import {
   applyProfileFavicon,
-  buildProfileFaviconPath,
+  buildProfileFaviconHref,
   faviconMimeFromStoredUrl,
 } from "@/lib/profile/favicon";
 import { buildProfileTabTitle, runTabTitleAnimation } from "@/lib/profile/tab-title";
@@ -31,7 +31,7 @@ export function ProfileTabBranding({
   }, [fullTitle, tabTitleAnimation]);
 
   useEffect(() => {
-    const href = buildProfileFaviconPath(username, faviconUrl);
+    const href = buildProfileFaviconHref(username, faviconUrl);
     if (!href) return;
 
     return applyProfileFavicon(href, faviconMimeFromStoredUrl(faviconUrl));

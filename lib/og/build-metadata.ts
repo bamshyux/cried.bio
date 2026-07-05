@@ -26,7 +26,7 @@ export function buildProfileOgMetadata(
     ...(faviconPath
       ? {
           icons: {
-            icon: [{ url: faviconPath, type: faviconMime, sizes: "any" }],
+            icon: [{ url: faviconPath, type: faviconMime, sizes: "32x32" }],
             shortcut: [{ url: faviconPath, type: faviconMime }],
             apple: [{ url: faviconPath }],
           },

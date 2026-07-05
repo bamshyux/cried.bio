@@ -25,6 +25,7 @@ import {
 import { buildProfileViewFromPreset, guestbookEntriesForPresetPreview } from "@/lib/profile-presets/preview";
 import { parsePresetData } from "@/lib/profile-presets/snapshot";
 import { PublicProfileView } from "@/components/profile/public-profile";
+import { ProfileFaviconLinks } from "@/components/profile/profile-favicon-links";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import { buildProfileOgMetadata } from "@/lib/og/build-metadata";
@@ -183,25 +184,33 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
   }
 
   return (
-    <PublicProfileView
-      profile={profile}
-      links={previewLinks}
-      settings={previewSettings}
-      badges={previewBadges}
-      viewCount={viewCount}
-      embeds={previewEmbeds}
-      featured={previewFeatured}
-      guestbook={previewGuestbook}
-      activity={activity}
-      friends={previewSettings.friends_visibility === "public" ? friends : []}
-      followerCount={followCounts.followers}
-      followingCount={followCounts.following}
-      isFollowing={following}
-      isLoggedIn={!!currentUserId}
-      currentUserId={currentUserId}
-      discordPresence={discordPresence}
-      scopedCustomCss={scopedCustomCss}
-      presetPreviewTitle={presetPreviewTitle}
-    />
+    <>
+      {!isPresetPreview && previewSettings.profile_favicon_url ? (
+        <ProfileFaviconLinks
+          username={profile.username ?? normalized}
+          faviconUrl={previewSettings.profile_favicon_url}
+        />
+      ) : null}
+      <PublicProfileView
+        profile={profile}
+        links={previewLinks}
+        settings={previewSettings}
+        badges={previewBadges}
+        viewCount={viewCount}
+        embeds={previewEmbeds}
+        featured={previewFeatured}
+        guestbook={previewGuestbook}
+        activity={activity}
+        friends={previewSettings.friends_visibility === "public" ? friends : []}
+        followerCount={followCounts.followers}
+        followingCount={followCounts.following}
+        isFollowing={following}
+        isLoggedIn={!!currentUserId}
+        currentUserId={currentUserId}
+        discordPresence={discordPresence}
+        scopedCustomCss={scopedCustomCss}
+        presetPreviewTitle={presetPreviewTitle}
+      />
+    </>
   );
 }

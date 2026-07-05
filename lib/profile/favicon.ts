@@ -1,3 +1,5 @@
+import { getSiteUrl } from "@/lib/site";
+
 const ICON_LINK_SELECTOR =
   "link[rel~='icon'], link[rel='shortcut icon'], link[rel='apple-touch-icon']";
 
@@ -48,6 +50,15 @@ export function buildProfileFaviconPath(
   return `/api/favicon/${encodeURIComponent(username)}?v=${encodeURIComponent(version)}`;
 }
 
+export function buildProfileFaviconHref(
+  username: string,
+  storedUrl: string | null,
+): string | null {
+  const path = buildProfileFaviconPath(username, storedUrl);
+  if (!path) return null;
+  return `${getSiteUrl()}${path}`;
+}
+
 export function isValidProfileFaviconStorageUrl(url: string): boolean {
   try {
     const pathname = new URL(url).pathname.toLowerCase();
@@ -76,22 +87,9 @@ export function applyProfileFavicon(href: string, type: string): () => void {
   icon.rel = "icon";
   icon.href = href;
   icon.type = type;
-  icon.sizes = "any";
+  icon.sizes = "32x32";
   icon.dataset.profileBranding = "true";
   document.head.prepend(icon);
-
-  const shortcut = document.createElement("link");
-  shortcut.rel = "shortcut icon";
-  shortcut.href = href;
-  shortcut.type = type;
-  shortcut.dataset.profileBranding = "true";
-  document.head.prepend(shortcut);
-
-  const apple = document.createElement("link");
-  apple.rel = "apple-touch-icon";
-  apple.href = href;
-  apple.dataset.profileBranding = "true";
-  document.head.prepend(apple);
 
   return () => {
     document

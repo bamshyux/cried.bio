@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { resolveMusicPlayerColor } from "@/lib/settings";
-import { rangeClassName, rangeFillStyle } from "@/lib/ui/range";
 import type { ProfileSettings } from "@/lib/types/settings";
 
 function formatTitle(settings: ProfileSettings) {
@@ -19,10 +18,39 @@ function formatTitle(settings: ProfileSettings) {
 }
 
 function formatTime(seconds: number) {
-  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+  if (!Number.isFinite(seconds) || seconds <= 0) return "0:00";
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function VolumeIcon({ volume }: { volume: number }) {
+  if (volume === 0) {
+    return (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+        <path d="M11 5 6 9H3v6h3l5 4V5z" />
+        <line x1="16" y1="9" x2="20" y2="13" />
+        <line x1="20" y1="9" x2="16" y2="13" />
+      </svg>
+    );
+  }
+
+  if (volume < 40) {
+    return (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+        <path d="M11 5 6 9H3v6h3l5 4V5z" />
+        <path d="M15.5 12a3.5 3.5 0 0 0 0-7" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+      <path d="M11 5 6 9H3v6h3l5 4V5z" />
+      <path d="M15.5 12a3.5 3.5 0 0 0 0-7" />
+      <path d="M18.5 8.5a7 7 0 0 1 0 7" />
+    </svg>
+  );
 }
 
 type MusicPlayerProps = {
@@ -36,14 +64,27 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
   const audioRef = useRef<HTMLAudioElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   const collapseTimerRef = useRef<number | null>(null);
+  const savedVolumeRef = useRef(
+    settings.music_volume > 0 ? settings.music_volume : 50,
+  );
   const [playing, setPlaying] = useState(false);
-  const [volume, setVolume] = useState(settings.music_volume);
+  const [volume, setVolume] = useState(() =>
+    Math.max(0, Math.min(100, settings.music_volume)),
+  );
   const [expanded, setExpanded] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const title = formatTitle(settings);
   const playerColor = resolveMusicPlayerColor(settings);
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const isMuted = volume === 0;
+
+  const setVolumeLevel = useCallback((next: number) => {
+    const clamped = Math.max(0, Math.min(100, next));
+    if (clamped > 0) savedVolumeRef.current = clamped;
+    setVolume(clamped);
+    if (audioRef.current) audioRef.current.volume = clamped / 100;
+  }, []);
 
   const playFromStart = useCallback(() => {
     const audio = audioRef.current;
@@ -65,16 +106,10 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
-    audio.volume = volume / 100;
-  }, [volume]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
     if (!audio || !settings.music_url || deferAutoplay) return;
 
     audio.loop = settings.music_loop;
-    audio.volume = settings.music_volume / 100;
+    audio.volume = volume / 100;
 
     const startPlayback = () => {
       if (!settings.music_autoplay) {
@@ -99,15 +134,18 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
 
     audio.addEventListener("canplay", startPlayback, { once: true });
     return () => audio.removeEventListener("canplay", startPlayback);
-  }, [deferAutoplay, settings.music_autoplay, settings.music_loop, settings.music_url, settings.music_volume]);
+  }, [deferAutoplay, settings.music_autoplay, settings.music_loop, settings.music_url, volume]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
+    const syncDuration = () => {
+      const next = audio.duration;
+      setDuration(Number.isFinite(next) && next > 0 ? next : 0);
+    };
+
     const onTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const onLoadedMetadata = () => setDuration(audio.duration);
-    const onDurationChange = () => setDuration(audio.duration);
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
     const onEnded = () => {
@@ -115,16 +153,17 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
     };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
-    audio.addEventListener("loadedmetadata", onLoadedMetadata);
-    audio.addEventListener("durationchange", onDurationChange);
+    audio.addEventListener("loadedmetadata", syncDuration);
+    audio.addEventListener("durationchange", syncDuration);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
     audio.addEventListener("ended", onEnded);
+    syncDuration();
 
     return () => {
       audio.removeEventListener("timeupdate", onTimeUpdate);
-      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
-      audio.removeEventListener("durationchange", onDurationChange);
+      audio.removeEventListener("loadedmetadata", syncDuration);
+      audio.removeEventListener("durationchange", syncDuration);
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
       audio.removeEventListener("ended", onEnded);
@@ -180,18 +219,15 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
 
   const toggleMute = () => {
     if (volume > 0) {
-      setVolume(0);
-      if (audioRef.current) audioRef.current.volume = 0;
-    } else {
-      const restored = settings.music_volume || 50;
-      setVolume(restored);
-      if (audioRef.current) audioRef.current.volume = restored / 100;
+      setVolumeLevel(0);
+      return;
     }
+    setVolumeLevel(savedVolumeRef.current || 50);
   };
 
   const seek = (event: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current;
-    if (!audio || !Number.isFinite(audio.duration)) return;
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
     const next = (Number(event.target.value) / 100) * audio.duration;
     audio.currentTime = next;
     setCurrentTime(next);
@@ -240,99 +276,74 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
               </svg>
             )}
           </span>
-          {!expanded && playing ? (
-            <span className="bf-music-player__eq" aria-hidden>
-              <span />
-              <span />
-              <span />
-              <span />
-            </span>
-          ) : null}
         </button>
 
-        <div className="bf-music-player__panel" aria-hidden={!expanded}>
-          <div className="bf-music-player__meta">
-            <div className="bf-music-player__meta-top">
-              <span className={`bf-music-player__status ${playing ? "bf-music-player__status--live" : ""}`}>
-                {playing ? "Now playing" : "Paused"}
-              </span>
-              {playing ? (
-                <span className="bf-music-player__eq bf-music-player__eq--inline" aria-hidden>
-                  <span />
-                  <span />
-                  <span />
-                  <span />
+        {expanded ? (
+          <div className="bf-music-player__panel">
+            <div className="bf-music-player__panel-body">
+              <div className="bf-music-player__meta">
+                <span className={`bf-music-player__status ${playing ? "bf-music-player__status--live" : ""}`}>
+                  {playing ? "Now playing" : "Paused"}
                 </span>
-              ) : null}
-            </div>
-            <p className="bf-music-player__title">{title}</p>
-          </div>
+                <p className="bf-music-player__title">{title}</p>
+              </div>
 
-          <div className="bf-music-player__progress">
-            <span className="bf-music-player__time">{formatTime(currentTime)}</span>
-            <div className="bf-music-player__progress-track">
-              <div
-                className="bf-music-player__progress-fill"
-                style={{ width: `${progress}%` }}
-              />
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={0.1}
-                value={progress}
-                onChange={seek}
-                className="bf-music-player__progress-input"
-                aria-label="Seek"
-              />
-            </div>
-            <span className="bf-music-player__time">{formatTime(duration)}</span>
-          </div>
+              <div className="bf-music-player__progress">
+                <span className="bf-music-player__time">{formatTime(currentTime)}</span>
+                <div className="bf-music-player__progress-track">
+                  <div
+                    className="bf-music-player__progress-fill"
+                    style={{ width: `${progress}%` }}
+                  />
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={0.1}
+                    value={progress}
+                    onChange={seek}
+                    className="bf-music-player__progress-input"
+                    aria-label="Seek"
+                    disabled={duration <= 0}
+                  />
+                </div>
+                <span className="bf-music-player__time">
+                  {duration > 0 ? formatTime(duration) : "--:--"}
+                </span>
+              </div>
 
-          <div className="bf-music-player__volume">
-            <button
-              type="button"
-              onClick={toggleMute}
-              className="bf-music-player__volume-btn"
-              aria-label={volume === 0 ? "Unmute" : "Mute"}
-            >
-              {volume === 0 ? (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                  <path d="M11 5 6 9H3v6h3l5 4V5z" />
-                  <line x1="22" y1="9" x2="16" y2="15" />
-                  <line x1="16" y1="9" x2="22" y2="15" />
-                </svg>
-              ) : volume < 35 ? (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                  <path d="M11 5 6 9H3v6h3l5 4V5z" />
-                  <path d="M15.5 12a3.5 3.5 0 0 0 0-7" />
-                </svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                  <path d="M11 5 6 9H3v6h3l5 4V5z" />
-                  <path d="M15.5 12a3.5 3.5 0 0 0 0-7" />
-                  <path d="M18.5 8.5a7 7 0 0 1 0 7" />
-                </svg>
-              )}
-            </button>
-            <div className="bf-range-wrap bf-music-player__volume-slider">
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={volume}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setVolume(v);
-                  if (audioRef.current) audioRef.current.volume = v / 100;
-                }}
-                className={`${rangeClassName} bf-music-player__range`}
-                style={rangeFillStyle(volume, 0, 100, playerColor)}
-                aria-label="Volume"
-              />
+              <div className="bf-music-player__volume">
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  className={`bf-music-player__volume-btn ${isMuted ? "bf-music-player__volume-btn--muted" : ""}`}
+                  aria-label={isMuted ? "Unmute" : "Mute"}
+                  aria-pressed={isMuted}
+                >
+                  <VolumeIcon volume={volume} />
+                </button>
+                <div className="bf-music-player__volume-track">
+                  <div
+                    className="bf-music-player__volume-fill"
+                    style={{ width: `${volume}%` }}
+                  />
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={volume}
+                    onChange={(event) => setVolumeLevel(Number(event.target.value))}
+                    className="bf-music-player__volume-input"
+                    aria-label="Volume"
+                    aria-valuenow={volume}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </div>
   );

@@ -68,7 +68,7 @@ function ProfileEditModeBar({
   onReset: () => void;
 }) {
   return (
-    <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-2">
+    <div className="pointer-events-auto flex flex-wrap items-center justify-start gap-2">
       <button
         type="button"
         onClick={onToggle}
@@ -315,7 +315,12 @@ export function ProfileCardLayoutEditor({
 
   return (
     <>
-      <div className="pointer-events-none fixed right-5 top-4 z-30 flex max-w-[min(100vw-2.5rem,20rem)] flex-col items-end gap-2 sm:right-8 sm:top-5">
+      <div className="pointer-events-none fixed bottom-5 left-5 z-30 flex max-w-[min(100vw-2.5rem,18rem)] flex-col items-start gap-2 sm:bottom-6 sm:left-6">
+        {editMode ? (
+          <p className="rounded-full bg-black/55 px-3 py-1.5 text-[10px] leading-snug text-neutral-400 backdrop-blur-sm">
+            Drag to move · edges to resize
+          </p>
+        ) : null}
         <ProfileEditModeBar
           active={editMode}
           dirty={dirty}
@@ -324,21 +329,15 @@ export function ProfileCardLayoutEditor({
           onSave={handleSave}
           onReset={handleReset}
         />
-        {status && (
-          <p className="pointer-events-none rounded-full bg-black/70 px-3 py-1 text-[10px] text-neutral-300 backdrop-blur-sm">
+        {status ? (
+          <p className="rounded-full bg-black/70 px-3 py-1 text-[10px] text-neutral-300 backdrop-blur-sm">
             {status}
           </p>
-        )}
+        ) : null}
       </div>
 
       {editMode && (
-        <p className="pointer-events-none fixed bottom-24 left-1/2 z-30 max-w-sm -translate-x-1/2 px-4 text-center text-[10px] text-neutral-500">
-          Drag to move · right edge for width · bottom edge for height
-        </p>
-      )}
-
-      {editMode && (
-        <div className="pointer-events-none fixed right-3 top-[5.75rem] z-40 sm:right-6 sm:top-[6.25rem]">
+        <div className="pointer-events-none fixed right-3 top-20 z-40 sm:right-6 sm:top-24">
           <ProfileEditWidgetsPanel settings={settings} embeds={embeds} username={username} />
         </div>
       )}
