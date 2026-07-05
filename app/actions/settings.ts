@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { clampCardLayout, mergeSettings, parseCursorEffect, parseTabTitleAnimation, parseUsernameEffect } from "@/lib/settings";
 import { clampLinksIconSize } from "@/lib/links";
 import { clampCursorImageSize } from "@/lib/profile/custom-cursor";
+import { isValidProfileFaviconStorageUrl } from "@/lib/profile/favicon";
 import { backgroundUploadSizeError, MAX_BACKGROUND_UPLOAD_BYTES } from "@/lib/uploads/limits";
 import { formatSchemaError } from "@/lib/db/schema";
 import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
@@ -780,6 +781,9 @@ export async function saveProfileFaviconAction(imageUrl: string): Promise<Settin
   if (!userId) return { error: "You must be logged in." };
 
   if (!imageUrl.trim()) return { error: "Invalid favicon URL." };
+  if (!isValidProfileFaviconStorageUrl(imageUrl)) {
+    return { error: "Invalid favicon URL." };
+  }
 
   await ensureSettingsRow(userId);
 

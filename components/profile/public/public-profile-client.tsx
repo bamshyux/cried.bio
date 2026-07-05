@@ -891,6 +891,7 @@ export function PublicProfileClient({
     <>
       {!isPresetPreview ? (
         <ProfileTabBranding
+          username={profile.username ?? ""}
           displayName={profile.display_name || profile.username || "User"}
           faviconUrl={settings.profile_favicon_url}
           tabTitleAnimation={settings.tab_title_animation}

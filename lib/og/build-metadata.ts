@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import {
+  buildProfileFaviconPath,
+  faviconMimeFromStoredUrl,
+} from "@/lib/profile/favicon";
 import { SITE_HOST, SITE_URL } from "@/lib/site";
 import type { OgProfileSnapshot } from "@/lib/og/types";
 
@@ -10,6 +14,8 @@ export function buildProfileOgMetadata(
   const ogImageUrl = `${SITE_URL}/api/og/${encodeURIComponent(snapshot.username)}`;
   const title = `${snapshot.displayName} — cried.bio`;
   const description = snapshot.bio;
+  const faviconPath = buildProfileFaviconPath(snapshot.username, snapshot.faviconUrl);
+  const faviconMime = faviconMimeFromStoredUrl(snapshot.faviconUrl);
 
   return {
     metadataBase: new URL(SITE_URL),
@@ -17,12 +23,12 @@ export function buildProfileOgMetadata(
     description,
     robots: options?.preview ? { index: false, follow: false } : undefined,
     alternates: { canonical: profileUrl },
-    ...(snapshot.faviconUrl
+    ...(faviconPath
       ? {
           icons: {
-            icon: [{ url: snapshot.faviconUrl }],
-            shortcut: [{ url: snapshot.faviconUrl }],
-            apple: [{ url: snapshot.faviconUrl }],
+            icon: [{ url: faviconPath, type: faviconMime, sizes: "any" }],
+            shortcut: [{ url: faviconPath, type: faviconMime }],
+            apple: [{ url: faviconPath }],
           },
         }
       : {}),

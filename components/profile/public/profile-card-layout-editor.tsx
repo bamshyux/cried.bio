@@ -68,7 +68,7 @@ function ProfileEditModeBar({
   onReset: () => void;
 }) {
   return (
-    <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-2">
+    <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-2">
       <button
         type="button"
         onClick={onToggle}
@@ -315,7 +315,7 @@ export function ProfileCardLayoutEditor({
 
   return (
     <>
-      <div className="pointer-events-none absolute inset-x-0 top-16 z-30 flex flex-col items-center gap-2 px-4 sm:top-[4.5rem]">
+      <div className="pointer-events-none fixed right-5 top-4 z-30 flex max-w-[min(100vw-2.5rem,20rem)] flex-col items-end gap-2 sm:right-8 sm:top-5">
         <ProfileEditModeBar
           active={editMode}
           dirty={dirty}
@@ -329,15 +329,16 @@ export function ProfileCardLayoutEditor({
             {status}
           </p>
         )}
-        {editMode && (
-          <p className="pointer-events-none max-w-sm text-center text-[10px] text-neutral-500">
-            Drag to move · right edge for width · bottom edge for height
-          </p>
-        )}
       </div>
 
       {editMode && (
-        <div className="pointer-events-none fixed right-3 top-20 z-40 sm:right-6 sm:top-24">
+        <p className="pointer-events-none fixed bottom-24 left-1/2 z-30 max-w-sm -translate-x-1/2 px-4 text-center text-[10px] text-neutral-500">
+          Drag to move · right edge for width · bottom edge for height
+        </p>
+      )}
+
+      {editMode && (
+        <div className="pointer-events-none fixed right-3 top-[5.75rem] z-40 sm:right-6 sm:top-[6.25rem]">
           <ProfileEditWidgetsPanel settings={settings} embeds={embeds} username={username} />
         </div>
       )}
