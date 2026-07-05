@@ -22,4 +22,6 @@ export type OgProfileSnapshot = {
   followers: number;
   views: number | null;
   showViews: boolean;
+  faviconUrl: string | null;
+  tabTitleAnimation: import("@/lib/types/settings").TabTitleAnimation;
 };

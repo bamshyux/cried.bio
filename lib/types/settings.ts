@@ -108,6 +108,14 @@ export type UsernameEffect =
   | "chrome"
   | "shadow";
 
+export type TabTitleAnimation =
+  | "none"
+  | "typewriter"
+  | "marquee"
+  | "blink"
+  | "pulse"
+  | "scroll";
+
 export type LinkAnimation = "none" | "pulse" | "bounce" | "glow" | "slide";
 
 export type LinksStyle = "buttons" | "icons" | "icons_only";
@@ -201,6 +209,8 @@ export type ProfileSettings = {
   cursor_effect: CursorEffect;
   cursor_image_url: string | null;
   cursor_image_size: number;
+  profile_favicon_url: string | null;
+  tab_title_animation: TabTitleAnimation;
   typing_bio: boolean;
   bio_color: string;
   bio_font_family: string;

@@ -4,6 +4,7 @@ import { getBadgesByProfileId } from "@/lib/data/badges";
 import { getProfileByUsername } from "@/lib/data/profiles";
 import { getSettingsByProfileId } from "@/lib/data/settings";
 import { getFollowCounts } from "@/lib/data/social";
+import { parseTabTitleAnimation } from "@/lib/settings";
 import { resolveOgBackground } from "@/lib/og/resolve-background";
 import type { OgProfileSnapshot } from "@/lib/og/types";
 
@@ -51,5 +52,7 @@ export async function getOgProfileSnapshot(
     followers: followCounts.followers,
     views: hideViews ? null : views,
     showViews: settings.show_view_count && !hideViews,
+    faviconUrl: settings.profile_favicon_url,
+    tabTitleAnimation: parseTabTitleAnimation(settings.tab_title_animation),
   };
 }

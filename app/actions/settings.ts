@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { clampCardLayout, mergeSettings, parseCursorEffect, parseUsernameEffect } from "@/lib/settings";
+import { clampCardLayout, mergeSettings, parseCursorEffect, parseTabTitleAnimation, parseUsernameEffect } from "@/lib/settings";
 import { clampLinksIconSize } from "@/lib/links";
 import { clampCursorImageSize } from "@/lib/profile/custom-cursor";
 import { backgroundUploadSizeError, MAX_BACKGROUND_UPLOAD_BYTES } from "@/lib/uploads/limits";
@@ -284,6 +284,10 @@ function parseSectionUpdates(
         username_effect: parseUsernameEffect(formData.get("username_effect"), existing.username_effect),
         hover_animations: parseBool(formData.get("hover_animations")),
         page_entrance: parseBool(formData.get("page_entrance")),
+        tab_title_animation: parseTabTitleAnimation(
+          formData.get("tab_title_animation"),
+          existing.tab_title_animation,
+        ),
         enter_gate_title: String(formData.get("enter_gate_title") ?? existing.enter_gate_title).trim().slice(0, 80),
         enter_gate_subtitle: String(formData.get("enter_gate_subtitle") ?? existing.enter_gate_subtitle).trim().slice(0, 200),
         enter_gate_button: String(formData.get("enter_gate_button") ?? existing.enter_gate_button).trim().slice(0, 40),
@@ -769,4 +773,32 @@ export async function removeCursorImageAction(): Promise<SettingsFormState> {
 
   await revalidateProfile(userId);
   return { success: "Custom cursor removed." };
+}
+
+export async function saveProfileFaviconAction(imageUrl: string): Promise<SettingsFormState> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "You must be logged in." };
+
+  if (!imageUrl.trim()) return { error: "Invalid favicon URL." };
+
+  await ensureSettingsRow(userId);
+
+  const { error } = await patchProfileSettings(userId, { profile_favicon_url: imageUrl });
+  if (error) return { error };
+
+  await revalidateProfile(userId);
+  return { success: "Profile favicon uploaded." };
+}
+
+export async function removeProfileFaviconAction(): Promise<SettingsFormState> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "You must be logged in." };
+
+  const { error } = await patchProfileSettings(userId, { profile_favicon_url: null });
+  if (error) return { error };
+
+  await deleteStoragePrefix(userId, "profiles", "favicon.");
+
+  await revalidateProfile(userId);
+  return { success: "Profile favicon removed." };
 }

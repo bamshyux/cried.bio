@@ -20,15 +20,16 @@ import {
   SliderField,
   ToggleField,
 } from "@/components/dashboard/form-fields";
-import { removeCursorImageAction, saveCursorImageAction } from "@/app/actions/settings";
+import { removeCursorImageAction, removeProfileFaviconAction, saveCursorImageAction, saveProfileFaviconAction } from "@/app/actions/settings";
 import { uploadCursorImageToStorage } from "@/lib/uploads/cursor-client";
+import { uploadProfileFaviconToStorage } from "@/lib/uploads/favicon-client";
 import {
   CUSTOM_CURSOR_SIZE_DEFAULT,
   CUSTOM_CURSOR_SIZE_MAX,
   CUSTOM_CURSOR_SIZE_MIN,
 } from "@/lib/profile/custom-cursor";
-import { CURSOR_EFFECT_OPTIONS, USERNAME_EFFECT_OPTIONS } from "@/lib/settings";
-import type { CursorEffect, ProfileSettings, UsernameEffect } from "@/lib/types/settings";
+import { CURSOR_EFFECT_OPTIONS, TAB_TITLE_ANIMATION_OPTIONS, USERNAME_EFFECT_OPTIONS } from "@/lib/settings";
+import type { CursorEffect, ProfileSettings, TabTitleAnimation, UsernameEffect } from "@/lib/types/settings";
 import type { Profile } from "@/lib/types/profile";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -39,6 +40,7 @@ const fileInputClassName =
 type EffectsFormState = EnterGateFormFields & {
   cursor_effect: CursorEffect;
   cursor_image_size: number;
+  tab_title_animation: TabTitleAnimation;
   username_effect: UsernameEffect;
   typing_bio: boolean;
   hover_animations: boolean;
@@ -50,6 +52,7 @@ function readEffectsForm(settings: ProfileSettings): EffectsFormState {
     ...readEnterGateForm(settings),
     cursor_effect: settings.cursor_effect,
     cursor_image_size: settings.cursor_image_size,
+    tab_title_animation: settings.tab_title_animation,
     username_effect: settings.username_effect,
     typing_bio: settings.typing_bio,
     hover_animations: settings.hover_animations,
@@ -78,6 +81,11 @@ export function EffectsEditor({
   const [uploadPending, setUploadPending] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [cursorPreview, setCursorPreview] = useState<string | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
+  const [faviconUploadError, setFaviconUploadError] = useState<string>();
+  const [faviconUploadSuccess, setFaviconUploadSuccess] = useState<string>();
+  const [faviconUploadPending, setFaviconUploadPending] = useState(false);
+  const [faviconFileInputKey, setFaviconFileInputKey] = useState(0);
   const formRef = useRef(form);
   formRef.current = form;
 
@@ -86,12 +94,23 @@ export function EffectsEditor({
   }, [settings.cursor_image_url]);
 
   useEffect(() => {
+    setFaviconPreview(null);
+  }, [settings.profile_favicon_url]);
+
+  useEffect(() => {
     return () => {
       if (cursorPreview?.startsWith("blob:")) URL.revokeObjectURL(cursorPreview);
     };
   }, [cursorPreview]);
 
+  useEffect(() => {
+    return () => {
+      if (faviconPreview?.startsWith("blob:")) URL.revokeObjectURL(faviconPreview);
+    };
+  }, [faviconPreview]);
+
   const displayCursorUrl = cursorPreview ?? settings.cursor_image_url ?? null;
+  const displayFaviconUrl = faviconPreview ?? settings.profile_favicon_url ?? null;
 
   const handleSave = (event: React.FormEvent) => {
     event.preventDefault();
@@ -146,11 +165,115 @@ export function EffectsEditor({
     });
   };
 
+  const handleFaviconUpload = async (file: File | undefined) => {
+    if (!file) return;
+
+    setFaviconUploadPending(true);
+    setFaviconUploadError(undefined);
+    setFaviconUploadSuccess(undefined);
+
+    const previewUrl = URL.createObjectURL(file);
+    setFaviconPreview(previewUrl);
+
+    try {
+      const url = await uploadProfileFaviconToStorage(file);
+      const result = await saveProfileFaviconAction(url);
+      if (result.error) {
+        setFaviconUploadError(result.error);
+        setFaviconPreview(null);
+        return;
+      }
+      setFaviconUploadSuccess(result.success ?? "Profile favicon uploaded.");
+      router.refresh();
+    } catch (error) {
+      setFaviconUploadError(error instanceof Error ? error.message : "Upload failed.");
+      setFaviconPreview(null);
+    } finally {
+      setFaviconUploadPending(false);
+      setFaviconFileInputKey((k) => k + 1);
+    }
+  };
+
+  const handleRemoveFavicon = () => {
+    startRemove(async () => {
+      setFaviconUploadError(undefined);
+      setFaviconUploadSuccess(undefined);
+      const result = await removeProfileFaviconAction();
+      if (result.error) {
+        setFaviconUploadError(result.error);
+        return;
+      }
+      setFaviconPreview(null);
+      setFaviconUploadSuccess(result.success ?? "Profile favicon removed.");
+      router.refresh();
+    });
+  };
+
   return (
     <>
-      <PageHeader title="Effects" description="Cursor, username, bio, page entrance, and click-to-enter screen." />
+      <PageHeader title="Effects" description="Cursor, browser tab branding, username, bio, page entrance, and click-to-enter screen." />
       <div className={cardClassName}>
         <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-5">
+          <div className="rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4">
+            <p className="text-sm font-semibold text-white">Browser tab</p>
+            <p className="mt-1 text-xs text-neutral-500">
+              Customize what visitors see in their browser tab on your profile link only.
+            </p>
+
+            <div className="mt-4">
+              <p className={labelClassName}>Profile favicon</p>
+              <p className="mt-1 text-xs text-neutral-500">
+                Replaces the default cried.bio icon in the tab when someone opens your profile.
+              </p>
+
+              {displayFaviconUrl ? (
+                <div className="mt-4 flex items-center gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-white/[0.08] bg-[#141414] p-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={displayFaviconUrl} alt="Profile favicon preview" className="h-full w-full object-contain" />
+                  </div>
+                  <RemoveMediaButton
+                    label="Remove favicon"
+                    onClick={handleRemoveFavicon}
+                    disabled={isRemoving || faviconUploadPending}
+                  />
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-neutral-500">No custom favicon uploaded yet.</p>
+              )}
+
+              <div className="mt-4">
+                <input
+                  key={faviconFileInputKey}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif,image/x-icon,.ico"
+                  disabled={faviconUploadPending}
+                  className={fileInputClassName}
+                  onChange={(event) => void handleFaviconUpload(event.target.files?.[0])}
+                />
+                <p className="mt-2 text-xs text-neutral-500">
+                  {faviconUploadPending ? "Uploading..." : "ICO, PNG, JPEG, WebP, or GIF up to 512 KB."}
+                </p>
+              </div>
+              <FormFeedback error={faviconUploadError} success={faviconUploadSuccess} />
+            </div>
+
+            <div className="mt-5 border-t border-white/[0.06] pt-5">
+              <ControlledSelect
+                label="Tab title animation"
+                value={form.tab_title_animation}
+                onChange={(value) => patchForm({ tab_title_animation: value as TabTitleAnimation })}
+                options={TAB_TITLE_ANIMATION_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                }))}
+              />
+              <p className="mt-2 text-xs text-neutral-500">
+                Animates your tab title (e.g. {profile.display_name || profile.username} — cried.bio). Try Typewriter for a back-and-forth typing effect.
+              </p>
+            </div>
+          </div>
+
           <EnterGateEditor
             settings={settings}
             profile={profile}

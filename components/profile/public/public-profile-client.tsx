@@ -21,6 +21,7 @@ import { ProfileBackground } from "./profile-background";
 import { CursorEffectCanvas, CustomProfileCursor } from "./profile-effects";
 import { ProfileBio } from "./profile-bio";
 import { ProfileEnterGate } from "./profile-enter-gate";
+import { ProfileTabBranding } from "@/components/profile/public/profile-tab-branding";
 import type { DiscordPresence } from "@/lib/discord/types";
 import type { ActivityEvent } from "@/lib/types/activity";
 import type { FeaturedBlock } from "@/lib/types/featured";
@@ -28,7 +29,6 @@ import type { GuestbookEntry } from "@/lib/types/guestbook";
 import type { ProfileEmbed } from "@/lib/types/embed";
 import type { SocialProfile } from "@/lib/types/social";
 import { PresetPreviewBanner } from "./preset-preview-banner";
-import { ProfileCreateCta } from "./profile-create-cta";
 import { ProfileCardLayoutEditor } from "./profile-card-layout-editor";
 import {
   ProfileAvatar,
@@ -889,6 +889,13 @@ export function PublicProfileClient({
 
   return (
     <>
+      {!isPresetPreview ? (
+        <ProfileTabBranding
+          displayName={profile.display_name || profile.username || "User"}
+          faviconUrl={settings.profile_favicon_url}
+          tabTitleAnimation={settings.tab_title_animation}
+        />
+      ) : null}
       {entered && fontUrl ? <link rel="stylesheet" href={fontUrl} /> : null}
       {entered ? <ProfileBackground settings={settings} /> : null}
       {entered && showParticles && settings.particle_effect ? (
@@ -913,19 +920,22 @@ export function PublicProfileClient({
           {showPresetPreviewBanner && presetPreviewTitle ? (
             <PresetPreviewBanner title={presetPreviewTitle} />
           ) : null}
-          <header className="absolute inset-x-0 top-0 z-20 flex w-full items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
+          <header className="absolute inset-x-0 top-0 z-20 flex w-full items-center px-5 py-4 sm:px-8 sm:py-5">
             <Link href="/" className="group opacity-90 transition-opacity hover:opacity-100">
               <CriedLogo size={24} variant="muted" />
             </Link>
-            <ProfileCreateCta />
           </header>
 
-          <main
-            className={`relative flex flex-1 items-center justify-center px-5 py-20 ${
-              settings.page_entrance ? "bf-page-entrance" : ""
-            }`}
-          >
-            <div className="mx-auto w-full max-w-2xl overflow-visible">
+          <main className="relative flex flex-1 items-center justify-center px-5 py-20">
+            <div
+              className={`mx-auto w-full max-w-2xl overflow-visible${
+                settings.enter_gate_enabled && !isPresetPreview
+                  ? " bf-profile-gate-reveal"
+                  : settings.page_entrance
+                    ? " bf-page-entrance"
+                    : ""
+              }`}
+            >
               <ProfileCardLayoutEditor
                 settings={settings}
                 isOwner={isOwner}

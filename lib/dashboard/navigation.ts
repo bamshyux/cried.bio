@@ -116,8 +116,8 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
       {
         href: "/dashboard/effects",
         label: "Effects",
-        description: "Cursor, username, bio, enter gate",
-        keywords: ["effects", "cursor", "glow", "animation"],
+        description: "Cursor, tab favicon, title animations, enter gate",
+        keywords: ["effects", "cursor", "favicon", "tab title", "typewriter", "animation"],
         Icon: IconEffects,
       },
       {

@@ -17,6 +17,15 @@ export function buildProfileOgMetadata(
     description,
     robots: options?.preview ? { index: false, follow: false } : undefined,
     alternates: { canonical: profileUrl },
+    ...(snapshot.faviconUrl
+      ? {
+          icons: {
+            icon: [{ url: snapshot.faviconUrl }],
+            shortcut: [{ url: snapshot.faviconUrl }],
+            apple: [{ url: snapshot.faviconUrl }],
+          },
+        }
+      : {}),
     openGraph: {
       type: "profile",
       url: profileUrl,

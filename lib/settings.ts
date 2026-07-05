@@ -9,6 +9,7 @@ import type {
   ProfileLayout,
   ProfileSettings,
   SettingsSection,
+  TabTitleAnimation,
   UsernameEffect,
 } from "@/lib/types/settings";
 import { BRAND } from "@/lib/design/tokens";
@@ -50,6 +51,8 @@ export const DEFAULT_SETTINGS: Omit<
   cursor_effect: "none",
   cursor_image_url: null,
   cursor_image_size: 48,
+  profile_favicon_url: null,
+  tab_title_animation: "none",
   typing_bio: false,
   bio_color: "",
   bio_font_family: "",
@@ -313,6 +316,25 @@ export function parseCursorEffect(value: unknown, fallback: CursorEffect = "none
   return CURSOR_EFFECT_VALUES.has(key) ? (key as CursorEffect) : fallback;
 }
 
+export const TAB_TITLE_ANIMATION_OPTIONS: { value: TabTitleAnimation; label: string }[] = [
+  { value: "none", label: "Static (default)" },
+  { value: "typewriter", label: "Typewriter" },
+  { value: "marquee", label: "Marquee scroll" },
+  { value: "scroll", label: "Back & forth scroll" },
+  { value: "blink", label: "Blink" },
+  { value: "pulse", label: "Soft pulse" },
+];
+
+const TAB_TITLE_ANIMATION_VALUES = new Set<string>(TAB_TITLE_ANIMATION_OPTIONS.map((o) => o.value));
+
+export function parseTabTitleAnimation(
+  value: unknown,
+  fallback: TabTitleAnimation = "none",
+): TabTitleAnimation {
+  const key = String(value ?? "").trim();
+  return TAB_TITLE_ANIMATION_VALUES.has(key) ? (key as TabTitleAnimation) : fallback;
+}
+
 export const USERNAME_EFFECT_OPTIONS: { value: UsernameEffect; label: string }[] = [
   { value: "none", label: "None" },
   { value: "glow", label: "Glow" },
@@ -423,6 +445,11 @@ export function mergeSettings(
     cursor_effect: parseCursorEffect(row?.cursor_effect ?? legacyCursor, DEFAULT_SETTINGS.cursor_effect),
     cursor_image_url: row?.cursor_image_url ?? null,
     cursor_image_size: clampCursorImageSize(row?.cursor_image_size, DEFAULT_SETTINGS.cursor_image_size),
+    profile_favicon_url: row?.profile_favicon_url ?? null,
+    tab_title_animation: parseTabTitleAnimation(
+      row?.tab_title_animation,
+      DEFAULT_SETTINGS.tab_title_animation,
+    ),
     typing_bio: row?.typing_bio ?? DEFAULT_SETTINGS.typing_bio,
     bio_color: row?.bio_color ?? DEFAULT_SETTINGS.bio_color,
     bio_font_family: row?.bio_font_family ?? DEFAULT_SETTINGS.bio_font_family,
