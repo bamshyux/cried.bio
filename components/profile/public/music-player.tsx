@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { LuPause, LuPlay, LuVolume1, LuVolume2, LuVolumeX } from "react-icons/lu";
+import {
+  HiMiniPause,
+  HiMiniPlay,
+  HiMiniSpeakerWave,
+  HiMiniSpeakerXMark,
+} from "react-icons/hi2";
 import { resolveMusicPlayerColor } from "@/lib/settings";
 import type { ProfileSettings } from "@/lib/types/settings";
 
@@ -169,7 +174,7 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
 
   const scheduleCollapse = () => {
     if (collapseTimerRef.current) window.clearTimeout(collapseTimerRef.current);
-    collapseTimerRef.current = window.setTimeout(() => setExpanded(false), 450);
+    collapseTimerRef.current = window.setTimeout(() => setExpanded(false), 500);
   };
 
   const toggle = () => {
@@ -200,8 +205,6 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
     setCurrentTime(next);
   };
 
-  const VolumeIcon = volume === 0 ? LuVolumeX : volume < 45 ? LuVolume1 : LuVolume2;
-
   return (
     <div
       className="bf-music-player fixed bottom-5 right-5 z-50"
@@ -209,7 +212,7 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
     >
       <div
         ref={shellRef}
-        className={`bf-music-player__shell ${expanded ? "bf-music-player__shell--expanded" : ""} ${playing ? "bf-music-player__shell--playing" : ""}`}
+        className={`bf-music-player__shell ${expanded ? "bf-music-player__shell--expanded" : ""}`}
         onMouseEnter={openPanel}
         onMouseLeave={scheduleCollapse}
         onFocusCapture={openPanel}
@@ -218,33 +221,35 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
             scheduleCollapse();
           }
         }}
-        onClick={(event) => {
-          if ((event.target as HTMLElement).closest("button, input")) return;
-          openPanel();
-        }}
       >
         <audio ref={audioRef} src={settings.music_url} preload="metadata" playsInline />
 
-        <button
-          type="button"
-          onClick={toggle}
-          className="bf-music-player__toggle"
-          aria-label={playing ? "Pause" : "Play"}
-        >
-          {playing ? <LuPause aria-hidden /> : <LuPlay aria-hidden />}
-        </button>
+        <div className="bf-music-player__head">
+          <button
+            type="button"
+            onClick={toggle}
+            className={`bf-music-player__play ${playing ? "bf-music-player__play--active" : ""}`}
+            aria-label={playing ? "Pause" : "Play"}
+          >
+            <span className="bf-music-player__play-icon">
+              {playing ? <HiMiniPause aria-hidden /> : <HiMiniPlay aria-hidden />}
+            </span>
+          </button>
+
+          {expanded ? (
+            <div className="bf-music-player__info">
+              <p className="bf-music-player__title">{title}</p>
+              <p className="bf-music-player__subtitle">
+                {playing ? "Now playing" : "Paused"}
+                {duration > 0 ? ` · ${formatTime(currentTime)} / ${formatTime(duration)}` : ""}
+              </p>
+            </div>
+          ) : null}
+        </div>
 
         {expanded ? (
-          <div className="bf-music-player__panel">
-            <div className="bf-music-player__meta">
-              <span className={`bf-music-player__status ${playing ? "bf-music-player__status--live" : ""}`}>
-                {playing ? "Now playing" : "Paused"}
-              </span>
-              <p className="bf-music-player__title">{title}</p>
-            </div>
-
+          <div className="bf-music-player__controls">
             <div className="bf-music-player__progress">
-              <span className="bf-music-player__time">{formatTime(currentTime)}</span>
               <div className="bf-music-player__progress-track">
                 <div className="bf-music-player__progress-fill" style={{ width: `${progress}%` }} />
                 <input
@@ -259,20 +264,20 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
                   disabled={duration <= 0}
                 />
               </div>
-              <span className="bf-music-player__time">
-                {duration > 0 ? formatTime(duration) : "--:--"}
-              </span>
             </div>
 
-            <div className="bf-music-player__volume">
+            <div className="bf-music-player__volume-row">
               <button
                 type="button"
                 onClick={toggleMute}
-                className={`bf-music-player__volume-btn ${isMuted ? "bf-music-player__volume-btn--muted" : ""}`}
+                className={`bf-music-player__mute ${isMuted ? "bf-music-player__mute--off" : ""}`}
                 aria-label={isMuted ? "Unmute" : "Mute"}
                 aria-pressed={isMuted}
               >
-                <VolumeIcon aria-hidden />
+                <span className="bf-music-player__mute-icon">
+                  {isMuted ? <HiMiniSpeakerXMark aria-hidden /> : <HiMiniSpeakerWave aria-hidden />}
+                </span>
+                <span className="bf-music-player__mute-label">{isMuted ? "Unmute" : "Mute"}</span>
               </button>
               <input
                 type="range"
@@ -280,11 +285,8 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
                 max={100}
                 value={volume}
                 onChange={(event) => setVolumeLevel(Number(event.target.value))}
-                className="bf-music-player__volume-slider"
+                className="bf-music-player__volume"
                 aria-label="Volume"
-                aria-valuenow={volume}
-                aria-valuemin={0}
-                aria-valuemax={100}
                 style={{ "--bf-music-fill": `${volume}%` } as CSSProperties}
               />
             </div>
