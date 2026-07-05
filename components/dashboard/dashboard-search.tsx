@@ -107,14 +107,14 @@ export function DashboardSearch() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Try music, change background, badges, CSS…"
+                placeholder="Try favicon, music, background, badges, CSS…"
                 className="w-full bg-transparent py-4 text-sm text-white outline-none placeholder:text-neutral-600"
               />
             </div>
             <ul className="max-h-[min(400px,55vh)] overflow-y-auto p-2">
               {results.length === 0 ? (
                 <li className="px-3 py-8 text-center text-sm text-neutral-500">
-                  No matching pages — try &ldquo;music&rdquo;, &ldquo;guestbook&rdquo;, or &ldquo;css&rdquo;
+                  No matching pages — try &ldquo;favicon&rdquo;, &ldquo;music&rdquo;, or &ldquo;guestbook&rdquo;
                 </li>
               ) : (
                 results.map((entry, i) => {
