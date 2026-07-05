@@ -1,23 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  HiMiniPause,
+  HiMiniPlay,
+  HiMiniSpeakerWave,
+  HiMiniSpeakerXMark,
+} from "react-icons/hi2";
 import { rgbString } from "@/lib/badges/badge-visuals";
 import { resolveMusicPlayerColor } from "@/lib/settings";
+import { rangeClassName, rangeFillStyle } from "@/lib/ui/range";
 import type { ProfileSettings } from "@/lib/types/settings";
-
-const RING_R = 19;
-const RING_C = 2 * Math.PI * RING_R;
-
-function contrastOnAccent(hex: string): string {
-  const rgb = hex.replace("#", "").trim();
-  if (rgb.length !== 6) return "#000000";
-  const r = parseInt(rgb.slice(0, 2), 16);
-  const g = parseInt(rgb.slice(2, 4), 16);
-  const b = parseInt(rgb.slice(4, 6), 16);
-  if ([r, g, b].some((v) => Number.isNaN(v))) return "#000000";
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.58 ? "#000000" : "#ffffff";
-}
 
 function formatTitle(settings: ProfileSettings) {
   if (settings.music_title?.trim()) return settings.music_title.trim();
@@ -39,55 +32,6 @@ function formatTime(seconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-const iconStroke = {
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 2,
-  strokeLinecap: "round" as const,
-  strokeLinejoin: "round" as const,
-};
-
-function PlayGlyph() {
-  return (
-    <svg width={11} height={11} viewBox="0 0 24 24" fill="currentColor" aria-hidden className="translate-x-px">
-      <path d="M8 6.5v11l9.5-5.5L8 6.5z" />
-    </svg>
-  );
-}
-
-function PauseGlyph() {
-  return (
-    <svg width={11} height={11} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <rect x="7" y="6" width="3.5" height="12" rx="0.75" />
-      <rect x="13.5" y="6" width="3.5" height="12" rx="0.75" />
-    </svg>
-  );
-}
-
-function VolumeGlyph({ level }: { level: number }) {
-  const speaker = (
-    <path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />
-  );
-
-  if (level <= 0) {
-    return (
-      <svg width={13} height={13} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
-        {speaker}
-        <line x1="22" x2="16" y1="9" y2="15" />
-        <line x1="16" x2="22" y1="9" y2="15" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg width={13} height={13} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
-      {speaker}
-      <path d="M16 9a5 5 0 0 1 0 6" />
-      {level > 50 ? <path d="M19.364 6.636a9 9 0 0 1 0 12.728" /> : null}
-    </svg>
-  );
-}
-
 type MusicPlayerProps = {
   settings: ProfileSettings;
   deferAutoplay?: boolean;
@@ -95,7 +39,7 @@ type MusicPlayerProps = {
 };
 
 export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: MusicPlayerProps) {
-  const dockRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const leaveTimerRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const savedVolumeRef = useRef(settings.music_volume > 0 ? settings.music_volume : 50);
@@ -108,17 +52,15 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
   const title = formatTitle(settings);
   const accent = resolveMusicPlayerColor(settings);
   const accentRgb = rgbString(accent);
-  const onAccent = contrastOnAccent(accent);
   const textColor = settings.text_color?.trim() || "#fafafa";
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-  const ringOffset = RING_C - (progress / 100) * RING_C;
   const isMuted = volume === 0;
 
-  const dockStyle = {
-    "--bf-music-accent": accent,
-    "--bf-music-accent-rgb": accentRgb,
-    "--bf-music-on-accent": onAccent,
-    "--bf-music-text": textColor,
+  const style = {
+    "--bf-audio-accent": accent,
+    "--bf-audio-accent-rgb": accentRgb,
+    "--bf-audio-text": textColor,
+    "--bf-range-accent": accent,
   } as CSSProperties;
 
   const reveal = useCallback(() => {
@@ -131,7 +73,7 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
 
   const hide = useCallback(() => {
     if (leaveTimerRef.current) window.clearTimeout(leaveTimerRef.current);
-    leaveTimerRef.current = window.setTimeout(() => setOpen(false), 220);
+    leaveTimerRef.current = window.setTimeout(() => setOpen(false), 200);
   }, []);
 
   const setVolumeLevel = useCallback((next: number) => {
@@ -144,15 +86,10 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
   const playFromStart = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || !settings.music_url) return;
-
     audio.loop = settings.music_loop;
     audio.volume = volume / 100;
     audio.currentTime = 0;
-
-    void audio
-      .play()
-      .then(() => setPlaying(true))
-      .catch(() => setPlaying(false));
+    void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
   }, [settings.music_loop, settings.music_url, volume]);
 
   useEffect(() => {
@@ -174,10 +111,7 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
       }
       if (!audio.paused) return;
       audio.currentTime = 0;
-      void audio
-        .play()
-        .then(() => setPlaying(true))
-        .catch(() => setPlaying(false));
+      void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
     };
 
     if (audio.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
@@ -226,7 +160,7 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
-      if (dockRef.current?.contains(event.target as Node)) return;
+      if (rootRef.current?.contains(event.target as Node)) return;
       setOpen(false);
     };
     document.addEventListener("pointerdown", onPointerDown);
@@ -267,119 +201,95 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
 
   return (
     <div
-      ref={dockRef}
-      className="bf-music-dock"
-      style={dockStyle}
+      ref={rootRef}
+      className="bf-audio"
+      style={style}
       data-open={open ? "true" : "false"}
       data-playing={playing ? "true" : "false"}
       onMouseEnter={reveal}
       onMouseLeave={hide}
       onFocusCapture={reveal}
       onBlurCapture={(event) => {
-        if (dockRef.current?.contains(event.relatedTarget as Node)) return;
+        if (rootRef.current?.contains(event.relatedTarget as Node)) return;
         hide();
       }}
     >
       <audio ref={audioRef} src={settings.music_url} preload="metadata" playsInline />
 
-      <div className="bf-music-dock__sheet" aria-hidden={!open}>
-        <div className="bf-music-dock__sheet-inner">
-          <div className="bf-music-dock__marquee-wrap">
-            <p className="bf-music-dock__marquee">
-              <span>{title}</span>
-              <span aria-hidden>{title}</span>
-            </p>
-          </div>
-
-          <div className="bf-music-dock__row">
-            <span className="bf-music-dock__time">{formatTime(currentTime)}</span>
-            <div className="bf-music-dock__track">
-              <div className="bf-music-dock__track-fill" style={{ width: `${progress}%` }} />
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={0.1}
-                value={progress}
-                onChange={seek}
-                className="bf-music-dock__track-input"
-                aria-label="Seek"
-                disabled={duration <= 0}
-              />
-            </div>
-            <span className="bf-music-dock__time">{formatTime(duration)}</span>
-          </div>
-
-          <div className="bf-music-dock__row bf-music-dock__row--vol">
-            <button
-              type="button"
-              onClick={toggleMute}
-              className="bf-music-dock__vol"
-              aria-label={isMuted ? "Unmute" : "Mute"}
-              aria-pressed={isMuted}
-            >
-              <VolumeGlyph level={isMuted ? 0 : volume} />
-            </button>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={volume}
-              onChange={(event) => setVolumeLevel(Number(event.target.value))}
-              className="bf-music-dock__vol-slider"
-              aria-label="Volume"
-              style={{ "--bf-music-fill": `${volume}%` } as CSSProperties}
-            />
-          </div>
-        </div>
-      </div>
-
       <div
-        className="bf-music-dock__orb"
+        className="bf-audio__panel"
         onClick={() => {
           if (!open) reveal();
         }}
       >
-        <div className="bf-music-dock__eq" aria-hidden>
-          {[0, 1, 2, 3, 4].map((i) => (
-            <span key={i} className="bf-music-dock__eq-bar" style={{ "--bf-eq-i": i } as CSSProperties} />
-          ))}
+        <div className="bf-audio__head">
+          <button
+            type="button"
+            className="bf-audio__play"
+            onClick={(event) => {
+              event.stopPropagation();
+              toggle();
+            }}
+            aria-label={playing ? "Pause" : "Play"}
+          >
+            {playing ? <HiMiniPause size={18} /> : <HiMiniPlay size={18} />}
+          </button>
+
+          <div className="bf-audio__info">
+            <p className="bf-audio__status">
+              <span className="bf-audio__dot" aria-hidden />
+              {playing ? "NOW PLAYING" : "PAUSED"}
+            </p>
+            <p className="bf-audio__title">{title}</p>
+          </div>
         </div>
 
-        <svg className="bf-music-dock__ring" viewBox="0 0 48 48" aria-hidden>
-          <circle
-            className="bf-music-dock__ring-bg"
-            cx={24}
-            cy={24}
-            r={RING_R}
-            fill="none"
-            strokeWidth={2.5}
-          />
-          <circle
-            className="bf-music-dock__ring-progress"
-            cx={24}
-            cy={24}
-            r={RING_R}
-            fill="none"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeDasharray={RING_C}
-            strokeDashoffset={ringOffset}
-            transform="rotate(-90 24 24)"
-          />
-        </svg>
+        <div className="bf-audio__controls" onClick={(event) => event.stopPropagation()}>
+          <div className="bf-audio__controls-inner">
+            <div className="bf-audio__seek">
+              <span className="bf-audio__time">{formatTime(currentTime)}</span>
+              <div className="bf-audio__bar">
+                <div className="bf-audio__bar-fill" style={{ width: `${progress}%` }} />
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={0.1}
+                  value={progress}
+                  onChange={seek}
+                  className="bf-audio__bar-input"
+                  aria-label="Seek"
+                  disabled={duration <= 0}
+                />
+              </div>
+              <span className="bf-audio__time">{formatTime(duration)}</span>
+            </div>
 
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            toggle();
-          }}
-          className="bf-music-dock__toggle"
-          aria-label={playing ? "Pause" : "Play"}
-        >
-          {playing ? <PauseGlyph /> : <PlayGlyph />}
-        </button>
+            <div className="bf-audio__vol">
+            <button
+              type="button"
+              className="bf-audio__vol-btn"
+              onClick={toggleMute}
+              aria-label={isMuted ? "Unmute" : "Mute"}
+              aria-pressed={isMuted}
+            >
+              {isMuted ? <HiMiniSpeakerXMark size={16} /> : <HiMiniSpeakerWave size={16} />}
+            </button>
+            <div className="bf-range-wrap bf-audio__vol-range">
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={volume}
+                onChange={(event) => setVolumeLevel(Number(event.target.value))}
+                className={rangeClassName}
+                aria-label="Volume"
+                style={rangeFillStyle(volume, 0, 100, accent)}
+              />
+            </div>
+          </div>
+          </div>
+        </div>
       </div>
     </div>
   );
