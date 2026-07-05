@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { rgbString } from "@/lib/badges/badge-visuals";
 import { resolveMusicPlayerColor } from "@/lib/settings";
+import { rangeClassName, rangeFillStyle } from "@/lib/ui/range";
 import type { ProfileSettings } from "@/lib/types/settings";
 
 function contrastOnAccent(hex: string): string {
@@ -46,17 +47,17 @@ const iconStroke = {
 
 function PlayIcon() {
   return (
-    <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden className="translate-x-px">
-      <path d="M9 8.25v7.5l7.5-3.75L9 8.25z" />
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="currentColor" aria-hidden className="translate-x-px">
+      <path d="M8 6.5v11l9.5-5.5L8 6.5z" />
     </svg>
   );
 }
 
 function PauseIcon() {
   return (
-    <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <rect x="7.75" y="6.75" width="3.25" height="10.5" rx="0.75" />
-      <rect x="12.75" y="6.75" width="3.25" height="10.5" rx="0.75" />
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <rect x="7" y="6" width="3.5" height="12" rx="0.75" />
+      <rect x="13.5" y="6" width="3.5" height="12" rx="0.75" />
     </svg>
   );
 }
@@ -68,7 +69,7 @@ function VolumeIcon({ level }: { level: number }) {
 
   if (level <= 0) {
     return (
-      <svg width={14} height={14} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
+      <svg width={15} height={15} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
         {speaker}
         <line x1="22" x2="16" y1="9" y2="15" />
         <line x1="16" x2="22" y1="9" y2="15" />
@@ -76,18 +77,9 @@ function VolumeIcon({ level }: { level: number }) {
     );
   }
 
-  if (level <= 33) {
+  if (level <= 50) {
     return (
-      <svg width={14} height={14} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
-        {speaker}
-        <path d="M15 9a4.984 4.984 0 0 0 0 6" />
-      </svg>
-    );
-  }
-
-  if (level <= 66) {
-    return (
-      <svg width={14} height={14} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
+      <svg width={15} height={15} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
         {speaker}
         <path d="M16 9a5 5 0 0 1 0 6" />
       </svg>
@@ -95,7 +87,7 @@ function VolumeIcon({ level }: { level: number }) {
   }
 
   return (
-    <svg width={14} height={14} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
+    <svg width={15} height={15} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
       {speaker}
       <path d="M16 9a5 5 0 0 1 0 6" />
       <path d="M19.364 6.636a9 9 0 0 1 0 12.728" />
@@ -133,6 +125,7 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
     "--bf-music-accent-rgb": accentRgb,
     "--bf-music-on-accent": onAccent,
     "--bf-music-text": textColor,
+    "--bf-range-accent": accent,
   } as CSSProperties;
 
   const openPanel = useCallback(() => {
@@ -145,7 +138,7 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
 
   const closePanel = useCallback(() => {
     if (leaveTimerRef.current) window.clearTimeout(leaveTimerRef.current);
-    leaveTimerRef.current = window.setTimeout(() => setExpanded(false), 180);
+    leaveTimerRef.current = window.setTimeout(() => setExpanded(false), 200);
   }, []);
 
   const setVolumeLevel = useCallback((next: number) => {
@@ -284,15 +277,10 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
     setCurrentTime(next);
   };
 
-  const timeLabel =
-    duration > 0
-      ? `${formatTime(currentTime)} / ${formatTime(duration)}`
-      : formatTime(currentTime);
-
   return (
     <div
       ref={shellRef}
-      className="bf-music-player fixed bottom-5 right-5 z-50"
+      className="bf-music-player"
       style={playerStyle}
       data-expanded={expanded ? "true" : "false"}
       data-playing={playing ? "true" : "false"}
@@ -312,40 +300,49 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
           if (!expanded) openPanel();
         }}
       >
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            toggle();
-          }}
-          className="bf-music-player__play"
-          aria-label={playing ? "Pause" : "Play"}
-        >
-          {playing ? <PauseIcon /> : <PlayIcon />}
-        </button>
+        <div className="bf-music-player__top">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              toggle();
+            }}
+            className="bf-music-player__play"
+            aria-label={playing ? "Pause" : "Play"}
+          >
+            {playing ? <PauseIcon /> : <PlayIcon />}
+          </button>
+
+          {expanded ? (
+            <div className="bf-music-player__meta">
+              <p className="bf-music-player__status">
+                <span className="bf-music-player__dot" aria-hidden />
+                {playing ? "NOW PLAYING" : "PAUSED"}
+              </p>
+              <p className="bf-music-player__title">{title}</p>
+            </div>
+          ) : null}
+        </div>
 
         {expanded ? (
-          <div className="bf-music-player__panel" onClick={(event) => event.stopPropagation()}>
-            <div className="bf-music-player__head">
-              <p className="bf-music-player__title">{title}</p>
-              <p className="bf-music-player__meta">
-                {playing ? "Playing" : "Paused"} · {timeLabel}
-              </p>
-            </div>
-
-            <div className="bf-music-track">
-              <div className="bf-music-track__fill" style={{ width: `${progress}%` }} />
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={0.1}
-                value={progress}
-                onChange={seek}
-                className="bf-music-track__input"
-                aria-label="Seek"
-                disabled={duration <= 0}
-              />
+          <div className="bf-music-player__body" onClick={(event) => event.stopPropagation()}>
+            <div className="bf-music-player__seek">
+              <span className="bf-music-player__time">{formatTime(currentTime)}</span>
+              <div className="bf-music-track">
+                <div className="bf-music-track__fill" style={{ width: `${progress}%` }} />
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={0.1}
+                  value={progress}
+                  onChange={seek}
+                  className="bf-music-track__input"
+                  aria-label="Seek"
+                  disabled={duration <= 0}
+                />
+              </div>
+              <span className="bf-music-player__time">{formatTime(duration)}</span>
             </div>
 
             <div className="bf-music-player__vol">
@@ -358,16 +355,18 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
               >
                 <VolumeIcon level={isMuted ? 0 : volume} />
               </button>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={volume}
-                onChange={(event) => setVolumeLevel(Number(event.target.value))}
-                className="bf-music-track__range"
-                aria-label="Volume"
-                style={{ "--bf-music-fill": `${volume}%` } as CSSProperties}
-              />
+              <div className="bf-range-wrap bf-music-player__range-wrap">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={volume}
+                  onChange={(event) => setVolumeLevel(Number(event.target.value))}
+                  className={rangeClassName}
+                  aria-label="Volume"
+                  style={rangeFillStyle(volume, 0, 100, accent)}
+                />
+              </div>
             </div>
           </div>
         ) : null}
