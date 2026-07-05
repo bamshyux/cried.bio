@@ -20,9 +20,16 @@ type ProfileEnterGateProps = {
   settings: ProfileSettings;
   onEnter: () => void;
   preview?: boolean;
+  exiting?: boolean;
 };
 
-export function ProfileEnterGate({ profile, settings, onEnter, preview = false }: ProfileEnterGateProps) {
+export function ProfileEnterGate({
+  profile,
+  settings,
+  onEnter,
+  preview = false,
+  exiting = false,
+}: ProfileEnterGateProps) {
   const displayName = profile.display_name?.trim() || profile.username || "User";
   const title = settings.enter_gate_title.trim() || displayName;
   const subtitle = settings.enter_gate_subtitle.trim();
@@ -42,7 +49,9 @@ export function ProfileEnterGate({ profile, settings, onEnter, preview = false }
 
   const rootClass = preview
     ? "bf-enter-gate bf-enter-gate--preview relative flex min-h-[320px] w-full items-center justify-center overflow-hidden px-6"
-    : "bf-enter-gate fixed inset-0 z-[100] flex cursor-pointer items-center justify-center px-6";
+    : `bf-enter-gate fixed inset-0 z-[100] flex cursor-pointer items-center justify-center px-6${
+        exiting ? " bf-enter-gate--exit" : ""
+      }`;
 
   const content = (
     <>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   getFontCss,
@@ -849,15 +849,37 @@ export function PublicProfileClient({
 }) {
   const isPresetPreview = presetPreviewMode || Boolean(presetPreviewTitle);
   const showPresetPreviewBanner = Boolean(presetPreviewTitle) && !presetPreviewMode;
-  const [entered, setEntered] = useState(isPresetPreview || !settings.enter_gate_enabled);
+  const skipEnterGate = isPresetPreview || !settings.enter_gate_enabled;
+  const [entered, setEntered] = useState(skipEnterGate);
+  const [gateExiting, setGateExiting] = useState(false);
+  const [revealedFromGate, setRevealedFromGate] = useState(false);
+  const profileRevealRef = useRef<HTMLDivElement>(null);
   const playMusicRef = useRef<(() => void) | null>(null);
 
   const handleEnter = useCallback(() => {
+    setGateExiting(true);
     setEntered(true);
+    setRevealedFromGate(true);
     if (settings.music_autoplay) {
       playMusicRef.current?.();
     }
   }, [settings.music_autoplay]);
+
+  useEffect(() => {
+    if (!gateExiting) return;
+    const timer = window.setTimeout(() => setGateExiting(false), 420);
+    return () => window.clearTimeout(timer);
+  }, [gateExiting]);
+
+  useEffect(() => {
+    if (!revealedFromGate) return;
+    const node = profileRevealRef.current;
+    if (!node) return;
+
+    node.classList.remove("bf-profile-gate-reveal");
+    void node.offsetWidth;
+    node.classList.add("bf-profile-gate-reveal");
+  }, [revealedFromGate]);
 
   const fontCss = getFontCss(settings.font_family);
   const fontUrl = getGoogleFontsUrl(settings.font_family);
@@ -929,12 +951,9 @@ export function PublicProfileClient({
 
           <main className="relative flex flex-1 items-center justify-center px-5 py-20">
             <div
+              ref={profileRevealRef}
               className={`mx-auto w-full max-w-2xl overflow-visible${
-                settings.enter_gate_enabled && !isPresetPreview
-                  ? " bf-profile-gate-reveal"
-                  : settings.page_entrance
-                    ? " bf-page-entrance"
-                    : ""
+                revealedFromGate && !isPresetPreview ? " bf-profile-gate-reveal" : ""
               }`}
             >
               <ProfileCardLayoutEditor
@@ -976,8 +995,13 @@ export function PublicProfileClient({
         </div>
       ) : null}
 
-      {!entered && settings.enter_gate_enabled ? (
-        <ProfileEnterGate profile={profile} settings={settings} onEnter={handleEnter} />
+      {!skipEnterGate && (!entered || gateExiting) ? (
+        <ProfileEnterGate
+          profile={profile}
+          settings={settings}
+          onEnter={handleEnter}
+          exiting={gateExiting}
+        />
       ) : null}
     </>
   );
