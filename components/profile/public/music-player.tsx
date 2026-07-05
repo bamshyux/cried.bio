@@ -36,6 +36,73 @@ function formatTime(seconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+const iconStroke = {
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+};
+
+function PlayIcon() {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" aria-hidden className="translate-x-px">
+      <path d="M9 8.25v7.5l7.5-3.75L9 8.25z" />
+    </svg>
+  );
+}
+
+function PauseIcon() {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <rect x="7.75" y="6.75" width="3.25" height="10.5" rx="0.75" />
+      <rect x="12.75" y="6.75" width="3.25" height="10.5" rx="0.75" />
+    </svg>
+  );
+}
+
+function VolumeIcon({ level }: { level: number }) {
+  const speaker = (
+    <path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />
+  );
+
+  if (level <= 0) {
+    return (
+      <svg width={16} height={16} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
+        {speaker}
+        <line x1="22" x2="16" y1="9" y2="15" />
+        <line x1="16" x2="22" y1="9" y2="15" />
+      </svg>
+    );
+  }
+
+  if (level <= 33) {
+    return (
+      <svg width={16} height={16} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
+        {speaker}
+        <path d="M15 9a4.984 4.984 0 0 0 0 6" />
+      </svg>
+    );
+  }
+
+  if (level <= 66) {
+    return (
+      <svg width={16} height={16} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
+        {speaker}
+        <path d="M16 9a5 5 0 0 1 0 6" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg width={16} height={16} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
+      {speaker}
+      <path d="M16 9a5 5 0 0 1 0 6" />
+      <path d="M19.364 6.636a9 9 0 0 1 0 12.728" />
+    </svg>
+  );
+}
+
 type MusicPlayerProps = {
   settings: ProfileSettings;
   deferAutoplay?: boolean;
@@ -200,19 +267,10 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
         <button
           type="button"
           onClick={toggle}
-          className="bf-music-player__play grid h-11 w-11 shrink-0 place-items-center rounded-full transition-transform hover:scale-[1.03] active:scale-[0.97]"
+          className="bf-music-player__play flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-[1.03] active:scale-[0.97]"
           aria-label={playing ? "Pause" : "Play"}
         >
-          {playing ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-              <rect x="8" y="7" width="3" height="10" rx="0.75" />
-              <rect x="13" y="7" width="3" height="10" rx="0.75" />
-            </svg>
-          ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-              <path d="M9 7.2v9.6c0 .5.55.8 1 .5l7.2-4.3c.45-.28.45-.92 0-1.2l-7.2-4.3c-.45-.3-1 .02-1 .5z" />
-            </svg>
-          )}
+          {playing ? <PauseIcon /> : <PlayIcon />}
         </button>
 
         <div className="min-w-0 flex-1">
@@ -238,27 +296,15 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
         />
       </div>
 
-      <div className="bf-music-player__vol mt-2.5 flex h-9 items-center gap-2.5 rounded-full px-3">
+      <div className="bf-music-player__vol mt-2.5 flex h-8 items-center gap-2 rounded-full px-2">
         <button
           type="button"
           onClick={toggleMute}
-          className="bf-music-player__vol-btn grid h-5 w-5 shrink-0 place-items-center transition-opacity hover:opacity-100"
+          className="bf-music-player__vol-btn flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors"
           aria-label={isMuted ? "Unmute" : "Mute"}
           aria-pressed={isMuted}
         >
-          {isMuted ? (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-              <path d="M11 5 6 9H3v6h3l5 4V5z" />
-              <line x1="16" y1="9" x2="20" y2="13" />
-              <line x1="20" y1="9" x2="16" y2="13" />
-            </svg>
-          ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-              <path d="M11 5 6 9H3v6h3l5 4V5z" />
-              <path d="M15.5 12a3.5 3.5 0 0 0 0-7" />
-              <path d="M18.5 8.5a7 7 0 0 1 0 7" />
-            </svg>
-          )}
+          <VolumeIcon level={isMuted ? 0 : volume} />
         </button>
         <input
           type="range"

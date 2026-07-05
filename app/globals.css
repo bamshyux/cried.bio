@@ -2246,29 +2246,34 @@ body,
 }
 
 .bf-music-player__vol {
-  background: rgba(var(--bf-music-accent-rgb), 0.1);
-  border: 1px solid rgba(var(--bf-music-accent-rgb), 0.16);
+  background: rgba(var(--bf-music-accent-rgb), 0.08);
+  border: 1px solid rgba(var(--bf-music-accent-rgb), 0.14);
 }
 
 .bf-music-player__vol-btn {
   color: var(--bf-music-accent);
-  opacity: 0.88;
+  opacity: 0.92;
+}
+
+.bf-music-player__vol-btn:hover {
+  background: rgba(var(--bf-music-accent-rgb), 0.12);
+  opacity: 1;
 }
 
 .bf-music-player__vol-btn[aria-pressed="true"] {
-  opacity: 0.45;
+  opacity: 0.5;
 }
 
 .bf-music-track__range {
-  height: 4px;
+  height: 3px;
   margin: 0;
   border-radius: 9999px;
   background: linear-gradient(
     to right,
     var(--bf-music-accent) 0%,
     var(--bf-music-accent) var(--bf-music-fill, 50%),
-    rgba(var(--bf-music-accent-rgb), 0.2) var(--bf-music-fill, 50%),
-    rgba(var(--bf-music-accent-rgb), 0.2) 100%
+    rgba(var(--bf-music-accent-rgb), 0.16) var(--bf-music-fill, 50%),
+    rgba(var(--bf-music-accent-rgb), 0.16) 100%
   );
   cursor: pointer;
   -webkit-appearance: none;
@@ -2276,38 +2281,40 @@ body,
 }
 
 .bf-music-track__range::-webkit-slider-runnable-track {
-  height: 4px;
+  height: 3px;
   background: transparent;
 }
 
 .bf-music-track__range::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 11px;
-  height: 11px;
-  margin-top: -3.5px;
+  width: 9px;
+  height: 9px;
+  margin-top: -3px;
   border: none;
   border-radius: 9999px;
   background: var(--bf-music-accent);
+  box-shadow: 0 0 0 2px rgba(var(--bf-music-accent-rgb), 0.2);
 }
 
 .bf-music-track__range::-moz-range-track {
-  height: 4px;
+  height: 3px;
   border-radius: 9999px;
-  background: rgba(var(--bf-music-accent-rgb), 0.2);
+  background: rgba(var(--bf-music-accent-rgb), 0.16);
 }
 
 .bf-music-track__range::-moz-range-progress {
-  height: 4px;
+  height: 3px;
   border-radius: 9999px;
   background: var(--bf-music-accent);
 }
 
 .bf-music-track__range::-moz-range-thumb {
-  width: 11px;
-  height: 11px;
+  width: 9px;
+  height: 9px;
   border: none;
   border-radius: 9999px;
   background: var(--bf-music-accent);
+  box-shadow: 0 0 0 2px rgba(var(--bf-music-accent-rgb), 0.2);
 }
 
 /* Range sliders — guns.lol-style pill track + glowing thumb */
