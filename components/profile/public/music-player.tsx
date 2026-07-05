@@ -46,7 +46,7 @@ const iconStroke = {
 
 function PlayIcon() {
   return (
-    <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" aria-hidden className="translate-x-px">
+    <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden className="translate-x-px">
       <path d="M9 8.25v7.5l7.5-3.75L9 8.25z" />
     </svg>
   );
@@ -54,7 +54,7 @@ function PlayIcon() {
 
 function PauseIcon() {
   return (
-    <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <rect x="7.75" y="6.75" width="3.25" height="10.5" rx="0.75" />
       <rect x="12.75" y="6.75" width="3.25" height="10.5" rx="0.75" />
     </svg>
@@ -68,7 +68,7 @@ function VolumeIcon({ level }: { level: number }) {
 
   if (level <= 0) {
     return (
-      <svg width={16} height={16} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
+      <svg width={14} height={14} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
         {speaker}
         <line x1="22" x2="16" y1="9" y2="15" />
         <line x1="16" x2="22" y1="9" y2="15" />
@@ -78,7 +78,7 @@ function VolumeIcon({ level }: { level: number }) {
 
   if (level <= 33) {
     return (
-      <svg width={16} height={16} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
+      <svg width={14} height={14} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
         {speaker}
         <path d="M15 9a4.984 4.984 0 0 0 0 6" />
       </svg>
@@ -87,7 +87,7 @@ function VolumeIcon({ level }: { level: number }) {
 
   if (level <= 66) {
     return (
-      <svg width={16} height={16} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
+      <svg width={14} height={14} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
         {speaker}
         <path d="M16 9a5 5 0 0 1 0 6" />
       </svg>
@@ -95,7 +95,7 @@ function VolumeIcon({ level }: { level: number }) {
   }
 
   return (
-    <svg width={16} height={16} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
+    <svg width={14} height={14} viewBox="0 0 24 24" aria-hidden {...iconStroke}>
       {speaker}
       <path d="M16 9a5 5 0 0 1 0 6" />
       <path d="M19.364 6.636a9 9 0 0 1 0 12.728" />
@@ -110,12 +110,16 @@ type MusicPlayerProps = {
 };
 
 export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: MusicPlayerProps) {
+  const shellRef = useRef<HTMLDivElement>(null);
+  const leaveTimerRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const savedVolumeRef = useRef(settings.music_volume > 0 ? settings.music_volume : 50);
+  const [expanded, setExpanded] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(() => Math.max(0, Math.min(100, settings.music_volume)));
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+
   const title = formatTitle(settings);
   const accent = resolveMusicPlayerColor(settings);
   const accentRgb = rgbString(accent);
@@ -129,9 +133,20 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
     "--bf-music-accent-rgb": accentRgb,
     "--bf-music-on-accent": onAccent,
     "--bf-music-text": textColor,
-    borderColor: `rgba(${accentRgb}, 0.22)`,
-    boxShadow: `0 16px 48px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(${accentRgb}, 0.12), 0 0 32px rgba(${accentRgb}, 0.14)`,
   } as CSSProperties;
+
+  const openPanel = useCallback(() => {
+    if (leaveTimerRef.current) {
+      window.clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
+    setExpanded(true);
+  }, []);
+
+  const closePanel = useCallback(() => {
+    if (leaveTimerRef.current) window.clearTimeout(leaveTimerRef.current);
+    leaveTimerRef.current = window.setTimeout(() => setExpanded(false), 180);
+  }, []);
 
   const setVolumeLevel = useCallback((next: number) => {
     const clamped = Math.max(0, Math.min(100, next));
@@ -224,6 +239,24 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
     };
   }, [settings.music_loop, settings.music_url]);
 
+  useEffect(() => {
+    if (!expanded) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (shellRef.current?.contains(event.target as Node)) return;
+      setExpanded(false);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [expanded]);
+
+  useEffect(() => {
+    return () => {
+      if (leaveTimerRef.current) window.clearTimeout(leaveTimerRef.current);
+    };
+  }, []);
+
   if (!settings.music_url) return null;
 
   const toggle = () => {
@@ -258,64 +291,86 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
 
   return (
     <div
-      className="bf-music-player fixed bottom-5 right-5 z-50 w-[min(272px,calc(100vw-2rem))] rounded-2xl border bg-[#0a0a0a]/90 p-3 backdrop-blur-md"
+      ref={shellRef}
+      className="bf-music-player fixed bottom-5 right-5 z-50"
       style={playerStyle}
+      data-expanded={expanded ? "true" : "false"}
+      data-playing={playing ? "true" : "false"}
+      onMouseEnter={openPanel}
+      onMouseLeave={closePanel}
+      onFocusCapture={openPanel}
+      onBlurCapture={(event) => {
+        if (shellRef.current?.contains(event.relatedTarget as Node)) return;
+        closePanel();
+      }}
     >
       <audio ref={audioRef} src={settings.music_url} preload="metadata" playsInline />
 
-      <div className="flex items-center gap-3">
+      <div
+        className="bf-music-player__shell"
+        onClick={() => {
+          if (!expanded) openPanel();
+        }}
+      >
         <button
           type="button"
-          onClick={toggle}
-          className="bf-music-player__play flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-[1.03] active:scale-[0.97]"
+          onClick={(event) => {
+            event.stopPropagation();
+            toggle();
+          }}
+          className="bf-music-player__play"
           aria-label={playing ? "Pause" : "Play"}
         >
           {playing ? <PauseIcon /> : <PlayIcon />}
         </button>
 
-        <div className="min-w-0 flex-1">
-          <p className="bf-music-player__title truncate text-[13px] font-semibold leading-tight">{title}</p>
-          <p className="bf-music-player__meta mt-0.5 truncate text-[11px] leading-tight">
-            {playing ? "Playing" : "Paused"} · {timeLabel}
-          </p>
-        </div>
-      </div>
+        {expanded ? (
+          <div className="bf-music-player__panel" onClick={(event) => event.stopPropagation()}>
+            <div className="bf-music-player__head">
+              <p className="bf-music-player__title">{title}</p>
+              <p className="bf-music-player__meta">
+                {playing ? "Playing" : "Paused"} · {timeLabel}
+              </p>
+            </div>
 
-      <div className="bf-music-track relative mt-3 h-1 rounded-full">
-        <div className="bf-music-track__fill absolute inset-y-0 left-0 rounded-full" style={{ width: `${progress}%` }} />
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={0.1}
-          value={progress}
-          onChange={seek}
-          className="bf-music-track__input absolute inset-x-0 -top-2 bottom-[-8px] w-full cursor-pointer opacity-0"
-          aria-label="Seek"
-          disabled={duration <= 0}
-        />
-      </div>
+            <div className="bf-music-track">
+              <div className="bf-music-track__fill" style={{ width: `${progress}%` }} />
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={0.1}
+                value={progress}
+                onChange={seek}
+                className="bf-music-track__input"
+                aria-label="Seek"
+                disabled={duration <= 0}
+              />
+            </div>
 
-      <div className="bf-music-player__vol mt-2.5 flex h-8 items-center gap-2 rounded-full px-2">
-        <button
-          type="button"
-          onClick={toggleMute}
-          className="bf-music-player__vol-btn flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors"
-          aria-label={isMuted ? "Unmute" : "Mute"}
-          aria-pressed={isMuted}
-        >
-          <VolumeIcon level={isMuted ? 0 : volume} />
-        </button>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={volume}
-          onChange={(event) => setVolumeLevel(Number(event.target.value))}
-          className="bf-music-track__range min-w-0 flex-1"
-          aria-label="Volume"
-          style={{ "--bf-music-fill": `${volume}%` } as CSSProperties}
-        />
+            <div className="bf-music-player__vol">
+              <button
+                type="button"
+                onClick={toggleMute}
+                className="bf-music-player__vol-btn"
+                aria-label={isMuted ? "Unmute" : "Mute"}
+                aria-pressed={isMuted}
+              >
+                <VolumeIcon level={isMuted ? 0 : volume} />
+              </button>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={volume}
+                onChange={(event) => setVolumeLevel(Number(event.target.value))}
+                className="bf-music-track__range"
+                aria-label="Volume"
+                style={{ "--bf-music-fill": `${volume}%` } as CSSProperties}
+              />
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
