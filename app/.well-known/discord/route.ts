@@ -1,5 +1,5 @@
 /** Discord domain verification for cried.bio (Developer Portal → Domain Verification). */
-const DISCORD_DOMAIN_VERIFICATION = "dh=598d467d454c72e52ccd4daf0c37d5cb12d2b3fe";
+const DISCORD_DOMAIN_VERIFICATION = "dh=780c83b89de58d17adc2026237968dff2c370b62";
 
 export async function GET() {
   return new Response(DISCORD_DOMAIN_VERIFICATION, {
