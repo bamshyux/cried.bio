@@ -1752,16 +1752,15 @@ body,
 }
 
 /* Premium comparison section */
-.bf-premium-compare-premium-cell {
-  position: relative;
-  z-index: 1;
+.bf-premium-compare-premium-column {
   background: linear-gradient(
     180deg,
     rgba(201, 184, 150, 0.07) 0%,
     rgba(201, 184, 150, 0.03) 50%,
     rgba(201, 184, 150, 0.05) 100%
   );
-  box-shadow: inset 1px 0 0 rgba(201, 184, 150, 0.1), inset -1px 0 0 rgba(201, 184, 150, 0.06);
+  border-left: 1px solid rgba(201, 184, 150, 0.1);
+  border-right: 1px solid rgba(201, 184, 150, 0.06);
 }
 
 .bf-premium-compare-row:hover {
@@ -4033,6 +4032,74 @@ body,
   animation-delay: 0.7s;
 }
 
+.bf-home-orbit-stage {
+  perspective: 1400px;
+  perspective-origin: 50% 42%;
+}
+
+.bf-home-orbit-rig {
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.bf-home-orbit-rig-inner {
+  transform-style: preserve-3d;
+  transform: scale(0.62);
+}
+
+@media (min-width: 640px) {
+  .bf-home-orbit-rig-inner {
+    transform: scale(0.78);
+  }
+}
+
+@media (min-width: 768px) {
+  .bf-home-orbit-rig-inner {
+    transform: scale(0.9);
+  }
+}
+
+@media (min-width: 1024px) {
+  .bf-home-orbit-rig-inner {
+    transform: scale(1);
+  }
+}
+
+.bf-home-orbit-glow {
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 48%, rgba(255, 255, 255, 0.09) 0%, transparent 68%),
+    radial-gradient(ellipse 40% 30% at 50% 62%, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
+  filter: blur(2px);
+}
+
+.bf-home-orbit-floor {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.02) 35%,
+    transparent 72%
+  );
+  filter: blur(10px);
+}
+
+.bf-home-orbit-card {
+  transform-style: preserve-3d;
+  animation: bf-home-orbit-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+@keyframes bf-home-orbit-enter {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
 .bf-home-hero-stage {
   perspective: 1200px;
 }
@@ -4183,6 +4250,43 @@ body,
   .bf-home-hero-float-b,
   .bf-home-hero-float-c,
   .bf-home-hero-float-d,
+  .bf-home-float-ui-e,
+  .bf-home-float-ui-f,
+  .bf-home-orbit-card,
+  .bf-home-hero-grid,
+  .bf-home-hero-gradient,
+  .bf-home-hero-particle,
+  .bf-home-marquee-track,
+  .bf-home-headline-word {
+    animation: none !important;
+  }
+
+  .bf-home-orbit-rig {
+    transition: none !important;
+  }
+
+  .bf-home-enter,
+  .bf-home-preview-card,
+  .bf-home-preview-url,
+  .bf-home-revealed,
+  .bf-home-revealed--blur,
+  .bf-home-revealed--scale,
+  .bf-home-accent-glow,
+  .bf-home-pulse-dot,
+  .bf-home-ambient,
+  .bf-home-orb,
+  .bf-home-grid,
+  .bf-home-shimmer-line,
+  .bf-home-cta-primary,
+  .bf-home-particle,
+  .bf-home-feature-shimmer,
+  .bf-home-feature-bar,
+  .bf-home-feature-orbit,
+  .bf-home-feature-float,
+  .bf-home-hero-float-a,
+  .bf-home-hero-float-b,
+  .bf-home-hero-float-c,
+  .bf-home-hero-float-d,
   .bf-home-hero-float-hero,
   .bf-home-hero-bar,
   .bf-home-scroll-dot,
@@ -4190,7 +4294,13 @@ body,
   .bf-home-demo-swap,
   .bf-home-demo-gradient,
   .bf-home-hero-play,
-  .bf-home-hero-badge {
+  .bf-home-hero-badge,
+  .bf-home-float-ui-a,
+  .bf-home-float-ui-b,
+  .bf-home-float-ui-c,
+  .bf-home-float-ui-d,
+  .bf-home-float-ui-e,
+  .bf-home-float-ui-f {
     animation: none !important;
     opacity: 1;
     transform: none;

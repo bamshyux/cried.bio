@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { HomeHeroBackdrop } from "@/components/home/home-hero-backdrop";
-import { HomeHeroFloatingUi } from "@/components/home/home-hero-floating-ui";
 import { HomeHeroShowcase } from "@/components/home/home-hero-showcase";
 import { HomeProfileMarquee } from "@/components/home/home-profile-marquee";
 import { HomeScrollIndicator } from "@/components/home/home-scroll-indicator";
@@ -23,8 +22,7 @@ export function HomeHero({
 
       <div className="relative z-10 w-full max-w-[40rem] mx-auto text-center">{children}</div>
 
-      <div className="relative z-10 mx-auto mt-16 w-full max-w-[min(100%,36rem)] sm:mt-20">
-        <HomeHeroFloatingUi />
+      <div className="relative z-10 mx-auto mt-14 w-full sm:mt-16">
         <HomeHeroShowcase profiles={profiles} />
       </div>
 
