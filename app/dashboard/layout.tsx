@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { syncFounderBadges, syncSignupBadgesAction } from "@/app/actions/badges";
 import { CriedLogo } from "@/components/brand/logo";
 import { LogoutButton } from "@/components/auth/logout-button";
+import { GlobalSiteBanner } from "@/components/admin/global-site-banner";
 import { DashboardLayoutBody } from "@/components/dashboard/dashboard-layout-body";
 import { DashboardSearch } from "@/components/dashboard/dashboard-search";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
@@ -49,6 +50,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="bf-dash-root min-h-screen text-neutral-100">
+      <GlobalSiteBanner />
       <header className="bf-dash-header border-b backdrop-blur-md">
         <div className="bf-dash-header-inner mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-5 py-3 lg:px-10">
           <Link href="/dashboard" className="shrink-0">
