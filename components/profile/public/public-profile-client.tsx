@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import {
   getFontCss,
   getGoogleFontsUrl,
@@ -954,14 +953,14 @@ export function PublicProfileClient({
           {showPresetPreviewBanner && presetPreviewTitle ? (
             <PresetPreviewBanner title={presetPreviewTitle} />
           ) : null}
-          <header className="absolute inset-x-0 top-0 z-20 flex w-full flex-col items-stretch px-5 py-4 sm:px-8 sm:py-5">
+          <header className="pointer-events-auto absolute inset-x-0 top-0 z-50 flex w-full flex-col items-stretch px-5 py-4 sm:px-8 sm:py-5">
             <div className="flex w-full items-center">
-              <Link href="/" className="group opacity-90 transition-opacity hover:opacity-100">
+              <a href="/" className="group opacity-90 transition-opacity hover:opacity-100">
                 <CriedLogo size={24} variant="muted" />
-              </Link>
+              </a>
             </div>
             {siteNav ? (
-              <div className="mt-4 flex justify-center border-b border-white/[0.06] pb-0">
+              <div className="mt-4 flex justify-center border-b border-white/[0.06]">
                 {siteNav}
               </div>
             ) : null}

@@ -82,6 +82,15 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
 
   if (isOwnProfile && !isPresetPreview) {
     try {
+      const { ensurePremiumDowngraded } = await import("@/lib/premium/sync");
+      await ensurePremiumDowngraded(baseProfile.id);
+    } catch {
+      // Premium cleanup is best-effort — never block the public profile.
+    }
+  }
+
+  if (isOwnProfile && !isPresetPreview) {
+    try {
       const { refreshDiscordProfileAction, sanitizeDiscordConnectionAction } = await import(
         "@/app/actions/discord"
       );
@@ -124,12 +133,20 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
     getPublishedProfilePages(baseProfile.id),
   ]);
 
+  const { getUserEntitlements } = await import("@/lib/premium/entitlements");
+  const { sanitizeSettingsForEntitlements, trimFeaturedForEntitlements } = await import(
+    "@/lib/premium/sanitize-settings"
+  );
+  const entitlements = await getUserEntitlements(baseProfile.id);
+
   let profile: Profile = baseProfile;
-  let previewSettings: ProfileSettings = settings;
+  let previewSettings: ProfileSettings = sanitizeSettingsForEntitlements(settings, entitlements);
   let previewLinks: ProfileLink[] = links;
-  let previewBadges: ProfileBadge[] = badges;
+  let previewBadges: ProfileBadge[] = entitlements.is_active
+    ? badges
+    : badges.filter((badge) => badge.slug !== "premium");
   let previewEmbeds: ProfileEmbed[] = embeds;
-  let previewFeatured: FeaturedBlock[] = featured;
+  let previewFeatured: FeaturedBlock[] = trimFeaturedForEntitlements(featured, entitlements);
   let scopedCustomCss: string | null = null;
   let presetPreviewTitle: string | null = null;
   let previewGuestbook = guestbook;

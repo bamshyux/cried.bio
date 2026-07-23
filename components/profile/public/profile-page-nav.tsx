@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
 
 export function ProfilePageNav({
@@ -19,7 +18,7 @@ export function ProfilePageNav({
   return (
     <nav
       aria-label="Site pages"
-      className="bf-profile-page-nav flex items-center justify-center gap-1 overflow-x-auto"
+      className="bf-profile-page-nav flex flex-wrap items-center justify-center gap-x-1 gap-y-0"
     >
       <NavTab href={`/${username}`} label="Home" active={homeActive} />
       {pages.map((page) => (
@@ -47,7 +46,7 @@ function NavTab({
   active: boolean;
 }) {
   return (
-    <Link
+    <a
       href={href}
       className={`relative shrink-0 px-4 py-2 text-[13px] font-medium tracking-wide transition-colors ${
         active
@@ -55,7 +54,7 @@ function NavTab({
           : "text-neutral-500 hover:text-neutral-300"
       }`}
     >
-      <span className="inline-flex items-center gap-1.5">
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
         {icon ? <span aria-hidden className="text-sm leading-none opacity-80">{icon}</span> : null}
         <span>{label}</span>
       </span>
@@ -65,6 +64,6 @@ function NavTab({
           aria-hidden
         />
       ) : null}
-    </Link>
+    </a>
   );
 }

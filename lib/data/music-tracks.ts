@@ -29,5 +29,13 @@ export async function getMusicTracks(
   }
 
   const { data } = await query;
-  return (data as MusicTrack[]) ?? [];
+  let tracks = (data as MusicTrack[]) ?? [];
+
+  const { getUserEntitlements } = await import("@/lib/premium/entitlements");
+  const entitlements = await getUserEntitlements(profileId);
+  if (tracks.length > entitlements.max_music_tracks) {
+    tracks = tracks.slice(0, entitlements.max_music_tracks);
+  }
+
+  return tracks;
 }

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { syncPremiumBadge } from "@/lib/premium/badge-sync";
+import { revokePremiumAccess } from "@/lib/premium/sync";
 import { logAdminAudit, logUserTimelineEvent } from "@/lib/admin/audit";
 import { requireAdminAccess } from "@/lib/auth/admin-access";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -162,9 +163,34 @@ export async function adminGrantPremiumAction(
 }
 
 export async function adminRevokePremiumAction(userId: string): Promise<AdminFormState> {
-  const result = await adminUpdateUserAction(userId, { premium_tier: "free", premium_expires_at: null });
-  if (!result.error) await syncPremiumBadge(userId, false);
-  return result;
+  const gate = await guard();
+  if ("error" in gate) return { error: gate.error };
+
+  try {
+    await revokePremiumAccess(userId, "expired", { force: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to revoke premium.";
+    return { error: message };
+  }
+
+  await logUserTimelineEvent({
+    userId,
+    eventType: "premium_revoked",
+    title: "Premium revoked",
+  });
+  await logAdminAudit({
+    actorId: gate.access.userId,
+    actorEmail: gate.access.email,
+    targetUserId: userId,
+    action: "premium_revoked",
+    details: {},
+  });
+
+  revalidatePath("/dashboard/admin/premium");
+  revalidatePath("/dashboard/admin/users");
+  revalidatePath(`/dashboard/admin/users/${userId}`);
+
+  return { success: "Premium revoked and premium content removed." };
 }
 
 export async function adminBanUserAction(userId: string, reason: string): Promise<AdminFormState> {

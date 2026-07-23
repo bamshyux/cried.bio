@@ -13,6 +13,10 @@ export async function getProfilePages(profileId: string): Promise<ProfilePage[]>
 }
 
 export async function getPublishedProfilePages(profileId: string): Promise<ProfilePage[]> {
+  const { getUserEntitlements } = await import("@/lib/premium/entitlements");
+  const entitlements = await getUserEntitlements(profileId);
+  if (!entitlements.can_use_multiple_profiles) return [];
+
   const supabase = await createClient();
   const { data } = await supabase
     .from("profile_pages")

@@ -118,6 +118,21 @@ export async function updateAdminAccountAction(
 
   if (error) return { error: rpcSetupHint(error.message) };
 
+  const wasPremium =
+    existing.premium_tier !== "free" &&
+    existing.premium_tier !== "" &&
+    existing.premium_tier != null;
+  const nowPremium = premiumTier === "premium";
+
+  if (wasPremium && !nowPremium) {
+    try {
+      const { revokePremiumAccess } = await import("@/lib/premium/sync");
+      await revokePremiumAccess(userId, "expired", { force: true });
+    } catch {
+      // Account tier was already updated; cleanup is best-effort here.
+    }
+  }
+
   revalidatePath("/dashboard/accounts");
   if (existing.username) revalidatePath(`/${existing.username}`);
   if (username !== existing.username) revalidatePath(`/${username}`);

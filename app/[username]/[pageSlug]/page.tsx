@@ -50,6 +50,12 @@ export default async function ContentPage({ params }: PageProps) {
   const currentUserId = authData?.claims?.sub as string | undefined;
   const isOwner = currentUserId === profile.id;
 
+  const { getUserEntitlements } = await import("@/lib/premium/entitlements");
+  const entitlements = await getUserEntitlements(profile.id);
+  if (!entitlements.can_use_multiple_profiles && !isOwner) {
+    notFound();
+  }
+
   const visibility = await getProfileVisibility(profile.id);
   if (visibility === "private" && !isOwner) {
     notFound();
@@ -68,12 +74,21 @@ export default async function ContentPage({ params }: PageProps) {
     getPublishedProfilePages(profile.id),
   ]);
 
+  const { sanitizeSettingsForEntitlements, trimFeaturedForEntitlements } = await import(
+    "@/lib/premium/sanitize-settings"
+  );
+  const publicSettings = sanitizeSettingsForEntitlements(settings, entitlements);
+  const publicFeatured = trimFeaturedForEntitlements(
+    featured as import("@/lib/types/featured").FeaturedBlock[],
+    entitlements,
+  );
+
   return (
     <>
-      {settings.profile_favicon_url ? (
+      {publicSettings.profile_favicon_url ? (
         <ProfileFaviconLinks
           username={profile.username ?? normalized}
-          faviconUrl={settings.profile_favicon_url}
+          faviconUrl={publicSettings.profile_favicon_url}
         />
       ) : null}
       <PublicContentPageView
@@ -81,9 +96,9 @@ export default async function ContentPage({ params }: PageProps) {
         page={page}
         navPages={navPages}
         links={links as import("@/lib/types/link").ProfileLink[]}
-        settings={settings}
+        settings={publicSettings}
         embeds={embeds as import("@/lib/types/embed").ProfileEmbed[]}
-        featured={featured as import("@/lib/types/featured").FeaturedBlock[]}
+        featured={publicFeatured}
         profileId={profile.id}
         musicTracks={musicTracks}
       />

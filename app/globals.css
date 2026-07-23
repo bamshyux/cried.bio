@@ -96,6 +96,15 @@ body,
   50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.35); }
 }
 
+.bf-profile-page-nav {
+  overflow: visible;
+  scrollbar-width: none;
+}
+
+.bf-profile-page-nav::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes bf-effect-shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(200%); }

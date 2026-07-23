@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getPlanDefinition, normalizePlanTier } from "@/lib/premium/plans";
+import { resolvePremiumActiveState } from "@/lib/premium/subscription-status";
 import type {
   EntitlementKey,
   EntitlementValues,
@@ -8,17 +9,6 @@ import type {
   PlanTier,
   UserEntitlements,
 } from "@/lib/premium/types";
-
-function isSubscriptionActive(input: {
-  tier: PlanTier;
-  premium_expires_at: string | null;
-  lifetime: boolean;
-}): boolean {
-  if (input.tier === "free") return false;
-  if (input.lifetime) return true;
-  if (!input.premium_expires_at) return true;
-  return new Date(input.premium_expires_at) > new Date();
-}
 
 async function loadEntitlementsUncached(profileId: string): Promise<UserEntitlements> {
   const supabase = await createClient();
@@ -42,8 +32,8 @@ async function loadEntitlementsUncached(profileId: string): Promise<UserEntitlem
 
   const tier = normalizePlanTier(profile?.premium_tier);
   const lifetime = Boolean(subscription?.lifetime);
-  const active = isSubscriptionActive({
-    tier,
+  const { active } = resolvePremiumActiveState({
+    premium_tier: tier,
     premium_expires_at: profile?.premium_expires_at ?? null,
     lifetime,
   });
