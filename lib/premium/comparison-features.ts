@@ -20,7 +20,6 @@ export type FeatureAvailability =
 
 export type PremiumComparisonFeature = {
   id: string;
-  icon: string;
   name: string;
   description: string;
   free: FeatureAvailability;
@@ -34,7 +33,6 @@ const lite = PLAN_DEFINITIONS.premium_lite.entitlements;
 export const PREMIUM_COMPARISON_FEATURES: PremiumComparisonFeature[] = [
   {
     id: "music",
-    icon: "🎵",
     name: "Multiple music tracks",
     description:
       "Add multiple songs to your profile, build playlists, shuffle tracks, and control autoplay — perfect for creators who want their page to sound as good as it looks.",
@@ -44,7 +42,6 @@ export const PREMIUM_COMPARISON_FEATURES: PremiumComparisonFeature[] = [
   },
   {
     id: "pages",
-    icon: "📄",
     name: "Multiple profile pages",
     description:
       "Create extra pages for galleries, portfolios, FAQs, embeds, widgets, and more — all under one cried.bio link with shared navigation.",
@@ -54,7 +51,6 @@ export const PREMIUM_COMPARISON_FEATURES: PremiumComparisonFeature[] = [
   },
   {
     id: "badge",
-    icon: "🏅",
     name: "Premium badge",
     description:
       "Receive an exclusive Premium badge displayed on your public profile so visitors know you're a supporter.",
@@ -64,7 +60,6 @@ export const PREMIUM_COMPARISON_FEATURES: PremiumComparisonFeature[] = [
   },
   {
     id: "fonts",
-    icon: "🎨",
     name: "Premium fonts",
     description:
       "Access exclusive font families unavailable on the free plan for bios, links, and profile typography.",
@@ -74,7 +69,6 @@ export const PREMIUM_COMPARISON_FEATURES: PremiumComparisonFeature[] = [
   },
   {
     id: "effects",
-    icon: "✨",
     name: "Premium effects",
     description:
       "Unlock animated card effects, premium cursor styles, border animations, and one custom effect request built for your profile.",
@@ -84,7 +78,6 @@ export const PREMIUM_COMPARISON_FEATURES: PremiumComparisonFeature[] = [
   },
   {
     id: "widgets",
-    icon: "🧩",
     name: "Widgets & embeds",
     description:
       "Add Discord presence, Spotify, GitHub, Roblox, countdowns, clocks, and more — with higher featured block limits on Premium.",
@@ -94,7 +87,6 @@ export const PREMIUM_COMPARISON_FEATURES: PremiumComparisonFeature[] = [
   },
   {
     id: "schedules",
-    icon: "💾",
     name: "Scheduled presets",
     description:
       "Automatically switch your profile preset based on time or date — seasonal themes, event promos, or day/night layouts on autopilot.",
@@ -104,7 +96,6 @@ export const PREMIUM_COMPARISON_FEATURES: PremiumComparisonFeature[] = [
   },
   {
     id: "customize",
-    icon: "🎛",
     name: "Advanced customization",
     description:
       "More layout controls, premium fonts, animated effects, custom domains, and deeper profile settings across your dashboard.",
@@ -114,7 +105,6 @@ export const PREMIUM_COMPARISON_FEATURES: PremiumComparisonFeature[] = [
   },
   {
     id: "analytics",
-    icon: "📊",
     name: "Advanced analytics",
     description:
       "Go beyond basic view counts with deeper traffic insights, trends, and profile performance data in your dashboard.",
@@ -124,7 +114,6 @@ export const PREMIUM_COMPARISON_FEATURES: PremiumComparisonFeature[] = [
   },
   {
     id: "early-access",
-    icon: "🚀",
     name: "Early access",
     description:
       "Receive new Premium features before everyone else — layouts, effects, and tools land on your profile first.",

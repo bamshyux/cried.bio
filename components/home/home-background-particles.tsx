@@ -1,12 +1,12 @@
 "use client";
 
-const PARTICLES = Array.from({ length: 36 }, (_, index) => ({
+const PARTICLES = Array.from({ length: 18 }, (_, index) => ({
   id: index,
-  left: `${(index * 17.3) % 100}%`,
-  top: `${(index * 23.7 + 11) % 100}%`,
-  size: index % 3 === 0 ? 2 : index % 3 === 1 ? 1.5 : 1,
-  delay: `${(index % 7) * 0.8}s`,
-  duration: `${14 + (index % 5) * 3}s`,
+  left: `${(index * 19.7 + 7) % 100}%`,
+  top: `${(index * 27.3 + 13) % 100}%`,
+  size: index % 3 === 0 ? 1.5 : 1,
+  delay: `${(index % 6) * 1.1}s`,
+  duration: `${18 + (index % 4) * 4}s`,
 }));
 
 export function HomeBackgroundParticles() {

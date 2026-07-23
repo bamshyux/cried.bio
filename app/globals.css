@@ -1752,14 +1752,35 @@ body,
 }
 
 /* Premium comparison section */
+.bf-premium-compare-column-highlight {
+  background: linear-gradient(
+    180deg,
+    rgba(201, 184, 150, 0.07) 0%,
+    rgba(201, 184, 150, 0.03) 50%,
+    rgba(201, 184, 150, 0.05) 100%
+  );
+  box-shadow: inset 1px 0 0 rgba(201, 184, 150, 0.1), inset -1px 0 0 rgba(201, 184, 150, 0.06);
+}
+
+.bf-premium-compare-row:hover {
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transform: translateY(-1px);
+}
+
+.bf-premium-compare-premium-cell {
+  position: relative;
+  z-index: 1;
+}
+
 .bf-premium-compare-glow {
   background: linear-gradient(
     180deg,
-    rgba(251, 191, 36, 0.06) 0%,
+    rgba(201, 184, 150, 0.06) 0%,
     rgba(255, 255, 255, 0.03) 45%,
-    rgba(251, 191, 36, 0.04) 100%
+    rgba(201, 184, 150, 0.04) 100%
   );
-  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(201, 184, 150, 0.08);
   border-radius: 12px;
   opacity: 0.85;
 }
@@ -1801,6 +1822,14 @@ body,
   }
 
   .bf-premium-compare-expand {
+    transition: none !important;
+  }
+
+  .bf-premium-compare-row:hover {
+    transform: none;
+  }
+
+  .bf-premium-segment-indicator {
     transition: none !important;
   }
 }
@@ -3372,12 +3401,12 @@ body,
 @keyframes bf-home-particle-drift {
   0%,
   100% {
-    opacity: 0.15;
+    opacity: 0.08;
     transform: translate3d(0, 0, 0);
   }
   50% {
-    opacity: 0.45;
-    transform: translate3d(8px, -18px, 0);
+    opacity: 0.28;
+    transform: translate3d(6px, -14px, 0);
   }
 }
 
@@ -3548,8 +3577,44 @@ body,
 }
 
 .bf-home-cta-primary {
-  animation: bf-home-cta-glow 3s ease-in-out infinite;
-  animation-delay: 1.2s;
+  /* Glow on hover only — applied via shadow utilities in component */
+}
+
+.bf-home-hero-profile {
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.bf-home-hero-profile-enter {
+  animation: bf-home-hero-profile-in 1s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+}
+
+.bf-home-hero-profile-card {
+  animation: bf-home-hero-profile-float 8s ease-in-out 1.4s infinite;
+}
+
+@keyframes bf-home-hero-profile-in {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) translateY(28px) scale(0.97);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1200px) translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes bf-home-hero-profile-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 .bf-home-reveal-pending {
@@ -3596,7 +3661,7 @@ body,
 .bf-home-particle {
   position: absolute;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.22);
   animation: bf-home-particle-drift ease-in-out infinite;
   will-change: transform, opacity;
 }
@@ -3657,11 +3722,11 @@ body,
 .bf-home-hero-spotlight {
   background: radial-gradient(
     ellipse at center,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.04) 42%,
+    rgba(255, 255, 255, 0.09) 0%,
+    rgba(255, 255, 255, 0.03) 45%,
     transparent 72%
   );
-  animation: bf-home-hero-spotlight-pulse 7s ease-in-out infinite;
+  animation: bf-home-hero-spotlight-pulse 9s ease-in-out infinite;
 }
 
 .bf-home-root {

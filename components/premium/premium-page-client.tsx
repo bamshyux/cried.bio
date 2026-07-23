@@ -63,30 +63,30 @@ function PricingCard({
 }) {
   return (
     <div
-      className={`relative flex flex-col rounded-2xl border p-6 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+      className={`relative flex flex-col rounded-2xl border p-5 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
         highlight
-          ? "border-amber-500/25 bg-amber-500/[0.04] shadow-[0_0_0_1px_rgba(251,191,36,0.08),0_16px_48px_rgba(0,0,0,0.35)]"
+          ? "border-[rgba(201,184,150,0.22)] bg-[rgba(201,184,150,0.04)] shadow-[0_0_0_1px_rgba(201,184,150,0.08),0_16px_48px_rgba(0,0,0,0.35)]"
           : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.12]"
       }`}
     >
       {highlight ? (
-        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full border border-amber-500/30 bg-[#141414] px-3 py-0.5 text-[10px] font-medium uppercase tracking-wider text-amber-300">
+        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full border border-[rgba(201,184,150,0.28)] bg-[#141414] px-3 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[#d4c4a8]">
           Best value
         </span>
       ) : null}
 
-      <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">{title}</p>
-      <p className="mt-3 text-3xl font-bold tracking-tight text-white">{price}</p>
-      <p className="mt-1 text-sm text-neutral-500">{period}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">{title}</p>
+      <p className="mt-2 text-[1.75rem] font-bold tracking-tight text-white">{price}</p>
+      <p className="mt-0.5 text-sm text-neutral-500">{period}</p>
 
-      <div className="mt-6 flex flex-wrap gap-2">
+      <div className="mt-5 flex flex-wrap gap-2">
         <button
           type="button"
           disabled={disabled}
           onClick={onSelect}
           className={`flex-1 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] disabled:cursor-not-allowed disabled:opacity-50 ${
             highlight
-              ? "bg-amber-500/15 text-amber-100 ring-1 ring-amber-500/30 hover:bg-amber-500/25"
+              ? "bg-[rgba(201,184,150,0.12)] text-[#ebe3cf] ring-1 ring-[rgba(201,184,150,0.28)] hover:bg-[rgba(201,184,150,0.18)]"
               : buttonPrimaryClassName
           }`}
         >
@@ -191,27 +191,31 @@ export function PremiumPageClient({
         </div>
       ) : null}
 
-      <div className="mb-10 text-center">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-amber-400/80">cried.bio Premium</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+      <div className="mb-6 text-center">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c9b896]/75">
+          cried.bio Premium
+        </p>
+        <h1 className="mt-2.5 text-[1.875rem] font-semibold tracking-tight text-white sm:text-[2.125rem]">
           {isPaid ? "Your Premium plan" : "Upgrade your profile"}
         </h1>
-        <p className="mx-auto mt-3 max-w-lg text-sm text-neutral-400">
+        <p className="mx-auto mt-2.5 max-w-lg text-sm leading-relaxed text-neutral-500">
           {isPaid
             ? "Manage your subscription and explore everything included in your plan."
             : "Unlock playlists, extra profile pages, scheduled presets, premium fonts, and more."}
         </p>
       </div>
 
-      <div className={dashboardStackClassName}>
-        <div className={`${cardClassName} border border-white/[0.08]`}>
-          <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className={`${dashboardStackClassName} gap-5`}>
+        <div className={`${cardClassName} border border-white/[0.07] p-4 shadow-[0_12px_40px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-5`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">Current tier</p>
-              <p className="mt-1 text-3xl font-bold text-white">{tierName}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+                Current tier
+              </p>
+              <p className="mt-0.5 text-2xl font-semibold tracking-tight text-white">{tierName}</p>
             </div>
             {isPaid ? (
-              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
+              <span className="rounded-full border border-[rgba(201,184,150,0.28)] bg-[rgba(201,184,150,0.08)] px-3 py-1 text-xs font-medium text-[#d4c4a8]">
                 Active
               </span>
             ) : (
@@ -221,24 +225,24 @@ export function PremiumPageClient({
             )}
           </div>
 
-          <dl className="mt-6 grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl bg-white/[0.03] p-4">
-              <dt className="text-xs text-neutral-500">Status</dt>
-              <dd className="mt-1 text-sm font-medium text-white">
+          <dl className="mt-4 grid gap-2.5 sm:grid-cols-3">
+            <div className="rounded-xl border border-white/[0.05] bg-white/[0.025] px-3.5 py-2.5">
+              <dt className="text-[11px] text-neutral-500">Status</dt>
+              <dd className="mt-0.5 text-sm font-medium text-white">
                 {isPaid ? "Premium active" : "Free"}
               </dd>
             </div>
-            <div className="rounded-xl bg-white/[0.03] p-4">
-              <dt className="text-xs text-neutral-500">Plan</dt>
-              <dd className="mt-1 text-sm font-medium text-white">
+            <div className="rounded-xl border border-white/[0.05] bg-white/[0.025] px-3.5 py-2.5">
+              <dt className="text-[11px] text-neutral-500">Plan</dt>
+              <dd className="mt-0.5 text-sm font-medium text-white">
                 {billingLabel ?? (isPaid ? tierName : "—")}
               </dd>
             </div>
-            <div className="rounded-xl bg-white/[0.03] p-4">
-              <dt className="text-xs text-neutral-500">
+            <div className="rounded-xl border border-white/[0.05] bg-white/[0.025] px-3.5 py-2.5">
+              <dt className="text-[11px] text-neutral-500">
                 {entitlements.lifetime ? "Membership" : "Next renewal"}
               </dt>
-              <dd className="mt-1 text-sm font-medium text-white">
+              <dd className="mt-0.5 text-sm font-medium text-white">
                 {entitlements.lifetime
                   ? "Lifetime Member"
                   : isPaid
@@ -248,10 +252,10 @@ export function PremiumPageClient({
             </div>
           </dl>
 
-          {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
+          {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
 
           {isPaid && hasStripeCustomer && !entitlements.lifetime ? (
-            <div className="mt-6">
+            <div className="mt-4">
               <button
                 type="button"
                 disabled={loading !== null}

@@ -97,19 +97,18 @@ export default async function Home() {
 
       <main className="relative z-10">
         <HomeHero profiles={showcaseProfiles}>
-          <div className="bf-home-enter bf-home-enter-1 mb-6 inline-flex items-center gap-2 rounded-full border border-white/[0.1] bg-[#141414]/70 px-4 py-1.5 text-sm text-neutral-400 bf-home-glass">
-            <span className="bf-home-pulse-dot h-1.5 w-1.5 rounded-full bg-[#fafafa]" />
-            {stats.total_profiles.toLocaleString()}+ creators already here
-          </div>
+          <p className="bf-home-enter bf-home-enter-1 text-[11px] font-medium uppercase tracking-[0.28em] text-neutral-600">
+            cried.bio
+          </p>
 
-          <h1 className="bf-home-enter bf-home-enter-2 text-[clamp(2.85rem,7.8vw,6rem)] font-semibold leading-[0.9] tracking-[-0.04em]">
-            Designed to be
+          <h1 className="bf-home-enter bf-home-enter-2 mt-8 text-[clamp(2.75rem,7.5vw,5.25rem)] font-semibold leading-[1.04] tracking-[-0.045em] text-white">
+            Your bio link,
             <br />
-            <span className="bf-home-accent-glow text-[#fafafa]">yours.</span>
+            <span className="text-neutral-400">elevated.</span>
           </h1>
 
-          <p className="bf-home-enter bf-home-enter-3 mt-4 max-w-lg text-base leading-relaxed text-neutral-500 sm:mt-5 sm:text-[1.05rem]">
-            Themes, music, effects, widgets, and multi-page layouts — built for creators who care about the details.
+          <p className="bf-home-enter bf-home-enter-3 mx-auto mt-8 max-w-md text-base leading-[1.7] text-neutral-500 sm:text-[1.0625rem]">
+            Themes, music, effects, and multi-page layouts — crafted for creators who care about the details.
           </p>
 
           <HomeHeroActions>
