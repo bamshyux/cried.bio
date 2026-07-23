@@ -116,23 +116,24 @@ body,
   z-index: 10;
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .bf-profile-viewport-main {
   box-sizing: border-box;
-  display: flex;
   width: 100%;
-  min-height: 100dvh;
-  flex-direction: column;
-  align-items: center;
   padding-inline: 1.25rem;
 }
 
-.bf-profile-viewport-main--center {
-  justify-content: flex-start;
+.bf-profile-viewport-content {
+  width: 100%;
 }
 
 .bf-profile-viewport-main--flow {
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+  align-items: center;
   justify-content: flex-start;
   padding-block: 2.5rem 3rem;
 }
