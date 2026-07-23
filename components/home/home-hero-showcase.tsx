@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   LuAward,
   LuChartBar,
@@ -102,13 +102,15 @@ function MusicPlayerMock({ title }: { title: string }) {
   );
 }
 
-function DiscordWidgetMock() {
+function DiscordWidgetMock({ username }: { username: string }) {
+  const initial = username.charAt(0).toUpperCase();
+
   return (
     <MockShell className="w-[12.5rem]">
       <div className="flex items-start gap-2.5">
         <div className="relative shrink-0">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#5865F2]/30 text-sm font-bold text-[#aeb4ff]">
-            D
+            {initial}
           </div>
           <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#0a0a0a] bg-emerald-400" />
         </div>
@@ -206,9 +208,10 @@ function AnalyticsMock({ views }: { views: number }) {
   );
 }
 
-function BackgroundSelectorMock() {
+function BackgroundSelectorMock({ profile }: { profile: LandingShowcaseProfile }) {
+  const featured = profile.background_image_url || profile.banner_url;
   const swatches = [
-    "linear-gradient(135deg, #1a1a2e, #16213e)",
+    profile.background_color || "linear-gradient(135deg, #1a1a2e, #16213e)",
     "linear-gradient(135deg, #2d1b4e, #0f0f0f)",
     "linear-gradient(135deg, #1f2937, #111827)",
     "linear-gradient(135deg, #374151, #1f2937)",
@@ -224,9 +227,13 @@ function BackgroundSelectorMock() {
         {swatches.map((bg, i) => (
           <span
             key={i}
-            className={`aspect-square rounded-lg ${i === 1 ? "ring-2 ring-white/50 ring-offset-1 ring-offset-[#0a0a0a]" : "ring-1 ring-white/[0.08]"}`}
-            style={{ background: bg }}
-          />
+            className={`relative block aspect-square overflow-hidden rounded-lg ${i === 0 ? "ring-2 ring-white/50 ring-offset-1 ring-offset-[#0a0a0a]" : "ring-1 ring-white/[0.08]"}`}
+            style={i === 0 && featured ? undefined : { background: bg }}
+          >
+            {i === 0 && featured ? (
+              <Image src={featured} alt="" fill className="object-cover" unoptimized />
+            ) : null}
+          </span>
         ))}
       </div>
     </MockShell>
@@ -331,11 +338,29 @@ export function HomeHeroShowcase({
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState<Tilt>({ x: 0, y: 0 });
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const profile = useMemo(() => {
+  const showcaseProfiles = useMemo(() => {
     const valid = profiles.filter((item) => item.username);
-    return valid[0] ?? DEMO_PROFILE;
+    return valid.length > 0 ? valid : [DEMO_PROFILE];
   }, [profiles]);
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [showcaseProfiles]);
+
+  useEffect(() => {
+    if (showcaseProfiles.length < 2) return;
+
+    const timer = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % showcaseProfiles.length);
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [showcaseProfiles.length]);
+
+  const profile = showcaseProfiles[activeIndex] ?? DEMO_PROFILE;
+  const swapKey = profile.id;
 
   const musicTitle = profile.music_title?.trim() || "Midnight Drive";
   const views = profile.view_count ?? 2400;
@@ -384,7 +409,9 @@ export function HomeHeroShowcase({
             enterDelay={0.1}
             interactive
           >
-            <ProfileCardMock profile={profile} />
+            <div key={swapKey} className="bf-home-demo-swap">
+              <ProfileCardMock profile={profile} />
+            </div>
           </OrbitCard>
 
           <OrbitCard
@@ -398,7 +425,9 @@ export function HomeHeroShowcase({
             parallax={tilt}
             enterDelay={0.18}
           >
-            <MusicPlayerMock title={musicTitle} />
+            <div key={swapKey} className="bf-home-demo-swap">
+              <MusicPlayerMock title={musicTitle} />
+            </div>
           </OrbitCard>
 
           <OrbitCard
@@ -412,7 +441,9 @@ export function HomeHeroShowcase({
             parallax={tilt}
             enterDelay={0.24}
           >
-            <DiscordWidgetMock />
+            <div key={swapKey} className="bf-home-demo-swap">
+              <DiscordWidgetMock username={profile.username} />
+            </div>
           </OrbitCard>
 
           <OrbitCard
@@ -447,7 +478,9 @@ export function HomeHeroShowcase({
             enterDelay={0.36}
             className="hidden md:block"
           >
-            <AnalyticsMock views={views} />
+            <div key={swapKey} className="bf-home-demo-swap">
+              <AnalyticsMock views={views} />
+            </div>
           </OrbitCard>
 
           <OrbitCard
@@ -483,7 +516,9 @@ export function HomeHeroShowcase({
             enterDelay={0.48}
             className="hidden lg:block"
           >
-            <BackgroundSelectorMock />
+            <div key={swapKey} className="bf-home-demo-swap">
+              <BackgroundSelectorMock profile={profile} />
+            </div>
           </OrbitCard>
 
           <OrbitCard

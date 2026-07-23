@@ -3787,6 +3787,27 @@ body,
   animation: bf-home-marquee 60s linear infinite;
 }
 
+.bf-home-marquee-mask {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.35) 6%,
+    black 16%,
+    black 84%,
+    rgba(0, 0, 0, 0.35) 94%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.35) 6%,
+    black 16%,
+    black 84%,
+    rgba(0, 0, 0, 0.35) 94%,
+    transparent 100%
+  );
+}
+
 .bf-home-marquee-track:hover {
   animation-play-state: paused;
 }

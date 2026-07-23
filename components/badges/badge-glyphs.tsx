@@ -134,6 +134,19 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
         </>
       );
 
+    case "gifter":
+      return (
+        <>
+          <path d="M12 5.2C10.2 3.4 7 3.8 7 6.4c0 2 2.4 3.1 5 3.5V5.2z" fill={c} />
+          <path d="M12 5.2c1.8-1.8 5-1.4 5 1.2 0 2-2.4 3.1-5 3.5V5.2z" fill={c} />
+          <circle cx="12" cy="6.6" r="1.2" fill={hi} />
+          <rect x="5" y="10.2" width="14" height="2.6" rx="0.5" fill={c} />
+          <rect x="5.5" y="12.5" width="13" height="8.8" rx="1" fill={c} />
+          <rect x="11" y="10.2" width="2" height="11.1" fill={hi} opacity="0.5" />
+          <rect x="5.5" y="15.6" width="13" height="1.6" fill={hi} opacity="0.4" />
+        </>
+      );
+
     case "og":
       return <OgBadgeMarkFromColor color={c} />;
 

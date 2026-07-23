@@ -6,7 +6,7 @@ values (
   'gifter',
   'Gifter',
   'gifter',
-  '#fafafa',
+  '#f472b6',
   'Gifted Premium or Store items to another creator.',
   'supporter',
   'legendary',

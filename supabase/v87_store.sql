@@ -86,7 +86,7 @@ using (auth.uid() = profile_id);
 -- Store badges
 insert into public.badges (slug, name, icon, color, description, category, rarity, sort_order, is_assignable)
 values
-  ('gifter', 'Gifter', '🎁', '#fafafa', 'Gifted Premium or Store items to another creator.', 'supporter', 'legendary', 5, false),
+  ('gifter', 'Gifter', 'gifter', '#f472b6', 'Gifted Premium or Store items to another creator.', 'supporter', 'legendary', 5, false),
   ('supporter', 'Supporter', '♥', '#fafafa', 'Supports cried.bio development.', 'supporter', 'epic', 6, false)
 on conflict (slug) do update set
   name = excluded.name,

@@ -128,6 +128,17 @@ const paths: Record<string, (p: IconProps) => React.ReactNode> = {
       <path d="M7 21h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </Svg>
   ),
+  gifter: (p) => (
+    <Svg {...p}>
+      <path d="M12 5.2C10.2 3.4 7 3.8 7 6.4c0 2 2.4 3.1 5 3.5V5.2z" fill="currentColor" />
+      <path d="M12 5.2c1.8-1.8 5-1.4 5 1.2 0 2-2.4 3.1-5 3.5V5.2z" fill="currentColor" />
+      <circle cx="12" cy="6.6" r="1.2" fill="currentColor" fillOpacity="0.45" />
+      <rect x="5" y="10.2" width="14" height="2.6" rx="0.5" fill="currentColor" />
+      <rect x="5.5" y="12.5" width="13" height="8.8" rx="1" fill="currentColor" />
+      <rect x="11" y="10.2" width="2" height="11.1" fill="currentColor" fillOpacity="0.45" />
+      <rect x="5.5" y="15.6" width="13" height="1.6" fill="currentColor" fillOpacity="0.35" />
+    </Svg>
+  ),
   og: (p) => (
     <Svg {...p}>
       <OgBadgeMark />

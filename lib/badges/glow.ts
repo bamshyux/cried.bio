@@ -28,6 +28,7 @@ const PREMIUM_SLUGS = new Set(["premium", "staff", "moderator", "creator", "comm
 
 export function resolveBadgeGlowTone(badge: BadgeGlowInput): BadgeGlowTone {
   if (badge.slug === "verified") return "verified";
+  if (badge.slug === "gifter") return "accent";
   if (PREMIUM_SLUGS.has(badge.slug)) return "premium";
   if (GOLD_SLUGS.has(badge.slug)) return "gold";
   if (badge.category === "verification" && badge.slug === "developer") return "accent";
