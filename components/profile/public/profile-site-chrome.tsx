@@ -60,7 +60,7 @@ export function ProfileSiteChrome({
 
   const mainPadding = [
     hasSideNav ? "pt-20 sm:pt-24" : "",
-    hasBottomNav ? "pb-24 sm:pb-28" : "pb-10 sm:pb-12",
+    hasBottomNav ? "pb-24 sm:pb-28" : centerContent ? "" : "pb-10 sm:pb-12",
     navPosition === "left" ? "pl-[min(11rem,28vw)] sm:pl-44" : "",
     navPosition === "right" ? "pr-[min(11rem,28vw)] sm:pr-44" : "",
   ]
@@ -68,7 +68,7 @@ export function ProfileSiteChrome({
     .join(" ");
 
   const mainLayoutClass = centerContent
-    ? "grid min-h-[100dvh] w-full grid-rows-[minmax(12dvh,1fr)_auto_minmax(12dvh,1fr)]"
+    ? "grid min-h-[100dvh] w-full grid-rows-[minmax(0,1fr)_auto_minmax(0,1fr)]"
     : "flex min-h-[100dvh] w-full flex-col";
 
   const mainSpacingClass = centerContent
