@@ -15,22 +15,6 @@ export type LandingStats = {
   total_badges_granted: number;
 };
 
-export type LandingActivityItem = {
-  id: string;
-  type:
-    | "profile_created"
-    | "theme_created"
-    | "badge_earned"
-    | "milestone_reached"
-    | "profile_updated"
-    | "link_added"
-    | "friend_added";
-  title: string;
-  username: string | null;
-  avatar_url: string | null;
-  created_at: string;
-};
-
 export type LandingTestimonial = {
   id: string;
   quote: string;

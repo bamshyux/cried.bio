@@ -7,7 +7,6 @@ import { isFrozenViewCountProfile } from "@/lib/analytics/frozen-view-count";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type {
-  LandingActivityItem,
   LandingFeaturedProfile,
   LandingFeaturedProfileRow,
   LandingProfile,
@@ -190,88 +189,6 @@ export async function getFeaturedProfiles(): Promise<LandingFeaturedProfile[]> {
 
   const fallback = await getRandomPublicProfiles(6);
   return fallback.map((p, i) => ({ ...p, sort_order: i }));
-}
-
-export async function getLandingActivityFeed(limit = 20): Promise<LandingActivityItem[]> {
-  const supabase = await db();
-  const items: LandingActivityItem[] = [];
-
-  const [events, newProfiles, themes, badgeAwards] = await Promise.all([
-    supabase
-      .from("activity_events")
-      .select("id, event_type, title, created_at, profiles:profile_id (username, avatar_url)")
-      .order("created_at", { ascending: false })
-      .limit(15),
-    supabase
-      .from("profiles")
-      .select("id, username, avatar_url, created_at")
-      .not("username", "is", null)
-      .order("created_at", { ascending: false })
-      .limit(8),
-    supabase
-      .from("custom_themes")
-      .select("id, name, created_at, profiles:profile_id (username, avatar_url)")
-      .order("created_at", { ascending: false })
-      .limit(8),
-    supabase
-      .from("profile_badges")
-      .select("id, assigned_at, profiles:profile_id (username, avatar_url), badges:badge_id (name)")
-      .order("assigned_at", { ascending: false })
-      .limit(8),
-  ]);
-
-  for (const row of events.data ?? []) {
-    const profile = unwrapJoin(row.profiles);
-    items.push({
-      id: `event-${row.id}`,
-      type: row.event_type as LandingActivityItem["type"],
-      title: row.title,
-      username: profile?.username ?? null,
-      avatar_url: profile?.avatar_url ?? null,
-      created_at: row.created_at,
-    });
-  }
-
-  for (const row of newProfiles.data ?? []) {
-    if (!row.username) continue;
-    items.push({
-      id: `signup-${row.id}`,
-      type: "profile_created",
-      title: `@${row.username} joined cried.bio`,
-      username: row.username,
-      avatar_url: row.avatar_url,
-      created_at: row.created_at,
-    });
-  }
-
-  for (const row of themes.data ?? []) {
-    const profile = unwrapJoin(row.profiles);
-    items.push({
-      id: `theme-${row.id}`,
-      type: "theme_created",
-      title: `Created theme "${row.name}"`,
-      username: profile?.username ?? null,
-      avatar_url: profile?.avatar_url ?? null,
-      created_at: row.created_at,
-    });
-  }
-
-  for (const row of badgeAwards.data ?? []) {
-    const profile = unwrapJoin(row.profiles);
-    const badge = unwrapJoin(row.badges);
-    items.push({
-      id: `badge-${row.id}`,
-      type: "badge_earned",
-      title: `Earned the ${badge?.name ?? "badge"} badge`,
-      username: profile?.username ?? null,
-      avatar_url: profile?.avatar_url ?? null,
-      created_at: row.assigned_at,
-    });
-  }
-
-  return items
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, limit);
 }
 
 export async function getLandingTestimonials(): Promise<LandingTestimonial[]> {

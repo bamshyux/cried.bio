@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { DiscordCommunityPromo } from "@/components/discord/discord-community-promo";
 import { CriedLogo } from "@/components/brand/logo";
-import { HomeActivityFeed } from "@/components/home/home-activity-feed";
 import { HomeFeaturedProfiles } from "@/components/home/home-featured-profiles";
 import { HomeFloatingCards } from "@/components/home/home-floating-cards";
 import { EmailVerifiedNotice } from "@/components/home/email-verified-notice";
@@ -23,7 +22,6 @@ import { PlatformUpdateShell } from "@/components/platform-updates/platform-upda
 import {
   getFeaturedProfiles,
   getFloatingProfileCards,
-  getLandingActivityFeed,
   getLandingRoadmap,
   getLandingStats,
   getLandingTestimonials,
@@ -50,7 +48,6 @@ export default async function Home() {
     stats,
     randomProfiles,
     featuredProfiles,
-    activityFeed,
     testimonials,
     roadmap,
     floatingProfiles,
@@ -58,7 +55,6 @@ export default async function Home() {
     getLandingStats(),
     getRandomPublicProfiles(12),
     getFeaturedProfiles(),
-    getLandingActivityFeed(20),
     getLandingTestimonials(),
     getLandingRoadmap(),
     getFloatingProfileCards(6),
@@ -123,7 +119,6 @@ export default async function Home() {
           <HomeStatsSection stats={stats} />
         </section>
         <HomePreview />
-        <HomeActivityFeed items={activityFeed} />
         <HomeFeaturedProfiles profiles={featuredProfiles} />
         <HomeOurUsers profiles={randomProfiles} totalUsers={stats.total_users} />
         <HomeWhyChoose />

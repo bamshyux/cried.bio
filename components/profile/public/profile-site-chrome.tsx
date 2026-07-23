@@ -102,8 +102,11 @@ export function ProfileSiteChrome({
 
     measure();
 
+    const contentEl = contentRef.current;
+    if (!contentEl) return;
+
     const ro = new ResizeObserver(measure);
-    ro.observe(content);
+    ro.observe(contentEl);
     window.addEventListener("resize", measure);
 
     return () => {
