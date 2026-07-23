@@ -63,9 +63,11 @@ function readEffectsForm(settings: ProfileSettings): EffectsFormState {
 export function EffectsEditor({
   settings,
   profile,
+  pageId,
 }: {
   settings: ProfileSettings;
   profile: Profile;
+  pageId?: string;
 }) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
@@ -74,6 +76,8 @@ export function EffectsEditor({
     settings,
     readEffectsForm,
     "Effects saved.",
+    undefined,
+    pageId,
   );
 
   const [uploadError, setUploadError] = useState<string>();
@@ -133,7 +137,7 @@ export function EffectsEditor({
 
     try {
       const url = await uploadCursorImageToStorage(file);
-      const result = await saveCursorImageAction(url);
+      const result = await saveCursorImageAction(url, pageId);
       if (result.error) {
         setUploadError(result.error);
         setCursorPreview(null);
@@ -154,7 +158,7 @@ export function EffectsEditor({
     startRemove(async () => {
       setUploadError(undefined);
       setUploadSuccess(undefined);
-      const result = await removeCursorImageAction();
+      const result = await removeCursorImageAction(pageId);
       if (result.error) {
         setUploadError(result.error);
         return;
@@ -177,7 +181,7 @@ export function EffectsEditor({
 
     try {
       const url = await uploadProfileFaviconToStorage(file);
-      const result = await saveProfileFaviconAction(url);
+      const result = await saveProfileFaviconAction(url, pageId);
       if (result.error) {
         setFaviconUploadError(result.error);
         setFaviconPreview(null);
@@ -198,7 +202,7 @@ export function EffectsEditor({
     startRemove(async () => {
       setFaviconUploadError(undefined);
       setFaviconUploadSuccess(undefined);
-      const result = await removeProfileFaviconAction();
+      const result = await removeProfileFaviconAction(pageId);
       if (result.error) {
         setFaviconUploadError(result.error);
         return;
@@ -394,9 +398,11 @@ export function EffectsEditor({
 export function EffectsPageShell({
   settings,
   profile,
+  pageId,
 }: {
   settings: ProfileSettings;
   profile: Profile;
+  pageId?: string;
 }) {
-  return <EffectsEditor settings={settings} profile={profile} />;
+  return <EffectsEditor settings={settings} profile={profile} pageId={pageId} />;
 }

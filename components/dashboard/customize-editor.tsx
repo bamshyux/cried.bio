@@ -52,9 +52,11 @@ function readCustomizeForm(settings: ProfileSettings): CustomizeFormState {
 export function CustomizeEditor({
   settings,
   canUsePremiumFonts = false,
+  pageId,
 }: {
   settings: ProfileSettings;
   canUsePremiumFonts?: boolean;
+  pageId?: string;
 }) {
   const { openUpgrade } = useUpgradeModal();
   const { form, patchForm, submit, state, isPending } = useDashboardSettingsSection(
@@ -62,6 +64,8 @@ export function CustomizeEditor({
     settings,
     readCustomizeForm,
     "Customization saved.",
+    undefined,
+    pageId,
   );
 
   const handleSave = (event: React.FormEvent) => {
@@ -301,9 +305,17 @@ export function CustomizeEditor({
 export function CustomizePageShell({
   settings,
   canUsePremiumFonts = false,
+  pageId,
 }: {
   settings: ProfileSettings;
   canUsePremiumFonts?: boolean;
+  pageId?: string;
 }) {
-  return <CustomizeEditor settings={settings} canUsePremiumFonts={canUsePremiumFonts} />;
+  return (
+    <CustomizeEditor
+      settings={settings}
+      canUsePremiumFonts={canUsePremiumFonts}
+      pageId={pageId}
+    />
+  );
 }

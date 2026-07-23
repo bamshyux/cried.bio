@@ -103,7 +103,7 @@ function CustomLinkIconField({
   );
 }
 
-function AddSocialForm({ onDone }: { onDone: () => void }) {
+function AddSocialForm({ onDone, pageId }: { onDone: () => void; pageId?: string }) {
   const [state, formAction, isPending] = useActionState(createSocialLinkAction, initial);
   const [platform, setPlatform] = useState<SocialPlatformId | null>(null);
   const router = useRouter();
@@ -129,6 +129,7 @@ function AddSocialForm({ onDone }: { onDone: () => void }) {
 
   return (
     <form action={formAction} className="space-y-4">
+      {pageId ? <input type="hidden" name="_page_id" value={pageId} /> : null}
       <input type="hidden" name="platform" value={platform} />
       <div className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-[#0f0f0f] p-3">
         <LinkIcon platform={platform} size={22} />
@@ -152,7 +153,7 @@ function AddSocialForm({ onDone }: { onDone: () => void }) {
   );
 }
 
-function AddCustomLinkForm({ onDone }: { onDone: () => void }) {
+function AddCustomLinkForm({ onDone, pageId }: { onDone: () => void; pageId?: string }) {
   const [state, formAction, isPending] = useActionState(createLinkAction, initial);
   const [icon, setIcon] = useState("link");
   const [iconUploading, setIconUploading] = useState(false);
@@ -167,6 +168,7 @@ function AddCustomLinkForm({ onDone }: { onDone: () => void }) {
 
   return (
     <form action={formAction} className="space-y-4">
+      {pageId ? <input type="hidden" name="_page_id" value={pageId} /> : null}
       <input type="hidden" name="icon" value={icon} />
       <CustomLinkIconField icon={icon} onIconChange={setIcon} onUploadingChange={setIconUploading} />
       <div>
@@ -197,6 +199,7 @@ function LinkRow({
   onDragOver,
   onDrop,
   isDragging,
+  pageId,
 }: {
   link: ProfileLink;
   index: number;
@@ -204,6 +207,7 @@ function LinkRow({
   onDragOver: (e: React.DragEvent, i: number) => void;
   onDrop: (i: number) => void;
   isDragging: boolean;
+  pageId?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -221,7 +225,7 @@ function LinkRow({
 
   const handleDelete = () => {
     startTransition(async () => {
-      await deleteLinkAction(link.id);
+      await deleteLinkAction(link.id, pageId);
       router.refresh();
     });
   };
@@ -229,6 +233,7 @@ function LinkRow({
   if (isEditing) {
     return (
       <form action={formAction} className="space-y-4 rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4">
+        {pageId ? <input type="hidden" name="_page_id" value={pageId} /> : null}
         <input type="hidden" name="icon" value={icon} />
         <CustomLinkIconField icon={icon} onIconChange={setIcon} onUploadingChange={setIconUploading} />
         <div className="grid gap-4 sm:grid-cols-2">
@@ -278,7 +283,15 @@ function LinkRow({
   );
 }
 
-export function LinksEditor({ links: initialLinks, settings }: { links: ProfileLink[]; settings: ProfileSettings }) {
+export function LinksEditor({
+  links: initialLinks,
+  settings,
+  pageId,
+}: {
+  links: ProfileLink[];
+  settings: ProfileSettings;
+  pageId?: string;
+}) {
   const router = useRouter();
   const [links, setLinks] = useState(initialLinks);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -306,7 +319,7 @@ export function LinksEditor({ links: initialLinks, settings }: { links: ProfileL
     setLinks(reordered);
     setDragIndex(null);
     startTransition(async () => {
-      await reorderLinksAction(reordered.map((l) => l.id));
+      await reorderLinksAction(reordered.map((l) => l.id), pageId);
       router.refresh();
     });
   };
@@ -322,6 +335,7 @@ export function LinksEditor({ links: initialLinks, settings }: { links: ProfileL
         <h2 className="mb-4 text-sm font-medium text-white">Link display</h2>
         <form action={linkSettingsAction} className="space-y-4">
           <input type="hidden" name="_section" value="links" />
+          {pageId ? <input type="hidden" name="_page_id" value={pageId} /> : null}
           <div>
             <label htmlFor="links_style" className={labelClassName}>Link style</label>
             <select id="links_style" name="links_style" className={inputClassName} defaultValue={settings.links_style}>
@@ -414,6 +428,7 @@ export function LinksEditor({ links: initialLinks, settings }: { links: ProfileL
               onDragStart={setDragIndex}
               onDragOver={(e, i) => { e.preventDefault(); if (dragIndex !== null && dragIndex !== i) setDragIndex(i); }}
               onDrop={handleDrop}
+              pageId={pageId}
             />
           ))}
           {isPending && <p className="text-xs text-neutral-600">Saving order...</p>}
@@ -435,11 +450,11 @@ export function LinksEditor({ links: initialLinks, settings }: { links: ProfileL
         </div>
       ) : addMode === "social" ? (
         <div className="bf-card p-5">
-          <AddSocialForm onDone={() => setAddMode("none")} />
+          <AddSocialForm onDone={() => setAddMode("none")} pageId={pageId} />
         </div>
       ) : (
         <div className="bf-card p-5">
-          <AddCustomLinkForm onDone={() => setAddMode("none")} />
+          <AddCustomLinkForm onDone={() => setAddMode("none")} pageId={pageId} />
         </div>
       )}
     </>

@@ -35,8 +35,27 @@ async function ensureProfileRow(userId: string) {
   return profile.username;
 }
 
-async function revalidateProfilePaths(userId: string) {
-  await revalidateAfterProfileAppearanceChange(userId, ["/dashboard/links"]);
+function parsePageId(formData?: FormData | null): string | null {
+  if (!formData) return null;
+  const raw = String(formData.get("_page_id") ?? "").trim();
+  return raw || null;
+}
+
+function applyPageFilter<T extends { eq: (col: string, val: string) => T; is: (col: string, val: null) => T }>(
+  query: T,
+  pageId: string | null,
+): T {
+  return pageId ? query.eq("page_id", pageId) : query.is("page_id", null);
+}
+
+async function revalidateProfilePaths(userId: string, pageId?: string | null) {
+  const paths = ["/dashboard/links"];
+  if (pageId) paths.push(`/dashboard/profile-pages/${pageId}/links`);
+  await revalidateAfterProfileAppearanceChange(userId, paths);
+  if (pageId) {
+    const { revalidateProfilePagePaths } = await import("@/lib/profile-pages/revalidate");
+    await revalidateProfilePagePaths(userId, pageId);
+  }
 }
 
 function validateLinkInput(title: string, url: string) {
@@ -101,11 +120,14 @@ export async function createLinkAction(
   await ensureProfileRow(userId);
 
   const supabase = await createClient();
+  const pageId = parsePageId(formData);
 
-  const { data: lastLink } = await supabase
+  let lastLinkQuery = supabase
     .from("links")
     .select("sort_order")
-    .eq("profile_id", userId)
+    .eq("profile_id", userId);
+  lastLinkQuery = applyPageFilter(lastLinkQuery, pageId);
+  const { data: lastLink } = await lastLinkQuery
     .order("sort_order", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -114,6 +136,7 @@ export async function createLinkAction(
 
   const { error } = await supabase.from("links").insert({
     profile_id: userId,
+    page_id: pageId,
     title: title.trim(),
     url: normalizeLinkUrl(url),
     icon,
@@ -127,7 +150,7 @@ export async function createLinkAction(
     return { error: error.message };
   }
 
-  await revalidateProfilePaths(userId);
+  await revalidateProfilePaths(userId, pageId);
   return { success: "Link added." };
 }
 
@@ -138,6 +161,7 @@ export async function createSocialLinkAction(
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "You must be logged in." };
 
+  const pageId = parsePageId(formData);
   const platformId = String(formData.get("platform") ?? "");
   const input = String(formData.get("input") ?? "").trim();
   const platform = getPlatform(platformId);
@@ -162,16 +186,19 @@ export async function createSocialLinkAction(
   await ensureProfileRow(userId);
   const supabase = await createClient();
 
-  const { data: lastLink } = await supabase
+  let lastLinkQuery = supabase
     .from("links")
     .select("sort_order")
-    .eq("profile_id", userId)
+    .eq("profile_id", userId);
+  lastLinkQuery = applyPageFilter(lastLinkQuery, pageId);
+  const { data: lastLink } = await lastLinkQuery
     .order("sort_order", { ascending: false })
     .limit(1)
     .maybeSingle();
 
   const { error } = await supabase.from("links").insert({
     profile_id: userId,
+    page_id: pageId,
     title: platform.buildTitle(input),
     url,
     icon: platform.id,
@@ -183,7 +210,7 @@ export async function createSocialLinkAction(
 
   if (error) return { error: error.message };
 
-  await revalidateProfilePaths(userId);
+  await revalidateProfilePaths(userId, pageId);
   return { success: `${platform.name} link added.` };
 }
 
@@ -191,6 +218,7 @@ export async function updateLinkAction(
   linkId: string,
   _prevState: LinkFormState,
   formData: FormData,
+  pageId?: string | null,
 ): Promise<LinkFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) {
@@ -218,8 +246,9 @@ export async function updateLinkAction(
   const urlError = await rejectIfModerated(url, "link_url", userId);
   if (urlError) return { error: urlError };
 
+  const resolvedPageId = pageId ?? parsePageId(formData);
   const supabase = await createClient();
-  const { error } = await supabase
+  let updateQuery = supabase
     .from("links")
     .update({
       title: title.trim(),
@@ -231,16 +260,18 @@ export async function updateLinkAction(
     })
     .eq("id", linkId)
     .eq("profile_id", userId);
+  updateQuery = applyPageFilter(updateQuery, resolvedPageId);
+  const { error } = await updateQuery;
 
   if (error) {
     return { error: error.message };
   }
 
-  await revalidateProfilePaths(userId);
+  await revalidateProfilePaths(userId, resolvedPageId);
   return { success: "Link updated." };
 }
 
-export async function deleteLinkAction(linkId: string): Promise<LinkFormState> {
+export async function deleteLinkAction(linkId: string, pageId?: string | null): Promise<LinkFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) {
     return { error: "You must be logged in." };
@@ -257,13 +288,14 @@ export async function deleteLinkAction(linkId: string): Promise<LinkFormState> {
     return { error: error.message };
   }
 
-  await revalidateProfilePaths(userId);
+  await revalidateProfilePaths(userId, pageId);
   return { success: "Link deleted." };
 }
 
 export async function moveLinkAction(
   linkId: string,
   direction: "up" | "down",
+  pageId?: string | null,
 ): Promise<LinkFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) {
@@ -271,11 +303,9 @@ export async function moveLinkAction(
   }
 
   const supabase = await createClient();
-  const { data: links } = await supabase
-    .from("links")
-    .select("id, sort_order")
-    .eq("profile_id", userId)
-    .order("sort_order", { ascending: true });
+  let linksQuery = supabase.from("links").select("id, sort_order").eq("profile_id", userId);
+  linksQuery = applyPageFilter(linksQuery, pageId ?? null);
+  const { data: links } = await linksQuery.order("sort_order", { ascending: true });
 
   if (!links?.length) {
     return { error: "No links found." };
@@ -314,12 +344,13 @@ export async function moveLinkAction(
     return { error: secondError.message };
   }
 
-  await revalidateProfilePaths(userId);
+  await revalidateProfilePaths(userId, pageId);
   return { success: "Link moved." };
 }
 
 export async function reorderLinksAction(
   orderedIds: string[],
+  pageId?: string | null,
 ): Promise<LinkFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) {
@@ -340,6 +371,6 @@ export async function reorderLinksAction(
     }
   }
 
-  await revalidateProfilePaths(userId);
+  await revalidateProfilePaths(userId, pageId);
   return { success: "Links reordered." };
 }

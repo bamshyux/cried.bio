@@ -14,6 +14,22 @@ async function getUserId() {
   return data.claims.sub as string;
 }
 
+function applyPageFilter<T extends { eq: (col: string, val: string) => T; is: (col: string, val: null) => T }>(
+  query: T,
+  pageId?: string | null,
+) {
+  return pageId ? query.eq("page_id", pageId) : query.is("page_id", null);
+}
+
+async function revalidateMusicPaths(userId: string, pageId?: string | null) {
+  revalidatePath("/dashboard/music");
+  if (pageId) {
+    revalidatePath(`/dashboard/profile-pages/${pageId}/music`);
+    const { revalidateProfilePagePaths } = await import("@/lib/profile-pages/revalidate");
+    await revalidateProfilePagePaths(userId, pageId);
+  }
+}
+
 export async function saveMusicTrackAction(input: {
   url: string;
   title?: string;
@@ -45,20 +61,34 @@ export async function saveMusicTrackAction(input: {
 
   if (error) return { error: error.message };
 
-  await supabase
+  let settingsQuery = supabase
     .from("profile_settings")
     .update({ music_url: input.url })
     .eq("profile_id", userId);
+  settingsQuery = applyPageFilter(settingsQuery, input.pageId ?? null);
+  await settingsQuery;
 
-  revalidatePath("/dashboard/music");
+  await revalidateMusicPaths(userId, input.pageId ?? null);
   return { success: "Track added." };
 }
 
-export async function removeMusicTrackAction(trackId: string): Promise<ActionResult> {
+export async function removeMusicTrackAction(
+  trackId: string,
+  pageId?: string | null,
+): Promise<ActionResult> {
   const userId = await getUserId();
   if (!userId) return { error: "You must be logged in." };
 
   const supabase = await createClient();
+  const { data: track } = await supabase
+    .from("profile_music_tracks")
+    .select("page_id")
+    .eq("id", trackId)
+    .eq("profile_id", userId)
+    .maybeSingle();
+
+  const resolvedPageId = pageId ?? track?.page_id ?? null;
+
   const { error } = await supabase
     .from("profile_music_tracks")
     .delete()
@@ -67,17 +97,22 @@ export async function removeMusicTrackAction(trackId: string): Promise<ActionRes
 
   if (error) return { error: error.message };
 
-  const remaining = await getMusicTracks(userId);
-  await supabase
+  const remaining = await getMusicTracks(userId, resolvedPageId);
+  let settingsQuery = supabase
     .from("profile_settings")
     .update({ music_url: remaining[0]?.url ?? null })
     .eq("profile_id", userId);
+  settingsQuery = applyPageFilter(settingsQuery, resolvedPageId);
+  await settingsQuery;
 
-  revalidatePath("/dashboard/music");
+  await revalidateMusicPaths(userId, resolvedPageId);
   return { success: "Track removed." };
 }
 
-export async function reorderMusicTracksAction(trackIds: string[]): Promise<ActionResult> {
+export async function reorderMusicTracksAction(
+  trackIds: string[],
+  pageId?: string | null,
+): Promise<ActionResult> {
   const userId = await getUserId();
   if (!userId) return { error: "You must be logged in." };
 
@@ -93,11 +128,14 @@ export async function reorderMusicTracksAction(trackIds: string[]): Promise<Acti
       .eq("profile_id", userId);
   }
 
-  revalidatePath("/dashboard/music");
+  await revalidateMusicPaths(userId, pageId ?? null);
   return { success: "Playlist order saved." };
 }
 
-export async function setDefaultMusicTrackAction(trackId: string): Promise<ActionResult> {
+export async function setDefaultMusicTrackAction(
+  trackId: string,
+  pageId?: string | null,
+): Promise<ActionResult> {
   const userId = await getUserId();
   if (!userId) return { error: "You must be logged in." };
 
@@ -107,34 +145,41 @@ export async function setDefaultMusicTrackAction(trackId: string): Promise<Actio
   const supabase = await createClient();
   const { data: track } = await supabase
     .from("profile_music_tracks")
-    .select("url")
+    .select("url, page_id")
     .eq("id", trackId)
     .eq("profile_id", userId)
     .maybeSingle();
 
   if (!track) return { error: "Track not found." };
 
-  const { error } = await supabase
+  const resolvedPageId = pageId ?? track.page_id ?? null;
+
+  let settingsQuery = supabase
     .from("profile_settings")
     .update({
       music_default_track_id: trackId,
       music_url: track.url,
     })
     .eq("profile_id", userId);
+  settingsQuery = applyPageFilter(settingsQuery, resolvedPageId);
+  const { error } = await settingsQuery;
 
   if (error) return { error: error.message };
 
-  revalidatePath("/dashboard/music");
+  await revalidateMusicPaths(userId, resolvedPageId);
   return { success: "Default track updated." };
 }
 
-export async function updateMusicPlaylistSettingsAction(input: {
-  music_playlist_mode?: boolean;
-  music_shuffle?: boolean;
-  music_autoplay_next?: boolean;
-  music_loop?: boolean;
-  music_autoplay?: boolean;
-}): Promise<ActionResult> {
+export async function updateMusicPlaylistSettingsAction(
+  input: {
+    music_playlist_mode?: boolean;
+    music_shuffle?: boolean;
+    music_autoplay_next?: boolean;
+    music_loop?: boolean;
+    music_autoplay?: boolean;
+  },
+  pageId?: string | null,
+): Promise<ActionResult> {
   const userId = await getUserId();
   if (!userId) return { error: "You must be logged in." };
 
@@ -148,10 +193,12 @@ export async function updateMusicPlaylistSettingsAction(input: {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("profile_settings").update(input).eq("profile_id", userId);
+  let settingsQuery = supabase.from("profile_settings").update(input).eq("profile_id", userId);
+  settingsQuery = applyPageFilter(settingsQuery, pageId ?? null);
+  const { error } = await settingsQuery;
 
   if (error) return { error: error.message };
 
-  revalidatePath("/dashboard/music");
+  await revalidateMusicPaths(userId, pageId ?? null);
   return { success: "Playlist settings saved." };
 }

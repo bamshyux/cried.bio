@@ -96,6 +96,11 @@ body,
   50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.35); }
 }
 
+@keyframes bf-effect-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
 @keyframes bf-slide {
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(3px); }

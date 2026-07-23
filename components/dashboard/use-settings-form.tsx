@@ -83,11 +83,20 @@ function useManagedSettingsAction(
   return { state: displayState, isPending, runAction };
 }
 
-export function useSettingsForm(section: SettingsSection, successMessage?: string) {
-  const { state, isPending, runAction } = useManagedSettingsAction(
-    updateSettingsAction,
-    successMessage,
+export function useSettingsForm(
+  section: SettingsSection,
+  successMessage?: string,
+  pageId?: string,
+) {
+  const action = useCallback(
+    async (prev: SettingsFormState, formData: FormData) => {
+      if (pageId) formData.set("_page_id", pageId);
+      return updateSettingsAction(prev, formData);
+    },
+    [pageId],
   );
+
+  const { state, isPending, runAction } = useManagedSettingsAction(action, successMessage);
 
   const submit = useCallback(
     (values: SettingsFormValues) => {
@@ -115,6 +124,7 @@ export function useDashboardSettingsSection<T extends SettingsFormValues>(
   readForm: (settings: ProfileSettings) => T,
   successMessage?: string,
   settingsFormId?: string,
+  pageId?: string,
 ) {
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -123,7 +133,7 @@ export function useDashboardSettingsSection<T extends SettingsFormValues>(
   const lastSyncedAt = useRef(settings.updated_at);
   const [form, setForm] = useState(() => readForm(settings));
 
-  const { state, submit: rawSubmit, isPending } = useSettingsForm(section, successMessage);
+  const { state, submit: rawSubmit, isPending } = useSettingsForm(section, successMessage, pageId);
   const unsaved = useUnsavedChangesOptional();
 
   useEffect(() => {

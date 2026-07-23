@@ -59,11 +59,13 @@ export function MusicEditor({
   tracks,
   entitlements,
   musicTitleSupported = true,
+  pageId,
 }: {
   settings: ProfileSettings;
   tracks: MusicTrack[];
   entitlements: UserEntitlements;
   musicTitleSupported?: boolean;
+  pageId?: string;
 }) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
@@ -73,6 +75,8 @@ export function MusicEditor({
     settings,
     readMusicForm,
     "Music settings saved.",
+    undefined,
+    pageId,
   );
   const [uploadError, setUploadError] = useState<string>();
   const [uploadSuccess, setUploadSuccess] = useState<string>();
@@ -100,12 +104,12 @@ export function MusicEditor({
     try {
       const url = await uploadMusicToStorage(file);
       const result = canPlaylist && tracks.length > 0
-        ? await saveMusicTrackAction({ url, title: file.name.replace(/\.[^.]+$/, "") })
+        ? await saveMusicTrackAction({ url, title: file.name.replace(/\.[^.]+$/, ""), pageId })
         : tracks.length >= maxTracks && canPlaylist
           ? { error: `Maximum ${maxTracks} tracks allowed.` }
           : canPlaylist
-            ? await saveMusicTrackAction({ url, title: file.name.replace(/\.[^.]+$/, "") })
-            : await saveMusicAction(url);
+            ? await saveMusicTrackAction({ url, title: file.name.replace(/\.[^.]+$/, ""), pageId })
+            : await saveMusicAction(url, pageId);
 
       if (result.error) {
         setUploadError(result.error);
@@ -124,7 +128,7 @@ export function MusicEditor({
 
   const handleRemoveLegacy = () => {
     startRemove(async () => {
-      const result = await removeMusicAction();
+      const result = await removeMusicAction(pageId);
       if (!result.error) {
         setUploadError(undefined);
         setUploadSuccess(result.success);
@@ -143,7 +147,7 @@ export function MusicEditor({
 
   const savePlaylistSettings = (patch: Parameters<typeof updateMusicPlaylistSettingsAction>[0]) => {
     startPlaylist(async () => {
-      const result = await updateMusicPlaylistSettingsAction(patch);
+      const result = await updateMusicPlaylistSettingsAction(patch, pageId);
       setPlaylistFeedback(result);
       if (!result.error) router.refresh();
     });
@@ -184,7 +188,7 @@ export function MusicEditor({
                         disabled={playlistPending}
                         onClick={() =>
                           startPlaylist(async () => {
-                            await setDefaultMusicTrackAction(track.id);
+                            await setDefaultMusicTrackAction(track.id, pageId);
                             router.refresh();
                           })
                         }
@@ -197,7 +201,7 @@ export function MusicEditor({
                         disabled={playlistPending}
                         onClick={() =>
                           startPlaylist(async () => {
-                            await removeMusicTrackAction(track.id);
+                            await removeMusicTrackAction(track.id, pageId);
                             router.refresh();
                           })
                         }
@@ -279,7 +283,7 @@ export function MusicEditor({
                 className="mt-4 rounded-lg px-3 py-2 text-xs text-neutral-400 hover:bg-white/[0.06] hover:text-white"
                 onClick={() =>
                   startPlaylist(async () => {
-                    await reorderMusicTracksAction(displayTracks.map((t) => t.id).filter((id) => id !== "legacy"));
+                    await reorderMusicTracksAction(displayTracks.map((t) => t.id).filter((id) => id !== "legacy"), pageId);
                     router.refresh();
                   })
                 }
@@ -371,11 +375,13 @@ export function MusicPageShell({
   tracks,
   entitlements,
   musicTitleSupported = true,
+  pageId,
 }: {
   settings: ProfileSettings;
   tracks: MusicTrack[];
   entitlements: UserEntitlements;
   musicTitleSupported?: boolean;
+  pageId?: string;
 }) {
   return (
     <MusicEditor
@@ -383,6 +389,7 @@ export function MusicPageShell({
       tracks={tracks}
       entitlements={entitlements}
       musicTitleSupported={musicTitleSupported}
+      pageId={pageId}
     />
   );
 }

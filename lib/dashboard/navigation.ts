@@ -311,7 +311,7 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
       {
         href: "/dashboard/profile-pages",
         label: "Profile pages",
-        description: "Additional public profile URLs",
+        description: "Additional pages with full customization",
         keywords: ["pages", "multi profile"],
         Icon: IconProfile,
       },

@@ -128,19 +128,46 @@ export async function deleteProfilePageAction(pageId: string): Promise<ActionRes
   return { success: "Profile page deleted." };
 }
 
-export async function setActiveEditPageAction(pageId: string | null): Promise<ActionResult> {
+export async function updateProfilePageIdentityAction(
+  pageId: string,
+  input: {
+    label?: string;
+    display_name?: string;
+    bio?: string;
+    avatar_url?: string | null;
+    banner_url?: string | null;
+  },
+): Promise<ActionResult> {
   const userId = await getUserId();
   if (!userId) return { error: "You must be logged in." };
 
+  const gate = await requireEntitlement(userId, "can_use_multiple_profiles");
+  if (!gate.ok) return { error: gate.error };
+
   const supabase = await createClient();
+  const patch: Record<string, string | null> = {};
+
+  if (input.label !== undefined) patch.label = input.label.trim();
+  if (input.display_name !== undefined) patch.display_name = input.display_name.trim();
+  if (input.bio !== undefined) {
+    const bioError = await import("@/lib/moderation/validate").then((m) =>
+      m.rejectIfModerated(input.bio ?? "", "bio", userId),
+    );
+    if (bioError) return { error: bioError };
+    patch.bio = input.bio.trim();
+  }
+  if (input.avatar_url !== undefined) patch.avatar_url = input.avatar_url;
+  if (input.banner_url !== undefined) patch.banner_url = input.banner_url;
+
   const { error } = await supabase
-    .from("profile_settings")
-    .update({ active_edit_page_id: pageId })
-    .eq("profile_id", userId)
-    .is("page_id", null);
+    .from("profile_pages")
+    .update(patch)
+    .eq("id", pageId)
+    .eq("profile_id", userId);
 
   if (error) return { error: error.message };
 
-  revalidatePath("/dashboard", "layout");
-  return { success: "Active page switched." };
+  const { revalidateProfilePagePaths } = await import("@/lib/profile-pages/revalidate");
+  await revalidateProfilePagePaths(userId, pageId);
+  return { success: "Page identity saved." };
 }

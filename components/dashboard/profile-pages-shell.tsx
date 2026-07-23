@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -37,7 +38,11 @@ export function ProfilePagesShell({
       if (!result.error) {
         setSlug("");
         setLabel("");
-        router.refresh();
+        if (result.pageId) {
+          router.push(`/dashboard/profile-pages/${result.pageId}/identity`);
+        } else {
+          router.refresh();
+        }
       }
     });
   };
@@ -106,6 +111,12 @@ export function ProfilePagesShell({
                 </p>
               </div>
               <div className="flex gap-2">
+                <Link
+                  href={`/dashboard/profile-pages/${page.id}/identity`}
+                  className="rounded-lg bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-white hover:bg-white/[0.1]"
+                >
+                  Customize
+                </Link>
                 <button
                   type="button"
                   disabled={!allowed || isPending}

@@ -53,7 +53,13 @@ function readBackgroundForm(settings: ProfileSettings): BackgroundFormState {
   };
 }
 
-export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
+export function BackgroundEditor({
+  settings,
+  pageId,
+}: {
+  settings: ProfileSettings;
+  pageId?: string;
+}) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
   const { form, patchForm, submit, state, isPending } = useDashboardSettingsSection(
@@ -61,6 +67,8 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
     settings,
     readBackgroundForm,
     "Background saved.",
+    undefined,
+    pageId,
   );
 
   const [uploadError, setUploadError] = useState<string>();
@@ -111,7 +119,7 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
 
     try {
       const { url, isVideo: uploadedVideo } = await uploadBackgroundToStorage(file);
-      const result = await saveBackgroundMediaAction(url, uploadedVideo ? "video" : "image");
+      const result = await saveBackgroundMediaAction(url, uploadedVideo ? "video" : "image", pageId);
 
       if (result.error) {
         setUploadError(result.error);
@@ -135,7 +143,7 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
 
   const removeBackground = () => {
     startRemove(async () => {
-      const result = await removeBackgroundAction();
+      const result = await removeBackgroundAction(pageId);
       if (!result.error) {
         setImagePreview(null);
         setVideoPreview(null);
@@ -297,6 +305,12 @@ export function BackgroundEditor({ settings }: { settings: ProfileSettings }) {
   );
 }
 
-export function BackgroundPageShell({ settings }: { settings: ProfileSettings }) {
-  return <BackgroundEditor settings={settings} />;
+export function BackgroundPageShell({
+  settings,
+  pageId,
+}: {
+  settings: ProfileSettings;
+  pageId?: string;
+}) {
+  return <BackgroundEditor settings={settings} pageId={pageId} />;
 }

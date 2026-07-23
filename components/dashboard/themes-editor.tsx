@@ -33,9 +33,11 @@ function readThemesForm(settings: ProfileSettings, fallbackThemeId: string): The
 export function ThemesEditor({
   settings,
   themes,
+  pageId,
 }: {
   settings: ProfileSettings;
   themes: CustomTheme[];
+  pageId?: string;
 }) {
   const fallbackThemeId = themes[0]?.id ?? "";
   const readForm = useCallback(
@@ -48,6 +50,8 @@ export function ThemesEditor({
     settings,
     readForm,
     "Theme saved.",
+    undefined,
+    pageId,
   );
 
   const handleSave = (event: React.FormEvent) => {
@@ -125,9 +129,11 @@ export function ThemesEditor({
 export function ThemesPageShell({
   settings,
   themes,
+  pageId,
 }: {
   settings: ProfileSettings;
   themes: CustomTheme[];
+  pageId?: string;
 }) {
-  return <ThemesEditor settings={settings} themes={themes} />;
+  return <ThemesEditor settings={settings} themes={themes} pageId={pageId} />;
 }

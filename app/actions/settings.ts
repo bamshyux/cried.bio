@@ -37,7 +37,7 @@ async function getAuthenticatedUserId() {
   return data.claims.sub as string;
 }
 
-async function revalidateProfile(userId: string) {
+async function revalidateProfile(userId: string, pageId?: string | null) {
   const supabase = await createClient();
   const { data: profile } = await supabase
     .from("profiles")
@@ -58,39 +58,48 @@ async function revalidateProfile(userId: string) {
   revalidatePath("/dashboard/links");
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/guestbook");
+  revalidatePath("/dashboard/profile-pages");
+
+  if (pageId) {
+    revalidatePath(`/dashboard/profile-pages/${pageId}`, "layout");
+    if (profile?.username) {
+      const { getProfilePageById } = await import("@/lib/data/profile-pages");
+      const page = await getProfilePageById(userId, pageId);
+      if (page?.slug) revalidatePath(`/${profile.username}/${page.slug}`);
+    }
+  }
+
   if (profile?.username) {
     revalidatePath(`/${profile.username}`);
     revalidateProfileOg(profile.username);
   }
 }
 
-async function getExistingSettings(userId: string): Promise<ProfileSettings> {
+async function getExistingSettings(userId: string, pageId?: string | null): Promise<ProfileSettings> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("profile_settings")
-    .select("*")
-    .eq("profile_id", userId)
-    .maybeSingle();
+  let query = supabase.from("profile_settings").select("*").eq("profile_id", userId);
+  query = pageId ? query.eq("page_id", pageId) : query.is("page_id", null);
+  const { data } = await query.maybeSingle();
   return mergeSettings(data as Partial<ProfileSettings> | null, userId);
 }
 
-async function ensureSettingsRow(userId: string) {
+async function ensureSettingsRow(userId: string, pageId?: string | null) {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("profile_settings")
-    .select("profile_id")
-    .eq("profile_id", userId)
-    .maybeSingle();
+  let query = supabase.from("profile_settings").select("profile_id").eq("profile_id", userId);
+  query = pageId ? query.eq("page_id", pageId) : query.is("page_id", null);
+  const { data } = await query.maybeSingle();
 
   if (!data) {
-    // Insert minimal row — DB column defaults apply (avoids sending columns that may not exist yet)
-    await supabase.from("profile_settings").insert({ profile_id: userId });
+    await supabase.from("profile_settings").insert(
+      pageId ? { profile_id: userId, page_id: pageId } : { profile_id: userId },
+    );
   }
 }
 
 async function patchProfileSettings(
   userId: string,
   patch: Partial<Omit<ProfileSettings, "profile_id" | "created_at" | "updated_at">>,
+  pageId?: string | null,
 ): Promise<{ error?: string }> {
   const safePatch = await omitUnsupportedSettingsColumns(patch);
   if (Object.keys(safePatch).length === 0) {
@@ -98,13 +107,12 @@ async function patchProfileSettings(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("profile_settings")
-    .update(safePatch)
-    .eq("profile_id", userId);
+  let query = supabase.from("profile_settings").update(safePatch).eq("profile_id", userId);
+  query = pageId ? query.eq("page_id", pageId) : query.is("page_id", null);
+  const { error } = await query;
 
   if (error) return { error: formatSchemaError(error.message) };
-  await markProfileAppearanceChanged(userId);
+  if (!pageId) await markProfileAppearanceChanged(userId);
   return {};
 }
 
@@ -472,8 +480,20 @@ export async function updateSettingsAction(
   const section = String(formData.get("_section") ?? "") as SettingsSection;
   if (!section) return { error: "Invalid settings section." };
 
-  await ensureSettingsRow(userId);
-  const existing = await getExistingSettings(userId);
+  const pageIdRaw = String(formData.get("_page_id") ?? "").trim();
+  const pageId = pageIdRaw || null;
+
+  if (pageId) {
+    const { requireEntitlement } = await import("@/lib/premium/entitlements");
+    const { getProfilePageById } = await import("@/lib/data/profile-pages");
+    const gate = await requireEntitlement(userId, "can_use_multiple_profiles");
+    if (!gate.ok) return { error: gate.error };
+    const page = await getProfilePageById(userId, pageId);
+    if (!page) return { error: "Profile page not found." };
+  }
+
+  await ensureSettingsRow(userId, pageId);
+  const existing = await getExistingSettings(userId, pageId);
   const updates = parseSectionUpdates(section, formData, existing);
 
   if (section === "customize" && updates.font_family && isPremiumFont(String(updates.font_family))) {
@@ -492,10 +512,10 @@ export async function updateSettingsAction(
     if (layoutLabelError) return { error: layoutLabelError };
   }
 
-  const { error } = await patchProfileSettings(userId, updates);
+  const { error } = await patchProfileSettings(userId, updates, pageId);
   if (error) return { error };
 
-  await revalidateProfile(userId);
+  await revalidateProfile(userId, pageId);
 
   const messages: Partial<Record<SettingsSection, string>> = {
     customize: "Customization saved.",
@@ -574,40 +594,44 @@ async function deleteStoragePrefix(
 export async function saveBackgroundMediaAction(
   mediaUrl: string,
   mediaType: "image" | "video",
+  pageId?: string | null,
 ): Promise<SettingsFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "You must be logged in." };
 
   if (!mediaUrl.trim()) return { error: "Invalid background URL." };
 
-  await ensureSettingsRow(userId);
+  await ensureSettingsRow(userId, pageId);
 
   const update =
     mediaType === "video"
       ? { background_type: "video" as const, background_video_url: mediaUrl, background_image_url: null }
       : { background_type: "image" as const, background_image_url: mediaUrl, background_video_url: null };
 
-  const { error } = await patchProfileSettings(userId, update);
+  const { error } = await patchProfileSettings(userId, update, pageId);
   if (error) return { error };
 
-  await revalidateProfile(userId);
+  await revalidateProfile(userId, pageId);
   return {
     success: mediaType === "video" ? "Video background uploaded." : "Image background uploaded.",
   };
 }
 
-export async function saveMusicAction(musicUrl: string): Promise<SettingsFormState> {
+export async function saveMusicAction(
+  musicUrl: string,
+  pageId?: string | null,
+): Promise<SettingsFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "You must be logged in." };
 
   if (!musicUrl.trim()) return { error: "Invalid music URL." };
 
-  await ensureSettingsRow(userId);
+  await ensureSettingsRow(userId, pageId);
 
-  const { error } = await patchProfileSettings(userId, { music_url: musicUrl });
+  const { error } = await patchProfileSettings(userId, { music_url: musicUrl }, pageId);
   if (error) return { error };
 
-  await revalidateProfile(userId);
+  await revalidateProfile(userId, pageId);
   return { success: "Music uploaded." };
 }
 
@@ -727,65 +751,75 @@ export async function removeEnterGateMediaAction(): Promise<SettingsFormState> {
   return { success: "Enter gate background removed." };
 }
 
-export async function removeBackgroundAction(): Promise<SettingsFormState> {
+export async function removeBackgroundAction(pageId?: string | null): Promise<SettingsFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "You must be logged in." };
 
-  const { error } = await patchProfileSettings(userId, {
-    background_image_url: null,
-    background_video_url: null,
-  });
+  const { error } = await patchProfileSettings(
+    userId,
+    {
+      background_image_url: null,
+      background_video_url: null,
+    },
+    pageId,
+  );
 
   if (error) return { error };
 
   await deleteStoragePrefix(userId, "backgrounds", "background.");
 
-  await revalidateProfile(userId);
+  await revalidateProfile(userId, pageId);
   return { success: "Background removed." };
 }
 
-export async function removeMusicAction(): Promise<SettingsFormState> {
+export async function removeMusicAction(pageId?: string | null): Promise<SettingsFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "You must be logged in." };
 
-  const { error } = await patchProfileSettings(userId, { music_url: null });
+  const { error } = await patchProfileSettings(userId, { music_url: null }, pageId);
   if (error) return { error };
 
   await deleteStoragePrefix(userId, "music", "track.");
 
-  await revalidateProfile(userId);
+  await revalidateProfile(userId, pageId);
   return { success: "Music removed." };
 }
 
-export async function saveCursorImageAction(imageUrl: string): Promise<SettingsFormState> {
+export async function saveCursorImageAction(
+  imageUrl: string,
+  pageId?: string | null,
+): Promise<SettingsFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "You must be logged in." };
 
   if (!imageUrl.trim()) return { error: "Invalid cursor image URL." };
 
-  await ensureSettingsRow(userId);
+  await ensureSettingsRow(userId, pageId);
 
-  const { error } = await patchProfileSettings(userId, { cursor_image_url: imageUrl });
+  const { error } = await patchProfileSettings(userId, { cursor_image_url: imageUrl }, pageId);
   if (error) return { error };
 
-  await revalidateProfile(userId);
+  await revalidateProfile(userId, pageId);
   return { success: "Custom cursor uploaded." };
 }
 
-export async function removeCursorImageAction(): Promise<SettingsFormState> {
+export async function removeCursorImageAction(pageId?: string | null): Promise<SettingsFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "You must be logged in." };
 
-  const { error } = await patchProfileSettings(userId, { cursor_image_url: null });
+  const { error } = await patchProfileSettings(userId, { cursor_image_url: null }, pageId);
   if (error) return { error };
 
   await deleteStoragePrefix(userId, "profiles", "cursor.");
 
-  await revalidateProfile(userId);
+  await revalidateProfile(userId, pageId);
   return { success: "Custom cursor removed." };
 }
 
-export async function saveProfileFaviconAction(imageUrl: string): Promise<SettingsFormState> {
+export async function saveProfileFaviconAction(
+  imageUrl: string,
+  pageId?: string | null,
+): Promise<SettingsFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "You must be logged in." };
 
@@ -794,24 +828,24 @@ export async function saveProfileFaviconAction(imageUrl: string): Promise<Settin
     return { error: "Invalid favicon URL." };
   }
 
-  await ensureSettingsRow(userId);
+  await ensureSettingsRow(userId, pageId);
 
-  const { error } = await patchProfileSettings(userId, { profile_favicon_url: imageUrl });
+  const { error } = await patchProfileSettings(userId, { profile_favicon_url: imageUrl }, pageId);
   if (error) return { error };
 
-  await revalidateProfile(userId);
+  await revalidateProfile(userId, pageId);
   return { success: "Profile favicon uploaded." };
 }
 
-export async function removeProfileFaviconAction(): Promise<SettingsFormState> {
+export async function removeProfileFaviconAction(pageId?: string | null): Promise<SettingsFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "You must be logged in." };
 
-  const { error } = await patchProfileSettings(userId, { profile_favicon_url: null });
+  const { error } = await patchProfileSettings(userId, { profile_favicon_url: null }, pageId);
   if (error) return { error };
 
   await deleteStoragePrefix(userId, "profiles", "favicon.");
 
-  await revalidateProfile(userId);
+  await revalidateProfile(userId, pageId);
   return { success: "Profile favicon removed." };
 }

@@ -12,6 +12,21 @@ export async function getProfilePages(profileId: string): Promise<ProfilePage[]>
   return (data as ProfilePage[]) ?? [];
 }
 
+export async function getProfilePageById(
+  profileId: string,
+  pageId: string,
+): Promise<ProfilePage | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profile_pages")
+    .select("*")
+    .eq("profile_id", profileId)
+    .eq("id", pageId)
+    .maybeSingle();
+
+  return (data as ProfilePage | null) ?? null;
+}
+
 export async function getProfilePageBySlug(
   profileId: string,
   slug: string,
