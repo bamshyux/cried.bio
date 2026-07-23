@@ -80,6 +80,3 @@ export type PremiumSubscription = {
 };
 
 export type FeatureReleaseStage = "general" | "premium_early_access" | "premium_only";
-
-export const PREMIUM_LITE_PRICE_MONTHLY = "price_1TwIaICZc2iqkh61zEPWgoKP";
-export const PREMIUM_LITE_PRICE_LIFETIME = "price_1TwIbfCZc2iqkh61zEPuw90fu";

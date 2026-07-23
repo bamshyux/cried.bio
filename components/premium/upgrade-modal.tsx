@@ -6,10 +6,6 @@ import {
   PREMIUM_LITE_LIFETIME_PRICE,
   PREMIUM_LITE_MONTHLY_PRICE,
 } from "@/lib/premium/constants";
-import {
-  PREMIUM_LITE_PRICE_LIFETIME,
-  PREMIUM_LITE_PRICE_MONTHLY,
-} from "@/lib/premium/types";
 import { cardClassName, buttonPrimaryClassName } from "@/components/dashboard/form-fields";
 
 type UpgradeModalContextValue = {
@@ -49,14 +45,14 @@ function UpgradeModal({ open, onClose }: { open: boolean; onClose: () => void })
 
   if (!open) return null;
 
-  const startCheckout = async (priceId: string, type: "monthly" | "lifetime") => {
-    setLoading(type);
+  const startCheckout = async (plan: "monthly" | "lifetime") => {
+    setLoading(plan);
     setError(undefined);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ plan }),
       });
       const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok || !data.url) {
@@ -125,7 +121,7 @@ function UpgradeModal({ open, onClose }: { open: boolean; onClose: () => void })
           <button
             type="button"
             disabled={loading !== null}
-            onClick={() => void startCheckout(PREMIUM_LITE_PRICE_MONTHLY, "monthly")}
+            onClick={() => void startCheckout("monthly")}
             className={`${buttonPrimaryClassName} flex-1`}
           >
             {loading === "monthly" ? "Redirecting…" : "Upgrade Monthly"}
@@ -133,7 +129,7 @@ function UpgradeModal({ open, onClose }: { open: boolean; onClose: () => void })
           <button
             type="button"
             disabled={loading !== null}
-            onClick={() => void startCheckout(PREMIUM_LITE_PRICE_LIFETIME, "lifetime")}
+            onClick={() => void startCheckout("lifetime")}
             className="flex-1 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-500/20 disabled:opacity-50"
           >
             {loading === "lifetime" ? "Redirecting…" : "Buy Lifetime"}

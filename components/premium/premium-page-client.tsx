@@ -9,10 +9,6 @@ import {
   getBillingLabel,
   getTierDisplayName,
 } from "@/lib/premium/constants";
-import {
-  PREMIUM_LITE_PRICE_LIFETIME,
-  PREMIUM_LITE_PRICE_MONTHLY,
-} from "@/lib/premium/types";
 import type { UserEntitlements } from "@/lib/premium/types";
 import { cardClassName, buttonPrimaryClassName } from "@/components/dashboard/form-fields";
 
@@ -25,12 +21,29 @@ function formatRenewalDate(iso: string | null): string {
   });
 }
 
+async function startStripeCheckout(plan: "monthly" | "lifetime") {
+  const res = await fetch("/api/stripe/checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ plan }),
+  });
+  const data = (await res.json()) as { url?: string; error?: string };
+  if (!res.ok || !data.url) {
+    throw new Error(data.error ?? "Checkout failed.");
+  }
+  window.location.href = data.url;
+}
+
 export function PremiumPageClient({
   entitlements,
   hasStripeCustomer,
+  stripeConfigured,
+  stripeConfigError,
 }: {
   entitlements: UserEntitlements;
   hasStripeCustomer: boolean;
+  stripeConfigured: boolean;
+  stripeConfigError: string | null;
 }) {
   const searchParams = useSearchParams();
   const checkoutStatus = searchParams.get("checkout");
@@ -42,24 +55,18 @@ export function PremiumPageClient({
   const tierName = getTierDisplayName(entitlements);
   const billingLabel = getBillingLabel(entitlements);
 
-  const startCheckout = async (priceId: string, type: "monthly" | "lifetime") => {
-    setLoading(type);
+  const handleCheckout = async (plan: "monthly" | "lifetime") => {
+    if (!stripeConfigured) {
+      setError(stripeConfigError ?? "Stripe is not configured.");
+      return;
+    }
+
+    setLoading(plan);
     setError(undefined);
     try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
-      });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !data.url) {
-        setError(data.error ?? "Checkout failed.");
-        setLoading(null);
-        return;
-      }
-      window.location.href = data.url;
-    } catch {
-      setError("Could not start checkout.");
+      await startStripeCheckout(plan);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not start checkout.");
       setLoading(null);
     }
   };
@@ -99,6 +106,12 @@ export function PremiumPageClient({
       {checkoutStatus === "canceled" ? (
         <div className="mb-6 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-neutral-400">
           Checkout was canceled. You can upgrade anytime.
+        </div>
+      ) : null}
+
+      {!stripeConfigured && stripeConfigError ? (
+        <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          {stripeConfigError}
         </div>
       ) : null}
 
@@ -165,8 +178,8 @@ export function PremiumPageClient({
             <>
               <button
                 type="button"
-                disabled={loading !== null}
-                onClick={() => void startCheckout(PREMIUM_LITE_PRICE_MONTHLY, "monthly")}
+                disabled={loading !== null || !stripeConfigured}
+                onClick={() => void handleCheckout("monthly")}
                 className={buttonPrimaryClassName}
               >
                 {loading === "monthly"
@@ -175,8 +188,8 @@ export function PremiumPageClient({
               </button>
               <button
                 type="button"
-                disabled={loading !== null}
-                onClick={() => void startCheckout(PREMIUM_LITE_PRICE_LIFETIME, "lifetime")}
+                disabled={loading !== null || !stripeConfigured}
+                onClick={() => void handleCheckout("lifetime")}
                 className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-2.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-500/20 disabled:opacity-50"
               >
                 {loading === "lifetime"

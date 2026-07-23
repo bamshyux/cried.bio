@@ -1,11 +1,15 @@
 import Stripe from "stripe";
+import { getStripeCheckoutConfigStatus } from "@/lib/stripe/config";
 
 let stripeClient: Stripe | null = null;
 
 export function getStripe(): Stripe {
-  const key = process.env.STRIPE_SECRET_KEY?.trim();
+  const status = getStripeCheckoutConfigStatus();
+  const key = status.configured ? process.env.STRIPE_SECRET_KEY!.trim() : "";
   if (!key) {
-    throw new Error("STRIPE_SECRET_KEY is not configured.");
+    throw new Error(
+      getStripeConfigErrorMessage(status) ?? "STRIPE_SECRET_KEY is not configured.",
+    );
   }
   if (!stripeClient) {
     stripeClient = new Stripe(key);
@@ -20,5 +24,12 @@ export function getStripeWebhookSecret(): string {
 }
 
 export function isStripeConfigured(): boolean {
-  return Boolean(process.env.STRIPE_SECRET_KEY?.trim());
+  return getStripeCheckoutConfigStatus().configured;
+}
+
+export function getStripeConfigErrorMessage(
+  status = getStripeCheckoutConfigStatus(),
+): string | null {
+  if (status.configured) return null;
+  return `Stripe is not configured. Add these environment variables: ${status.missing.join(", ")}`;
 }

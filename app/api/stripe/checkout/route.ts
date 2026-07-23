@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/site";
-import { getStripe, isStripeConfigured } from "@/lib/stripe/client";
-import { isValidStripePriceId, STRIPE_PRICES } from "@/lib/stripe/prices";
+import { getStripe, getStripeConfigErrorMessage, isStripeConfigured } from "@/lib/stripe/client";
+import { getStripePriceIds, isValidStripePriceId } from "@/lib/stripe/config";
 
 export async function POST(request: Request) {
   if (!isStripeConfigured()) {
-    return NextResponse.json({ error: "Stripe is not configured." }, { status: 503 });
+    return NextResponse.json(
+      { error: getStripeConfigErrorMessage() ?? "Stripe is not configured." },
+      { status: 503 },
+    );
   }
 
   const supabase = await createClient();
@@ -17,10 +20,14 @@ export async function POST(request: Request) {
   }
 
   const userId = data.claims.sub as string;
-  const body = (await request.json()) as { priceId?: string };
-  const priceId = body.priceId?.trim() ?? "";
+  const body = (await request.json()) as { priceId?: string; plan?: "monthly" | "lifetime" };
+  const prices = getStripePriceIds();
 
-  if (!isValidStripePriceId(priceId)) {
+  let priceId = body.priceId?.trim() ?? "";
+  if (!priceId && body.plan === "monthly") priceId = prices.monthly;
+  if (!priceId && body.plan === "lifetime") priceId = prices.lifetime;
+
+  if (!priceId || !isValidStripePriceId(priceId)) {
     return NextResponse.json({ error: "Invalid price." }, { status: 400 });
   }
 
@@ -43,7 +50,7 @@ export async function POST(request: Request) {
     await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", userId);
   }
 
-  const isLifetime = priceId === STRIPE_PRICES.premium_lite_lifetime;
+  const isLifetime = priceId === prices.lifetime;
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     customer: customerId,
