@@ -1,6 +1,9 @@
 import Stripe from "stripe";
 import { getStripeCheckoutConfigStatus } from "@/lib/stripe/config";
 
+/** Required for Stripe Managed Payments (Checkout subscriptions) */
+const STRIPE_API_VERSION = "2025-03-31.basil" as Stripe.LatestApiVersion;
+
 let stripeClient: Stripe | null = null;
 
 export function getStripe(): Stripe {
@@ -12,7 +15,7 @@ export function getStripe(): Stripe {
     );
   }
   if (!stripeClient) {
-    stripeClient = new Stripe(key);
+    stripeClient = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
   }
   return stripeClient;
 }
