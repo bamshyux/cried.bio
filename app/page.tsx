@@ -11,18 +11,16 @@ import {
   HomePrimaryCta,
   HomeSecondaryCta,
 } from "@/components/home/home-hero-actions";
-import { HomeHeroShell } from "@/components/home/home-hero-shell";
+import { HomeHero } from "@/components/home/home-hero";
 import { HomeNavLinks } from "@/components/home/home-nav-links";
 import { HomeNav } from "@/components/home/home-nav";
 import { HomeOurUsers, HomeStatsSection } from "@/components/home/home-our-users";
-import { HomePreview } from "@/components/home/home-preview";
 import { HomeRoadmap } from "@/components/home/home-roadmap";
 import { HomeTestimonials } from "@/components/home/home-testimonials";
 import { HomeWhyChoose } from "@/components/home/home-why-choose";
 import { HumanVerificationGate } from "@/components/security/human-verification-gate";
 import {
   getFeaturedProfiles,
-  getFloatingProfileCards,
   getLandingRoadmap,
   getLandingStats,
   getLandingTestimonials,
@@ -71,7 +69,6 @@ export default async function Home() {
     trendingProfiles,
     testimonials,
     roadmap,
-    floatingProfiles,
   ] = await Promise.all([
     getLandingStats(),
     getRandomPublicProfiles(12),
@@ -79,7 +76,6 @@ export default async function Home() {
     getTrendingPublicProfiles(6),
     getLandingTestimonials(),
     getLandingRoadmap(),
-    getFloatingProfileCards(6),
   ]);
 
   const showcaseProfiles = mergeShowcaseProfiles(featuredProfiles, trendingProfiles);
@@ -100,46 +96,38 @@ export default async function Home() {
       </header>
 
       <main className="relative z-10">
-        <HomeHeroShell floatingProfiles={floatingProfiles}>
-          <div className="relative grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-12 xl:gap-16">
-            <div className="text-center lg:text-left">
-              <div className="bf-home-enter bf-home-enter-1 mb-8 inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#141414]/90 px-4 py-1.5 text-sm text-neutral-400 backdrop-blur-sm">
-                <span className="bf-home-pulse-dot h-1.5 w-1.5 rounded-full bg-[#fafafa]" />
-                {stats.total_profiles.toLocaleString()}+ creators already here
-              </div>
-
-              <h1 className="bf-home-enter bf-home-enter-2 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl lg:text-[4.25rem] xl:text-7xl">
-                Designed to be{" "}
-                <span className="bf-home-accent-glow text-[#fafafa]">yours.</span>
-              </h1>
-
-              <p className="bf-home-enter bf-home-enter-3 mx-auto mt-6 max-w-xl text-lg leading-relaxed text-neutral-500 lg:mx-0 lg:max-w-md xl:max-w-lg">
-                A clean, customizable bio page for creators, gamers, and builders.
-                Premium feel. Zero clutter.
-              </p>
-
-              <HomeHeroActions>
-                {isLoggedIn ? (
-                  <>
-                    <HomePrimaryCta href="/dashboard">Go to Dashboard</HomePrimaryCta>
-                    {profile?.username && (
-                      <HomeSecondaryCta href={`/${profile.username}`}>View My Profile</HomeSecondaryCta>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <HomePrimaryCta href="/signup">Create Profile</HomePrimaryCta>
-                    <HomeSecondaryCta href="/login">Login</HomeSecondaryCta>
-                  </>
-                )}
-              </HomeHeroActions>
-            </div>
-
-            <div className="bf-home-enter bf-home-enter-5 relative mx-auto w-full max-w-md lg:max-w-none">
-              <HomePreview profiles={showcaseProfiles} embedded />
-            </div>
+        <HomeHero profiles={showcaseProfiles}>
+          <div className="bf-home-enter bf-home-enter-1 mb-7 inline-flex items-center gap-2 rounded-full border border-white/[0.1] bg-[#141414]/80 px-4 py-1.5 text-sm text-neutral-400 backdrop-blur-md">
+            <span className="bf-home-pulse-dot h-1.5 w-1.5 rounded-full bg-[#fafafa]" />
+            {stats.total_profiles.toLocaleString()}+ creators already here
           </div>
-        </HomeHeroShell>
+
+          <h1 className="bf-home-enter bf-home-enter-2 text-[clamp(2.75rem,7.5vw,5.75rem)] font-semibold leading-[0.92] tracking-[-0.035em]">
+            Designed to be
+            <br />
+            <span className="bf-home-accent-glow text-[#fafafa]">yours.</span>
+          </h1>
+
+          <p className="bf-home-enter bf-home-enter-3 mt-5 max-w-md text-base leading-relaxed text-neutral-500 sm:text-lg">
+            A customizable bio page for creators, gamers, and builders — themes, music, effects, and more.
+          </p>
+
+          <HomeHeroActions>
+            {isLoggedIn ? (
+              <>
+                <HomePrimaryCta href="/dashboard">Go to Dashboard</HomePrimaryCta>
+                {profile?.username && (
+                  <HomeSecondaryCta href={`/${profile.username}`}>View My Profile</HomeSecondaryCta>
+                )}
+              </>
+            ) : (
+              <>
+                <HomePrimaryCta href="/signup">Create Profile</HomePrimaryCta>
+                <HomeSecondaryCta href="/login">Login</HomeSecondaryCta>
+              </>
+            )}
+          </HomeHeroActions>
+        </HomeHero>
 
         <HomeStatsSection stats={stats} />
         <HomeFeaturedProfiles profiles={featuredProfiles} />
