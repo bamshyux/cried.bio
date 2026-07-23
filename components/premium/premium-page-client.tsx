@@ -11,7 +11,11 @@ import {
 } from "@/lib/premium/constants";
 import type { UserEntitlements } from "@/lib/premium/types";
 import { readJsonResponse } from "@/lib/stripe/client-fetch";
-import { cardClassName, buttonPrimaryClassName } from "@/components/dashboard/form-fields";
+import {
+  cardClassName,
+  buttonPrimaryClassName,
+  dashboardStackClassName,
+} from "@/components/dashboard/form-fields";
 
 function formatRenewalDate(iso: string | null): string {
   if (!iso) return "—";
@@ -128,7 +132,8 @@ export function PremiumPageClient({
         </p>
       </div>
 
-      <div className={`${cardClassName} mb-6 border border-white/[0.08]`}>
+      <div className={dashboardStackClassName}>
+      <div className={`${cardClassName} border border-white/[0.08]`}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">Current tier</p>
@@ -225,6 +230,7 @@ export function PremiumPageClient({
             </li>
           ))}
         </ul>
+      </div>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { DiscordCommunityPromo } from "@/components/discord/discord-community-promo";
 import { CriedLogo } from "@/components/brand/logo";
@@ -142,7 +143,9 @@ export default async function Home() {
           </div>
         </div>
       </footer>
-      <HumanVerificationGate />
+      <Suspense fallback={null}>
+        <HumanVerificationGate />
+      </Suspense>
     </div>
   );
 }

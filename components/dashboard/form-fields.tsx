@@ -7,6 +7,7 @@ import { rangeClassName, rangeFillStyle } from "@/lib/ui/range";
 export const inputClassName = "bf-input";
 export const labelClassName = "mb-1.5 block text-[13px] font-medium text-neutral-400";
 export const cardClassName = "bf-card p-6 sm:p-8";
+export const dashboardStackClassName = "space-y-6";
 export const buttonPrimaryClassName = "bf-btn-primary disabled:cursor-not-allowed";
 export const buttonSecondaryClassName = "bf-btn-secondary";
 export { rangeClassName, rangeFillStyle } from "@/lib/ui/range";

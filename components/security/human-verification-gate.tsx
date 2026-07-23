@@ -1,11 +1,28 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TurnstileWidget } from "@/components/security/turnstile-widget";
 
 type VerifyStatus = "loading" | "verified" | "pending";
 
+const RETURN_MESSAGES: Record<string, string> = {
+  login: "Complete the check below, then go back to login.",
+  signup: "Complete the check below, then return to create your profile.",
+  password_reset: "Complete the check below, then try resetting your password again.",
+};
+
+const RETURN_PATHS: Record<string, string> = {
+  login: "/login",
+  signup: "/signup",
+  password_reset: "/forgot-password",
+};
+
 export function HumanVerificationGate() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnFrom = searchParams.get("from");
+  const returnMessage = returnFrom ? RETURN_MESSAGES[returnFrom] : null;
   const [status, setStatus] = useState<VerifyStatus>("loading");
   const [challenge, setChallenge] = useState<string | null>(null);
   const [turnstile, setTurnstile] = useState(false);
@@ -81,8 +98,13 @@ export function HumanVerificationGate() {
       }
 
       setStatus("verified");
+
+      const returnPath = returnFrom ? RETURN_PATHS[returnFrom] : null;
+      if (returnPath) {
+        router.replace(returnPath);
+      }
     },
-    [challenge, turnstile, loadChallenge],
+    [challenge, turnstile, loadChallenge, returnFrom, router],
   );
 
   const stopHold = useCallback(() => {
@@ -158,8 +180,8 @@ export function HumanVerificationGate() {
             Verifying you&apos;re human
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-neutral-500">
-            One quick check helps keep cried.bio free of bots and spam. This only appears on the
-            home page during your first visit.
+            {returnMessage ??
+              "One quick check helps keep cried.bio free of bots and spam. This only appears on the home page during your first visit."}
           </p>
 
           {turnstile && siteKey ? (

@@ -8,7 +8,13 @@ import {
   togglePresetScheduleAction,
 } from "@/app/actions/preset-schedules";
 import { PremiumLocked } from "@/components/premium/premium-locked";
-import { cardClassName, buttonPrimaryClassName, PageHeader, FormFeedback } from "@/components/dashboard/form-fields";
+import {
+  cardClassName,
+  buttonPrimaryClassName,
+  dashboardStackClassName,
+  PageHeader,
+  FormFeedback,
+} from "@/components/dashboard/form-fields";
 import type { PresetSchedule } from "@/lib/data/preset-schedules";
 import type { ProfilePreset } from "@/lib/types/profile-preset";
 import type { UserEntitlements } from "@/lib/premium/types";
@@ -58,7 +64,8 @@ export function PresetSchedulesShell({
         description="Automatically swap presets by time — day, night, weekend, holiday, and more."
       />
 
-      <PremiumLocked allowed={allowed} className="mb-6">
+      <div className={dashboardStackClassName}>
+      <PremiumLocked allowed={allowed}>
         <div className={cardClassName}>
           <h2 className="mb-4 text-sm font-medium text-white">New schedule</h2>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -191,6 +198,7 @@ export function PresetSchedulesShell({
             <p className="text-sm text-neutral-600">No schedules configured.</p>
           ) : null}
         </div>
+      </div>
       </div>
     </div>
   );

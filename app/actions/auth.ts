@@ -13,7 +13,7 @@ import { deliverPasswordResetEmail } from "@/lib/auth/send-password-reset";
 import { sendWelcomeEmail } from "@/lib/email";
 import { syncSignupBadges } from "@/lib/badges/signup-badges";
 import { getProfileByUserId } from "@/lib/data/profiles";
-import { guardSensitiveAction } from "@/lib/security/guard-action";
+import { guardSensitiveAction, redirectIfHumanVerificationRequired } from "@/lib/security/guard-action";
 import { getSiteUrl } from "@/lib/site";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -181,7 +181,10 @@ export async function signUpAction(
     return { error: "Password must be at least 6 characters." };
   }
 
-  const guardError = await guardSensitiveAction({ scope: "signup" });
+  const guardError = redirectIfHumanVerificationRequired(
+    await guardSensitiveAction({ scope: "signup" }),
+    "signup",
+  );
   if (guardError) return { error: guardError };
 
   try {
@@ -237,7 +240,10 @@ export async function signInAction(
     return { error: "Email and password are required." };
   }
 
-  const guardError = await guardSensitiveAction({ scope: "login" });
+  const guardError = redirectIfHumanVerificationRequired(
+    await guardSensitiveAction({ scope: "login" }),
+    "login",
+  );
   if (guardError) return { error: guardError };
 
   try {
@@ -289,7 +295,10 @@ export async function requestPasswordResetAction(
     return { error: "Email is required." };
   }
 
-  const guardError = await guardSensitiveAction({ scope: "password_reset", email });
+  const guardError = redirectIfHumanVerificationRequired(
+    await guardSensitiveAction({ scope: "password_reset", email }),
+    "password_reset",
+  );
   if (guardError) return { error: guardError };
 
   await setAuthIntent(AUTH_FLOW_RECOVERY);

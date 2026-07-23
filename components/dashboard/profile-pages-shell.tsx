@@ -9,7 +9,13 @@ import {
   renameProfilePageAction,
 } from "@/app/actions/profile-pages";
 import { PremiumLocked } from "@/components/premium/premium-locked";
-import { cardClassName, buttonPrimaryClassName, PageHeader, FormFeedback } from "@/components/dashboard/form-fields";
+import {
+  cardClassName,
+  buttonPrimaryClassName,
+  dashboardStackClassName,
+  PageHeader,
+  FormFeedback,
+} from "@/components/dashboard/form-fields";
 import { SITE_HOST } from "@/lib/site";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
 import type { UserEntitlements } from "@/lib/premium/types";
@@ -54,7 +60,8 @@ export function ProfilePagesShell({
         description="Create up to 4 additional public profile pages with independent layouts, links, and music."
       />
 
-      <PremiumLocked allowed={allowed} className="mb-6">
+      <div className={dashboardStackClassName}>
+      <PremiumLocked allowed={allowed}>
         <div className={cardClassName}>
           <h2 className="mb-4 text-sm font-medium text-white">Create a page</h2>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -156,6 +163,7 @@ export function ProfilePagesShell({
         <p className="mt-4 text-xs text-neutral-600">
           {pages.length} / {entitlements.max_profile_pages} additional pages used
         </p>
+      </div>
       </div>
     </div>
   );

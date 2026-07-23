@@ -27,7 +27,7 @@ export function PremiumLocked({
   const { openUpgrade } = useUpgradeModal();
 
   if (allowed) {
-    return <>{children}</>;
+    return className ? <div className={className}>{children}</div> : <>{children}</>;
   }
 
   if (!overlay) {

@@ -17,6 +17,7 @@ import { IconHome } from "@/components/icons/dashboard-icons";
 import {
   cardClassName,
   buttonPrimaryClassName,
+  dashboardStackClassName,
   PageHeader,
   FormFeedback,
   inputClassName,
@@ -112,7 +113,8 @@ export function PagesShell({
         description="Build a personal website. Your Home page is your profile — every other page is a blank content canvas."
       />
 
-      <div className={`${cardClassName} mb-6`}>
+      <div className={dashboardStackClassName}>
+      <div className={cardClassName}>
         <div className="flex items-start gap-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-white">
             <IconHome size={20} />
@@ -136,7 +138,7 @@ export function PagesShell({
         </div>
       </div>
 
-      <PremiumLocked allowed={allowed} className="mb-6">
+      <PremiumLocked allowed={allowed}>
         <div className={cardClassName}>
           <h2 className="mb-1 text-sm font-medium text-white">Create a content page</h2>
           <p className="mb-4 text-xs text-neutral-500">
@@ -178,7 +180,7 @@ export function PagesShell({
       </PremiumLocked>
 
       {allowed && pages.length > 0 ? (
-        <div className={`${cardClassName} mb-6`}>
+        <div className={cardClassName}>
           <h2 className="mb-1 text-sm font-medium text-white">Page navigation bar</h2>
           <p className="mb-4 text-xs text-neutral-500">
             Choose where visitors see tabs for your Home page and content pages.
@@ -251,6 +253,7 @@ export function PagesShell({
             {pages.length} / {entitlements.max_profile_pages} content pages used
           </p>
         ) : null}
+      </div>
       </div>
     </div>
   );

@@ -1,9 +1,23 @@
+import { redirect } from "next/navigation";
 import { getRequestMeta } from "@/lib/data/account-settings";
 import {
   assertHumanVerified,
   hashForRateLimit,
+  isHumanVerificationRequired,
 } from "@/lib/security/human-verification";
 import { assertIpRateLimit, assertRateLimit, assertUserRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
+
+export type HumanVerificationRedirectFrom = "login" | "signup" | "password_reset";
+
+export function redirectIfHumanVerificationRequired(
+  error: string | null,
+  from: HumanVerificationRedirectFrom,
+): string | null {
+  if (error && isHumanVerificationRequired(error)) {
+    redirect(`/?verify=required&from=${from}`);
+  }
+  return error;
+}
 
 export async function guardSensitiveAction(options: {
   scope: "login" | "signup" | "password_reset" | "guestbook" | "follow" | "theme_publish";

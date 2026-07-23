@@ -85,9 +85,16 @@ export async function isHumanVerified(): Promise<boolean> {
   return parseHumanCookieValue(jar.get(HUMAN_COOKIE_NAME)?.value);
 }
 
+export const HUMAN_VERIFICATION_REQUIRED_MESSAGE =
+  "Please complete human verification before continuing.";
+
+export function isHumanVerificationRequired(error: string | null | undefined): boolean {
+  return error === HUMAN_VERIFICATION_REQUIRED_MESSAGE;
+}
+
 export async function assertHumanVerified(): Promise<string | null> {
   if (await isHumanVerified()) return null;
-  return "Please complete human verification before continuing.";
+  return HUMAN_VERIFICATION_REQUIRED_MESSAGE;
 }
 
 export function hashForRateLimit(value: string): string {
