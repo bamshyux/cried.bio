@@ -129,13 +129,7 @@ body,
 }
 
 .bf-profile-viewport-main--center {
-  justify-content: center;
-}
-
-@supports (justify-content: safe center) {
-  .bf-profile-viewport-main--center {
-    justify-content: safe center;
-  }
+  justify-content: flex-start;
 }
 
 .bf-profile-viewport-main--flow {

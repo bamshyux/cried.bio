@@ -1,8 +1,33 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { CriedLogo } from "@/components/brand/logo";
 import type { PageNavPosition } from "@/lib/types/settings";
+
+function centerProfileInViewport(
+  shell: HTMLElement,
+  main: HTMLElement,
+  content: HTMLElement,
+) {
+  main.style.paddingTop = "";
+  main.style.paddingBottom = "";
+  main.style.minHeight = "";
+
+  const viewport = window.innerHeight;
+  const contentHeight = content.getBoundingClientRect().height;
+
+  if (contentHeight <= viewport) {
+    const pad = Math.max(0, (viewport - contentHeight) / 2);
+    main.style.paddingTop = `${pad}px`;
+    main.style.paddingBottom = `${pad}px`;
+    main.style.minHeight = `${viewport}px`;
+    shell.scrollTop = 0;
+    return;
+  }
+
+  main.style.minHeight = `${contentHeight}px`;
+  shell.scrollTop = Math.max(0, (main.scrollHeight - viewport) / 2);
+}
 
 export function ProfileSiteChrome({
   navPosition,
@@ -21,6 +46,10 @@ export function ProfileSiteChrome({
   const hasTopNav = showNav && navPosition === "top";
   const hasBottomNav = showNav && navPosition === "bottom";
   const hasSideNav = showNav && (navPosition === "left" || navPosition === "right");
+
+  const shellRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const logo = (
     <a href="/" className="group inline-flex opacity-90 transition-opacity hover:opacity-100">
@@ -57,28 +86,66 @@ export function ProfileSiteChrome({
     </aside>
   ) : null;
 
-  const edgePadding = [
-    hasSideNav ? "pt-20 sm:pt-24" : "",
-    hasBottomNav ? "pb-24 sm:pb-28" : "",
+  const horizontalPadding = [
     navPosition === "left" ? "pl-[min(11rem,28vw)] sm:pl-44" : "",
     navPosition === "right" ? "pr-[min(11rem,28vw)] sm:pr-44" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
+  const flowPadding = [
+    hasSideNav ? "pt-20 sm:pt-24" : "",
+    hasBottomNav ? "pb-24 sm:pb-28" : "",
+    horizontalPadding,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const edgePadding = centerContent ? horizontalPadding : flowPadding;
+
   const mainClass = centerContent
     ? "bf-profile-viewport-main--center"
     : "bf-profile-viewport-main--flow";
+
+  useLayoutEffect(() => {
+    if (!centerContent) return;
+
+    const shell = shellRef.current;
+    const main = mainRef.current;
+    const content = contentRef.current;
+    if (!shell || !main || !content) return;
+
+    const apply = () => centerProfileInViewport(shell, main, content);
+
+    apply();
+
+    const ro = new ResizeObserver(apply);
+    ro.observe(content);
+    window.addEventListener("resize", apply);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", apply);
+      main.style.paddingTop = "";
+      main.style.paddingBottom = "";
+      main.style.minHeight = "";
+    };
+  }, [centerContent, children, edgePadding]);
 
   return (
     <>
       {fixedLogo}
       {sideRail}
       {bottomBar}
-      <div className="bf-profile-viewport-shell">
+      <div ref={shellRef} className="bf-profile-viewport-shell">
         {topBar}
-        <main className={`bf-profile-viewport-main ${mainClass} ${edgePadding} ${mainClassName}`.trim()}>
-          {children}
+        <main
+          ref={mainRef}
+          className={`bf-profile-viewport-main ${mainClass} ${edgePadding} ${mainClassName}`.trim()}
+        >
+          <div ref={contentRef} className="bf-profile-viewport-content w-full">
+            {children}
+          </div>
         </main>
       </div>
     </>
