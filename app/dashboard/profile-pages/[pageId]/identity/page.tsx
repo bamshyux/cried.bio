@@ -1,13 +1,10 @@
-import { ProfilePageIdentityEditor } from "@/components/dashboard/profile-page-editor/identity-editor";
-import { loadProfilePageEditor } from "@/lib/dashboard/load-profile-page-editor";
+import { redirect } from "next/navigation";
 
-export default async function ProfilePageIdentityPage({
+export default async function LegacyIdentityRedirect({
   params,
 }: {
   params: Promise<{ pageId: string }>;
 }) {
   const { pageId } = await params;
-  const { page, profile } = await loadProfilePageEditor(pageId);
-
-  return <ProfilePageIdentityEditor page={page} username={profile?.username ?? null} />;
+  redirect(`/dashboard/pages/${pageId}/background`);
 }

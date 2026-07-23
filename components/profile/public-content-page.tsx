@@ -1,4 +1,4 @@
-import { PublicContentPageClient } from "./public-content-page-client";
+import { PublicContentPageClient } from "./public/public-content-page-client";
 import type { MusicTrack } from "@/lib/data/music-tracks";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
 import type { ProfileEmbed } from "@/lib/types/embed";
