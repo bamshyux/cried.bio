@@ -12,6 +12,7 @@ import {
   updateProfilePageAction,
 } from "@/app/actions/profile-pages";
 import { PremiumLocked } from "@/components/premium/premium-locked";
+import { IconHome } from "@/components/icons/dashboard-icons";
 import {
   cardClassName,
   buttonPrimaryClassName,
@@ -57,7 +58,7 @@ export function PagesShell({
         setLabel("");
         setIcon("");
         if (result.pageId) {
-          router.push(`/dashboard/pages/${result.pageId}/background`);
+          router.push(`/dashboard/pages/${result.pageId}/customize`);
         } else {
           router.refresh();
         }
@@ -90,8 +91,8 @@ export function PagesShell({
 
       <div className={`${cardClassName} mb-6`}>
         <div className="flex items-start gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-lg">
-            🏠
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-white">
+            <IconHome size={20} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-medium text-white">Home</p>
@@ -281,7 +282,7 @@ function PageRow({
       </div>
       <div className="flex flex-wrap gap-1.5">
         <Link
-          href={`/dashboard/pages/${page.id}/background`}
+          href={`/dashboard/pages/${page.id}/customize`}
           className="rounded-lg bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-white hover:bg-white/[0.1]"
         >
           Edit
@@ -331,7 +332,7 @@ function PageRow({
                 startTransition(async () => {
                   const result = await duplicateProfilePageAction(page.id);
                   if (result.pageId) {
-                    router.push(`/dashboard/pages/${result.pageId}/background`);
+                    router.push(`/dashboard/pages/${result.pageId}/customize`);
                   } else {
                     onRefresh();
                   }

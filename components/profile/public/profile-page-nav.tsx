@@ -4,10 +4,12 @@ import type { ProfilePage } from "@/lib/profile-pages/slug";
 
 export function ProfilePageNav({
   username,
+  homeLabel,
   pages,
   activeSlug,
 }: {
   username: string;
+  homeLabel: string;
   pages: ProfilePage[];
   activeSlug?: string | null;
 }) {
@@ -20,7 +22,7 @@ export function ProfilePageNav({
       aria-label="Site pages"
       className="bf-profile-page-nav flex flex-wrap items-center justify-center gap-x-1 gap-y-0"
     >
-      <NavTab href={`/${username}`} label="Home" active={homeActive} />
+      <NavTab href={`/${username}`} label={homeLabel} active={homeActive} />
       {pages.map((page) => (
         <NavTab
           key={page.id}

@@ -21,6 +21,7 @@ import { ProfileTabBranding } from "./profile-tab-branding";
 
 export function PublicContentPageClient({
   username,
+  displayName,
   page,
   navPages,
   links,
@@ -31,6 +32,7 @@ export function PublicContentPageClient({
   musicTracks = [],
 }: {
   username: string;
+  displayName: string;
   page: ProfilePage;
   navPages: ProfilePage[];
   links: ProfileLink[];
@@ -87,7 +89,12 @@ export function PublicContentPageClient({
           </div>
           {navPages.length > 0 ? (
             <div className="mt-4 flex justify-center border-b border-white/[0.06]">
-              <ProfilePageNav username={username} pages={navPages} activeSlug={page.slug} />
+              <ProfilePageNav
+                username={username}
+                homeLabel={displayName}
+                pages={navPages}
+                activeSlug={page.slug}
+              />
             </div>
           ) : null}
         </header>

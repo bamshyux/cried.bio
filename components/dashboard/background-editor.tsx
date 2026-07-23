@@ -56,9 +56,11 @@ function readBackgroundForm(settings: ProfileSettings): BackgroundFormState {
 export function BackgroundEditor({
   settings,
   pageId,
+  contentPage = false,
 }: {
   settings: ProfileSettings;
   pageId?: string;
+  contentPage?: boolean;
 }) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
@@ -159,7 +161,14 @@ export function BackgroundEditor({
 
   return (
     <>
-      <PageHeader title="Background" description="Images, video, gradients, particles, and overlay controls." />
+      <PageHeader
+        title="Background"
+        description={
+          contentPage
+            ? "Set the backdrop behind this page's content card."
+            : "Images, video, gradients, particles, and overlay controls."
+        }
+      />
       <div className="space-y-6">
         <div className={cardClassName}>
           <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-5">
@@ -308,9 +317,11 @@ export function BackgroundEditor({
 export function BackgroundPageShell({
   settings,
   pageId,
+  contentPage = false,
 }: {
   settings: ProfileSettings;
   pageId?: string;
+  contentPage?: boolean;
 }) {
-  return <BackgroundEditor settings={settings} pageId={pageId} />;
+  return <BackgroundEditor settings={settings} pageId={pageId} contentPage={contentPage} />;
 }

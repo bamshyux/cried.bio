@@ -93,6 +93,7 @@ export default async function ContentPage({ params }: PageProps) {
       ) : null}
       <PublicContentPageView
         username={profile.username ?? normalized}
+        displayName={profile.display_name?.trim() || profile.username || normalized}
         page={page}
         navPages={navPages}
         links={links as import("@/lib/types/link").ProfileLink[]}

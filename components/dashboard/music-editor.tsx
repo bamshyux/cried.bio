@@ -60,12 +60,14 @@ export function MusicEditor({
   entitlements,
   musicTitleSupported = true,
   pageId,
+  contentPage = false,
 }: {
   settings: ProfileSettings;
   tracks: MusicTrack[];
   entitlements: UserEntitlements;
   musicTitleSupported?: boolean;
   pageId?: string;
+  contentPage?: boolean;
 }) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
@@ -157,7 +159,11 @@ export function MusicEditor({
     <>
       <PageHeader
         title="Music"
-        description="Upload profile music, build playlists, and configure playback."
+        description={
+          contentPage
+            ? "Background music for this page only."
+            : "Upload profile music, build playlists, and configure playback."
+        }
       />
 
       <div className="space-y-6">
@@ -376,12 +382,14 @@ export function MusicPageShell({
   entitlements,
   musicTitleSupported = true,
   pageId,
+  contentPage = false,
 }: {
   settings: ProfileSettings;
   tracks: MusicTrack[];
   entitlements: UserEntitlements;
   musicTitleSupported?: boolean;
   pageId?: string;
+  contentPage?: boolean;
 }) {
   return (
     <MusicEditor
@@ -390,6 +398,7 @@ export function MusicPageShell({
       entitlements={entitlements}
       musicTitleSupported={musicTitleSupported}
       pageId={pageId}
+      contentPage={contentPage}
     />
   );
 }

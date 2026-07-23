@@ -14,6 +14,7 @@ import {
   IconSettings,
   IconPresets,
   IconPremium,
+  IconHome,
 } from "@/components/icons/dashboard-icons";
 
 export type DashboardNavItem = {
@@ -313,7 +314,7 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
         label: "Pages",
         description: "Content pages for your personal site",
         keywords: ["pages", "content", "gallery", "about"],
-        Icon: IconProfile,
+        Icon: IconHome,
       },
       {
         href: "/dashboard/preset-schedules",

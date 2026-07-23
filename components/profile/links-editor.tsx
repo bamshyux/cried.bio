@@ -287,10 +287,12 @@ export function LinksEditor({
   links: initialLinks,
   settings,
   pageId,
+  contentPage = false,
 }: {
   links: ProfileLink[];
   settings: ProfileSettings;
   pageId?: string;
+  contentPage?: boolean;
 }) {
   const router = useRouter();
   const [links, setLinks] = useState(initialLinks);
@@ -328,7 +330,11 @@ export function LinksEditor({
     <>
       <PageHeader
         title="Links"
-        description="Social platforms and custom links with drag-and-drop reorder."
+        description={
+          contentPage
+            ? "Add links that appear on this page."
+            : "Social platforms and custom links with drag-and-drop reorder."
+        }
       />
 
       <div className="bf-card mb-6 p-5">
@@ -356,7 +362,9 @@ export function LinksEditor({
             unit="px"
           />
           <p className="-mt-2 text-xs text-neutral-600">
-            Applies to all link styles on your public profile. Icon boxes scale with the icon.
+            {contentPage
+              ? "Applies to all link styles on this page."
+              : "Applies to all link styles on your public profile. Icon boxes scale with the icon."}
           </p>
 
           <div>
@@ -367,7 +375,9 @@ export function LinksEditor({
               ))}
             </select>
             <p className="mt-1.5 text-xs text-neutral-500">
-              Applies to all links on your public profile. Use Icon effects above for icon-specific styling.
+              {contentPage
+                ? "Applies to all links on this page."
+                : "Applies to all links on your public profile. Use Icon effects above for icon-specific styling."}
             </p>
           </div>
 

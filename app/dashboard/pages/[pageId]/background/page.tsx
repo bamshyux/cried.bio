@@ -9,5 +9,5 @@ export default async function ContentPageBackgroundPage({
   const { pageId } = await params;
   const { settings } = await loadProfilePageEditor(pageId);
 
-  return <BackgroundPageShell settings={settings} pageId={pageId} />;
+  return <BackgroundPageShell settings={settings} pageId={pageId} contentPage />;
 }

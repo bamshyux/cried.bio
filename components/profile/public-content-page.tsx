@@ -8,6 +8,7 @@ import type { ProfileSettings } from "@/lib/types/settings";
 
 export function PublicContentPageView({
   username,
+  displayName,
   page,
   navPages,
   links,
@@ -18,6 +19,7 @@ export function PublicContentPageView({
   musicTracks = [],
 }: {
   username: string;
+  displayName: string;
   page: ProfilePage;
   navPages: ProfilePage[];
   links: ProfileLink[];
@@ -30,6 +32,7 @@ export function PublicContentPageView({
   return (
     <PublicContentPageClient
       username={username}
+      displayName={displayName}
       page={page}
       navPages={navPages}
       links={links}

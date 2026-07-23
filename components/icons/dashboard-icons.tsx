@@ -34,6 +34,15 @@ export function IconOverview(p: IconProps) {
   );
 }
 
+export function IconHome(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M4 10.5L12 4l8 6.5" />
+      <path d="M6 9.5V19a1 1 0 0 0 1 1h3v-5h4v5h3a1 1 0 0 0 1-1V9.5" />
+    </Icon>
+  );
+}
+
 export function IconProfile(p: IconProps) {
   return (
     <Icon {...p}>

@@ -37,7 +37,7 @@ export default async function ContentPageEditorLayout({
           ) : null}
         </div>
         <p className="mt-2 text-sm text-neutral-500">
-          A blank content canvas — not a duplicate profile. Visitors see only what you add here.
+          Style this page, add links and music, then publish when ready.
         </p>
         {profile?.username ? (
           <a

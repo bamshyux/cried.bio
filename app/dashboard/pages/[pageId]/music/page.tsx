@@ -26,6 +26,7 @@ export default async function ContentPageMusicPage({
       entitlements={entitlements}
       musicTitleSupported={musicTitleSupported}
       pageId={pageId}
+      contentPage
     />
   );
 }

@@ -1,4 +1,4 @@
-import { EffectsPageShell } from "@/components/dashboard/effects-editor";
+import { ContentPageEffectsEditor } from "@/components/dashboard/content-page-editor/effects-editor";
 import { loadProfilePageEditor } from "@/lib/dashboard/load-profile-page-editor";
 
 export default async function ContentPageEffectsPage({
@@ -7,16 +7,7 @@ export default async function ContentPageEffectsPage({
   params: Promise<{ pageId: string }>;
 }) {
   const { pageId } = await params;
-  const { profile, settings } = await loadProfilePageEditor(pageId);
+  const { page, settings } = await loadProfilePageEditor(pageId);
 
-  if (!profile) return null;
-
-  return (
-    <EffectsPageShell
-      settings={settings}
-      profile={profile}
-      pageId={pageId}
-      hideEnterGate
-    />
-  );
+  return <ContentPageEffectsEditor page={page} settings={settings} pageId={pageId} />;
 }

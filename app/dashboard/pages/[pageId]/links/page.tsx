@@ -14,7 +14,7 @@ export default async function ContentPageLinksPage({
 
   return (
     <div className={cardClassName}>
-      <LinksEditor links={links} settings={settings} pageId={pageId} />
+      <LinksEditor links={links} settings={settings} pageId={pageId} contentPage />
     </div>
   );
 }

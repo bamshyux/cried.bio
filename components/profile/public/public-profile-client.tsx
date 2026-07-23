@@ -898,7 +898,11 @@ export function PublicProfileClient({
   const isOwner = currentUserId === profile.id;
   const siteNav =
     profile.username && navPages.length > 0 ? (
-      <ProfilePageNav username={profile.username} pages={navPages} />
+      <ProfilePageNav
+        username={profile.username}
+        homeLabel={profile.display_name?.trim() || profile.username}
+        pages={navPages}
+      />
     ) : null;
   const layoutProps: LayoutProps = {
     profile,

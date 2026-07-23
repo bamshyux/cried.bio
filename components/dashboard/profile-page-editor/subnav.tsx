@@ -4,11 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const EDITOR_LINKS = [
+  { href: "customize", label: "Style" },
   { href: "background", label: "Background" },
-  { href: "customize", label: "Customize" },
   { href: "links", label: "Links" },
   { href: "music", label: "Music" },
-  { href: "themes", label: "Layouts" },
   { href: "effects", label: "Effects" },
 ] as const;
 

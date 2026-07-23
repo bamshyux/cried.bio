@@ -207,6 +207,10 @@ function parseSectionUpdates(
           : existing.content_alignment) as import("@/lib/types/settings").ContentAlignment,
         layout_label: String(formData.get("layout_label") ?? existing.layout_label).slice(0, 64),
         hide_card_border: parseBool(formData.get("hide_card_border")),
+        card_border_effect: parseCardBorderEffect(
+          String(formData.get("card_border_effect") ?? existing.card_border_effect),
+          existing.card_border_effect,
+        ),
       };
     case "card_border":
       return {
