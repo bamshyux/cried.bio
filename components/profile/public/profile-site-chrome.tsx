@@ -1,8 +1,26 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { CriedLogo } from "@/components/brand/logo";
 import type { PageNavPosition } from "@/lib/types/settings";
+
+function applyProfileVerticalLayout(main: HTMLElement, content: HTMLElement) {
+  const viewport = window.visualViewport?.height ?? window.innerHeight;
+  const contentHeight = content.offsetHeight;
+  const topGap = Math.max(48, viewport * 0.1);
+  const bottomGap = Math.max(32, viewport * 0.05);
+  const fitsInViewport = contentHeight + topGap + bottomGap <= viewport;
+
+  if (fitsInViewport) {
+    main.dataset.profileFit = "true";
+    main.style.paddingTop = "";
+    main.style.paddingBottom = "";
+  } else {
+    main.dataset.profileFit = "false";
+    main.style.paddingTop = `${topGap}px`;
+    main.style.paddingBottom = `${bottomGap}px`;
+  }
+}
 
 export function ProfileSiteChrome({
   navPosition,
@@ -21,6 +39,10 @@ export function ProfileSiteChrome({
   const hasTopNav = showNav && navPosition === "top";
   const hasBottomNav = showNav && navPosition === "bottom";
   const hasSideNav = showNav && (navPosition === "left" || navPosition === "right");
+
+  const shellRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const logo = (
     <a href="/" className="group inline-flex opacity-90 transition-opacity hover:opacity-100">
@@ -78,15 +100,51 @@ export function ProfileSiteChrome({
     ? "bf-profile-viewport-main--center"
     : "bf-profile-viewport-main--flow";
 
+  useLayoutEffect(() => {
+    if (!centerContent) return;
+
+    const main = mainRef.current;
+    const content = contentRef.current;
+    const shell = shellRef.current;
+    if (!main || !content) return;
+
+    const apply = () => {
+      applyProfileVerticalLayout(main, content);
+      if (shell) shell.scrollTop = 0;
+    };
+
+    apply();
+    requestAnimationFrame(apply);
+
+    const ro = new ResizeObserver(apply);
+    ro.observe(content);
+    window.addEventListener("resize", apply);
+    window.visualViewport?.addEventListener("resize", apply);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", apply);
+      window.visualViewport?.removeEventListener("resize", apply);
+      delete main.dataset.profileFit;
+      main.style.paddingTop = "";
+      main.style.paddingBottom = "";
+    };
+  }, [centerContent, children]);
+
   return (
     <>
       {fixedLogo}
       {sideRail}
       {bottomBar}
-      <div className="bf-profile-viewport-shell">
+      <div ref={shellRef} className="bf-profile-viewport-shell">
         {topBar}
-        <main className={`bf-profile-viewport-main ${mainClass} ${edgePadding} ${mainClassName}`.trim()}>
-          <div className="bf-profile-viewport-content w-full">{children}</div>
+        <main
+          ref={mainRef}
+          className={`bf-profile-viewport-main ${mainClass} ${edgePadding} ${mainClassName}`.trim()}
+        >
+          <div ref={contentRef} className="bf-profile-viewport-content w-full">
+            {children}
+          </div>
         </main>
       </div>
     </>

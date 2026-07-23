@@ -133,7 +133,15 @@ body,
   min-height: 100dvh;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  padding-top: 10dvh;
+  padding-bottom: 5dvh;
+}
+
+.bf-profile-viewport-main--center[data-profile-fit="true"] {
   justify-content: center;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .bf-profile-viewport-main--flow {
