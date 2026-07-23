@@ -34,7 +34,7 @@ export function ProfileSiteChrome({
   ) : null;
 
   const topBar = !hasSideNav && hasTopNav ? (
-    <header className="pointer-events-auto relative z-40 flex w-full shrink-0 flex-col items-stretch px-5 py-4 sm:px-8 sm:py-5">
+    <header className="pointer-events-auto absolute inset-x-0 top-0 z-40 flex flex-col items-stretch px-5 py-4 sm:px-8 sm:py-5">
       <div className="flex justify-center">
         <div className="border-b border-white/[0.06]">{siteNav}</div>
       </div>
@@ -67,14 +67,18 @@ export function ProfileSiteChrome({
     .filter(Boolean)
     .join(" ");
 
+  const mainCenterClass = centerContent
+    ? `min-h-screen ${hasTopNav ? "pt-24 sm:pt-28" : "py-10 sm:py-12"}`
+    : `min-h-screen ${hasTopNav ? "pt-24 sm:pt-28" : ""} py-10 sm:py-12`;
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="relative flex min-h-screen flex-1 flex-col">
       {fixedLogo}
       {topBar}
       {sideRail}
       {bottomBar}
       <main
-        className={`relative flex w-full flex-1 flex-col items-center px-5 py-10 sm:py-12 ${mainPadding} ${mainClassName}`.trim()}
+        className={`relative flex w-full flex-col items-center px-5 pb-10 sm:pb-12 ${mainCenterClass} ${mainPadding} ${mainClassName}`.trim()}
       >
         {centerContent ? <div className="my-auto w-full">{children}</div> : children}
       </main>
