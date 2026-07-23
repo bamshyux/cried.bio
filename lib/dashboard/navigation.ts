@@ -13,6 +13,8 @@ import {
   IconExplore,
   IconSettings,
   IconPresets,
+  IconPremium,
+  IconEffects,
 } from "@/components/icons/dashboard-icons";
 
 export type DashboardNavItem = {
@@ -294,6 +296,43 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
     ],
   },
   {
+    id: "premium",
+    label: "Premium",
+    href: "/dashboard/premium",
+    description: "Upgrade and manage your plan",
+    Icon: IconPremium,
+    items: [
+      {
+        href: "/dashboard/premium",
+        label: "Plans",
+        description: "Upgrade and manage billing",
+        keywords: ["premium", "upgrade", "billing"],
+        Icon: IconPremium,
+      },
+      {
+        href: "/dashboard/profile-pages",
+        label: "Profile pages",
+        description: "Additional public profile URLs",
+        keywords: ["pages", "multi profile"],
+        Icon: IconProfile,
+      },
+      {
+        href: "/dashboard/preset-schedules",
+        label: "Scheduled presets",
+        description: "Auto-swap presets by time",
+        keywords: ["schedule", "preset", "day", "night"],
+        Icon: IconPresets,
+      },
+      {
+        href: "/dashboard/premium/custom-effect",
+        label: "Custom effect",
+        description: "Request a bespoke profile effect",
+        keywords: ["effect", "custom", "request"],
+        Icon: IconEffects,
+      },
+    ],
+  },
+  {
     id: "settings",
     label: "Settings",
     href: "/dashboard/settings",
@@ -321,13 +360,6 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
         keywords: ["notifications", "email", "contact"],
         Icon: IconSettings,
       },
-      {
-        href: "/dashboard/premium",
-        label: "Premium",
-        description: "Upgrade your account",
-        keywords: ["premium", "upgrade", "pro"],
-        Icon: IconBadges,
-      },
     ],
   },
 ];
@@ -347,7 +379,7 @@ export function getSectionForPath(pathname: string): DashboardSection | undefine
 
   return DASHBOARD_SECTIONS.find((section) => {
     if (pathname === section.href) return true;
-    if (section.id === "settings" && pathname.startsWith("/dashboard/premium")) return true;
+    if (section.id === "premium" && pathname.startsWith("/dashboard/premium")) return true;
     return section.items.some((item) => pathname.startsWith(item.href) && item.href !== "/dashboard");
   }) ?? DASHBOARD_SECTIONS.find((section) =>
     section.href !== "/dashboard" && pathname.startsWith(section.href),
@@ -374,8 +406,16 @@ export function isNavActive(pathname: string, href: string): boolean {
   if (href === "/dashboard/profile") {
     return pathname.startsWith("/dashboard/profile") || pathname.startsWith("/dashboard/links");
   }
+  if (href === "/dashboard/premium") {
+    return [
+      "/dashboard/premium",
+      "/dashboard/profile-pages",
+      "/dashboard/preset-schedules",
+      "/dashboard/premium/custom-effect",
+    ].some((p) => pathname.startsWith(p));
+  }
   if (href === "/dashboard/settings") {
-    return pathname.startsWith("/dashboard/settings") || pathname.startsWith("/dashboard/premium");
+    return pathname.startsWith("/dashboard/settings");
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }

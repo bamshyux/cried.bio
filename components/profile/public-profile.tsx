@@ -1,3 +1,4 @@
+import type { MusicTrack } from "@/lib/data/music-tracks";
 import type { DiscordPresence } from "@/lib/discord/types";
 import type { ActivityEvent } from "@/lib/types/activity";
 import type { FeaturedBlock } from "@/lib/types/featured";
@@ -30,6 +31,7 @@ export function PublicProfileView({
   scopedCustomCss = null,
   presetPreviewTitle = null,
   presetPreviewMode = false,
+  musicTracks = [],
 }: {
   profile: Profile;
   links: ProfileLink[];
@@ -50,6 +52,7 @@ export function PublicProfileView({
   scopedCustomCss?: string | null;
   presetPreviewTitle?: string | null;
   presetPreviewMode?: boolean;
+  musicTracks?: MusicTrack[];
 }) {
   return (
     <PublicProfileClient
@@ -72,6 +75,7 @@ export function PublicProfileView({
       scopedCustomCss={scopedCustomCss}
       presetPreviewTitle={presetPreviewTitle}
       presetPreviewMode={presetPreviewMode}
+      musicTracks={musicTracks}
     />
   );
 }

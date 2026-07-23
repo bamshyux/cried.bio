@@ -17,6 +17,8 @@ import {
   ToggleField,
 } from "@/components/dashboard/form-fields";
 import { FONT_OPTIONS, CONTENT_ALIGNMENT_OPTIONS } from "@/lib/settings";
+import { PREMIUM_FONT_OPTIONS, isPremiumFont } from "@/lib/premium/fonts";
+import { useUpgradeModal } from "@/components/premium/upgrade-modal";
 import {
   getLayoutLabelHint,
   getLayoutLabelPlaceholder,
@@ -47,7 +49,14 @@ function readCustomizeForm(settings: ProfileSettings): CustomizeFormState {
   };
 }
 
-export function CustomizeEditor({ settings }: { settings: ProfileSettings }) {
+export function CustomizeEditor({
+  settings,
+  canUsePremiumFonts = false,
+}: {
+  settings: ProfileSettings;
+  canUsePremiumFonts?: boolean;
+}) {
+  const { openUpgrade } = useUpgradeModal();
   const { form, patchForm, submit, state, isPending } = useDashboardSettingsSection(
     "customize",
     settings,
@@ -89,8 +98,20 @@ export function CustomizeEditor({ settings }: { settings: ProfileSettings }) {
           <ControlledSelect
             label="Font"
             value={form.font_family}
-            onChange={(font_family) => patchForm({ font_family })}
-            options={FONT_OPTIONS.map((f) => ({ value: f.value, label: f.label }))}
+            onChange={(font_family) => {
+              if (isPremiumFont(font_family) && !canUsePremiumFonts) {
+                openUpgrade();
+                return;
+              }
+              patchForm({ font_family });
+            }}
+            options={[
+              ...FONT_OPTIONS.map((f) => ({ value: f.value, label: f.label })),
+              ...PREMIUM_FONT_OPTIONS.map((f) => ({
+                value: f.value,
+                label: `${f.label}${canUsePremiumFonts ? "" : " ★ Premium"}`,
+              })),
+            ]}
           />
           <p className="-mt-3 text-xs text-neutral-600">
             See the live preview for how this font looks on your profile.
@@ -277,6 +298,12 @@ export function CustomizeEditor({ settings }: { settings: ProfileSettings }) {
   );
 }
 
-export function CustomizePageShell({ settings }: { settings: ProfileSettings }) {
-  return <CustomizeEditor settings={settings} />;
+export function CustomizePageShell({
+  settings,
+  canUsePremiumFonts = false,
+}: {
+  settings: ProfileSettings;
+  canUsePremiumFonts?: boolean;
+}) {
+  return <CustomizeEditor settings={settings} canUsePremiumFonts={canUsePremiumFonts} />;
 }

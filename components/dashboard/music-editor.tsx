@@ -2,11 +2,21 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import {
+  removeMusicTrackAction,
+  reorderMusicTracksAction,
+  saveMusicTrackAction,
+  setDefaultMusicTrackAction,
+  updateMusicPlaylistSettingsAction,
+} from "@/app/actions/music-tracks";
 import { removeMusicAction, saveMusicAction } from "@/app/actions/settings";
 import {
   SaveConfirmation,
   useDashboardSettingsSection,
 } from "@/components/dashboard/use-settings-form";
+import { PremiumLocked, PremiumLockBadge } from "@/components/premium/premium-locked";
+import type { MusicTrack } from "@/lib/data/music-tracks";
+import type { UserEntitlements } from "@/lib/premium/types";
 import type { ProfileSettings } from "@/lib/types/settings";
 import { uploadMusicToStorage } from "@/lib/uploads/music-client";
 import {
@@ -46,13 +56,18 @@ function readMusicForm(settings: ProfileSettings): MusicFormState {
 
 export function MusicEditor({
   settings,
+  tracks,
+  entitlements,
   musicTitleSupported = true,
 }: {
   settings: ProfileSettings;
+  tracks: MusicTrack[];
+  entitlements: UserEntitlements;
   musicTitleSupported?: boolean;
 }) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
+  const [playlistPending, startPlaylist] = useTransition();
   const { form, patchForm, submit, state, isPending } = useDashboardSettingsSection(
     "music",
     settings,
@@ -63,10 +78,17 @@ export function MusicEditor({
   const [uploadSuccess, setUploadSuccess] = useState<string>();
   const [uploadPending, setUploadPending] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [playlistFeedback, setPlaylistFeedback] = useState<{ error?: string; success?: string }>();
+
+  const canPlaylist = entitlements.can_use_playlist;
+  const maxTracks = entitlements.max_music_tracks;
+  const displayTracks = tracks.length > 0 ? tracks : settings.music_url
+    ? [{ id: "legacy", url: settings.music_url, title: settings.music_title || "Profile Track", sort_order: 0 } as MusicTrack]
+    : [];
 
   useEffect(() => {
     setUploadError(undefined);
-  }, [settings.music_url]);
+  }, [settings.music_url, tracks.length]);
 
   const handleMusicUpload = async (file: File | undefined) => {
     if (!file) return;
@@ -77,7 +99,13 @@ export function MusicEditor({
 
     try {
       const url = await uploadMusicToStorage(file);
-      const result = await saveMusicAction(url);
+      const result = canPlaylist && tracks.length > 0
+        ? await saveMusicTrackAction({ url, title: file.name.replace(/\.[^.]+$/, "") })
+        : tracks.length >= maxTracks && canPlaylist
+          ? { error: `Maximum ${maxTracks} tracks allowed.` }
+          : canPlaylist
+            ? await saveMusicTrackAction({ url, title: file.name.replace(/\.[^.]+$/, "") })
+            : await saveMusicAction(url);
 
       if (result.error) {
         setUploadError(result.error);
@@ -94,7 +122,7 @@ export function MusicEditor({
     }
   };
 
-  const handleRemove = () => {
+  const handleRemoveLegacy = () => {
     startRemove(async () => {
       const result = await removeMusicAction();
       if (!result.error) {
@@ -113,25 +141,82 @@ export function MusicEditor({
     submit(form);
   };
 
+  const savePlaylistSettings = (patch: Parameters<typeof updateMusicPlaylistSettingsAction>[0]) => {
+    startPlaylist(async () => {
+      const result = await updateMusicPlaylistSettingsAction(patch);
+      setPlaylistFeedback(result);
+      if (!result.error) router.refresh();
+    });
+  };
+
   return (
     <>
-      <PageHeader title="Music" description="Upload profile music and configure playback." />
+      <PageHeader
+        title="Music"
+        description="Upload profile music, build playlists, and configure playback."
+      />
 
       <div className="space-y-6">
         <div className={cardClassName}>
-          <h2 className="mb-4 text-sm font-medium text-white">Upload music</h2>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-sm font-medium text-white">Tracks</h2>
+            <span className="text-xs text-neutral-500">
+              {displayTracks.length} / {maxTracks}
+            </span>
+          </div>
 
-          {settings.music_url && (
-            <div className="mb-4 space-y-2 border-b border-white/[0.06] pb-4">
-              <p className="text-xs text-neutral-500">Current track</p>
-              <audio src={settings.music_url} controls className="w-full accent-[#fafafa]" />
-              <RemoveMediaButton
-                label="Remove music"
-                disabled={isRemoving || uploadPending}
-                onClick={handleRemove}
-              />
+          {displayTracks.length > 0 ? (
+            <div className="mb-4 space-y-3 border-b border-white/[0.06] pb-4">
+              {displayTracks.map((track, index) => (
+                <div
+                  key={track.id}
+                  className="flex flex-wrap items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"
+                >
+                  <span className="text-xs text-neutral-600">{index + 1}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm text-white">{track.title || "Untitled"}</p>
+                    <audio src={track.url} controls className="mt-2 w-full accent-[#fafafa]" />
+                  </div>
+                  {canPlaylist && track.id !== "legacy" ? (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        disabled={playlistPending}
+                        onClick={() =>
+                          startPlaylist(async () => {
+                            await setDefaultMusicTrackAction(track.id);
+                            router.refresh();
+                          })
+                        }
+                        className="rounded-lg px-2 py-1 text-xs text-neutral-400 hover:text-white"
+                      >
+                        Set default
+                      </button>
+                      <button
+                        type="button"
+                        disabled={playlistPending}
+                        onClick={() =>
+                          startPlaylist(async () => {
+                            await removeMusicTrackAction(track.id);
+                            router.refresh();
+                          })
+                        }
+                        className="rounded-lg px-2 py-1 text-xs text-red-400"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : track.id === "legacy" ? (
+                    <RemoveMediaButton
+                      label="Remove"
+                      disabled={isRemoving || uploadPending}
+                      onClick={handleRemoveLegacy}
+                    />
+                  ) : null}
+                </div>
+              ))}
             </div>
-          )}
+          ) : null}
 
           <div className="space-y-3">
             <label htmlFor="music" className={labelClassName}>
@@ -142,26 +227,75 @@ export function MusicEditor({
               id="music"
               type="file"
               accept="audio/*,.mp3,.wav,.ogg,.webm"
-              disabled={uploadPending}
+              disabled={uploadPending || displayTracks.length >= maxTracks}
               onChange={(event) => {
                 void handleMusicUpload(event.target.files?.[0]);
               }}
               className={fileInputClassName}
             />
-            <p className="text-xs text-neutral-600">
-              {uploadPending
-                ? "Uploading music..."
-                : "Choose a file to upload or replace your current track."}
-            </p>
             <FormFeedback error={uploadError} success={uploadSuccess} />
           </div>
         </div>
+
+        <PremiumLocked allowed={canPlaylist}>
+          <div className={cardClassName}>
+            <div className="mb-4 flex items-center gap-2">
+              <h2 className="text-sm font-medium text-white">Playlist mode</h2>
+              {!canPlaylist ? <PremiumLockBadge /> : null}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <ToggleField
+                name="music_playlist_mode"
+                label="Playlist mode"
+                checked={Boolean((settings as ProfileSettings & { music_playlist_mode?: boolean }).music_playlist_mode)}
+                onCheckedChange={(music_playlist_mode) => savePlaylistSettings({ music_playlist_mode })}
+              />
+              <ToggleField
+                name="music_shuffle"
+                label="Shuffle"
+                checked={Boolean((settings as ProfileSettings & { music_shuffle?: boolean }).music_shuffle)}
+                onCheckedChange={(music_shuffle) => savePlaylistSettings({ music_shuffle })}
+              />
+              <ToggleField
+                name="music_autoplay_next"
+                label="Autoplay next song"
+                checked={Boolean((settings as ProfileSettings & { music_autoplay_next?: boolean }).music_autoplay_next)}
+                onCheckedChange={(music_autoplay_next) => savePlaylistSettings({ music_autoplay_next })}
+              />
+              <ToggleField
+                name="music_loop_playlist"
+                label="Loop playlist"
+                checked={form.music_loop}
+                onCheckedChange={(music_loop) => {
+                  patchForm({ music_loop });
+                  savePlaylistSettings({ music_loop });
+                }}
+              />
+            </div>
+            {canPlaylist && displayTracks.length > 1 ? (
+              <button
+                type="button"
+                disabled={playlistPending}
+                className="mt-4 rounded-lg px-3 py-2 text-xs text-neutral-400 hover:bg-white/[0.06] hover:text-white"
+                onClick={() =>
+                  startPlaylist(async () => {
+                    await reorderMusicTracksAction(displayTracks.map((t) => t.id).filter((id) => id !== "legacy"));
+                    router.refresh();
+                  })
+                }
+              >
+                Save current order
+              </button>
+            ) : null}
+            <FormFeedback {...playlistFeedback} />
+          </div>
+        </PremiumLocked>
 
         <div className={cardClassName}>
           <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-5">
             <div>
               <label htmlFor="music_title" className={labelClassName}>
-                Song title
+                Default song title
               </label>
               {musicTitleSupported ? (
                 <input
@@ -173,20 +307,14 @@ export function MusicEditor({
                   className="bf-input w-full"
                 />
               ) : (
-                <>
-                  <input
-                    id="music_title"
-                    type="text"
-                    disabled
-                    value=""
-                    placeholder="Run supabase/v4_music_title.sql to enable"
-                    className="bf-input w-full cursor-not-allowed opacity-50"
-                  />
-                  <p className="mt-1.5 text-xs text-amber-500/90">
-                    Song title requires the <code className="font-mono">music_title</code> column.
-                    Run <code className="font-mono">supabase/v4_music_title.sql</code> in Supabase, then restart the dev server.
-                  </p>
-                </>
+                <input
+                  id="music_title"
+                  type="text"
+                  disabled
+                  value=""
+                  placeholder="Run supabase/v4_music_title.sql to enable"
+                  className="bf-input w-full cursor-not-allowed opacity-50"
+                />
               )}
             </div>
             <SliderField
@@ -222,7 +350,7 @@ export function MusicEditor({
               />
               <ToggleField
                 name="music_loop"
-                label="Loop"
+                label="Loop current track"
                 checked={form.music_loop}
                 onCheckedChange={(music_loop) => patchForm({ music_loop })}
               />
@@ -240,10 +368,21 @@ export function MusicEditor({
 
 export function MusicPageShell({
   settings,
+  tracks,
+  entitlements,
   musicTitleSupported = true,
 }: {
   settings: ProfileSettings;
+  tracks: MusicTrack[];
+  entitlements: UserEntitlements;
   musicTitleSupported?: boolean;
 }) {
-  return <MusicEditor settings={settings} musicTitleSupported={musicTitleSupported} />;
+  return (
+    <MusicEditor
+      settings={settings}
+      tracks={tracks}
+      entitlements={entitlements}
+      musicTitleSupported={musicTitleSupported}
+    />
+  );
 }

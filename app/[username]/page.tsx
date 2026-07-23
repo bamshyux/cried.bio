@@ -14,7 +14,7 @@ import { getBadgesByProfileId } from "@/lib/data/badges";
 import { getEmbedsByProfileId } from "@/lib/data/embeds";
 import { getFeaturedBlocksByProfileId } from "@/lib/data/featured";
 import { getGuestbookEntries } from "@/lib/data/guestbook";
-import { getLinksByProfileId } from "@/lib/data/links";
+import { getMusicTracks } from "@/lib/data/music-tracks";
 import { getProfileByUsername } from "@/lib/data/profiles";
 import { getSettingsByProfileId } from "@/lib/data/settings";
 import {
@@ -103,6 +103,7 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
     followCounts,
     following,
     hideViewCounts,
+    musicTracks,
   ] = await Promise.all([
     getLinksByProfileId(baseProfile.id),
     getSettingsByProfileId(baseProfile.id),
@@ -116,6 +117,7 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
     getFollowCounts(baseProfile.id),
     currentUserId ? isFollowing(currentUserId, baseProfile.id) : Promise.resolve(false),
     shouldHideViewCounts(baseProfile.id),
+    getMusicTracks(baseProfile.id),
   ]);
 
   let profile: Profile = baseProfile;
@@ -210,6 +212,7 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
         discordPresence={discordPresence}
         scopedCustomCss={scopedCustomCss}
         presetPreviewTitle={presetPreviewTitle}
+        musicTracks={musicTracks}
       />
     </>
   );

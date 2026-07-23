@@ -10,6 +10,7 @@ import {
 import { rgbString } from "@/lib/badges/badge-visuals";
 import { resolveMusicPlayerColor } from "@/lib/settings";
 import { rangeClassName, rangeFillStyle } from "@/lib/ui/range";
+import type { MusicTrack } from "@/lib/data/music-tracks";
 import type { ProfileSettings } from "@/lib/types/settings";
 
 function formatTitle(settings: ProfileSettings) {
@@ -45,11 +46,12 @@ function contrastOnAccent(hex: string): string {
 
 type MusicPlayerProps = {
   settings: ProfileSettings;
+  tracks?: MusicTrack[];
   deferAutoplay?: boolean;
   onPlayReady?: (play: () => void) => void;
 };
 
-export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: MusicPlayerProps) {
+export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPlayReady }: MusicPlayerProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const leaveTimerRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -60,7 +62,29 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  const title = formatTitle(settings);
+  const [trackIndex, setTrackIndex] = useState(0);
+
+  const playlist = tracks.length > 0
+    ? tracks
+    : settings.music_url
+      ? [{ id: "single", url: settings.music_url, title: settings.music_title, sort_order: 0 } as MusicTrack]
+      : [];
+
+  const playlistMode = Boolean(
+    (settings as ProfileSettings & { music_playlist_mode?: boolean }).music_playlist_mode &&
+      playlist.length > 1,
+  );
+  const shuffle = Boolean((settings as ProfileSettings & { music_shuffle?: boolean }).music_shuffle);
+  const autoplayNext = Boolean(
+    (settings as ProfileSettings & { music_autoplay_next?: boolean }).music_autoplay_next,
+  );
+
+  const currentTrack = playlist[trackIndex] ?? playlist[0];
+  const currentUrl = currentTrack?.url ?? settings.music_url;
+
+  const title = currentTrack?.title?.trim()
+    ? currentTrack.title.trim()
+    : formatTitle(settings);
   const accent = resolveMusicPlayerColor(settings);
   const accentRgb = rgbString(accent);
   const textColor = settings.text_color?.trim() || "#fafafa";
@@ -97,22 +121,24 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
 
   const playFromStart = useCallback(() => {
     const audio = audioRef.current;
-    if (!audio || !settings.music_url) return;
-    audio.loop = settings.music_loop;
+    if (!audio || !currentUrl) return;
+    audio.src = currentUrl;
+    audio.loop = playlistMode ? false : settings.music_loop;
     audio.volume = volume / 100;
     audio.currentTime = 0;
     void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
-  }, [settings.music_loop, settings.music_url, volume]);
+  }, [currentUrl, playlistMode, settings.music_loop, volume]);
 
   useEffect(() => {
     onPlayReady?.(playFromStart);
-  }, [onPlayReady, playFromStart]);
+  }, [onPlayReady, playFromStart, currentUrl]);
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !settings.music_url || deferAutoplay) return;
+    if (!audio || !currentUrl || deferAutoplay) return;
 
-    audio.loop = settings.music_loop;
+    audio.src = currentUrl;
+    audio.loop = playlistMode ? false : settings.music_loop;
     audio.volume = volume / 100;
 
     const startPlayback = () => {
@@ -133,11 +159,19 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
 
     audio.addEventListener("canplay", startPlayback, { once: true });
     return () => audio.removeEventListener("canplay", startPlayback);
-  }, [deferAutoplay, settings.music_autoplay, settings.music_loop, settings.music_url, volume]);
+  }, [currentUrl, deferAutoplay, playlistMode, settings.music_autoplay, settings.music_loop, volume]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+
+    const playNext = () => {
+      if (!playlistMode || playlist.length <= 1) return;
+      setTrackIndex((prev) => {
+        if (shuffle) return Math.floor(Math.random() * playlist.length);
+        return (prev + 1) % playlist.length;
+      });
+    };
 
     const syncDuration = () => {
       const next = audio.duration;
@@ -148,6 +182,10 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
     const onEnded = () => {
+      if (playlistMode && autoplayNext) {
+        playNext();
+        return;
+      }
       if (!settings.music_loop) setPlaying(false);
     };
 
@@ -167,7 +205,15 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
       audio.removeEventListener("pause", onPause);
       audio.removeEventListener("ended", onEnded);
     };
-  }, [settings.music_loop, settings.music_url]);
+  }, [autoplayNext, playlist.length, playlistMode, settings.music_loop, shuffle, currentUrl]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !currentUrl) return;
+    audio.src = currentUrl;
+    audio.load();
+    if (playing) void audio.play().catch(() => setPlaying(false));
+  }, [currentUrl]);
 
   useEffect(() => {
     if (!open) return;
@@ -185,7 +231,7 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
     };
   }, []);
 
-  if (!settings.music_url) return null;
+  if (!currentUrl) return null;
 
   const toggle = () => {
     const audio = audioRef.current;
@@ -226,7 +272,7 @@ export function MusicPlayer({ settings, deferAutoplay = false, onPlayReady }: Mu
         hide();
       }}
     >
-      <audio ref={audioRef} src={settings.music_url} preload="metadata" playsInline />
+      <audio ref={audioRef} src={currentUrl} preload="metadata" playsInline />
 
       <div
         className="bf-audio__panel"

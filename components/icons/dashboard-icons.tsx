@@ -211,6 +211,14 @@ export function IconVideo(p: IconProps) {
   );
 }
 
+export function IconPremium(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7-6-4.6h7.6L12 2z" />
+    </Icon>
+  );
+}
+
 export function accentStyle() {
   return { color: BRAND.accent };
 }

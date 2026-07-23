@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { syncPremiumBadge } from "@/lib/premium/badge-sync";
 import { logAdminAudit, logUserTimelineEvent } from "@/lib/admin/audit";
 import { requireAdminAccess } from "@/lib/auth/admin-access";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -155,11 +156,15 @@ export async function adminGrantPremiumAction(
     details: { tier, expires_at: expiresAt },
   });
 
+  await syncPremiumBadge(userId, tier !== "free");
+
   return { success: "Premium updated." };
 }
 
 export async function adminRevokePremiumAction(userId: string): Promise<AdminFormState> {
-  return adminUpdateUserAction(userId, { premium_tier: "free", premium_expires_at: null });
+  const result = await adminUpdateUserAction(userId, { premium_tier: "free", premium_expires_at: null });
+  if (!result.error) await syncPremiumBadge(userId, false);
+  return result;
 }
 
 export async function adminBanUserAction(userId: string, reason: string): Promise<AdminFormState> {

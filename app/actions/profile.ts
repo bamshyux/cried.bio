@@ -4,6 +4,7 @@ import { sendNewAccountDiscordAlert } from "@/lib/discord/signup-webhook";
 import { rejectIfModerated } from "@/lib/moderation/validate";
 import { createClient } from "@/lib/supabase/server";
 import { getUsernameChangeBlockReason } from "@/lib/username-cooldown";
+import { getUserEntitlements } from "@/lib/premium/entitlements";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import type { ProfileFormState } from "@/lib/types/profile";
 import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
@@ -142,10 +143,12 @@ export async function updateProfileAction(
     .eq("id", userId)
     .maybeSingle();
 
+  const entitlements = await getUserEntitlements(userId);
   const blockReason = getUsernameChangeBlockReason({
     currentUsername: existingProfile?.username,
     nextUsername: username,
     usernameChangedAt: existingProfile?.username_changed_at,
+    cooldownHours: entitlements.username_cooldown_hours,
   });
   if (blockReason) return { error: blockReason };
 

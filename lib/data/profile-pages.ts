@@ -1,0 +1,85 @@
+import { createClient } from "@/lib/supabase/server";
+import type { ProfilePage } from "@/lib/profile-pages/slug";
+
+export async function getProfilePages(profileId: string): Promise<ProfilePage[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profile_pages")
+    .select("*")
+    .eq("profile_id", profileId)
+    .order("sort_order", { ascending: true });
+
+  return (data as ProfilePage[]) ?? [];
+}
+
+export async function getProfilePageBySlug(
+  profileId: string,
+  slug: string,
+): Promise<ProfilePage | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profile_pages")
+    .select("*")
+    .eq("profile_id", profileId)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  return (data as ProfilePage | null) ?? null;
+}
+
+export async function countProfilePages(profileId: string): Promise<number> {
+  const pages = await getProfilePages(profileId);
+  return pages.length;
+}
+
+export async function getSettingsByPageId(
+  profileId: string,
+  pageId: string,
+): Promise<ReturnType<typeof import("@/lib/data/settings").getSettingsByProfileId>> {
+  const supabase = await createClient();
+  const { mergeSettings } = await import("@/lib/settings");
+  const { data } = await supabase
+    .from("profile_settings")
+    .select("*")
+    .eq("profile_id", profileId)
+    .eq("page_id", pageId)
+    .maybeSingle();
+
+  return mergeSettings(data, profileId);
+}
+
+export async function getLinksByPageId(profileId: string, pageId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("links")
+    .select("*")
+    .eq("profile_id", profileId)
+    .eq("page_id", pageId)
+    .order("sort_order", { ascending: true });
+
+  return data ?? [];
+}
+
+export async function getEmbedsByPageId(profileId: string, pageId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profile_embeds")
+    .select("*")
+    .eq("profile_id", profileId)
+    .eq("page_id", pageId)
+    .order("sort_order", { ascending: true });
+
+  return data ?? [];
+}
+
+export async function getFeaturedBlocksByPageId(profileId: string, pageId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("featured_blocks")
+    .select("*")
+    .eq("profile_id", profileId)
+    .eq("page_id", pageId)
+    .order("sort_order", { ascending: true });
+
+  return data ?? [];
+}

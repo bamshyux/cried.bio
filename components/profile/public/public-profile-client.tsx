@@ -10,6 +10,7 @@ import {
 import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfileLink } from "@/lib/types/link";
 import type { Profile } from "@/lib/types/profile";
+import type { MusicTrack } from "@/lib/data/music-tracks";
 import type { ProfileSettings } from "@/lib/types/settings";
 import { CriedLogo } from "@/components/brand/logo";
 import { CardBorderEffect } from "@/components/profile/card-border-effect";
@@ -826,6 +827,7 @@ export function PublicProfileClient({
   scopedCustomCss = null,
   presetPreviewTitle = null,
   presetPreviewMode = false,
+  musicTracks = [],
 }: {
   profile: Profile;
   links: ProfileLink[];
@@ -846,6 +848,7 @@ export function PublicProfileClient({
   scopedCustomCss?: string | null;
   presetPreviewTitle?: string | null;
   presetPreviewMode?: boolean;
+  musicTracks?: MusicTrack[];
 }) {
   const isPresetPreview = presetPreviewMode || Boolean(presetPreviewTitle);
   const showPresetPreviewBanner = Boolean(presetPreviewTitle) && !presetPreviewMode;
@@ -983,10 +986,11 @@ export function PublicProfileClient({
         </div>
       ) : null}
 
-      {settings.music_url ? (
+      {settings.music_url || musicTracks.length > 0 ? (
         <div className={!entered ? "pointer-events-none opacity-0" : undefined}>
           <MusicPlayer
             settings={settings}
+            tracks={musicTracks}
             deferAutoplay={!entered}
             onPlayReady={(play) => {
               playMusicRef.current = play;

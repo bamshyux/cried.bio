@@ -10,6 +10,7 @@ import {
   syncPrivacyToProfileSettings,
 } from "@/lib/data/account-settings";
 import { getUsernameChangeBlockReason } from "@/lib/username-cooldown";
+import { getUserEntitlements } from "@/lib/premium/entitlements";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import { deliverEmailChangeConfirmation } from "@/lib/auth/deliver-auth-link-email";
 import { buildAuthEmailErrorMessage } from "@/lib/auth/auth-email-shared";
@@ -64,10 +65,12 @@ export async function updateUsernameAction(
     .eq("id", auth.userId)
     .maybeSingle();
 
+  const entitlements = await getUserEntitlements(auth.userId);
   const blockReason = getUsernameChangeBlockReason({
     currentUsername: existing?.username,
     nextUsername: username,
     usernameChangedAt: existing?.username_changed_at,
+    cooldownHours: entitlements.username_cooldown_hours,
   });
   if (blockReason) return { error: blockReason };
 

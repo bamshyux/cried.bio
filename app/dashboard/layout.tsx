@@ -29,6 +29,8 @@ export default async function DashboardLayout({
   const userId = data.claims.sub as string;
   await syncFounderBadges(userId);
   await syncSignupBadgesAction(userId);
+  const { syncActivePresetScheduleAction } = await import("@/app/actions/preset-schedules");
+  await syncActivePresetScheduleAction();
   const email = (data.claims.email as string | undefined) ?? "User";
   const sessionId = data.claims.session_id as string | undefined;
   const { touchUserSession } = await import("@/lib/data/account-settings");

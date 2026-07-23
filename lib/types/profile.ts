@@ -8,7 +8,7 @@ export type Profile = {
   avatar_url: string | null;
   banner_url: string | null;
   view_count?: number;
-  premium_tier?: "free" | "premium";
+  premium_tier?: "free" | "premium_lite" | "premium" | "premium_plus" | "creator" | "enterprise";
   premium_expires_at?: string | null;
   username_changed_at?: string | null;
   created_at: string;

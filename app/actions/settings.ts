@@ -27,6 +27,8 @@ import type {
 } from "@/lib/types/settings";
 import { revalidatePath } from "next/cache";
 import { revalidateProfileOg } from "@/lib/og/revalidate";
+import { isPremiumFont } from "@/lib/premium/fonts";
+import { getUserEntitlements } from "@/lib/premium/entitlements";
 
 async function getAuthenticatedUserId() {
   const supabase = await createClient();
@@ -473,6 +475,13 @@ export async function updateSettingsAction(
   await ensureSettingsRow(userId);
   const existing = await getExistingSettings(userId);
   const updates = parseSectionUpdates(section, formData, existing);
+
+  if (section === "customize" && updates.font_family && isPremiumFont(String(updates.font_family))) {
+    const entitlements = await getUserEntitlements(userId);
+    if (!entitlements.can_use_premium_fonts) {
+      return { error: "Premium Lite is required for this font." };
+    }
+  }
 
   if (section === "customize" && updates.layout_label) {
     const layoutLabelError = await rejectIfModerated(

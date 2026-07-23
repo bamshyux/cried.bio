@@ -91,7 +91,7 @@ function ExploreProfileCard({
               <p className="truncate text-sm font-semibold text-white group-hover:text-[#fafafa]">
                 {profile.display_name}
               </p>
-              {profile.premium_tier === "premium" ? (
+              {profile.premium_tier && profile.premium_tier !== "free" ? (
                 <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-200/90">
                   Premium
                 </span>
