@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { syncMilestoneBadges } from "@/app/actions/badges";
 import { DashboardSearchHint } from "@/components/dashboard/dashboard-search";
+import { OverviewProfileActions } from "@/components/dashboard/overview-profile-actions";
 import {
   IconAnalytics,
   IconCustomize,
@@ -14,7 +15,8 @@ import { getLinksByProfileId } from "@/lib/data/links";
 import { getProfileByUserId } from "@/lib/data/profiles";
 import { getSettingsByProfileId } from "@/lib/data/settings";
 import { formatProfileUid } from "@/lib/profile";
-import { SITE_HOST } from "@/lib/site";
+import { formatPublicProfileDisplay } from "@/lib/profile/public-profile-url";
+import { SITE_URL } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
 const QUICK_ACTIONS = [
@@ -66,12 +68,18 @@ export default async function DashboardOverviewPage() {
                 : "Finish your profile and publish when you're ready."}
             </p>
             {isLive ? (
-              <p className="mt-4 font-mono text-sm text-neutral-600">
-                {SITE_HOST}/{profile!.username}
-                {profile?.uid != null ? (
-                  <span className="ml-3 text-neutral-700">· {formatProfileUid(profile.uid)}</span>
-                ) : null}
-              </p>
+              <>
+                <p className="mt-4 font-mono text-sm text-neutral-600">
+                  {formatPublicProfileDisplay(profile!.username!)}
+                  {profile?.uid != null ? (
+                    <span className="ml-3 text-neutral-700">· {formatProfileUid(profile.uid)}</span>
+                  ) : null}
+                </p>
+                <OverviewProfileActions
+                  username={profile!.username!}
+                  profileUrl={`${SITE_URL}/${profile!.username!}`}
+                />
+              </>
             ) : null}
           </div>
 
@@ -128,20 +136,8 @@ export default async function DashboardOverviewPage() {
 
       {isLive ? (
         <div className="rounded-2xl border border-white/[0.06] bg-[#111] p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-white">Current layout</p>
-              <p className="mt-1 capitalize text-neutral-500">{settings.layout}</p>
-            </div>
-            <Link
-              href={`/${profile!.username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-xl border border-white/[0.08] px-4 py-2.5 text-sm font-medium text-neutral-300 transition-colors hover:border-white/[0.14] hover:text-white"
-            >
-              View live page
-            </Link>
-          </div>
+          <p className="text-sm font-medium text-white">Current layout</p>
+          <p className="mt-1 capitalize text-neutral-500">{settings.layout}</p>
         </div>
       ) : null}
     </div>

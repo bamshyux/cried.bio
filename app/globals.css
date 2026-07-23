@@ -2131,6 +2131,76 @@ body,
   box-shadow: var(--bf-shadow-md);
 }
 
+.bf-share-modal-backdrop {
+  animation: bf-share-backdrop-in 0.22s ease-out;
+}
+
+.bf-share-modal-panel {
+  animation: bf-share-panel-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bf-share-toast {
+  animation: bf-share-toast-in 0.24s ease-out;
+}
+
+.bf-share-action,
+.bf-share-chip {
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.bf-share-action:active,
+.bf-share-chip:active {
+  transform: scale(0.98);
+}
+
+@keyframes bf-share-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bf-share-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bf-share-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (min-width: 640px) {
+  @keyframes bf-share-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}
+
 .bf-live-profile-cta__pulse {
   animation: bf-live-pulse 2.2s ease-out infinite;
 }

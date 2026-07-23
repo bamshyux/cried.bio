@@ -159,7 +159,21 @@ export function IconPresets(p: IconProps) {
 export function IconExternal(p: IconProps) {
   return (
     <Icon {...p}>
-      <path d="M14 5h5v5M10 14L19 5M19 14v5H5V5h5" />
+      <path d="M14 5h5v5" />
+      <path d="M10 14L19 5" />
+      <path d="M19 14v5H5V5h5" />
+    </Icon>
+  );
+}
+
+export function IconShare(p: IconProps) {
+  return (
+    <Icon {...p}>
+      <circle cx="18" cy="5" r="2.5" />
+      <circle cx="6" cy="12" r="2.5" />
+      <circle cx="18" cy="19" r="2.5" />
+      <path d="M8.5 13.5l7 3" />
+      <path d="M15.5 6.5l-7 4" />
     </Icon>
   );
 }
