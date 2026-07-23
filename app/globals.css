@@ -110,6 +110,45 @@ body,
   display: none;
 }
 
+.bf-profile-viewport-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.bf-profile-viewport-main {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  min-height: 100dvh;
+  flex-direction: column;
+  align-items: center;
+  padding-inline: 1.25rem;
+}
+
+.bf-profile-viewport-main--center {
+  justify-content: center;
+}
+
+@supports (justify-content: safe center) {
+  .bf-profile-viewport-main--center {
+    justify-content: safe center;
+  }
+}
+
+.bf-profile-viewport-main--flow {
+  justify-content: flex-start;
+  padding-block: 2.5rem 3rem;
+}
+
+@media (min-width: 640px) {
+  .bf-profile-viewport-main--flow {
+    padding-block: 3rem 3.5rem;
+  }
+}
+
 @keyframes bf-effect-shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(200%); }

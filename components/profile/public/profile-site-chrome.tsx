@@ -14,7 +14,6 @@ export function ProfileSiteChrome({
   navPosition: PageNavPosition;
   siteNav: ReactNode | null;
   mainClassName?: string;
-  /** Vertically center short profile content in the viewport. */
   centerContent?: boolean;
   children: ReactNode;
 }) {
@@ -58,31 +57,27 @@ export function ProfileSiteChrome({
     </aside>
   ) : null;
 
-  const mainPadding = [
+  const edgePadding = [
     hasSideNav ? "pt-20 sm:pt-24" : "",
-    hasBottomNav ? "pb-24 sm:pb-28" : "pb-10 sm:pb-12",
+    hasBottomNav ? "pb-24 sm:pb-28" : "",
     navPosition === "left" ? "pl-[min(11rem,28vw)] sm:pl-44" : "",
     navPosition === "right" ? "pr-[min(11rem,28vw)] sm:pr-44" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
-  const mainLayoutClass = centerContent
-    ? "flex min-h-full w-full flex-col items-center justify-center"
-    : "flex min-h-full w-full flex-col items-center";
-
-  const mainSpacingClass = centerContent
-    ? "px-5"
-    : `px-5 py-10 sm:py-12 ${hasTopNav ? "pt-24 sm:pt-28" : ""}`.trim();
+  const mainClass = centerContent
+    ? "bf-profile-viewport-main--center"
+    : "bf-profile-viewport-main--flow";
 
   return (
     <>
       {fixedLogo}
       {sideRail}
       {bottomBar}
-      <div className="fixed inset-0 z-10 overflow-x-hidden overflow-y-auto">
+      <div className="bf-profile-viewport-shell">
         {topBar}
-        <main className={`relative ${mainLayoutClass} ${mainSpacingClass} ${mainPadding} ${mainClassName}`.trim()}>
+        <main className={`bf-profile-viewport-main ${mainClass} ${edgePadding} ${mainClassName}`.trim()}>
           {children}
         </main>
       </div>
