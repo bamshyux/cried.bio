@@ -14,7 +14,6 @@ import {
   IconSettings,
   IconPresets,
   IconPremium,
-  IconEffects,
 } from "@/components/icons/dashboard-icons";
 
 export type DashboardNavItem = {
