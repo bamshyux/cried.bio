@@ -5,8 +5,15 @@ import { createPortal } from "react-dom";
 import QRCode from "qrcode";
 import { IconExternal, IconShare } from "@/components/icons/dashboard-icons";
 import { formatPublicProfileDisplay } from "@/lib/profile/public-profile-url";
-import { SiDiscord, SiFacebook, SiReddit, SiTelegram, SiWhatsapp, SiX } from "react-icons/si";
-import { HiOutlineMail } from "react-icons/hi";
+import {
+  ShareIconDiscord,
+  ShareIconFacebook,
+  ShareIconInstagram,
+  ShareIconReddit,
+  ShareIconTelegram,
+  ShareIconWhatsapp,
+  ShareIconX,
+} from "@/components/dashboard/share-profile/share-social-icons";
 
 type ShareProfileModalProps = {
   open: boolean;
@@ -269,12 +276,12 @@ export function ShareProfileModal({
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <ShareChip
                   label="Discord"
-                  icon={<SiDiscord size={16} />}
+                  icon={<ShareIconDiscord />}
                   onClick={() => void copyText(shareMessage(profileUrl), "Copied! Paste in Discord to share.")}
                 />
                 <ShareChip
                   label="X"
-                  icon={<SiX size={16} />}
+                  icon={<ShareIconX />}
                   onClick={() =>
                     openShareWindow(
                       `https://twitter.com/intent/tweet?url=${encodeURIComponent(profileUrl)}&text=${encodeURIComponent("Check out my cried.bio profile")}`,
@@ -283,7 +290,7 @@ export function ShareProfileModal({
                 />
                 <ShareChip
                   label="Reddit"
-                  icon={<SiReddit size={16} />}
+                  icon={<ShareIconReddit />}
                   onClick={() =>
                     openShareWindow(
                       `https://www.reddit.com/submit?url=${encodeURIComponent(profileUrl)}&title=${encodeURIComponent("My cried.bio profile")}`,
@@ -292,7 +299,7 @@ export function ShareProfileModal({
                 />
                 <ShareChip
                   label="Facebook"
-                  icon={<SiFacebook size={16} />}
+                  icon={<ShareIconFacebook />}
                   onClick={() =>
                     openShareWindow(
                       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(profileUrl)}`,
@@ -301,7 +308,7 @@ export function ShareProfileModal({
                 />
                 <ShareChip
                   label="WhatsApp"
-                  icon={<SiWhatsapp size={16} />}
+                  icon={<ShareIconWhatsapp />}
                   onClick={() =>
                     openShareWindow(
                       `https://wa.me/?text=${encodeURIComponent(shareMessage(profileUrl))}`,
@@ -310,7 +317,7 @@ export function ShareProfileModal({
                 />
                 <ShareChip
                   label="Telegram"
-                  icon={<SiTelegram size={16} />}
+                  icon={<ShareIconTelegram />}
                   onClick={() =>
                     openShareWindow(
                       `https://t.me/share/url?url=${encodeURIComponent(profileUrl)}&text=${encodeURIComponent("Check out my cried.bio profile")}`,
@@ -318,12 +325,11 @@ export function ShareProfileModal({
                   }
                 />
                 <ShareChip
-                  label="Email"
-                  icon={<HiOutlineMail size={17} />}
-                  onClick={() => {
-                    window.location.href = `mailto:?subject=${encodeURIComponent("My cried.bio profile")}&body=${encodeURIComponent(shareMessage(profileUrl))}`;
-                  }}
-                  className="sm:col-span-2"
+                  label="Instagram"
+                  icon={<ShareIconInstagram />}
+                  onClick={() =>
+                    void copyText(profileUrl, "Copied! Paste in your Instagram bio or story.")
+                  }
                 />
               </div>
             </div>
@@ -417,8 +423,8 @@ function ShareChip({
       onClick={onClick}
       className={`bf-share-chip inline-flex items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-[#0a0a0a] px-3 py-2.5 text-xs font-medium text-neutral-300 transition hover:border-white/[0.14] hover:bg-white/[0.05] hover:text-white ${className}`}
     >
-      {icon}
-      {label}
+      <span className="shrink-0">{icon}</span>
+      <span className="truncate">{label}</span>
     </button>
   );
 }
