@@ -7,6 +7,7 @@ import {
   PREMIUM_LITE_MONTHLY_PRICE,
 } from "@/lib/premium/constants";
 import { cardClassName, buttonPrimaryClassName } from "@/components/dashboard/form-fields";
+import { readJsonResponse } from "@/lib/stripe/client-fetch";
 
 type UpgradeModalContextValue = {
   openUpgrade: () => void;
@@ -54,7 +55,7 @@ function UpgradeModal({ open, onClose }: { open: boolean; onClose: () => void })
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),
       });
-      const data = (await res.json()) as { url?: string; error?: string };
+      const data = await readJsonResponse<{ url?: string; error?: string }>(res);
       if (!res.ok || !data.url) {
         setError(data.error ?? "Checkout failed.");
         setLoading(null);

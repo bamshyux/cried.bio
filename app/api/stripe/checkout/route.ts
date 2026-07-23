@@ -5,76 +5,117 @@ import { getSiteUrl } from "@/lib/site";
 import { getStripe, getStripeConfigErrorMessage, isStripeConfigured } from "@/lib/stripe/client";
 import { getStripePriceIds, isValidStripePriceId } from "@/lib/stripe/config";
 
+export const runtime = "nodejs";
+
+function stripeErrorMessage(error: unknown): string {
+  if (error && typeof error === "object" && "message" in error) {
+    return String((error as { message: string }).message);
+  }
+  return "Could not start checkout. Please try again.";
+}
+
 export async function POST(request: Request) {
-  if (!isStripeConfigured()) {
-    return NextResponse.json(
-      { error: getStripeConfigErrorMessage() ?? "Stripe is not configured." },
-      { status: 503 },
-    );
-  }
+  try {
+    if (!isStripeConfigured()) {
+      return NextResponse.json(
+        { error: getStripeConfigErrorMessage() ?? "Stripe is not configured." },
+        { status: 503 },
+      );
+    }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
-  if (error || !data?.claims?.sub) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
+    const supabase = await createClient();
+    const { data, error: authError } = await supabase.auth.getClaims();
+    if (authError || !data?.claims?.sub) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
 
-  const userId = data.claims.sub as string;
-  const body = (await request.json()) as { priceId?: string; plan?: "monthly" | "lifetime" };
-  const prices = getStripePriceIds();
+    const userId = data.claims.sub as string;
+    let body: { priceId?: string; plan?: "monthly" | "lifetime" } = {};
 
-  let priceId = body.priceId?.trim() ?? "";
-  if (!priceId && body.plan === "monthly") priceId = prices.monthly;
-  if (!priceId && body.plan === "lifetime") priceId = prices.lifetime;
+    try {
+      body = (await request.json()) as typeof body;
+    } catch {
+      return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    }
 
-  if (!priceId || !isValidStripePriceId(priceId)) {
-    return NextResponse.json({ error: "Invalid price." }, { status: 400 });
-  }
+    const prices = getStripePriceIds();
 
-  const stripe = getStripe();
-  const siteUrl = getSiteUrl();
+    let priceId = body.priceId?.trim() ?? "";
+    if (!priceId && body.plan === "monthly") priceId = prices.monthly;
+    if (!priceId && body.plan === "lifetime") priceId = prices.lifetime;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("stripe_customer_id, username")
-    .eq("id", userId)
-    .maybeSingle();
+    if (!priceId || !isValidStripePriceId(priceId)) {
+      return NextResponse.json({ error: "Invalid price." }, { status: 400 });
+    }
 
-  let customerId = profile?.stripe_customer_id?.trim() || "";
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: (data.claims.email as string | undefined) ?? undefined,
-      metadata: { cried_user_id: userId },
-    });
-    customerId = customer.id;
-    await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", userId);
-  }
+    const stripe = getStripe();
+    const siteUrl = getSiteUrl();
 
-  const isLifetime = priceId === prices.lifetime;
+    let customerId = "";
 
-  const sessionParams: Stripe.Checkout.SessionCreateParams = {
-    customer: customerId,
-    client_reference_id: userId,
-    mode: isLifetime ? "payment" : "subscription",
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${siteUrl}/dashboard/premium?checkout=success`,
-    cancel_url: `${siteUrl}/dashboard/premium?checkout=canceled`,
-    metadata: {
-      cried_user_id: userId,
-      price_id: priceId,
-    },
-  };
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("stripe_customer_id, username")
+      .eq("id", userId)
+      .maybeSingle();
 
-  if (!isLifetime) {
-    sessionParams.subscription_data = {
-      metadata: { cried_user_id: userId, price_id: priceId },
+    if (profileError) {
+      console.error("[stripe checkout] profile lookup failed:", profileError.message);
+    } else {
+      customerId = profile?.stripe_customer_id?.trim() || "";
+    }
+
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: (data.claims.email as string | undefined) ?? undefined,
+        metadata: { cried_user_id: userId },
+      });
+      customerId = customer.id;
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ stripe_customer_id: customerId })
+        .eq("id", userId);
+
+      if (updateError) {
+        console.error("[stripe checkout] could not save stripe_customer_id:", updateError.message);
+      }
+    }
+
+    const isLifetime = priceId === prices.lifetime;
+
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      customer: customerId,
+      client_reference_id: userId,
+      mode: isLifetime ? "payment" : "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${siteUrl}/dashboard/premium?checkout=success`,
+      cancel_url: `${siteUrl}/dashboard/premium?checkout=canceled`,
+      metadata: {
+        cried_user_id: userId,
+        price_id: priceId,
+      },
     };
-  } else {
-    sessionParams.payment_intent_data = {
-      metadata: { cried_user_id: userId, price_id: priceId, billing_type: "lifetime" },
-    };
-  }
 
-  const session = await stripe.checkout.sessions.create(sessionParams);
-  return NextResponse.json({ url: session.url });
+    if (!isLifetime) {
+      sessionParams.subscription_data = {
+        metadata: { cried_user_id: userId, price_id: priceId },
+      };
+    } else {
+      sessionParams.payment_intent_data = {
+        metadata: { cried_user_id: userId, price_id: priceId, billing_type: "lifetime" },
+      };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
+
+    if (!session.url) {
+      return NextResponse.json({ error: "Stripe did not return a checkout URL." }, { status: 502 });
+    }
+
+    return NextResponse.json({ url: session.url });
+  } catch (error) {
+    console.error("[stripe checkout]", error);
+    return NextResponse.json({ error: stripeErrorMessage(error) }, { status: 500 });
+  }
 }

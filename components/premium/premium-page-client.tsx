@@ -10,6 +10,7 @@ import {
   getTierDisplayName,
 } from "@/lib/premium/constants";
 import type { UserEntitlements } from "@/lib/premium/types";
+import { readJsonResponse } from "@/lib/stripe/client-fetch";
 import { cardClassName, buttonPrimaryClassName } from "@/components/dashboard/form-fields";
 
 function formatRenewalDate(iso: string | null): string {
@@ -27,7 +28,7 @@ async function startStripeCheckout(plan: "monthly" | "lifetime") {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ plan }),
   });
-  const data = (await res.json()) as { url?: string; error?: string };
+  const data = await readJsonResponse<{ url?: string; error?: string }>(res);
   if (!res.ok || !data.url) {
     throw new Error(data.error ?? "Checkout failed.");
   }
@@ -76,7 +77,7 @@ export function PremiumPageClient({
     setError(undefined);
     try {
       const res = await fetch("/api/stripe/portal", { method: "POST" });
-      const data = (await res.json()) as { url?: string; error?: string };
+      const data = await readJsonResponse<{ url?: string; error?: string }>(res);
       if (!res.ok || !data.url) {
         setError(data.error ?? "Could not open billing portal.");
         setLoading(null);
