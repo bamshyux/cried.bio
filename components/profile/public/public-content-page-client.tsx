@@ -15,6 +15,7 @@ import { ContentPageSections } from "./content-page-sections";
 import { MusicPlayer } from "./music-player";
 import { ParticleCanvas } from "./particle-canvas";
 import { ProfileBackground } from "./profile-background";
+import { ProfileBio } from "./profile-bio";
 import { ProfilePageNav } from "./profile-page-nav";
 import { CursorEffectCanvas, CustomProfileCursor } from "./profile-effects";
 import { ProfileTabBranding } from "./profile-tab-branding";
@@ -117,12 +118,17 @@ export function PublicContentPageClient({
                   <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{pageTitle}</h1>
                 </div>
 
+                {page.bio?.trim() ? (
+                  <ProfileBio text={page.bio} settings={settings} />
+                ) : null}
+
                 <ContentPageSections
                   links={links}
                   settings={settings}
                   embeds={embeds}
                   featured={featured}
                   profileId={profileId}
+                  hasPageText={Boolean(page.bio?.trim())}
                 />
               </div>
             </CardBorderEffect>

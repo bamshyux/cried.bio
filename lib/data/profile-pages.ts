@@ -32,6 +32,7 @@ function normalizeProfilePage(page: ProfilePage): ProfilePage {
   return {
     ...page,
     icon: page.icon ?? "",
+    bio: page.bio ?? "",
     published: page.published ?? true,
   };
 }
@@ -77,12 +78,27 @@ export async function getSettingsByPageId(
 ): Promise<ReturnType<typeof import("@/lib/data/settings").getSettingsByProfileId>> {
   const supabase = await createClient();
   const { mergeSettings } = await import("@/lib/settings");
-  const { data } = await supabase
+  const { ensureProfileSettingsRow } = await import("@/lib/data/ensure-profile-settings-row");
+
+  let { data } = await supabase
     .from("profile_settings")
     .select("*")
     .eq("profile_id", profileId)
     .eq("page_id", pageId)
     .maybeSingle();
+
+  if (!data) {
+    const ensure = await ensureProfileSettingsRow(profileId, pageId);
+    if (!ensure.error) {
+      const { data: created } = await supabase
+        .from("profile_settings")
+        .select("*")
+        .eq("profile_id", profileId)
+        .eq("page_id", pageId)
+        .maybeSingle();
+      data = created;
+    }
+  }
 
   return mergeSettings(data, profileId);
 }

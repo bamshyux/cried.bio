@@ -103,11 +103,12 @@ export function useSettingsForm(
       runAction(() => {
         const fd = new FormData();
         fd.set("_section", section);
+        if (pageId) fd.set("_page_id", pageId);
         appendToFormData(fd, values);
         return fd;
       });
     },
-    [runAction, section],
+    [runAction, section, pageId],
   );
 
   return { state, submit, isPending };

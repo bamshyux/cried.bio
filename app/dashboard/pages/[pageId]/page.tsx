@@ -6,5 +6,5 @@ export default async function ContentPageEditorIndex({
   params: Promise<{ pageId: string }>;
 }) {
   const { pageId } = await params;
-  redirect(`/dashboard/pages/${pageId}/customize`);
+  redirect(`/dashboard/pages/${pageId}/text`);
 }

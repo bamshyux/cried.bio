@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { countProfilePages, getProfilePageById } from "@/lib/data/profile-pages";
 import { requireEntitlement } from "@/lib/premium/entitlements";
 import { isValidPageSlug, normalizePageSlug } from "@/lib/profile-pages/slug";
-import { DEFAULT_SETTINGS } from "@/lib/settings";
+import { ensureProfileSettingsRow, PAGE_SETTINGS_MIGRATION_HINT } from "@/lib/data/ensure-profile-settings-row";
 
 type ActionResult = { error?: string; success?: string; pageId?: string };
 
@@ -76,16 +76,11 @@ export async function createProfilePageAction(input: {
     return { error: error.message };
   }
 
-  await supabase.from("profile_settings").insert({
-    profile_id: userId,
-    page_id: page.id,
-    layout: DEFAULT_SETTINGS.layout,
-    accent_color: DEFAULT_SETTINGS.accent_color,
-    text_color: DEFAULT_SETTINGS.text_color,
-    background_color: DEFAULT_SETTINGS.background_color,
-    font_family: DEFAULT_SETTINGS.font_family,
-    enter_gate_enabled: false,
-  });
+  const ensure = await ensureProfileSettingsRow(userId, page.id);
+  if (ensure.error) {
+    await supabase.from("profile_pages").delete().eq("id", page.id).eq("profile_id", userId);
+    return { error: ensure.error.includes("v82") ? ensure.error : PAGE_SETTINGS_MIGRATION_HINT };
+  }
 
   await revalidateAllPagePaths(userId, page.id);
   return { success: "Page created.", pageId: page.id };
@@ -97,6 +92,7 @@ export async function updateProfilePageAction(
     slug?: string;
     label?: string;
     icon?: string;
+    bio?: string;
     published?: boolean;
   },
 ): Promise<ActionResult> {
@@ -113,6 +109,12 @@ export async function updateProfilePageAction(
   }
   if (input.label !== undefined) patch.label = input.label.trim();
   if (input.icon !== undefined) patch.icon = input.icon.trim();
+  if (input.bio !== undefined) {
+    const { rejectIfModerated } = await import("@/lib/moderation/validate");
+    const bioError = await rejectIfModerated(input.bio.trim(), "bio", userId);
+    if (bioError) return { error: bioError };
+    patch.bio = input.bio.trim();
+  }
   if (input.published !== undefined) patch.published = input.published;
 
   const { error } = await supabase
@@ -193,6 +195,7 @@ export async function duplicateProfilePageAction(pageId: string): Promise<Action
       slug,
       label: `${page.label || page.slug} (copy)`,
       icon: page.icon,
+      bio: page.bio,
       published: false,
       sort_order: count,
     })
@@ -263,4 +266,62 @@ export async function toggleProfilePagePublishedAction(
   published: boolean,
 ): Promise<ActionResult> {
   return updateProfilePageAction(pageId, { published });
+}
+
+export async function updateContentPageTextAction(
+  pageId: string,
+  input: {
+    bio: string;
+    bio_color: string;
+    bio_use_text_color: boolean;
+    bio_font_family: string;
+    bio_use_page_font: boolean;
+    bio_font_size: number;
+    bio_font_weight: number;
+    bio_italic: boolean;
+    bio_glow: boolean;
+    bio_letter_spacing: string;
+    typing_bio: boolean;
+  },
+): Promise<ActionResult> {
+  const userId = await getUserId();
+  if (!userId) return { error: "You must be logged in." };
+
+  const pageResult = await updateProfilePageAction(pageId, { bio: input.bio });
+  if (pageResult.error) return pageResult;
+
+  const ensure = await ensureProfileSettingsRow(userId, pageId);
+  if (ensure.error) return { error: ensure.error };
+
+  const supabase = await createClient();
+  const letterSpacing = ["normal", "wide", "wider"].includes(input.bio_letter_spacing)
+    ? input.bio_letter_spacing
+    : "normal";
+  const allowedWeights = [400, 500, 600, 700];
+  const fontWeight = allowedWeights.includes(input.bio_font_weight)
+    ? input.bio_font_weight
+    : 400;
+
+  const { data, error } = await supabase
+    .from("profile_settings")
+    .update({
+      bio_color: input.bio_use_text_color ? "" : input.bio_color.slice(0, 32),
+      bio_font_family: input.bio_use_page_font ? "" : input.bio_font_family.slice(0, 32),
+      bio_font_size: Math.min(32, Math.max(12, Math.round(input.bio_font_size))),
+      bio_font_weight: fontWeight,
+      bio_italic: input.bio_italic,
+      bio_glow: input.bio_glow,
+      bio_letter_spacing: letterSpacing,
+      typing_bio: input.typing_bio,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("profile_id", userId)
+    .eq("page_id", pageId)
+    .select("id");
+
+  if (error) return { error: error.message };
+  if (!data?.length) return { error: PAGE_SETTINGS_MIGRATION_HINT };
+
+  await revalidateAllPagePaths(userId, pageId);
+  return { success: "Page text saved." };
 }

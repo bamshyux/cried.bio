@@ -29,6 +29,7 @@ import { revalidatePath } from "next/cache";
 import { revalidateProfileOg } from "@/lib/og/revalidate";
 import { isPremiumFont } from "@/lib/premium/fonts";
 import { getUserEntitlements } from "@/lib/premium/entitlements";
+import { ensureProfileSettingsRow, PAGE_SETTINGS_MIGRATION_HINT } from "@/lib/data/ensure-profile-settings-row";
 
 async function getAuthenticatedUserId() {
   const supabase = await createClient();
@@ -68,6 +69,7 @@ async function revalidateProfile(userId: string, pageId?: string | null) {
       const page = await getProfilePageById(userId, pageId);
       if (page?.slug) revalidatePath(`/${profile.username}/${page.slug}`);
     }
+    return;
   }
 
   if (profile?.username) {
@@ -85,16 +87,7 @@ async function getExistingSettings(userId: string, pageId?: string | null): Prom
 }
 
 async function ensureSettingsRow(userId: string, pageId?: string | null) {
-  const supabase = await createClient();
-  let query = supabase.from("profile_settings").select("profile_id").eq("profile_id", userId);
-  query = pageId ? query.eq("page_id", pageId) : query.is("page_id", null);
-  const { data } = await query.maybeSingle();
-
-  if (!data) {
-    await supabase.from("profile_settings").insert(
-      pageId ? { profile_id: userId, page_id: pageId } : { profile_id: userId },
-    );
-  }
+  return ensureProfileSettingsRow(userId, pageId);
 }
 
 async function patchProfileSettings(
@@ -108,12 +101,48 @@ async function patchProfileSettings(
   }
 
   const supabase = await createClient();
-  let query = supabase.from("profile_settings").update(safePatch).eq("profile_id", userId);
-  query = pageId ? query.eq("page_id", pageId) : query.is("page_id", null);
-  const { error } = await query;
+  const updatedAt = new Date().toISOString();
+
+  if (pageId) {
+    const ensure = await ensureSettingsRow(userId, pageId);
+    if (ensure.error) return ensure;
+
+    const { data, error } = await supabase
+      .from("profile_settings")
+      .update({ ...safePatch, updated_at: updatedAt })
+      .eq("profile_id", userId)
+      .eq("page_id", pageId)
+      .select("id");
+
+    if (error) return { error: formatSchemaError(error.message) };
+    if (!data?.length) {
+      return { error: PAGE_SETTINGS_MIGRATION_HINT };
+    }
+    return {};
+  }
+
+  let query = supabase
+    .from("profile_settings")
+    .update({ ...safePatch, updated_at: updatedAt })
+    .eq("profile_id", userId)
+    .is("page_id", null);
+  const { data, error } = await query.select("id");
 
   if (error) return { error: formatSchemaError(error.message) };
-  if (!pageId) await markProfileAppearanceChanged(userId);
+  if (!data?.length) {
+    const ensure = await ensureSettingsRow(userId, null);
+    if (ensure.error) return ensure;
+    const retry = await supabase
+      .from("profile_settings")
+      .update({ ...safePatch, updated_at: updatedAt })
+      .eq("profile_id", userId)
+      .is("page_id", null)
+      .select("id");
+    if (retry.error) return { error: formatSchemaError(retry.error.message) };
+    if (!retry.data?.length) return { error: "Could not save profile settings." };
+  }
+
+  await markProfileAppearanceChanged(userId);
   return {};
 }
 
@@ -497,7 +526,9 @@ export async function updateSettingsAction(
     if (!page) return { error: "Profile page not found." };
   }
 
-  await ensureSettingsRow(userId, pageId);
+  const ensure = await ensureSettingsRow(userId, pageId);
+  if (ensure.error) return { error: ensure.error };
+
   const existing = await getExistingSettings(userId, pageId);
   const updates = parseSectionUpdates(section, formData, existing);
 
@@ -606,7 +637,8 @@ export async function saveBackgroundMediaAction(
 
   if (!mediaUrl.trim()) return { error: "Invalid background URL." };
 
-  await ensureSettingsRow(userId, pageId);
+  const ensure = await ensureSettingsRow(userId, pageId);
+  if (ensure.error) return { error: ensure.error };
 
   const update =
     mediaType === "video"
@@ -631,7 +663,8 @@ export async function saveMusicAction(
 
   if (!musicUrl.trim()) return { error: "Invalid music URL." };
 
-  await ensureSettingsRow(userId, pageId);
+  const ensure = await ensureSettingsRow(userId, pageId);
+  if (ensure.error) return { error: ensure.error };
 
   const { error } = await patchProfileSettings(userId, { music_url: musicUrl }, pageId);
   if (error) return { error };
@@ -799,7 +832,8 @@ export async function saveCursorImageAction(
 
   if (!imageUrl.trim()) return { error: "Invalid cursor image URL." };
 
-  await ensureSettingsRow(userId, pageId);
+  const ensure = await ensureSettingsRow(userId, pageId);
+  if (ensure.error) return { error: ensure.error };
 
   const { error } = await patchProfileSettings(userId, { cursor_image_url: imageUrl }, pageId);
   if (error) return { error };
@@ -833,7 +867,8 @@ export async function saveProfileFaviconAction(
     return { error: "Invalid favicon URL." };
   }
 
-  await ensureSettingsRow(userId, pageId);
+  const ensure = await ensureSettingsRow(userId, pageId);
+  if (ensure.error) return { error: ensure.error };
 
   const { error } = await patchProfileSettings(userId, { profile_favicon_url: imageUrl }, pageId);
   if (error) return { error };

@@ -39,7 +39,6 @@ export function PagesShell({
   const [pages, setPages] = useState(initialPages);
   const [slug, setSlug] = useState("");
   const [label, setLabel] = useState("");
-  const [icon, setIcon] = useState("");
   const [feedback, setFeedback] = useState<{ error?: string; success?: string }>();
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
@@ -51,14 +50,13 @@ export function PagesShell({
 
   const handleCreate = () => {
     startTransition(async () => {
-      const result = await createProfilePageAction({ slug, label, icon });
+      const result = await createProfilePageAction({ slug, label });
       setFeedback(result);
       if (!result.error) {
         setSlug("");
         setLabel("");
-        setIcon("");
         if (result.pageId) {
-          router.push(`/dashboard/pages/${result.pageId}/customize`);
+          router.push(`/dashboard/pages/${result.pageId}/text`);
         } else {
           router.refresh();
         }
@@ -119,7 +117,7 @@ export function PagesShell({
           <p className="mb-4 text-xs text-neutral-500">
             Starts blank with just a title. Add links, embeds, music, and styling after creating.
           </p>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className={labelClassName}>Tab label</label>
               <input
@@ -140,16 +138,6 @@ export function PagesShell({
                   className="bf-input flex-1 border-0 bg-transparent px-0"
                 />
               </div>
-            </div>
-            <div>
-              <label className={labelClassName}>Icon (optional)</label>
-              <input
-                value={icon}
-                onChange={(e) => setIcon(e.target.value)}
-                placeholder="🎨"
-                className={inputClassName}
-                maxLength={4}
-              />
             </div>
           </div>
           <button
@@ -258,15 +246,9 @@ function PageRow({
           ⠿
         </span>
       ) : null}
-      {page.icon ? (
-        <span className="text-lg leading-none" aria-hidden>
-          {page.icon}
-        </span>
-      ) : (
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-xs text-neutral-600">
-          {index + 1}
-        </span>
-      )}
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-xs text-neutral-600">
+        {index + 1}
+      </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <p className="font-medium text-white">{page.label || page.slug}</p>
@@ -282,7 +264,7 @@ function PageRow({
       </div>
       <div className="flex flex-wrap gap-1.5">
         <Link
-          href={`/dashboard/pages/${page.id}/customize`}
+          href={`/dashboard/pages/${page.id}/text`}
           className="rounded-lg bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-white hover:bg-white/[0.1]"
         >
           Edit
@@ -316,23 +298,11 @@ function PageRow({
             <button
               type="button"
               disabled={isPending}
-              onClick={() => {
-                const next = prompt("Icon emoji", page.icon || "");
-                if (next === null) return;
-                run(() => updateProfilePageAction(page.id, { icon: next }));
-              }}
-              className="rounded-lg px-3 py-1.5 text-xs text-neutral-400 hover:bg-white/[0.06] hover:text-white"
-            >
-              Icon
-            </button>
-            <button
-              type="button"
-              disabled={isPending}
               onClick={() =>
                 startTransition(async () => {
                   const result = await duplicateProfilePageAction(page.id);
                   if (result.pageId) {
-                    router.push(`/dashboard/pages/${result.pageId}/customize`);
+                    router.push(`/dashboard/pages/${result.pageId}/text`);
                   } else {
                     onRefresh();
                   }

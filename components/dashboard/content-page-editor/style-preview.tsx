@@ -1,13 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import {
-  buildCardStyle,
-  FONT_OPTIONS,
-  getFontCss,
-  getGoogleFontsUrl,
-  getProfileAlignClass,
-} from "@/lib/settings";
+import { buildCardStyle, FONT_OPTIONS, getFontCss, getGoogleFontsUrl, getProfileAlignClass } from "@/lib/settings";
+import { ProfileBio } from "@/components/profile/public/profile-bio";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
 import type { ContentAlignment, ProfileSettings, CardBorderEffectPreset } from "@/lib/types/settings";
 
@@ -50,7 +45,7 @@ export function ContentPageStylePreview({
   settings,
   form,
 }: {
-  page: Pick<ProfilePage, "label" | "slug" | "icon">;
+  page: Pick<ProfilePage, "label" | "slug" | "icon" | "bio">;
   settings: ProfileSettings;
   form: ContentPageStyleFormState;
 }) {
@@ -114,9 +109,13 @@ export function ContentPageStylePreview({
               <h2 className="text-lg font-bold tracking-tight">{pageTitle}</h2>
             </div>
 
-            <p className="mb-4 text-sm leading-relaxed opacity-70">
-              Your links, embeds, and featured blocks appear here on the live page.
-            </p>
+            {page.bio?.trim() ? (
+              <ProfileBio text={page.bio} settings={preview} className="!mb-4" />
+            ) : (
+              <p className="mb-4 text-sm leading-relaxed opacity-70">
+                Your page text, links, embeds, and featured blocks appear here on the live page.
+              </p>
+            )}
 
             <div
               className="rounded-lg border px-3 py-2.5 text-sm transition-colors"

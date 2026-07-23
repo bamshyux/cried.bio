@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const EDITOR_LINKS = [
+  { href: "text", label: "Text" },
   { href: "customize", label: "Style" },
   { href: "background", label: "Background" },
   { href: "links", label: "Links" },
