@@ -56,18 +56,122 @@ type SpotlightRect = {
   height: number;
 };
 
+const TOOLTIP_WIDTH = 352;
+const TOOLTIP_HEIGHT = 220;
+const VIEWPORT_PAD = 16;
+
 function getSpotlightRect(selector: string): SpotlightRect | null {
   const element = document.querySelector<HTMLElement>(`[data-tour="${selector}"]`);
   if (!element) return null;
-  element.scrollIntoView({ block: "nearest", behavior: "smooth" });
+
   const rect = element.getBoundingClientRect();
-  const padding = 8;
+  if (rect.width === 0 || rect.height === 0) return null;
+
+  const padding = 6;
   return {
-    top: Math.max(0, rect.top - padding),
-    left: Math.max(0, rect.left - padding),
+    top: Math.max(VIEWPORT_PAD, rect.top - padding),
+    left: Math.max(VIEWPORT_PAD, rect.left - padding),
     width: rect.width + padding * 2,
     height: rect.height + padding * 2,
   };
+}
+
+function getTooltipPosition(
+  spotlight: SpotlightRect | null,
+  viewport: { width: number; height: number },
+): { top: number; left: number } {
+  if (!spotlight) {
+    return {
+      top: Math.max(VIEWPORT_PAD, viewport.height / 2 - TOOLTIP_HEIGHT / 2),
+      left: Math.max(VIEWPORT_PAD, viewport.width / 2 - TOOLTIP_WIDTH / 2),
+    };
+  }
+
+  const sidebarTarget = spotlight.left < 320;
+  const spaceBelow = viewport.height - (spotlight.top + spotlight.height);
+  const spaceAbove = spotlight.top;
+  const spaceRight = viewport.width - (spotlight.left + spotlight.width);
+
+  if (sidebarTarget && spaceRight >= TOOLTIP_WIDTH + 24) {
+    return {
+      top: Math.min(
+        Math.max(VIEWPORT_PAD, spotlight.top),
+        viewport.height - TOOLTIP_HEIGHT - VIEWPORT_PAD,
+      ),
+      left: Math.min(
+        spotlight.left + spotlight.width + 20,
+        viewport.width - TOOLTIP_WIDTH - VIEWPORT_PAD,
+      ),
+    };
+  }
+
+  if (spaceBelow >= TOOLTIP_HEIGHT + 24) {
+    return {
+      top: spotlight.top + spotlight.height + 16,
+      left: Math.min(
+        Math.max(VIEWPORT_PAD, spotlight.left),
+        viewport.width - TOOLTIP_WIDTH - VIEWPORT_PAD,
+      ),
+    };
+  }
+
+  if (spaceAbove >= TOOLTIP_HEIGHT + 24) {
+    return {
+      top: spotlight.top - TOOLTIP_HEIGHT - 16,
+      left: Math.min(
+        Math.max(VIEWPORT_PAD, spotlight.left),
+        viewport.width - TOOLTIP_WIDTH - VIEWPORT_PAD,
+      ),
+    };
+  }
+
+  return {
+    top: Math.max(VIEWPORT_PAD, viewport.height / 2 - TOOLTIP_HEIGHT / 2),
+    left: Math.min(
+      spotlight.left + spotlight.width + 20,
+      viewport.width - TOOLTIP_WIDTH - VIEWPORT_PAD,
+    ),
+  };
+}
+
+function TourOverlay({ spotlight }: { spotlight: SpotlightRect }) {
+  const bottom = spotlight.top + spotlight.height;
+  const right = spotlight.left + spotlight.width;
+
+  return (
+    <>
+      <div
+        className="absolute left-0 right-0 top-0 bg-black/75"
+        style={{ height: spotlight.top }}
+        aria-hidden
+      />
+      <div
+        className="absolute bottom-0 left-0 right-0 bg-black/75"
+        style={{ top: bottom }}
+        aria-hidden
+      />
+      <div
+        className="absolute bg-black/75"
+        style={{ top: spotlight.top, left: 0, width: spotlight.left, height: spotlight.height }}
+        aria-hidden
+      />
+      <div
+        className="absolute bg-black/75"
+        style={{ top: spotlight.top, left: right, right: 0, height: spotlight.height }}
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute rounded-xl border-2 border-white/70 shadow-[0_0_24px_rgba(255,255,255,0.12)] transition-all duration-300 ease-out"
+        style={{
+          top: spotlight.top,
+          left: spotlight.left,
+          width: spotlight.width,
+          height: spotlight.height,
+        }}
+        aria-hidden
+      />
+    </>
+  );
 }
 
 export function DashboardTour({ active }: { active: boolean }) {
@@ -111,7 +215,8 @@ export function DashboardTour({ active }: { active: boolean }) {
 
     updateSpotlight();
     const raf = requestAnimationFrame(updateSpotlight);
-    const timer = window.setTimeout(updateSpotlight, 120);
+    const timer = window.setTimeout(updateSpotlight, 150);
+    const lateTimer = window.setTimeout(updateSpotlight, 400);
 
     const handleLayoutChange = () => updateSpotlight();
     window.addEventListener("resize", handleLayoutChange);
@@ -120,6 +225,7 @@ export function DashboardTour({ active }: { active: boolean }) {
     return () => {
       cancelAnimationFrame(raf);
       window.clearTimeout(timer);
+      window.clearTimeout(lateTimer);
       window.removeEventListener("resize", handleLayoutChange);
       window.removeEventListener("scroll", handleLayoutChange, true);
     };
@@ -149,32 +255,17 @@ export function DashboardTour({ active }: { active: boolean }) {
 
   if (!mounted || !visible || !step || viewport.width === 0) return null;
 
-  const tooltipTop = spotlight
-    ? Math.min(spotlight.top + spotlight.height + 16, viewport.height - 220)
-    : viewport.height / 2 - 100;
-  const tooltipLeft = spotlight
-    ? Math.min(Math.max(16, spotlight.left), viewport.width - 360)
-    : Math.max(16, viewport.width / 2 - 180);
+  const tooltipPosition = getTooltipPosition(spotlight, viewport);
 
   return (
     <div className="fixed inset-0 z-[120]">
-      <div className="absolute inset-0 bg-black/72 backdrop-blur-[2px]" aria-hidden />
-
-      {spotlight ? (
-        <div
-          className="pointer-events-none absolute rounded-xl border-2 border-[#fafafa]/75 shadow-[0_0_0_9999px_rgba(0,0,0,0.74)] transition-all duration-300 ease-out"
-          style={{
-            top: spotlight.top,
-            left: spotlight.left,
-            width: spotlight.width,
-            height: spotlight.height,
-          }}
-        />
-      ) : null}
+      {spotlight ? <TourOverlay spotlight={spotlight} /> : (
+        <div className="absolute inset-0 bg-black/75" aria-hidden />
+      )}
 
       <div
-        className={`${cardClassName} absolute w-[min(100vw-2rem,22rem)] border border-white/[0.1] shadow-2xl`}
-        style={{ top: tooltipTop, left: tooltipLeft }}
+        className={`${cardClassName} absolute z-[121] w-[min(100vw-2rem,22rem)] border border-white/[0.1] shadow-2xl`}
+        style={{ top: tooltipPosition.top, left: tooltipPosition.left }}
         role="dialog"
         aria-modal="true"
         aria-label="Dashboard tour"
