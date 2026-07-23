@@ -8,11 +8,14 @@ export function ProfileSiteChrome({
   navPosition,
   siteNav,
   mainClassName = "",
+  centerContent = true,
   children,
 }: {
   navPosition: PageNavPosition;
   siteNav: ReactNode | null;
   mainClassName?: string;
+  /** Vertically center short profile content in the viewport area below the header. */
+  centerContent?: boolean;
   children: ReactNode;
 }) {
   const showNav = siteNav && navPosition !== "hidden";
@@ -27,7 +30,7 @@ export function ProfileSiteChrome({
   );
 
   const topBar = !hasSideNav ? (
-    <header className="pointer-events-auto absolute inset-x-0 top-0 z-50 flex w-full flex-col items-stretch px-5 py-4 sm:px-8 sm:py-5">
+    <header className="pointer-events-auto relative z-50 flex w-full shrink-0 flex-col items-stretch px-5 py-4 sm:px-8 sm:py-5">
       <div className="flex w-full items-center">{logo}</div>
       {hasTopNav ? (
         <div className="mt-4 flex justify-center">
@@ -55,7 +58,7 @@ export function ProfileSiteChrome({
   ) : null;
 
   const mainPadding = [
-    hasTopNav ? "pt-28 sm:pt-32" : "pt-20 sm:pt-24",
+    hasSideNav ? "pt-20 sm:pt-24" : "",
     hasBottomNav ? "pb-24 sm:pb-28" : "",
     navPosition === "left" ? "pl-[min(11rem,28vw)] sm:pl-44" : "",
     navPosition === "right" ? "pr-[min(11rem,28vw)] sm:pr-44" : "",
@@ -64,13 +67,15 @@ export function ProfileSiteChrome({
     .join(" ");
 
   return (
-    <>
+    <div className="flex min-h-0 flex-1 flex-col">
       {topBar}
       {sideRail}
       {bottomBar}
-      <main className={`relative flex flex-1 items-center justify-center px-5 py-20 ${mainPadding} ${mainClassName}`.trim()}>
-        {children}
+      <main
+        className={`relative flex w-full flex-1 flex-col items-center px-5 py-10 sm:py-12 ${mainPadding} ${mainClassName}`.trim()}
+      >
+        {centerContent ? <div className="my-auto w-full">{children}</div> : children}
       </main>
-    </>
+    </div>
   );
 }

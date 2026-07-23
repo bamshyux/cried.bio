@@ -110,6 +110,34 @@ export async function getSettingsByPageId(
   return applySiteProfileSettings(mergeSettings(data, profileId), siteSettings);
 }
 
+export async function resolvePublicPageMusic(
+  profileId: string,
+  pageId: string,
+  pageSettings: import("@/lib/types/settings").ProfileSettings,
+): Promise<{
+  settings: import("@/lib/types/settings").ProfileSettings;
+  tracks: import("@/lib/data/music-tracks").MusicTrack[];
+}> {
+  const { getSettingsByProfileId } = await import("@/lib/data/settings");
+  const { getMusicTracks } = await import("@/lib/data/music-tracks");
+  const { applySiteMusicSettings, pageHasOwnMusic } = await import("@/lib/settings");
+
+  const [pageTracks, mainTracks, mainSettings] = await Promise.all([
+    getMusicTracks(profileId, pageId),
+    getMusicTracks(profileId),
+    getSettingsByProfileId(profileId),
+  ]);
+
+  if (pageHasOwnMusic(pageSettings, pageTracks)) {
+    return { settings: pageSettings, tracks: pageTracks };
+  }
+
+  return {
+    settings: applySiteMusicSettings(pageSettings, mainSettings),
+    tracks: mainTracks,
+  };
+}
+
 export async function getLinksByPageId(profileId: string, pageId: string) {
   const supabase = await createClient();
   const { data } = await supabase

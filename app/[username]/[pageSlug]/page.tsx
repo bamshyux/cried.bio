@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { PublicContentPageView } from "@/components/profile/public-content-page";
 import { ProfileFaviconLinks } from "@/components/profile/profile-favicon-links";
-import { getMusicTracks } from "@/lib/data/music-tracks";
 import {
   getProfilePageBySlug,
   getPublishedProfilePages,
@@ -9,6 +8,7 @@ import {
   getLinksByPageId,
   getEmbedsByPageId,
   getFeaturedBlocksByPageId,
+  resolvePublicPageMusic,
 } from "@/lib/data/profile-pages";
 import { getProfileByUsername } from "@/lib/data/profiles";
 import { getProfileVisibility } from "@/lib/data/account-settings";
@@ -65,14 +65,19 @@ export default async function ContentPage({ params }: PageProps) {
     notFound();
   }
 
-  const [settings, links, embeds, featured, musicTracks, navPages] = await Promise.all([
+  const [pageSettings, links, embeds, featured, navPages] = await Promise.all([
     getSettingsByPageId(profile.id, page.id),
     getLinksByPageId(profile.id, page.id),
     getEmbedsByPageId(profile.id, page.id),
     getFeaturedBlocksByPageId(profile.id, page.id),
-    getMusicTracks(profile.id, page.id),
     getPublishedProfilePages(profile.id),
   ]);
+
+  const { settings, tracks: musicTracks } = await resolvePublicPageMusic(
+    profile.id,
+    page.id,
+    pageSettings,
+  );
 
   const { sanitizeSettingsForEntitlements, trimFeaturedForEntitlements } = await import(
     "@/lib/premium/sanitize-settings"

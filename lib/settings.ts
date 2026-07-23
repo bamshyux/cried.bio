@@ -202,6 +202,41 @@ export function applySiteProfileSettings<T extends ProfileSettings>(
   };
 }
 
+export function pageHasOwnMusic(
+  settings: Pick<ProfileSettings, "music_url">,
+  pageTracks: { length: number },
+): boolean {
+  return Boolean(settings.music_url?.trim()) || pageTracks.length > 0;
+}
+
+/** Copy main-profile music settings onto a content page when it has no music of its own. */
+export function applySiteMusicSettings<T extends ProfileSettings>(
+  pageSettings: T,
+  siteSettings: ProfileSettings,
+): T {
+  const site = siteSettings as ProfileSettings & {
+    music_playlist_mode?: boolean;
+    music_shuffle?: boolean;
+    music_autoplay_next?: boolean;
+    music_default_track_id?: string | null;
+  };
+
+  return {
+    ...pageSettings,
+    music_url: siteSettings.music_url,
+    music_title: siteSettings.music_title,
+    music_autoplay: siteSettings.music_autoplay,
+    music_loop: siteSettings.music_loop,
+    music_volume: siteSettings.music_volume,
+    music_show_player: siteSettings.music_show_player,
+    music_player_color: siteSettings.music_player_color,
+    music_playlist_mode: site.music_playlist_mode,
+    music_shuffle: site.music_shuffle,
+    music_autoplay_next: site.music_autoplay_next,
+    music_default_track_id: site.music_default_track_id,
+  };
+}
+
 export const LAYOUT_OPTIONS: {
   value: ProfileLayout;
   label: string;

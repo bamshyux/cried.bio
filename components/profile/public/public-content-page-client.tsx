@@ -96,6 +96,7 @@ export function PublicContentPageClient({
         <ProfileSiteChrome
           navPosition={settings.page_nav_position}
           siteNav={siteNav}
+          centerContent={false}
           mainClassName="!items-start !justify-center !py-24 sm:!py-28"
         >
           <div className="mx-auto w-full max-w-2xl">

@@ -39,3 +39,13 @@ export async function getMusicTracks(
 
   return tracks;
 }
+
+/** Content pages inherit the main profile playlist when they have no page-specific tracks. */
+export async function getMusicTracksForPublicPage(
+  profileId: string,
+  pageId: string,
+): Promise<MusicTrack[]> {
+  const pageTracks = await getMusicTracks(profileId, pageId);
+  if (pageTracks.length > 0) return pageTracks;
+  return getMusicTracks(profileId);
+}
