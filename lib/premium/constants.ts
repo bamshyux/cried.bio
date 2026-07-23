@@ -1,7 +1,7 @@
 import type { UserEntitlements } from "@/lib/premium/types";
 
-export const PREMIUM_LITE_MONTHLY_PRICE = 3.99;
-export const PREMIUM_LITE_LIFETIME_PRICE = 55;
+export const PREMIUM_LITE_MONTHLY_PRICE = 1.99;
+export const PREMIUM_LITE_LIFETIME_PRICE = 19.99;
 
 export const PREMIUM_LITE_BENEFITS = [
   "Up to 10 music tracks with playlist mode",

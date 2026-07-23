@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     }
 
     const userId = data.claims.sub as string;
-    let body: { priceId?: string; plan?: "monthly" | "lifetime" } = {};
+    let body: { priceId?: string; plan?: "monthly" | "lifetime"; recipientUsername?: string; giftMessage?: string; premiumGift?: boolean } = {};
 
     try {
       body = (await request.json()) as typeof body;
@@ -83,27 +83,55 @@ export async function POST(request: Request) {
     }
 
     const isLifetime = priceId === prices.lifetime;
+    const isPremiumGift = Boolean(body.premiumGift && body.recipientUsername?.trim());
+    let recipientProfileId = userId;
+
+    if (isPremiumGift) {
+      const { getProfileIdByUsername } = await import("@/lib/data/store");
+      const resolved = await getProfileIdByUsername(body.recipientUsername!.trim());
+      if (!resolved) {
+        return NextResponse.json({ error: "Recipient not found." }, { status: 404 });
+      }
+      if (profile?.username && body.recipientUsername!.trim().toLowerCase() === profile.username.toLowerCase()) {
+        return NextResponse.json({ error: "You cannot gift Premium to yourself." }, { status: 400 });
+      }
+      recipientProfileId = resolved;
+    }
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
       client_reference_id: userId,
       mode: isLifetime ? "payment" : "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${siteUrl}/dashboard/premium?checkout=success`,
-      cancel_url: `${siteUrl}/dashboard/premium?checkout=canceled`,
+      success_url: `${siteUrl}/dashboard/premium/plans?checkout=success`,
+      cancel_url: `${siteUrl}/dashboard/premium/plans?checkout=canceled`,
       metadata: {
+        checkout_type: "premium",
         cried_user_id: userId,
+        recipient_profile_id: recipientProfileId,
+        is_gift: isPremiumGift ? "true" : "false",
+        gift_message: body.giftMessage?.trim() ?? "",
         price_id: priceId,
       },
     };
 
     if (!isLifetime) {
       sessionParams.subscription_data = {
-        metadata: { cried_user_id: userId, price_id: priceId },
+        metadata: {
+          cried_user_id: recipientProfileId,
+          price_id: priceId,
+          is_gift: isPremiumGift ? "true" : "false",
+        },
       };
     } else {
       sessionParams.payment_intent_data = {
-        metadata: { cried_user_id: userId, price_id: priceId, billing_type: "lifetime" },
+        metadata: {
+          cried_user_id: userId,
+          recipient_profile_id: recipientProfileId,
+          price_id: priceId,
+          billing_type: "lifetime",
+          is_gift: isPremiumGift ? "true" : "false",
+        },
       };
     }
 

@@ -21,7 +21,7 @@ export function HomeFeaturedProfiles({ profiles }: { profiles: LandingFeaturedPr
           <Reveal key={profile.id} delay={index * 70} variant="scale">
             <Link
               href={`/${profile.username}`}
-              className="bf-home-profile-card group block overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141414]/90 transition-all duration-300 hover:-translate-y-1 hover:border-white/[0.14] hover:bg-[#1a1a1a] hover:shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
+              className="bf-home-profile-card group block overflow-hidden rounded-2xl bf-home-glass-card transition-all duration-500 bf-home-ease hover:-translate-y-1 hover:border-white/[0.14] hover:shadow-[0_24px_64px_rgba(0,0,0,0.4)]"
             >
               <div className="relative h-24 bg-gradient-to-br from-neutral-800 via-neutral-900 to-[#090909]">
                 <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(20,20,20,1)_100%)]" />

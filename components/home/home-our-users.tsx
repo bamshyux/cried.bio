@@ -55,7 +55,7 @@ export function HomeOurUsers({
           <Reveal key={profile.id} delay={index * 50}>
             <Link
               href={`/${profile.username}`}
-              className="bf-home-profile-card group flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-[#141414]/80 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.14] hover:bg-[#1a1a1a] hover:shadow-[0_16px_40px_rgba(0,0,0,0.3)]"
+              className="bf-home-profile-card group flex items-center gap-3 rounded-2xl bf-home-glass-card p-4 transition-all duration-500 bf-home-ease hover:-translate-y-0.5 hover:border-white/[0.14] hover:shadow-[0_20px_48px_rgba(0,0,0,0.35)]"
             >
               <ProfileAvatar profile={profile} />
               <div className="min-w-0 flex-1">
@@ -104,7 +104,7 @@ export function HomeStatsSection({ stats }: { stats: LandingStats }) {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item, index) => (
           <Reveal key={item.label} delay={index * 60} variant={index % 3 === 1 ? "scale" : "up"}>
-            <div className="bf-home-stat-card rounded-2xl border border-white/[0.08] bg-[#141414]/90 p-6 shadow-[0_12px_40px_rgba(0,0,0,0.25)] transition-all duration-300 hover:-translate-y-1 hover:border-white/[0.12] hover:shadow-[0_20px_50px_rgba(0,0,0,0.35)]">
+            <div className="bf-home-stat-card bf-home-glass-card rounded-2xl p-6 transition-all duration-500 bf-home-ease hover:-translate-y-1 hover:border-white/[0.14] hover:shadow-[0_24px_64px_rgba(0,0,0,0.4)]">
               <p className="text-3xl font-semibold tracking-tight text-white no-underline sm:text-4xl">
                 <AnimatedCounter value={item.value} className="no-underline" />
               </p>

@@ -23,6 +23,7 @@ const ADMIN_LINKS = [
   { href: "/dashboard/admin/notifications", label: "Notifications" },
   { href: "/dashboard/admin/security", label: "Security" },
   { href: "/dashboard/admin/premium", label: "Premium" },
+  { href: "/dashboard/admin/store", label: "Store" },
   { href: "/dashboard/admin/analytics", label: "Analytics" },
   { href: "/dashboard/admin/landing", label: "Landing Page" },
   { href: "/dashboard/admin/audit", label: "Audit Logs" },

@@ -7,12 +7,43 @@ import { getStripe, getStripeWebhookSecret } from "@/lib/stripe/client";
 export const runtime = "nodejs";
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const userId =
+  const checkoutType = session.metadata?.checkout_type ?? "premium";
+  const buyerId =
     session.client_reference_id ??
     session.metadata?.cried_user_id ??
     (session.customer ? await findUserIdByStripeCustomer(String(session.customer)) : null);
 
-  if (!userId) return;
+  if (!buyerId) return;
+
+  if (checkoutType === "store") {
+    const productSlug = session.metadata?.product_slug;
+    const recipientId = session.metadata?.recipient_profile_id ?? buyerId;
+    if (!productSlug) return;
+
+    const { getStoreProductBySlug } = await import("@/lib/data/store");
+    const { fulfillStoreProduct } = await import("@/lib/store/fulfillment");
+    const product = await getStoreProductBySlug(productSlug);
+    if (!product) return;
+
+    await fulfillStoreProduct({
+      buyerProfileId: buyerId,
+      recipientProfileId: recipientId,
+      product,
+      stripeSessionId: session.id,
+      amountCents: session.amount_total ?? product.price_cents,
+      isGift: session.metadata?.is_gift === "true",
+      giftMessage: session.metadata?.gift_message,
+      reservedUsername: session.metadata?.reserved_username,
+    });
+    return;
+  }
+
+  const recipientId =
+    session.metadata?.recipient_profile_id && session.metadata?.is_gift === "true"
+      ? session.metadata.recipient_profile_id
+      : buyerId;
+
+  const userId = recipientId;
 
   const priceId =
     session.metadata?.price_id ??
@@ -47,6 +78,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         ? new Date(session.expires_at * 1000).toISOString()
         : null,
   });
+
+  if (
+    session.metadata?.is_gift === "true" &&
+    session.metadata?.recipient_profile_id &&
+    session.metadata.recipient_profile_id !== buyerId
+  ) {
+    const { syncGifterBadge } = await import("@/lib/store/fulfillment");
+    await syncGifterBadge(buyerId);
+  }
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {

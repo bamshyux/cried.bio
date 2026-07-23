@@ -5,6 +5,7 @@ export type LandingProfile = {
   avatar_url: string | null;
   bio: string;
   view_count?: number;
+  banner_url?: string | null;
 };
 
 export type LandingStats = {
@@ -51,6 +52,16 @@ export type LandingFeaturedProfileRow = {
 
 export type LandingFeaturedProfile = LandingProfile & {
   sort_order: number;
+};
+
+export type LandingShowcaseProfile = LandingFeaturedProfile & {
+  banner_url?: string | null;
+  layout?: string | null;
+  background_type?: string | null;
+  background_image_url?: string | null;
+  background_color?: string | null;
+  music_title?: string | null;
+  page_count?: number;
 };
 
 export type CookieConsentLevel = "all" | "essential";

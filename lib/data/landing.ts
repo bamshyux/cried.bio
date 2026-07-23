@@ -11,6 +11,7 @@ import type {
   LandingFeaturedProfileRow,
   LandingProfile,
   LandingRoadmapItem,
+  LandingShowcaseProfile,
   LandingStats,
   LandingTestimonial,
   LandingThemePreview,
@@ -78,6 +79,7 @@ function mapProfile(row: {
   avatar_url: string | null;
   bio: string | null;
   view_count?: number | null;
+  banner_url?: string | null;
 }): LandingProfile | null {
   if (!row.username) return null;
   return {
@@ -87,6 +89,7 @@ function mapProfile(row: {
     avatar_url: row.avatar_url,
     bio: row.bio?.trim() || "",
     view_count: Number(row.view_count) || 0,
+    banner_url: row.banner_url ?? null,
   };
 }
 
@@ -155,7 +158,7 @@ export async function getFeaturedProfiles(): Promise<LandingFeaturedProfile[]> {
 
   const { data: featured, error } = await supabase
     .from("landing_featured_profiles")
-    .select("sort_order, profiles:profile_id (id, username, display_name, avatar_url, bio, view_count)")
+    .select("sort_order, profiles:profile_id (id, username, display_name, avatar_url, bio, view_count, banner_url)")
     .eq("is_active", true)
     .order("sort_order", { ascending: true })
     .limit(8);
@@ -172,6 +175,7 @@ export async function getFeaturedProfiles(): Promise<LandingFeaturedProfile[]> {
               avatar_url: string | null;
               bio: string | null;
               view_count?: number | null;
+              banner_url?: string | null;
             }
           | {
               id: string;
@@ -180,6 +184,7 @@ export async function getFeaturedProfiles(): Promise<LandingFeaturedProfile[]> {
               avatar_url: string | null;
               bio: string | null;
               view_count?: number | null;
+              banner_url?: string | null;
             }[]
           | null,
       );
@@ -193,6 +198,55 @@ export async function getFeaturedProfiles(): Promise<LandingFeaturedProfile[]> {
 
   const fallback = await getRandomPublicProfiles(6);
   return fallback.map((p, i) => ({ ...p, sort_order: i }));
+}
+
+async function enrichShowcaseProfiles(
+  profiles: LandingFeaturedProfile[],
+): Promise<LandingShowcaseProfile[]> {
+  if (!profiles.length) return [];
+
+  const supabase = await db();
+  const ids = profiles.map((profile) => profile.id);
+
+  const [{ data: settingsRows }, { data: pageRows }] = await Promise.all([
+    supabase
+      .from("profile_settings")
+      .select(
+        "profile_id, layout, background_type, background_image_url, background_color, music_title",
+      )
+      .in("profile_id", ids)
+      .is("page_id", null),
+    supabase.from("profile_pages").select("profile_id").in("profile_id", ids),
+  ]);
+
+  const settingsByProfile = new Map(
+    (settingsRows ?? []).map((row) => [row.profile_id as string, row]),
+  );
+
+  const pageCountByProfile = new Map<string, number>();
+  for (const row of pageRows ?? []) {
+    const profileId = row.profile_id as string;
+    pageCountByProfile.set(profileId, (pageCountByProfile.get(profileId) ?? 0) + 1);
+  }
+
+  return profiles.map((profile) => {
+    const settings = settingsByProfile.get(profile.id);
+    return {
+      ...profile,
+      banner_url: profile.banner_url ?? null,
+      layout: (settings?.layout as string | null) ?? null,
+      background_type: (settings?.background_type as string | null) ?? null,
+      background_image_url: (settings?.background_image_url as string | null) ?? null,
+      background_color: (settings?.background_color as string | null) ?? null,
+      music_title: settings?.music_title?.trim() || null,
+      page_count: pageCountByProfile.get(profile.id) ?? 0,
+    };
+  });
+}
+
+export async function getFeaturedShowcaseProfiles(): Promise<LandingShowcaseProfile[]> {
+  const featured = await getFeaturedProfiles();
+  return enrichShowcaseProfiles(featured);
 }
 
 export async function getLandingTestimonials(): Promise<LandingTestimonial[]> {

@@ -57,7 +57,7 @@ export function HomeWhyChoose() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {FEATURES.map((feature, index) => (
           <Reveal key={feature.title} delay={index * 50} variant={index % 2 === 0 ? "up" : "blur"}>
-            <div className="bf-home-feature-card group h-full overflow-hidden rounded-2xl border border-white/[0.06] bg-[#141414]/90 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-white/[0.12] hover:bg-[#1a1a1a] hover:shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+            <div className="bf-home-feature-card group h-full overflow-hidden rounded-2xl bf-home-glass-card p-4 transition-all duration-500 bf-home-ease hover:-translate-y-1 hover:border-white/[0.14] hover:shadow-[0_24px_64px_rgba(0,0,0,0.4)]">
               <HomeFeatureVisual type={feature.visual} />
               <h3 className="text-sm font-medium text-white">{feature.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-neutral-500">{feature.description}</p>

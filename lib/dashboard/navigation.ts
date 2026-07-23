@@ -245,10 +245,17 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
     Icon: IconPremium,
     items: [
       {
-        href: "/dashboard/premium",
+        href: "/dashboard/premium/plans",
         label: "Plans",
         description: "Upgrade and manage billing",
-        keywords: ["premium", "upgrade", "billing"],
+        keywords: ["premium", "upgrade", "billing", "subscription"],
+        Icon: IconPremium,
+      },
+      {
+        href: "/dashboard/premium/store",
+        label: "Store",
+        description: "One-time upgrades and cosmetics",
+        keywords: ["store", "shop", "cosmetics", "badge", "gift"],
         Icon: IconPremium,
       },
       {
@@ -329,6 +336,8 @@ export function isNavActive(pathname: string, href: string): boolean {
   if (href === "/dashboard/premium") {
     return [
       "/dashboard/premium",
+      "/dashboard/premium/plans",
+      "/dashboard/premium/store",
       "/dashboard/pages",
       "/dashboard/profile-pages",
       "/dashboard/preset-schedules",

@@ -21,14 +21,13 @@ import { HomeWhyChoose } from "@/components/home/home-why-choose";
 import { HumanVerificationGate } from "@/components/security/human-verification-gate";
 import {
   getFeaturedProfiles,
+  getFeaturedShowcaseProfiles,
   getLandingRoadmap,
   getLandingStats,
   getLandingTestimonials,
   getRandomPublicProfiles,
-  getTrendingPublicProfiles,
 } from "@/lib/data/landing";
 import { getProfileByUserId } from "@/lib/data/profiles";
-import type { LandingProfile } from "@/lib/types/landing";
 import { createClient } from "@/lib/supabase/server";
 
 const NAV_LINKS = [
@@ -39,20 +38,21 @@ const NAV_LINKS = [
 ];
 
 function mergeShowcaseProfiles(
-  featured: LandingProfile[],
-  trending: LandingProfile[],
-): LandingProfile[] {
-  const seen = new Set<string>();
-  const merged: LandingProfile[] = [];
+  featured: Awaited<ReturnType<typeof getFeaturedShowcaseProfiles>>,
+  fallbackFeatured: Awaited<ReturnType<typeof getFeaturedProfiles>>,
+): Awaited<ReturnType<typeof getFeaturedShowcaseProfiles>> {
+  if (featured.length >= 3) return featured;
+  if (featured.length > 0) return featured;
 
-  for (const profile of [...featured, ...trending]) {
-    if (seen.has(profile.id)) continue;
-    seen.add(profile.id);
-    merged.push(profile);
-    if (merged.length >= 8) break;
-  }
-
-  return merged;
+  return fallbackFeatured.map((profile) => ({
+    ...profile,
+    layout: null,
+    background_type: null,
+    background_image_url: null,
+    background_color: null,
+    music_title: null,
+    page_count: 0,
+  }));
 }
 
 export default async function Home() {
@@ -66,22 +66,22 @@ export default async function Home() {
     stats,
     randomProfiles,
     featuredProfiles,
-    trendingProfiles,
+    showcaseProfilesRaw,
     testimonials,
     roadmap,
   ] = await Promise.all([
     getLandingStats(),
     getRandomPublicProfiles(12),
     getFeaturedProfiles(),
-    getTrendingPublicProfiles(6),
+    getFeaturedShowcaseProfiles(),
     getLandingTestimonials(),
     getLandingRoadmap(),
   ]);
 
-  const showcaseProfiles = mergeShowcaseProfiles(featuredProfiles, trendingProfiles);
+  const showcaseProfiles = mergeShowcaseProfiles(showcaseProfilesRaw, featuredProfiles);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#090909] text-white">
+    <div className="bf-home-root relative min-h-screen overflow-x-hidden bg-[#090909] text-white">
       <HomeBackground />
       <EmailVerifiedNotice />
 
@@ -97,19 +97,19 @@ export default async function Home() {
 
       <main className="relative z-10">
         <HomeHero profiles={showcaseProfiles}>
-          <div className="bf-home-enter bf-home-enter-1 mb-7 inline-flex items-center gap-2 rounded-full border border-white/[0.1] bg-[#141414]/80 px-4 py-1.5 text-sm text-neutral-400 backdrop-blur-md">
+          <div className="bf-home-enter bf-home-enter-1 mb-6 inline-flex items-center gap-2 rounded-full border border-white/[0.1] bg-[#141414]/70 px-4 py-1.5 text-sm text-neutral-400 bf-home-glass">
             <span className="bf-home-pulse-dot h-1.5 w-1.5 rounded-full bg-[#fafafa]" />
             {stats.total_profiles.toLocaleString()}+ creators already here
           </div>
 
-          <h1 className="bf-home-enter bf-home-enter-2 text-[clamp(2.75rem,7.5vw,5.75rem)] font-semibold leading-[0.92] tracking-[-0.035em]">
+          <h1 className="bf-home-enter bf-home-enter-2 text-[clamp(2.85rem,7.8vw,6rem)] font-semibold leading-[0.9] tracking-[-0.04em]">
             Designed to be
             <br />
             <span className="bf-home-accent-glow text-[#fafafa]">yours.</span>
           </h1>
 
-          <p className="bf-home-enter bf-home-enter-3 mt-5 max-w-md text-base leading-relaxed text-neutral-500 sm:text-lg">
-            A customizable bio page for creators, gamers, and builders — themes, music, effects, and more.
+          <p className="bf-home-enter bf-home-enter-3 mt-4 max-w-lg text-base leading-relaxed text-neutral-500 sm:mt-5 sm:text-[1.05rem]">
+            Themes, music, effects, widgets, and multi-page layouts — built for creators who care about the details.
           </p>
 
           <HomeHeroActions>
