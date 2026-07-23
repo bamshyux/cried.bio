@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { LuAward, LuPlay } from "react-icons/lu";
+import { LuPlay } from "react-icons/lu";
 import type { LandingShowcaseProfile } from "@/lib/types/landing";
 
 function formatViews(views: number) {
@@ -55,17 +55,13 @@ function MarqueeProfileCard({ profile }: { profile: LandingShowcaseProfile }) {
           </div>
         </div>
 
-        <div className="mb-3 flex flex-wrap gap-1">
-          <span className="inline-flex items-center gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 text-[9px] text-neutral-400">
-            <LuAward className="h-2.5 w-2.5" aria-hidden />
-            Badge
-          </span>
-          {(profile.page_count ?? 0) > 0 ? (
+        {(profile.page_count ?? 0) > 0 ? (
+          <div className="mb-3 flex flex-wrap gap-1">
             <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 text-[9px] text-neutral-500">
               {(profile.page_count ?? 0) + 1} pages
             </span>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
 
         {musicTitle ? (
           <div className="flex items-center gap-2 rounded-lg border border-white/[0.07] bg-white/[0.03] px-2.5 py-2">
@@ -95,7 +91,7 @@ export function HomeProfileMarquee({ profiles }: { profiles: LandingShowcaseProf
   const loop = [...items, ...items];
 
   return (
-    <div className="relative mt-20 w-full overflow-hidden sm:mt-24">
+    <div className="relative mt-12 w-full overflow-hidden sm:mt-14">
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#090909] to-transparent sm:w-24" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#090909] to-transparent sm:w-24" />
 

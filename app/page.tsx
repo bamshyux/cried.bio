@@ -13,7 +13,6 @@ import {
 } from "@/components/home/home-hero-actions";
 import { HomeHero } from "@/components/home/home-hero";
 import { HomeHeroHeadline } from "@/components/home/home-hero-headline";
-import { HomeHeroTrustRow } from "@/components/home/home-hero-trust-row";
 import { HomeNavLinks } from "@/components/home/home-nav-links";
 import { HomeNav } from "@/components/home/home-nav";
 import { HomeOurUsers, HomeStatsSection } from "@/components/home/home-our-users";
@@ -90,7 +89,7 @@ export default async function Home() {
       <HomeBackground />
       <EmailVerifiedNotice />
 
-      <header className="bf-home-enter bf-home-enter-0 relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+      <header className="bf-home-enter bf-home-enter-0 relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <Link href="/">
           <CriedLogo />
         </Link>
@@ -108,7 +107,7 @@ export default async function Home() {
 
           <HomeHeroHeadline />
 
-          <p className="bf-home-enter bf-home-enter-3 mx-auto mt-8 max-w-md text-base leading-[1.7] text-neutral-500 sm:text-[1.0625rem]">
+          <p className="bf-home-enter bf-home-enter-3 mt-5 max-w-md text-base leading-[1.65] text-neutral-500 sm:mt-6 sm:text-[1.0625rem]">
             Themes, music, effects, and multi-page layouts — crafted for creators who care about the details.
           </p>
 
@@ -127,8 +126,6 @@ export default async function Home() {
               </>
             )}
           </HomeHeroActions>
-
-          <HomeHeroTrustRow />
         </HomeHero>
 
         <HomeStatsSection stats={stats} />

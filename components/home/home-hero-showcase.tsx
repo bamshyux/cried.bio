@@ -322,7 +322,13 @@ const DEMO_PROFILE: LandingShowcaseProfile = {
   sort_order: 0,
 };
 
-export function HomeHeroShowcase({ profiles }: { profiles: LandingShowcaseProfile[] }) {
+export function HomeHeroShowcase({
+  profiles,
+  variant = "default",
+}: {
+  profiles: LandingShowcaseProfile[];
+  variant?: "default" | "split";
+}) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState<Tilt>({ x: 0, y: 0 });
 
@@ -337,10 +343,16 @@ export function HomeHeroShowcase({ profiles }: { profiles: LandingShowcaseProfil
   const rigRotateX = tilt.y * -5;
   const rigRotateY = tilt.x * 5;
 
+  const isSplit = variant === "split";
+
   return (
     <div
       ref={stageRef}
-      className="bf-home-orbit-stage relative mx-auto h-[22rem] w-full max-w-5xl overflow-visible sm:h-[26rem] md:h-[32rem] lg:h-[34rem]"
+      className={`bf-home-orbit-stage relative mx-auto w-full overflow-visible ${
+        isSplit
+          ? "bf-home-orbit-stage--split h-[19rem] min-w-0 max-w-[40.625rem] sm:h-[22rem] lg:mx-0 lg:ml-auto lg:h-[min(calc(100svh-7.5rem),32rem)] lg:max-w-[min(100%,40.625rem)] lg:min-w-[31.25rem]"
+          : "h-[22rem] max-w-5xl sm:h-[26rem] md:h-[32rem] lg:h-[34rem]"
+      }`}
       onMouseMove={(event) => {
         const rect = stageRef.current?.getBoundingClientRect();
         if (!rect) return;

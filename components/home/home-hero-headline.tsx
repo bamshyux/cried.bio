@@ -17,7 +17,7 @@ export function HomeHeroHeadline() {
   const word = ROTATING_WORDS[wordIndex];
 
   return (
-    <h1 className="bf-home-enter bf-home-enter-2 mt-8 text-[clamp(2.75rem,7.5vw,5.25rem)] font-semibold leading-[1.04] tracking-[-0.045em] text-white">
+    <h1 className="bf-home-enter bf-home-enter-2 mt-4 text-[clamp(2.25rem,5.2vw,3.75rem)] font-semibold leading-[1.06] tracking-[-0.042em] text-white lg:mt-5 xl:text-[clamp(2.5rem,4.5vw,4.25rem)]">
       Your{" "}
       <span className="relative inline-block min-w-[5.5ch] text-left">
         <span key={word} className="bf-home-headline-word inline-block">

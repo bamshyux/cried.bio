@@ -162,37 +162,23 @@ export function PremiumComparisonSection() {
       <div
         className={`${cardClassName} overflow-hidden border border-white/[0.07] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.04)]`}
       >
-        <div className="relative">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 hidden sm:grid sm:grid-cols-[minmax(0,1fr)_7.5rem_10rem_2.75rem] sm:gap-4 sm:px-6"
-          >
-            <div />
-            <div />
-            <div className="bf-premium-compare-premium-column rounded-sm" />
-            <div />
-          </div>
-
-          <div className="relative hidden border-b border-white/[0.06] bg-white/[0.015] sm:grid sm:grid-cols-[minmax(0,1fr)_7.5rem_10rem_2.75rem] sm:gap-4 sm:px-6 sm:py-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Feature</p>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Free</p>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c9b896]/85">
-              Premium Lite
-            </p>
-            <span className="sr-only">Expand</span>
-          </div>
-
-          <div className="relative">
-            {PREMIUM_COMPARISON_FEATURES.map((feature) => (
-              <ComparisonRow
-                key={feature.id}
-                feature={feature}
-                open={openId === feature.id}
-                onToggle={() => setOpenId((current) => (current === feature.id ? null : feature.id))}
-              />
-            ))}
-          </div>
+        <div className="hidden border-b border-white/[0.06] bg-white/[0.015] sm:grid sm:grid-cols-[minmax(0,1fr)_7.5rem_10rem_2.75rem] sm:gap-4 sm:px-6 sm:py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Feature</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Free</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c9b896]/85">
+            Premium Lite
+          </p>
+          <span className="sr-only">Expand</span>
         </div>
+
+        {PREMIUM_COMPARISON_FEATURES.map((feature) => (
+          <ComparisonRow
+            key={feature.id}
+            feature={feature}
+            open={openId === feature.id}
+            onToggle={() => setOpenId((current) => (current === feature.id ? null : feature.id))}
+          />
+        ))}
       </div>
     </section>
   );
