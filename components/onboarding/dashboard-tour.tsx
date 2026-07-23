@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import { completeDashboardTourAction } from "@/app/actions/onboarding";
 import {
   buttonPrimaryClassName,
@@ -174,7 +175,13 @@ function TourOverlay({ spotlight }: { spotlight: SpotlightRect }) {
   );
 }
 
-export function DashboardTour({ active }: { active: boolean }) {
+export function DashboardTour({
+  active,
+  onFinished,
+}: {
+  active: boolean;
+  onFinished?: () => void;
+}) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
@@ -239,6 +246,7 @@ export function DashboardTour({ active }: { active: boolean }) {
         return;
       }
       setVisible(false);
+      onFinished?.();
       router.refresh();
     });
   };
@@ -257,14 +265,14 @@ export function DashboardTour({ active }: { active: boolean }) {
 
   const tooltipPosition = getTooltipPosition(spotlight, viewport);
 
-  return (
-    <div className="fixed inset-0 z-[120]">
+  const tourOverlay = (
+    <div className="fixed inset-0 z-[110]">
       {spotlight ? <TourOverlay spotlight={spotlight} /> : (
         <div className="absolute inset-0 bg-black/75" aria-hidden />
       )}
 
       <div
-        className={`${cardClassName} absolute z-[121] w-[min(100vw-2rem,22rem)] border border-white/[0.1] shadow-2xl`}
+        className={`${cardClassName} absolute z-[111] w-[min(100vw-2rem,22rem)] border border-white/[0.1] shadow-2xl`}
         style={{ top: tooltipPosition.top, left: tooltipPosition.left }}
         role="dialog"
         aria-modal="true"
@@ -313,4 +321,6 @@ export function DashboardTour({ active }: { active: boolean }) {
       </div>
     </div>
   );
+
+  return createPortal(tourOverlay, document.body);
 }

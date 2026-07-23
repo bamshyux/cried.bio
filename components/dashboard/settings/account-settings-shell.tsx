@@ -15,6 +15,7 @@ import {
   updateUsernameAction,
 } from "@/app/actions/account-settings";
 import { restartDashboardTourAction } from "@/app/actions/onboarding";
+import { markDashboardTourForcedRestart } from "@/components/dashboard/dashboard-shell";
 import {
   buttonPrimaryClassName,
   buttonSecondaryClassName,
@@ -82,8 +83,8 @@ export function AccountSettingsShell({ data }: { data: AccountSettingsData }) {
     setTourRestartMsg(result.success ?? result.error);
     setTourRestartPending(false);
     if (result.success) {
+      markDashboardTourForcedRestart();
       router.push("/dashboard");
-      router.refresh();
     }
   }
 
@@ -207,7 +208,11 @@ export function AccountSettingsShell({ data }: { data: AccountSettingsData }) {
                       {tourRestartPending ? "Restarting..." : "Restart dashboard tour"}
                     </button>
                     {tourRestartMsg ? (
-                      <p className={`text-sm ${tourRestartMsg.includes("Visit") ? "text-emerald-400" : "text-red-400"}`}>
+                      <p
+                        className={`text-sm ${
+                          tourRestartMsg.toLowerCase().includes("restart") ? "text-emerald-400" : "text-red-400"
+                        }`}
+                      >
                         {tourRestartMsg}
                       </p>
                     ) : null}

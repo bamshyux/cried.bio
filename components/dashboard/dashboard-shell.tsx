@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   DashboardFormTracker,
@@ -8,6 +9,29 @@ import {
 } from "@/components/dashboard/unsaved-changes";
 import { DashboardTour } from "@/components/onboarding/dashboard-tour";
 import { SetupRedirect } from "@/components/onboarding/setup-redirect";
+
+const FORCE_TOUR_STORAGE_KEY = "bf_dashboard_tour_force";
+
+function readForcedTourRestart() {
+  try {
+    if (sessionStorage.getItem(FORCE_TOUR_STORAGE_KEY) === "1") {
+      sessionStorage.removeItem(FORCE_TOUR_STORAGE_KEY);
+      return true;
+    }
+  } catch {
+    // ignore storage errors
+  }
+  return false;
+}
+
+export function markDashboardTourForcedRestart() {
+  try {
+    sessionStorage.setItem(FORCE_TOUR_STORAGE_KEY, "1");
+  } catch {
+    // ignore storage errors
+  }
+  window.dispatchEvent(new Event("bf-dashboard-tour-force"));
+}
 
 export function DashboardShell({
   children,
@@ -19,15 +43,34 @@ export function DashboardShell({
   needsDashboardTour: boolean;
 }) {
   const pathname = usePathname();
+  const [forcedTour, setForcedTour] = useState(false);
+  const [tourKey, setTourKey] = useState(0);
   const isSetupRoute = pathname.startsWith("/dashboard/setup");
-  const showTour = needsDashboardTour && !isSetupRoute && !pathname.startsWith("/dashboard/admin");
+  const showTour =
+    (needsDashboardTour || forcedTour) && !isSetupRoute && !pathname.startsWith("/dashboard/admin");
+
+  useEffect(() => {
+    const activateForcedTour = () => {
+      if (!readForcedTourRestart()) return;
+      setForcedTour(true);
+      setTourKey((key) => key + 1);
+    };
+
+    activateForcedTour();
+    window.addEventListener("bf-dashboard-tour-force", activateForcedTour);
+    return () => window.removeEventListener("bf-dashboard-tour-force", activateForcedTour);
+  }, [pathname]);
 
   return (
     <UnsavedChangesProvider>
       <div className="bf-dash-shell relative z-0">
         <SetupRedirect needsSetupWizard={needsSetupWizard} />
         <UnsavedChangesNotice />
-        <DashboardTour active={showTour} />
+        <DashboardTour
+          key={tourKey}
+          active={showTour}
+          onFinished={() => setForcedTour(false)}
+        />
         <DashboardFormTracker>{children}</DashboardFormTracker>
       </div>
     </UnsavedChangesProvider>

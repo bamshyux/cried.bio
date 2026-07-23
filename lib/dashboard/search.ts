@@ -517,12 +517,12 @@ const DASHBOARD_FEATURE_ENTRIES: FeatureEntry[] = [
   },
   {
     href: "/dashboard/analytics",
-    label: "Analytics",
+    label: "Stats",
     description: "Views, visitors, and link click stats",
-    section: "Analytics",
+    section: "Stats",
     sectionId: "analytics",
     iconId: "analytics",
-    keywords: ["analytics", "stats", "views", "traffic", "clicks"],
+    keywords: ["analytics", "stats", "views", "traffic", "clicks", "visitors", "growth"],
     priority: 75,
   },
   {

@@ -47,38 +47,9 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
     id: "profile",
     label: "Profile",
     href: "/dashboard/profile",
-    description: "Identity, bio, and links",
+    description: "Display name, username, bio, avatar, and banner",
     Icon: IconProfile,
-    items: [
-      {
-        href: "/dashboard/profile",
-        label: "Profile info",
-        description: "Display name, bio, and details",
-        keywords: ["name", "bio", "display"],
-        Icon: IconProfile,
-      },
-      {
-        href: "/dashboard/profile",
-        label: "Username",
-        description: "Your cried.bio URL",
-        keywords: ["username", "url", "handle"],
-        Icon: IconProfile,
-      },
-      {
-        href: "/dashboard/profile",
-        label: "Avatar & banner",
-        description: "Profile images",
-        keywords: ["avatar", "banner", "photo", "picture"],
-        Icon: IconProfile,
-      },
-      {
-        href: "/dashboard/links",
-        label: "Social links",
-        description: "Links shown on your page",
-        keywords: ["links", "social", "discord", "twitch"],
-        Icon: IconLinks,
-      },
-    ],
+    items: [],
   },
   {
     id: "appearance",
@@ -260,40 +231,11 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
   },
   {
     id: "analytics",
-    label: "Analytics",
+    label: "Stats",
     href: "/dashboard/analytics",
-    description: "Track your growth",
+    description: "Views, visitors, link clicks, and growth",
     Icon: IconAnalytics,
-    items: [
-      {
-        href: "/dashboard/analytics",
-        label: "Views",
-        description: "Profile view counts",
-        keywords: ["views", "traffic"],
-        Icon: IconAnalytics,
-      },
-      {
-        href: "/dashboard/analytics",
-        label: "Visitors",
-        description: "Unique visitor stats",
-        keywords: ["visitors", "unique"],
-        Icon: IconAnalytics,
-      },
-      {
-        href: "/dashboard/analytics",
-        label: "Link clicks",
-        description: "Which links get clicked",
-        keywords: ["clicks", "links"],
-        Icon: IconAnalytics,
-      },
-      {
-        href: "/dashboard/analytics",
-        label: "Growth",
-        description: "Trends over time",
-        keywords: ["growth", "chart", "trends"],
-        Icon: IconAnalytics,
-      },
-    ],
+    items: [],
   },
   {
     id: "premium",
@@ -382,7 +324,7 @@ export function isNavActive(pathname: string, href: string): boolean {
     return ["/dashboard/community", "/dashboard/guestbook", "/dashboard/social", "/dashboard/badges", "/dashboard/featured"].some((p) => pathname.startsWith(p));
   }
   if (href === "/dashboard/profile") {
-    return pathname.startsWith("/dashboard/profile") || pathname.startsWith("/dashboard/links");
+    return pathname.startsWith("/dashboard/profile");
   }
   if (href === "/dashboard/premium") {
     return [

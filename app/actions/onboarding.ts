@@ -163,5 +163,5 @@ export async function restartDashboardTourAction(): Promise<OnboardingActionStat
 
   revalidatePath("/dashboard", "layout");
   revalidatePath("/dashboard/settings");
-  return { success: "Dashboard tour restarted. Visit the dashboard to begin." };
+  return { success: "Dashboard tour restarted." };
 }

@@ -2,12 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { resolveSearchIcon } from "@/lib/dashboard/search-icons";
 import { searchDashboardIndex } from "@/lib/dashboard/search";
 
 export function DashboardSearch() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -24,10 +26,15 @@ export function DashboardSearch() {
   );
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setOpen(true);
+        setOpen((current) => !current);
+        return;
       }
       if (event.key === "Escape") setOpen(false);
     }
@@ -59,6 +66,80 @@ export function DashboardSearch() {
     }
   }
 
+  function closeSearch() {
+    setOpen(false);
+    setQuery("");
+  }
+
+  const searchOverlay =
+    open && mounted ? (
+      <div
+        className="fixed inset-0 z-[100] flex items-start justify-center bg-black/60 p-4 pt-[12vh] backdrop-blur-sm"
+        role="presentation"
+        onMouseDown={closeSearch}
+      >
+        <div
+          className="bf-dash-search-panel relative w-full max-w-lg overflow-hidden rounded-2xl border shadow-2xl"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Search dashboard"
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          <div className="bf-dash-search-input-wrap flex items-center gap-3 border-b border-white/[0.06] px-4">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="shrink-0 text-neutral-500">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M20 20l-3-3" strokeLinecap="round" />
+            </svg>
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Try favicon, music, background, badges, CSS…"
+              className="w-full bg-transparent py-4 text-sm text-white outline-none placeholder:text-neutral-600"
+            />
+          </div>
+          <ul className="max-h-[min(400px,55vh)] overflow-y-auto p-2">
+            {results.length === 0 ? (
+              <li className="px-3 py-8 text-center text-sm text-neutral-500">
+                No matching pages — try &ldquo;favicon&rdquo;, &ldquo;music&rdquo;, or &ldquo;guestbook&rdquo;
+              </li>
+            ) : (
+              results.map((entry, i) => {
+                const Icon = resolveSearchIcon(entry);
+                return (
+                  <li key={`${entry.href}-${entry.label}`}>
+                    <button
+                      type="button"
+                      onClick={() => navigate(entry.href)}
+                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors ${
+                        i === activeIndex ? "bg-white/[0.08]" : "hover:bg-white/[0.04]"
+                      }`}
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-white">
+                        <Icon size={18} className="text-white" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-white">{entry.label}</span>
+                        <span className="mt-0.5 block truncate text-xs text-neutral-500">
+                          {entry.section}
+                          {entry.description ? ` · ${entry.description}` : ""}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-[10px] uppercase tracking-wider text-neutral-600">Open</span>
+                    </button>
+                  </li>
+                );
+              })
+            )}
+          </ul>
+          <div className="border-t border-white/[0.06] px-4 py-2.5 text-[11px] text-neutral-600">
+            ↑↓ navigate · ↵ open · esc close · click outside to close
+          </div>
+        </div>
+      </div>
+    ) : null;
+
   return (
     <>
       <button
@@ -88,69 +169,7 @@ export function DashboardSearch() {
         </svg>
       </button>
 
-      {open ? (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[12vh] backdrop-blur-sm">
-          <button
-            type="button"
-            className="absolute inset-0"
-            aria-label="Close search"
-            onClick={() => setOpen(false)}
-          />
-          <div className="bf-dash-search-panel relative w-full max-w-lg overflow-hidden rounded-2xl border shadow-2xl">
-            <div className="bf-dash-search-input-wrap flex items-center gap-3 border-b border-white/[0.06] px-4">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="shrink-0 text-neutral-500">
-                <circle cx="11" cy="11" r="7" />
-                <path d="M20 20l-3-3" strokeLinecap="round" />
-              </svg>
-              <input
-                ref={inputRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Try favicon, music, background, badges, CSS…"
-                className="w-full bg-transparent py-4 text-sm text-white outline-none placeholder:text-neutral-600"
-              />
-            </div>
-            <ul className="max-h-[min(400px,55vh)] overflow-y-auto p-2">
-              {results.length === 0 ? (
-                <li className="px-3 py-8 text-center text-sm text-neutral-500">
-                  No matching pages — try &ldquo;favicon&rdquo;, &ldquo;music&rdquo;, or &ldquo;guestbook&rdquo;
-                </li>
-              ) : (
-                results.map((entry, i) => {
-                  const Icon = resolveSearchIcon(entry);
-                  return (
-                  <li key={`${entry.href}-${entry.label}`}>
-                    <button
-                      type="button"
-                      onClick={() => navigate(entry.href)}
-                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors ${
-                        i === activeIndex ? "bg-white/[0.08]" : "hover:bg-white/[0.04]"
-                      }`}
-                    >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-white">
-                        <Icon size={18} className="text-white" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-white">{entry.label}</span>
-                        <span className="mt-0.5 block truncate text-xs text-neutral-500">
-                          {entry.section}
-                          {entry.description ? ` · ${entry.description}` : ""}
-                        </span>
-                      </span>
-                      <span className="shrink-0 text-[10px] uppercase tracking-wider text-neutral-600">Open</span>
-                    </button>
-                  </li>
-                  );
-                })
-              )}
-            </ul>
-            <div className="border-t border-white/[0.06] px-4 py-2.5 text-[11px] text-neutral-600">
-              ↑↓ navigate · ↵ open · esc close
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {searchOverlay ? createPortal(searchOverlay, document.body) : null}
     </>
   );
 }
