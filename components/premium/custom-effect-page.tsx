@@ -247,7 +247,7 @@ export function CustomEffectPage({
                 <h3 className="mt-4 text-sm font-semibold text-white">{option.label}</h3>
                 <p className="mt-1 text-xs text-neutral-500">{option.description}</p>
                 <p className="mt-3 flex-1 text-sm leading-relaxed text-neutral-300">
-                  {option.href ? (
+                  {"href" in option && option.href ? (
                     <a
                       href={option.href}
                       target="_blank"
