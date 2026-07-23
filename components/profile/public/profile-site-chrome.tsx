@@ -85,14 +85,7 @@ export function ProfileSiteChrome({
       {bottomBar}
       <div className="bf-profile-viewport-shell">
         {topBar}
-        <main
-          className={`bf-profile-viewport-main ${mainClass} ${edgePadding} ${mainClassName}`.trim()}
-          style={
-            centerContent
-              ? { paddingTop: "50dvh", paddingBottom: "15dvh", boxSizing: "border-box" }
-              : undefined
-          }
-        >
+        <main className={`bf-profile-viewport-main ${mainClass} ${edgePadding} ${mainClassName}`.trim()}>
           <div className="bf-profile-viewport-content w-full">{children}</div>
         </main>
       </div>
