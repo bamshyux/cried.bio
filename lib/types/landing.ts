@@ -4,6 +4,7 @@ export type LandingProfile = {
   display_name: string;
   avatar_url: string | null;
   bio: string;
+  view_count?: number;
 };
 
 export type LandingStats = {

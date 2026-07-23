@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { DiscordCommunityPromo } from "@/components/discord/discord-community-promo";
 import { CriedLogo } from "@/components/brand/logo";
+import { HomeCtaSection } from "@/components/home/home-cta-section";
 import { HomeFeaturedProfiles } from "@/components/home/home-featured-profiles";
-import { HomeFloatingCards } from "@/components/home/home-floating-cards";
 import { EmailVerifiedNotice } from "@/components/home/email-verified-notice";
 import { HomeBackground } from "@/components/home/home-background";
 import {
@@ -11,6 +11,7 @@ import {
   HomePrimaryCta,
   HomeSecondaryCta,
 } from "@/components/home/home-hero-actions";
+import { HomeHeroShell } from "@/components/home/home-hero-shell";
 import { HomeNavLinks } from "@/components/home/home-nav-links";
 import { HomeNav } from "@/components/home/home-nav";
 import { HomeOurUsers, HomeStatsSection } from "@/components/home/home-our-users";
@@ -19,7 +20,6 @@ import { HomeRoadmap } from "@/components/home/home-roadmap";
 import { HomeTestimonials } from "@/components/home/home-testimonials";
 import { HomeWhyChoose } from "@/components/home/home-why-choose";
 import { HumanVerificationGate } from "@/components/security/human-verification-gate";
-import { PlatformUpdateShell } from "@/components/platform-updates/platform-update-shell";
 import {
   getFeaturedProfiles,
   getFloatingProfileCards,
@@ -27,8 +27,10 @@ import {
   getLandingStats,
   getLandingTestimonials,
   getRandomPublicProfiles,
+  getTrendingPublicProfiles,
 } from "@/lib/data/landing";
 import { getProfileByUserId } from "@/lib/data/profiles";
+import type { LandingProfile } from "@/lib/types/landing";
 import { createClient } from "@/lib/supabase/server";
 
 const NAV_LINKS = [
@@ -37,6 +39,23 @@ const NAV_LINKS = [
   { href: "#stats", label: "Stats" },
   { href: "#roadmap", label: "Roadmap" },
 ];
+
+function mergeShowcaseProfiles(
+  featured: LandingProfile[],
+  trending: LandingProfile[],
+): LandingProfile[] {
+  const seen = new Set<string>();
+  const merged: LandingProfile[] = [];
+
+  for (const profile of [...featured, ...trending]) {
+    if (seen.has(profile.id)) continue;
+    seen.add(profile.id);
+    merged.push(profile);
+    if (merged.length >= 8) break;
+  }
+
+  return merged;
+}
 
 export default async function Home() {
   const supabase = await createClient();
@@ -49,6 +68,7 @@ export default async function Home() {
     stats,
     randomProfiles,
     featuredProfiles,
+    trendingProfiles,
     testimonials,
     roadmap,
     floatingProfiles,
@@ -56,10 +76,13 @@ export default async function Home() {
     getLandingStats(),
     getRandomPublicProfiles(12),
     getFeaturedProfiles(),
+    getTrendingPublicProfiles(6),
     getLandingTestimonials(),
     getLandingRoadmap(),
     getFloatingProfileCards(6),
   ]);
+
+  const showcaseProfiles = mergeShowcaseProfiles(featuredProfiles, trendingProfiles);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#090909] text-white">
@@ -77,54 +100,54 @@ export default async function Home() {
       </header>
 
       <main className="relative z-10">
-        <PlatformUpdateShell />
-        <section className="relative mx-auto max-w-6xl px-6 pb-16 pt-20 text-center sm:pt-28">
-          <HomeFloatingCards profiles={floatingProfiles} />
+        <HomeHeroShell floatingProfiles={floatingProfiles}>
+          <div className="relative grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-12 xl:gap-16">
+            <div className="text-center lg:text-left">
+              <div className="bf-home-enter bf-home-enter-1 mb-8 inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#141414]/90 px-4 py-1.5 text-sm text-neutral-400 backdrop-blur-sm">
+                <span className="bf-home-pulse-dot h-1.5 w-1.5 rounded-full bg-[#fafafa]" />
+                {stats.total_profiles.toLocaleString()}+ creators already here
+              </div>
 
-          <div className="relative">
-            <div className="bf-home-enter bf-home-enter-1 mb-8 inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#141414]/90 px-4 py-1.5 text-sm text-neutral-400 backdrop-blur-sm">
-              <span className="bf-home-pulse-dot h-1.5 w-1.5 rounded-full bg-[#fafafa]" />
-              {stats.total_profiles.toLocaleString()}+ creators already here
+              <h1 className="bf-home-enter bf-home-enter-2 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl lg:text-[4.25rem] xl:text-7xl">
+                Designed to be{" "}
+                <span className="bf-home-accent-glow text-[#fafafa]">yours.</span>
+              </h1>
+
+              <p className="bf-home-enter bf-home-enter-3 mx-auto mt-6 max-w-xl text-lg leading-relaxed text-neutral-500 lg:mx-0 lg:max-w-md xl:max-w-lg">
+                A clean, customizable bio page for creators, gamers, and builders.
+                Premium feel. Zero clutter.
+              </p>
+
+              <HomeHeroActions>
+                {isLoggedIn ? (
+                  <>
+                    <HomePrimaryCta href="/dashboard">Go to Dashboard</HomePrimaryCta>
+                    {profile?.username && (
+                      <HomeSecondaryCta href={`/${profile.username}`}>View My Profile</HomeSecondaryCta>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <HomePrimaryCta href="/signup">Create Profile</HomePrimaryCta>
+                    <HomeSecondaryCta href="/login">Login</HomeSecondaryCta>
+                  </>
+                )}
+              </HomeHeroActions>
             </div>
 
-            <h1 className="bf-home-enter bf-home-enter-2 mx-auto max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl">
-              Designed to be{" "}
-              <span className="bf-home-accent-glow text-[#fafafa]">yours.</span>
-            </h1>
-
-            <p className="bf-home-enter bf-home-enter-3 mx-auto mt-6 max-w-xl text-lg leading-relaxed text-neutral-500">
-              A clean, customizable bio page for creators, gamers, and builders.
-              Premium feel. Zero clutter. Join a platform that&apos;s actually alive.
-            </p>
-
-            <HomeHeroActions>
-              {isLoggedIn ? (
-                <>
-                  <HomePrimaryCta href="/dashboard">Go to Dashboard</HomePrimaryCta>
-                  {profile?.username && (
-                    <HomeSecondaryCta href={`/${profile.username}`}>View My Profile</HomeSecondaryCta>
-                  )}
-                </>
-              ) : (
-                <>
-                  <HomePrimaryCta href="/signup">Create Profile</HomePrimaryCta>
-                  <HomeSecondaryCta href="/login">Login</HomeSecondaryCta>
-                </>
-              )}
-            </HomeHeroActions>
+            <div className="bf-home-enter bf-home-enter-5 relative mx-auto w-full max-w-md lg:max-w-none">
+              <HomePreview profiles={showcaseProfiles} embedded />
+            </div>
           </div>
-        </section>
+        </HomeHeroShell>
 
-        <section className="relative">
-          <HomeFloatingCards profiles={floatingProfiles.slice(3, 6)} />
-          <HomeStatsSection stats={stats} />
-        </section>
-        <HomePreview />
+        <HomeStatsSection stats={stats} />
         <HomeFeaturedProfiles profiles={featuredProfiles} />
         <HomeOurUsers profiles={randomProfiles} totalUsers={stats.total_users} />
         <HomeWhyChoose />
         <HomeRoadmap items={roadmap} />
         <HomeTestimonials testimonials={testimonials} />
+        <HomeCtaSection isLoggedIn={isLoggedIn} username={profile?.username ?? null} />
         <DiscordCommunityPromo variant="section" />
       </main>
 

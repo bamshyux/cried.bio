@@ -77,6 +77,7 @@ function mapProfile(row: {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  view_count?: number | null;
 }): LandingProfile | null {
   if (!row.username) return null;
   return {
@@ -85,6 +86,7 @@ function mapProfile(row: {
     display_name: row.display_name?.trim() || row.username,
     avatar_url: row.avatar_url,
     bio: row.bio?.trim() || "",
+    view_count: Number(row.view_count) || 0,
   };
 }
 
@@ -136,7 +138,7 @@ export async function getRandomPublicProfiles(limit = 12): Promise<LandingProfil
   const supabase = await db();
   const { data } = await supabase
     .from("profiles")
-    .select("id, username, display_name, avatar_url, bio")
+    .select("id, username, display_name, avatar_url, bio, view_count")
     .not("username", "is", null)
     .order("created_at", { ascending: false })
     .limit(Math.max(limit * 4, 40));
@@ -153,7 +155,7 @@ export async function getFeaturedProfiles(): Promise<LandingFeaturedProfile[]> {
 
   const { data: featured, error } = await supabase
     .from("landing_featured_profiles")
-    .select("sort_order, profiles:profile_id (id, username, display_name, avatar_url, bio)")
+    .select("sort_order, profiles:profile_id (id, username, display_name, avatar_url, bio, view_count)")
     .eq("is_active", true)
     .order("sort_order", { ascending: true })
     .limit(8);
@@ -169,6 +171,7 @@ export async function getFeaturedProfiles(): Promise<LandingFeaturedProfile[]> {
               display_name: string | null;
               avatar_url: string | null;
               bio: string | null;
+              view_count?: number | null;
             }
           | {
               id: string;
@@ -176,6 +179,7 @@ export async function getFeaturedProfiles(): Promise<LandingFeaturedProfile[]> {
               display_name: string | null;
               avatar_url: string | null;
               bio: string | null;
+              view_count?: number | null;
             }[]
           | null,
       );
@@ -267,6 +271,23 @@ export async function getThemeMarketplacePreview(): Promise<LandingThemePreview[
     ...item,
     id: `default-${i}`,
   }));
+}
+
+export async function getTrendingPublicProfiles(limit = 8): Promise<LandingProfile[]> {
+  const supabase = await db();
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, avatar_url, bio, view_count, uid")
+    .not("username", "is", null)
+    .order("view_count", { ascending: false })
+    .limit(Math.max(limit * 2, 16));
+
+  const mapped = (data ?? [])
+    .filter((row) => !isFrozenViewCountProfile(row) && row.uid !== LANDING_EXCLUDED_VIEW_UID)
+    .map((row) => mapProfile(row))
+    .filter((p): p is LandingProfile => p !== null);
+
+  return mapped.slice(0, limit);
 }
 
 export async function getFloatingProfileCards(limit = 8): Promise<LandingProfile[]> {

@@ -3304,10 +3304,93 @@ body,
 @keyframes bf-home-cta-glow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 12px 40px rgba(255, 255, 255, 0.06);
   }
   50% {
-    box-shadow: 0 0 28px rgba(255, 255, 255, 0.35);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.14),
+      0 16px 48px rgba(255, 255, 255, 0.12);
+  }
+}
+
+@keyframes bf-home-particle-drift {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 0.45;
+    transform: translate3d(8px, -18px, 0);
+  }
+}
+
+@keyframes bf-home-feature-shimmer {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes bf-home-feature-bar {
+  0%,
+  100% {
+    transform: scaleY(0.55);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 0.95;
+  }
+}
+
+@keyframes bf-home-feature-orbit {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes bf-home-feature-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes bf-home-reveal-blur {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes bf-home-reveal-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(16px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
   }
 }
 
@@ -3420,8 +3503,99 @@ body,
   transform: translateY(22px);
 }
 
+.bf-home-reveal-pending--blur {
+  opacity: 0;
+  transform: translateY(24px);
+  filter: blur(14px);
+}
+
+.bf-home-reveal-pending--scale {
+  opacity: 0;
+  transform: scale(0.94) translateY(16px);
+  filter: blur(8px);
+}
+
 .bf-home-revealed {
   animation: bf-home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bf-home-revealed--blur {
+  animation: bf-home-reveal-blur 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bf-home-revealed--scale {
+  animation: bf-home-reveal-scale 0.88s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bf-home-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.bf-home-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.bf-home-particle {
+  position: absolute;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.35);
+  animation: bf-home-particle-drift ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.bf-home-feature-visual {
+  isolation: isolate;
+}
+
+.bf-home-feature-shimmer {
+  animation: bf-home-feature-shimmer 3.2s ease-in-out infinite;
+}
+
+.bf-home-feature-bar {
+  transform-origin: bottom center;
+  animation: bf-home-feature-bar 1.4s ease-in-out infinite;
+}
+
+.bf-home-feature-orbit {
+  animation: bf-home-feature-orbit 12s linear infinite;
+}
+
+.bf-home-feature-orbit--reverse {
+  animation-direction: reverse;
+  animation-duration: 16s;
+}
+
+.bf-home-feature-float {
+  animation: bf-home-feature-float 2.8s ease-in-out infinite;
+}
+
+.bf-home-stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.bf-home-stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255, 255, 255, 0.04), transparent 70%);
+  pointer-events: none;
+}
+
+.bf-home-feature-card {
+  position: relative;
+}
+
+.bf-home-cta-panel {
+  isolation: isolate;
+}
+
+.bf-home-profile-card {
+  position: relative;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3429,13 +3603,20 @@ body,
   .bf-home-preview-card,
   .bf-home-preview-url,
   .bf-home-revealed,
+  .bf-home-revealed--blur,
+  .bf-home-revealed--scale,
   .bf-home-accent-glow,
   .bf-home-pulse-dot,
   .bf-home-ambient,
   .bf-home-orb,
   .bf-home-grid,
   .bf-home-shimmer-line,
-  .bf-home-cta-primary {
+  .bf-home-cta-primary,
+  .bf-home-particle,
+  .bf-home-feature-shimmer,
+  .bf-home-feature-bar,
+  .bf-home-feature-orbit,
+  .bf-home-feature-float {
     animation: none !important;
     opacity: 1;
     transform: none;
@@ -3444,9 +3625,12 @@ body,
     box-shadow: none;
   }
 
-  .bf-home-reveal-pending {
+  .bf-home-reveal-pending,
+  .bf-home-reveal-pending--blur,
+  .bf-home-reveal-pending--scale {
     opacity: 1;
     transform: none;
+    filter: none;
   }
 }
 

@@ -18,10 +18,10 @@ export function HomeFeaturedProfiles({ profiles }: { profiles: LandingFeaturedPr
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {profiles.map((profile, index) => (
-          <Reveal key={profile.id} delay={index * 70}>
+          <Reveal key={profile.id} delay={index * 70} variant="scale">
             <Link
               href={`/${profile.username}`}
-              className="group block overflow-hidden rounded-xl border border-white/[0.06] bg-[#141414] transition-all hover:border-white/[0.14] hover:bg-[#1a1a1a]"
+              className="bf-home-profile-card group block overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141414]/90 transition-all duration-300 hover:-translate-y-1 hover:border-white/[0.14] hover:bg-[#1a1a1a] hover:shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
             >
               <div className="relative h-24 bg-gradient-to-br from-neutral-800 via-neutral-900 to-[#090909]">
                 <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(20,20,20,1)_100%)]" />
@@ -49,6 +49,13 @@ export function HomeFeaturedProfiles({ profiles }: { profiles: LandingFeaturedPr
                 </div>
                 {profile.bio ? (
                   <p className="line-clamp-2 text-sm leading-relaxed text-neutral-500">{profile.bio}</p>
+                ) : null}
+                {profile.view_count && profile.view_count > 0 ? (
+                  <p className="mt-2 text-xs text-neutral-600">
+                    {profile.view_count >= 1000
+                      ? `${(profile.view_count / 1000).toFixed(1).replace(/\.0$/, "")}k views`
+                      : `${profile.view_count.toLocaleString()} views`}
+                  </p>
                 ) : null}
                 <p className="mt-3 font-mono text-[11px] text-neutral-600 group-hover:text-neutral-400">
                   {SITE_HOST}/{profile.username}
