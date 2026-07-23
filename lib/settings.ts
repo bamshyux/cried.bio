@@ -48,6 +48,7 @@ export const DEFAULT_SETTINGS: Omit<
   music_autoplay: false,
   music_loop: true,
   music_volume: 50,
+  music_show_player: true,
   cursor_effect: "none",
   cursor_image_url: null,
   cursor_image_size: 48,
@@ -187,6 +188,18 @@ export const PAGE_NAV_POSITION_OPTIONS: {
 export function parsePageNavPosition(value: string): import("@/lib/types/settings").PageNavPosition {
   if (value === "bottom" || value === "left" || value === "right" || value === "hidden") return value;
   return "top";
+}
+
+/** Site-wide profile settings stored on the main profile row (page_id is null). */
+export function applySiteProfileSettings<T extends ProfileSettings>(
+  settings: T,
+  siteRow: Partial<ProfileSettings> | null | undefined,
+): T {
+  if (!siteRow?.page_nav_position) return settings;
+  return {
+    ...settings,
+    page_nav_position: parsePageNavPosition(String(siteRow.page_nav_position)),
+  };
 }
 
 export const LAYOUT_OPTIONS: {
@@ -499,6 +512,7 @@ export function mergeSettings(
     music_autoplay: row?.music_autoplay ?? DEFAULT_SETTINGS.music_autoplay,
     music_loop: row?.music_loop ?? DEFAULT_SETTINGS.music_loop,
     music_volume: row?.music_volume ?? DEFAULT_SETTINGS.music_volume,
+    music_show_player: row?.music_show_player !== false,
     cursor_effect: parseCursorEffect(row?.cursor_effect ?? legacyCursor, DEFAULT_SETTINGS.cursor_effect),
     cursor_image_url: row?.cursor_image_url ?? null,
     cursor_image_size: clampCursorImageSize(row?.cursor_image_size, DEFAULT_SETTINGS.cursor_image_size),

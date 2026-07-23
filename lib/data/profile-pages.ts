@@ -77,7 +77,6 @@ export async function getSettingsByPageId(
   pageId: string,
 ): Promise<ReturnType<typeof import("@/lib/data/settings").getSettingsByProfileId>> {
   const supabase = await createClient();
-  const { mergeSettings } = await import("@/lib/settings");
   const { ensureProfileSettingsRow } = await import("@/lib/data/ensure-profile-settings-row");
 
   let { data } = await supabase
@@ -100,7 +99,15 @@ export async function getSettingsByPageId(
     }
   }
 
-  return mergeSettings(data, profileId);
+  const { data: siteSettings } = await supabase
+    .from("profile_settings")
+    .select("page_nav_position")
+    .eq("profile_id", profileId)
+    .is("page_id", null)
+    .maybeSingle();
+
+  const { mergeSettings, applySiteProfileSettings } = await import("@/lib/settings");
+  return applySiteProfileSettings(mergeSettings(data, profileId), siteSettings);
 }
 
 export async function getLinksByPageId(profileId: string, pageId: string) {

@@ -336,6 +336,10 @@ function parseSectionUpdates(
         music_title: String(formData.get("music_title") ?? existing.music_title).trim(),
         music_autoplay: parseBool(formData.get("music_autoplay")),
         music_loop: parseBool(formData.get("music_loop")),
+        music_show_player:
+          formData.get("music_show_player") == null || String(formData.get("music_show_player")) === ""
+            ? existing.music_show_player !== false
+            : parseBool(formData.get("music_show_player")),
         music_volume: parseIntField(formData.get("music_volume"), existing.music_volume),
         music_player_color: parseBool(formData.get("music_use_accent"))
           ? ""

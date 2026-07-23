@@ -212,6 +212,7 @@ export type ProfileSettings = {
   music_autoplay: boolean;
   music_loop: boolean;
   music_volume: number;
+  music_show_player: boolean;
   cursor_effect: CursorEffect;
   cursor_image_url: string | null;
   cursor_image_size: number;

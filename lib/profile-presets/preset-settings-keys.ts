@@ -25,6 +25,7 @@ export const MEDIA_PRESET_KEYS = [
   "music_title",
   "music_autoplay",
   "music_loop",
+  "music_show_player",
   "music_volume",
   "music_player_color",
 ] as const satisfies readonly (keyof ProfileSettings)[];

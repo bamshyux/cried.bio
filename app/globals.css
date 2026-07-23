@@ -2540,7 +2540,7 @@ body,
   flex-direction: column;
   gap: 0;
   width: 44px;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 9999px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(0, 0, 0, 0.55);
@@ -2556,8 +2556,11 @@ body,
 .bf-audio:not([data-open="true"]) .bf-audio__panel {
   background: transparent;
   border-color: transparent;
+  border-width: 0;
   box-shadow: none;
   backdrop-filter: none;
+  overflow: visible;
+  width: 44px;
 }
 
 .bf-audio[data-open="true"] .bf-audio__panel {
@@ -2565,6 +2568,8 @@ body,
   gap: 10px;
   padding: 10px 12px 12px;
   border-radius: 14px;
+  border-width: 1px;
+  overflow: hidden;
   border-color: rgba(var(--bf-audio-accent-rgb), 0.2);
   box-shadow:
     0 14px 40px rgba(0, 0, 0, 0.55),
@@ -2586,12 +2591,16 @@ body,
   flex-shrink: 0;
   display: grid;
   place-items: center;
+  box-sizing: border-box;
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  aspect-ratio: 1;
   margin: 0;
   padding: 0;
   border: 1px solid rgba(var(--bf-audio-accent-rgb), 0.42);
-  border-radius: 9999px;
+  border-radius: 50%;
   background: rgba(var(--bf-audio-accent-rgb), 0.18);
   color: var(--bf-audio-accent);
   backdrop-filter: blur(12px);
@@ -2604,6 +2613,8 @@ body,
     transform 0.15s ease,
     width 0.28s ease,
     height 0.28s ease,
+    min-width 0.28s ease,
+    min-height 0.28s ease,
     background 0.15s ease,
     border-color 0.15s ease;
 }
@@ -2611,6 +2622,8 @@ body,
 .bf-audio[data-open="true"] .bf-audio__play {
   width: 40px;
   height: 40px;
+  min-width: 40px;
+  min-height: 40px;
 }
 
 .bf-audio__play:hover {

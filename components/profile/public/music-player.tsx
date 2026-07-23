@@ -56,6 +56,7 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
   const leaveTimerRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const savedVolumeRef = useRef(settings.music_volume > 0 ? settings.music_volume : 50);
+  const volumeRef = useRef(Math.max(0, Math.min(100, settings.music_volume)));
   const [open, setOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(() => Math.max(0, Math.min(100, settings.music_volume)));
@@ -115,19 +116,24 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
   const setVolumeLevel = useCallback((next: number) => {
     const clamped = Math.max(0, Math.min(100, next));
     if (clamped > 0) savedVolumeRef.current = clamped;
+    volumeRef.current = clamped;
     setVolume(clamped);
     if (audioRef.current) audioRef.current.volume = clamped / 100;
   }, []);
+
+  useEffect(() => {
+    volumeRef.current = volume;
+  }, [volume]);
 
   const playFromStart = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || !currentUrl) return;
     audio.src = currentUrl;
     audio.loop = playlistMode ? false : settings.music_loop;
-    audio.volume = volume / 100;
+    audio.volume = volumeRef.current / 100;
     audio.currentTime = 0;
     void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
-  }, [currentUrl, playlistMode, settings.music_loop, volume]);
+  }, [currentUrl, playlistMode, settings.music_loop]);
 
   useEffect(() => {
     onPlayReady?.(playFromStart);
@@ -139,7 +145,7 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
 
     audio.src = currentUrl;
     audio.loop = playlistMode ? false : settings.music_loop;
-    audio.volume = volume / 100;
+    audio.volume = volumeRef.current / 100;
 
     const startPlayback = () => {
       if (!settings.music_autoplay) {
@@ -159,7 +165,7 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
 
     audio.addEventListener("canplay", startPlayback, { once: true });
     return () => audio.removeEventListener("canplay", startPlayback);
-  }, [currentUrl, deferAutoplay, playlistMode, settings.music_autoplay, settings.music_loop, volume]);
+  }, [currentUrl, deferAutoplay, playlistMode, settings.music_autoplay, settings.music_loop]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -233,6 +239,8 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
 
   if (!currentUrl) return null;
 
+  const showPlayer = settings.music_show_player !== false;
+
   const toggle = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -256,6 +264,12 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
     audio.currentTime = next;
     setCurrentTime(next);
   };
+
+  if (!showPlayer) {
+    return (
+      <audio ref={audioRef} src={currentUrl} preload="metadata" playsInline className="sr-only" aria-hidden />
+    );
+  }
 
   return (
     <div

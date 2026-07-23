@@ -41,6 +41,7 @@ type MusicFormState = {
   music_player_color: string;
   music_autoplay: boolean;
   music_loop: boolean;
+  music_show_player: boolean;
 };
 
 function readMusicForm(settings: ProfileSettings): MusicFormState {
@@ -51,6 +52,7 @@ function readMusicForm(settings: ProfileSettings): MusicFormState {
     music_player_color: settings.music_player_color || settings.accent_color,
     music_autoplay: settings.music_autoplay,
     music_loop: settings.music_loop,
+    music_show_player: settings.music_show_player !== false,
   };
 }
 
@@ -365,6 +367,13 @@ export function MusicEditor({
                 onCheckedChange={(music_loop) => patchForm({ music_loop })}
               />
             </div>
+            <ToggleField
+              name="music_show_player"
+              label="Show player button"
+              description="Display the play/pause control in the bottom-right corner of your page"
+              checked={form.music_show_player}
+              onCheckedChange={(music_show_player) => patchForm({ music_show_player })}
+            />
             <SaveConfirmation success={state.success} error={state.error} />
             <button type="submit" disabled={isPending} className={buttonPrimaryClassName}>
               {isPending ? "Saving..." : "Save playback settings"}
