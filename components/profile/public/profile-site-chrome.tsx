@@ -29,14 +29,15 @@ export function ProfileSiteChrome({
     </a>
   );
 
-  const topBar = !hasSideNav ? (
-    <header className="pointer-events-auto relative z-50 flex w-full shrink-0 flex-col items-stretch px-5 py-4 sm:px-8 sm:py-5">
-      <div className="flex w-full items-center">{logo}</div>
-      {hasTopNav ? (
-        <div className="mt-4 flex justify-center">
-          <div className="border-b border-white/[0.06]">{siteNav}</div>
-        </div>
-      ) : null}
+  const fixedLogo = !hasSideNav ? (
+    <div className="pointer-events-auto fixed top-0 left-0 z-50 px-5 py-4 sm:px-8 sm:py-5">{logo}</div>
+  ) : null;
+
+  const topBar = !hasSideNav && hasTopNav ? (
+    <header className="pointer-events-auto relative z-40 flex w-full shrink-0 flex-col items-stretch px-5 py-4 sm:px-8 sm:py-5">
+      <div className="flex justify-center">
+        <div className="border-b border-white/[0.06]">{siteNav}</div>
+      </div>
     </header>
   ) : null;
 
@@ -68,6 +69,7 @@ export function ProfileSiteChrome({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {fixedLogo}
       {topBar}
       {sideRail}
       {bottomBar}
