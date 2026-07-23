@@ -90,9 +90,13 @@ export function PlatformUpdateWidget({ updates }: { updates: PlatformUpdate[] })
       if (event.key === "Escape") setOpen(false);
     };
 
-    document.addEventListener("mousedown", handlePointer);
+    const timer = window.setTimeout(() => {
+      document.addEventListener("mousedown", handlePointer);
+    }, 0);
+
     document.addEventListener("keydown", handleEscape);
     return () => {
+      window.clearTimeout(timer);
       document.removeEventListener("mousedown", handlePointer);
       document.removeEventListener("keydown", handleEscape);
     };

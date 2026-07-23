@@ -843,8 +843,14 @@ body,
   position: fixed;
   top: 50%;
   left: 0;
-  z-index: 200;
+  z-index: 250;
   transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.bf-platform-updates__trigger,
+.bf-platform-updates__panel {
+  pointer-events: auto;
 }
 
 .bf-platform-updates__trigger {
@@ -1835,15 +1841,19 @@ body,
   background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
 }
 
-.bf-dash-root > * {
-  position: relative;
-  z-index: 1;
-}
-
 .bf-dash-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   border-bottom-color: rgba(255, 255, 255, 0.055) !important;
   background: rgba(7, 7, 7, 0.82) !important;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.bf-dash-header-inner {
+  position: relative;
+  z-index: 1;
+  min-height: 3.25rem;
 }
 
 .bf-dash-body {
@@ -1892,7 +1902,11 @@ body,
 
 /* Dashboard sidebar */
 .bf-dash-sidebar {
-  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  scrollbar-width: none;
+}
+
+.bf-dash-sidebar::-webkit-scrollbar {
+  display: none;
 }
 
 .bf-dash-nav-section + .bf-dash-nav-section {

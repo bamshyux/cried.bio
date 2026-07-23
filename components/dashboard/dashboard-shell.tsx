@@ -24,10 +24,12 @@ export function DashboardShell({
 
   return (
     <UnsavedChangesProvider>
-      <SetupRedirect needsSetupWizard={needsSetupWizard} />
-      <UnsavedChangesNotice />
-      <DashboardTour active={showTour} />
-      <DashboardFormTracker>{children}</DashboardFormTracker>
+      <div className="bf-dash-shell relative z-0">
+        <SetupRedirect needsSetupWizard={needsSetupWizard} />
+        <UnsavedChangesNotice />
+        <DashboardTour active={showTour} />
+        <DashboardFormTracker>{children}</DashboardFormTracker>
+      </div>
     </UnsavedChangesProvider>
   );
 }

@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
 import { DiscordCommunityPromo } from "@/components/discord/discord-community-promo";
 import {
   DASHBOARD_SECTIONS,
-  getSectionForPath,
   isNavActive,
   isSubNavItemActive,
 } from "@/lib/dashboard/navigation";
@@ -14,14 +12,10 @@ import {
 function SectionBlock({
   section,
   pathname,
-  expanded,
-  onToggle,
   isAdminRoute,
 }: {
   section: (typeof DASHBOARD_SECTIONS)[number];
   pathname: string;
-  expanded: boolean;
-  onToggle: () => void;
   isAdminRoute: boolean;
 }) {
   const active = isNavActive(pathname, section.href);
@@ -32,49 +26,28 @@ function SectionBlock({
 
   return (
     <div className="bf-dash-nav-section">
-      <div className="flex items-center gap-1">
-        <Link
-          href={section.href}
-          data-tour={section.id}
-          className={`bf-dash-nav-link flex min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium ${
-            active && !hasItems
-              ? "bf-dash-nav-link--active"
-              : parentActive
-                ? "bf-dash-nav-link--parent-active"
-                : ""
+      <Link
+        href={section.href}
+        data-tour={section.id}
+        className={`bf-dash-nav-link flex min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium ${
+          active && !hasItems
+            ? "bf-dash-nav-link--active"
+            : parentActive
+              ? "bf-dash-nav-link--parent-active"
+              : ""
+        }`}
+      >
+        <span
+          className={`bf-dash-nav-icon inline-flex rounded-lg p-1.5 ${
+            active ? "bg-white/[0.08] text-white" : "text-neutral-500"
           }`}
         >
-          <span
-            className={`bf-dash-nav-icon inline-flex rounded-lg p-1.5 ${
-              active ? "bg-white/[0.08] text-white" : "text-neutral-500"
-            }`}
-          >
-            <section.Icon size={18} />
-          </span>
-          <span className="truncate">{section.label}</span>
-        </Link>
-        {hasItems ? (
-          <button
-            type="button"
-            onClick={onToggle}
-            className="shrink-0 rounded-lg p-2 text-neutral-600 transition-colors hover:bg-white/[0.04] hover:text-neutral-400"
-            aria-expanded={expanded}
-            aria-label={`${expanded ? "Collapse" : "Expand"} ${section.label}`}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 12 12"
-              fill="none"
-              className={`transition-transform ${expanded ? "rotate-180" : ""}`}
-            >
-              <path d="M3 4.5 6 7.5 9 4.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
-            </svg>
-          </button>
-        ) : null}
-      </div>
+          <section.Icon size={18} />
+        </span>
+        <span className="truncate">{section.label}</span>
+      </Link>
 
-      {hasItems && expanded ? (
+      {hasItems ? (
         <div className="bf-dash-nav-submenu mt-1 space-y-0.5 border-l pl-2 ml-5">
           {section.items.map((item) => {
             const itemActive = isSubNavItemActive(pathname, item, section.items);
@@ -104,32 +77,10 @@ export function DashboardSidebar({
 }) {
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith("/dashboard/admin");
-  const activeSection = getSectionForPath(pathname);
-
-  const defaultExpanded = useMemo(() => {
-    const ids: Record<string, boolean> = {};
-    for (const section of DASHBOARD_SECTIONS) {
-      ids[section.id] = activeSection?.id === section.id;
-    }
-    if (!activeSection) ids.appearance = true;
-    return ids;
-  }, [activeSection]);
-
-  const [expanded, setExpanded] = useState(defaultExpanded);
-
-  useEffect(() => {
-    if (activeSection) {
-      setExpanded((prev) => ({ ...prev, [activeSection.id]: true }));
-    }
-  }, [activeSection]);
-
-  function toggle(id: string) {
-    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
-  }
 
   return (
-    <aside className="bf-dash-sidebar flex w-full flex-col lg:sticky lg:top-[4.25rem] lg:max-h-[calc(100vh-4.25rem)] lg:w-[260px] lg:shrink-0">
-      <nav className="bf-dash-nav flex min-h-0 flex-1 flex-col gap-1 lg:overflow-y-auto lg:pr-2">
+    <aside className="bf-dash-sidebar flex w-full flex-col lg:w-[260px] lg:shrink-0">
+      <nav className="bf-dash-nav flex flex-col gap-1 lg:pr-2">
         {isAdminRoute ? (
           <div className="mb-3 space-y-1">
             <Link
@@ -147,8 +98,6 @@ export function DashboardSidebar({
             key={section.id}
             section={section}
             pathname={pathname}
-            expanded={!!expanded[section.id]}
-            onToggle={() => toggle(section.id)}
             isAdminRoute={isAdminRoute}
           />
         ))}
@@ -194,7 +143,7 @@ export function DashboardSidebar({
           </div>
         ) : null}
 
-        <div className="bf-dash-nav-divider mt-4 shrink-0 border-t pt-4">
+        <div className="bf-dash-nav-divider mt-4 border-t pt-4">
           <DiscordCommunityPromo variant="sidebar" />
         </div>
       </nav>

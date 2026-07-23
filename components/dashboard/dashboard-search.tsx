@@ -64,7 +64,7 @@ export function DashboardSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="bf-dash-search-trigger hidden items-center gap-3 rounded-xl border px-3.5 py-2 text-sm text-neutral-500 transition-colors hover:text-neutral-400 md:flex md:min-w-[220px] lg:min-w-[280px]"
+        className="bf-dash-search-trigger hidden min-h-[2.5rem] items-center gap-3 rounded-xl border px-3.5 py-2 text-sm text-neutral-500 transition-colors hover:text-neutral-400 md:flex md:min-w-[220px] lg:min-w-[280px]"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
           <circle cx="11" cy="11" r="7" />

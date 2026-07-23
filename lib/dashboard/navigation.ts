@@ -338,29 +338,7 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
     href: "/dashboard/settings",
     description: "Account and preferences",
     Icon: IconSettings,
-    items: [
-      {
-        href: "/dashboard/settings",
-        label: "Account",
-        description: "Username, email, visibility",
-        keywords: ["account", "email", "username"],
-        Icon: IconSettings,
-      },
-      {
-        href: "/dashboard/settings",
-        label: "Security",
-        description: "Password and MFA",
-        keywords: ["security", "password", "mfa", "2fa"],
-        Icon: IconSettings,
-      },
-      {
-        href: "/dashboard/settings",
-        label: "Notifications",
-        description: "Contact preferences",
-        keywords: ["notifications", "email", "contact"],
-        Icon: IconSettings,
-      },
-    ],
+    items: [],
   },
 ];
 

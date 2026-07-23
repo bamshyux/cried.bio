@@ -49,8 +49,8 @@ export default async function DashboardLayout({
 
   return (
     <div className="bf-dash-root min-h-screen text-neutral-100">
-      <header className="bf-dash-header sticky top-0 z-40 border-b backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-5 py-3 lg:px-10">
+      <header className="bf-dash-header border-b backdrop-blur-md">
+        <div className="bf-dash-header-inner mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-5 py-3 lg:px-10">
           <Link href="/dashboard" className="shrink-0">
             <CriedLogo size={28} />
           </Link>
