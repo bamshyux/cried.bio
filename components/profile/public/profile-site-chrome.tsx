@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { CriedLogo } from "@/components/brand/logo";
 import type { PageNavPosition } from "@/lib/types/settings";
 
@@ -22,6 +22,13 @@ export function ProfileSiteChrome({
   const hasTopNav = showNav && navPosition === "top";
   const hasBottomNav = showNav && navPosition === "bottom";
   const hasSideNav = showNav && (navPosition === "left" || navPosition === "right");
+
+  const mainRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [viewportLayout, setViewportLayout] = useState<{
+    fits: boolean;
+    height: number;
+  } | null>(null);
 
   const logo = (
     <a href="/" className="group inline-flex opacity-90 transition-opacity hover:opacity-100">
@@ -60,20 +67,81 @@ export function ProfileSiteChrome({
 
   const mainPadding = [
     hasSideNav ? "pt-20 sm:pt-24" : "",
-    hasBottomNav ? "pb-24 sm:pb-28" : centerContent ? "" : "pb-10 sm:pb-12",
+    hasBottomNav ? "pb-24 sm:pb-28" : "",
     navPosition === "left" ? "pl-[min(11rem,28vw)] sm:pl-44" : "",
     navPosition === "right" ? "pr-[min(11rem,28vw)] sm:pr-44" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
-  const mainLayoutClass = centerContent
-    ? "grid min-h-[100dvh] w-full grid-rows-[minmax(0,1fr)_auto_minmax(0,1fr)]"
-    : "flex min-h-[100dvh] w-full flex-col";
+  const flowSpacingClass = centerContent
+    ? ""
+    : `py-10 sm:py-12 ${hasTopNav ? "pt-24 sm:pt-28" : ""}`.trim();
 
-  const mainSpacingClass = centerContent
-    ? "px-5"
-    : `px-5 py-10 sm:py-12 ${hasTopNav ? "pt-24 sm:pt-28" : ""}`.trim();
+  const centered = centerContent && viewportLayout?.fits === true;
+
+  useLayoutEffect(() => {
+    if (!centerContent) return;
+
+    const measure = () => {
+      const main = mainRef.current;
+      const content = contentRef.current;
+      if (!main || !content) return;
+
+      const top = main.getBoundingClientRect().top;
+      const available = Math.max(0, window.innerHeight - top);
+      const bottomReserve = hasBottomNav ? 112 : 0;
+      const contentHeight = content.scrollHeight + bottomReserve;
+      const fits = contentHeight <= available + 1;
+
+      setViewportLayout((prev) => {
+        if (prev?.fits === fits && prev?.height === available) return prev;
+        return { fits, height: available };
+      });
+    };
+
+    measure();
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(content);
+    window.addEventListener("resize", measure);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [centerContent, children, hasBottomNav, mainPadding]);
+
+  useEffect(() => {
+    if (!centered) return;
+
+    const prevHtml = document.documentElement.style.overflow;
+    const prevBody = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.documentElement.style.overflow = prevHtml;
+      document.body.style.overflow = prevBody;
+    };
+  }, [centered]);
+
+  const mainLayoutClass = !centerContent
+    ? "flex min-h-[100dvh] w-full flex-col"
+    : centered
+      ? "flex w-full items-center justify-center overflow-hidden"
+      : "flex w-full flex-col";
+
+  const mainSpacingClass = !centerContent
+    ? `px-5 ${flowSpacingClass}`.trim()
+    : centered
+      ? "px-5"
+      : `px-5 py-10 sm:py-12 ${hasTopNav ? "pt-24 sm:pt-28" : ""}`.trim();
+
+  const mainStyle =
+    centered && viewportLayout
+      ? { height: viewportLayout.height, maxHeight: viewportLayout.height }
+      : undefined;
 
   return (
     <div className="relative flex flex-1 flex-col">
@@ -82,17 +150,13 @@ export function ProfileSiteChrome({
       {sideRail}
       {bottomBar}
       <main
+        ref={mainRef}
+        style={mainStyle}
         className={`relative ${mainLayoutClass} ${mainSpacingClass} ${mainPadding} ${mainClassName}`.trim()}
       >
-        {centerContent ? (
-          <>
-            <div aria-hidden className="min-h-0 w-full" />
-            <div className="w-full">{children}</div>
-            <div aria-hidden className="min-h-0 w-full" />
-          </>
-        ) : (
-          children
-        )}
+        <div ref={contentRef} className="w-full">
+          {children}
+        </div>
       </main>
     </div>
   );
