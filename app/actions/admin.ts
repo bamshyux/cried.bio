@@ -19,6 +19,10 @@ async function db() {
   return createAdminClient() ?? (await createClient());
 }
 
+function revalidateSitewideBanner() {
+  revalidatePath("/", "layout");
+}
+
 export async function adminUpdateUserAction(
   userId: string,
   updates: {
@@ -243,7 +247,31 @@ export async function createAnnouncementAction(
   });
 
   revalidatePath("/dashboard/admin/announcements");
+  revalidateSitewideBanner();
   return { success: "Announcement created." };
+}
+
+export async function toggleAnnouncementAction(id: string, isActive: boolean): Promise<AdminFormState> {
+  const gate = await guard();
+  if ("error" in gate) return { error: gate.error };
+
+  const supabase = await db();
+  const { error } = await supabase
+    .from("announcements")
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { error: error.message };
+
+  await logAdminAudit({
+    actorId: gate.access.userId,
+    actorEmail: gate.access.email,
+    action: isActive ? "announcement_activated" : "announcement_deactivated",
+    details: { id, is_active: isActive },
+  });
+
+  revalidatePath("/dashboard/admin/announcements");
+  revalidateSitewideBanner();
+  return { success: isActive ? "Announcement activated." : "Announcement deactivated." };
 }
 
 export async function deleteAnnouncementAction(id: string, _formData?: FormData): Promise<void> {
@@ -255,6 +283,7 @@ export async function deleteAnnouncementAction(id: string, _formData?: FormData)
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/admin/announcements");
+  revalidateSitewideBanner();
 }
 
 export async function sendAdminNotificationAction(
@@ -324,6 +353,7 @@ export async function updatePlatformSettingsAction(
   });
 
   revalidatePath("/dashboard/admin/owner");
+  revalidateSitewideBanner();
   return { success: "Platform settings saved." };
 }
 

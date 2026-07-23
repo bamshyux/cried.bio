@@ -1,7 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
-import { createAnnouncementAction, deleteAnnouncementAction } from "@/app/actions/admin";
+import { useActionState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import {
+  createAnnouncementAction,
+  deleteAnnouncementAction,
+  toggleAnnouncementAction,
+} from "@/app/actions/admin";
 import {
   AdminEmptyState,
   AdminPageHeader,
@@ -21,13 +26,21 @@ import { ANNOUNCEMENT_TYPE_OPTIONS, type AdminFormState, type Announcement } fro
 const initial: AdminFormState = {};
 
 export function AdminAnnouncementsPanel({ announcements }: { announcements: Announcement[] }) {
+  const router = useRouter();
   const [state, action, pending] = useActionState(createAnnouncementAction, initial);
+  const [togglePending, startToggle] = useTransition();
+
+  useEffect(() => {
+    if (state.success) {
+      router.refresh();
+    }
+  }, [state.success, router]);
 
   return (
     <>
       <AdminPageHeader
         title="Global Announcements"
-        description="Create sitewide banners for info, warnings, updates, and maintenance."
+        description="Create sitewide banners for info, warnings, updates, and maintenance. Active announcements appear at the top of every page."
       />
 
       <AdminSection title="Create announcement">
@@ -80,9 +93,24 @@ export function AdminAnnouncementsPanel({ announcements }: { announcements: Anno
                   <td className="px-4 py-3 text-neutral-400">{item.is_active ? "Yes" : "No"}</td>
                   <td className="px-4 py-3 text-xs text-neutral-500">{new Date(item.created_at).toLocaleString()}</td>
                   <td className="px-4 py-3">
-                    <form action={deleteAnnouncementAction.bind(null, item.id)}>
-                      <button type="submit" className={buttonSecondaryClassName}>Delete</button>
-                    </form>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        disabled={togglePending}
+                        onClick={() =>
+                          startToggle(async () => {
+                            await toggleAnnouncementAction(item.id, !item.is_active);
+                            router.refresh();
+                          })
+                        }
+                        className={buttonSecondaryClassName}
+                      >
+                        {item.is_active ? "Deactivate" : "Activate"}
+                      </button>
+                      <form action={deleteAnnouncementAction.bind(null, item.id)}>
+                        <button type="submit" className={buttonSecondaryClassName}>Delete</button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               ))}

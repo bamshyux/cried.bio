@@ -92,13 +92,18 @@ export async function listAnnouncements(): Promise<Announcement[]> {
 }
 
 export async function getActiveAnnouncement(): Promise<Announcement | null> {
-  const supabase = await createClient();
-  const { data } = await supabase
+  const supabase = await db();
+  const { data, error } = await supabase
     .from("announcements")
     .select("*")
     .eq("is_active", true)
     .order("created_at", { ascending: false })
     .limit(5);
+
+  if (error) {
+    console.error("[announcements] getActiveAnnouncement:", error.message);
+    return null;
+  }
 
   const now = Date.now();
   const active = (data as Announcement[] | null)?.find((item) => {

@@ -6,27 +6,36 @@ export async function GlobalSiteBanner() {
     getPlatformSettings(),
   ]);
 
-  const message = announcement?.title
-    ? announcement.body
-      ? `${announcement.title} — ${announcement.body}`
-      : announcement.title
-    : settings?.global_banner?.trim();
+  const title = announcement?.title?.trim();
+  const body = announcement?.body?.trim();
+  const fallbackBanner = settings?.global_banner?.trim();
 
-  if (!message) return null;
+  if (!title && !fallbackBanner) return null;
 
   const type = announcement?.announcement_type ?? settings?.global_banner_type ?? "info";
   const tone =
     type === "warning"
-      ? "border-amber-500/20 bg-amber-500/10 text-amber-100"
+      ? "border-amber-500/30 bg-amber-500/15 text-amber-50"
       : type === "maintenance"
-        ? "border-red-500/20 bg-red-500/10 text-red-100"
+        ? "border-red-500/30 bg-red-500/15 text-red-50"
         : type === "update"
-          ? "border-sky-500/20 bg-sky-500/10 text-sky-100"
-          : "border-white/10 bg-white/[0.05] text-neutral-200";
+          ? "border-sky-500/30 bg-sky-500/15 text-sky-50"
+          : "border-white/10 bg-white/[0.06] text-neutral-100";
 
   return (
-    <div className={`border-b px-4 py-2.5 text-center text-sm ${tone}`}>
-      {message}
+    <div
+      className={`relative z-[120] border-b px-4 py-3 text-center text-sm ${tone}`}
+      role="status"
+      aria-live="polite"
+    >
+      {title ? (
+        <p>
+          <span className="font-semibold">{title}</span>
+          {body ? <span className="text-white/80"> — {body}</span> : null}
+        </p>
+      ) : (
+        <p>{fallbackBanner}</p>
+      )}
     </div>
   );
 }
