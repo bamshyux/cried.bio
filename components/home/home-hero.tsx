@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { HomeHeroBackdrop } from "@/components/home/home-hero-backdrop";
 import { HomeHeroShowcase } from "@/components/home/home-hero-showcase";
 import { HomeProfileMarquee } from "@/components/home/home-profile-marquee";
-import { HomeScrollIndicator } from "@/components/home/home-scroll-indicator";
 import type { LandingShowcaseProfile } from "@/lib/types/landing";
 
 export function HomeHero({
@@ -31,8 +30,6 @@ export function HomeHero({
       <div className="relative z-10">
         <HomeProfileMarquee profiles={marqueeProfiles} />
       </div>
-
-      <HomeScrollIndicator />
     </section>
   );
 }
