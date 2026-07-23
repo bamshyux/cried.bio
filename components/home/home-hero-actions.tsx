@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export function HomeHeroActions({ children }: { children: ReactNode }) {
   return (
-    <div className="bf-home-enter bf-home-enter-4 mt-12 flex flex-col items-center justify-center gap-3 sm:mt-14 sm:flex-row">
+    <div className="bf-home-enter bf-home-enter-4 mt-10 flex flex-col items-center justify-center gap-3 sm:mt-11 sm:flex-row">
       {children}
     </div>
   );

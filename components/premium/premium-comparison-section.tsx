@@ -79,7 +79,7 @@ function ComparisonRow({
           <AvailabilityCell value={feature.free} />
         </span>
 
-        <span className="bf-premium-compare-premium-cell hidden sm:block">
+        <span className="bf-premium-compare-premium-cell relative z-[1] -my-6 hidden py-6 sm:block">
           <AvailabilityCell value={feature.premium} variant="premium" />
         </span>
 
@@ -143,7 +143,7 @@ function ComparisonRow({
 }
 
 export function PremiumComparisonSection() {
-  const [openId, setOpenId] = useState<string | null>(PREMIUM_COMPARISON_FEATURES[0]?.id ?? null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   return (
     <section className="pt-2">
@@ -162,25 +162,16 @@ export function PremiumComparisonSection() {
       <div
         className={`${cardClassName} overflow-hidden border border-white/[0.07] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.04)]`}
       >
-        <div className="relative hidden border-b border-white/[0.06] bg-white/[0.015] sm:grid sm:grid-cols-[minmax(0,1fr)_7.5rem_10rem_2.75rem] sm:gap-4 sm:px-6 sm:py-4">
-          <div
-            aria-hidden
-            className="bf-premium-compare-column-highlight pointer-events-none absolute bottom-0 right-[calc(2.75rem+1.5rem)] top-0 w-[10rem]"
-          />
+        <div className="hidden border-b border-white/[0.06] bg-white/[0.015] sm:grid sm:grid-cols-[minmax(0,1fr)_7.5rem_10rem_2.75rem] sm:gap-4 sm:px-6 sm:py-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Feature</p>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Free</p>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c9b896]/85">
+          <p className="bf-premium-compare-premium-cell relative z-[1] -my-4 py-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c9b896]/85">
             Premium Lite
           </p>
           <span className="sr-only">Expand</span>
         </div>
 
         <div className="relative">
-          <div
-            aria-hidden
-            className="bf-premium-compare-column-highlight pointer-events-none absolute bottom-0 right-[calc(2.75rem+1.5rem)] top-0 hidden w-[10rem] sm:block"
-          />
-
           {PREMIUM_COMPARISON_FEATURES.map((feature) => (
             <ComparisonRow
               key={feature.id}

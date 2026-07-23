@@ -12,6 +12,8 @@ import {
   HomeSecondaryCta,
 } from "@/components/home/home-hero-actions";
 import { HomeHero } from "@/components/home/home-hero";
+import { HomeHeroHeadline } from "@/components/home/home-hero-headline";
+import { HomeHeroTrustRow } from "@/components/home/home-hero-trust-row";
 import { HomeNavLinks } from "@/components/home/home-nav-links";
 import { HomeNav } from "@/components/home/home-nav";
 import { HomeOurUsers, HomeStatsSection } from "@/components/home/home-our-users";
@@ -22,6 +24,7 @@ import { HumanVerificationGate } from "@/components/security/human-verification-
 import {
   getFeaturedProfiles,
   getFeaturedShowcaseProfiles,
+  getLandingMarqueeProfiles,
   getLandingRoadmap,
   getLandingStats,
   getLandingTestimonials,
@@ -69,6 +72,7 @@ export default async function Home() {
     showcaseProfilesRaw,
     testimonials,
     roadmap,
+    marqueeProfiles,
   ] = await Promise.all([
     getLandingStats(),
     getRandomPublicProfiles(12),
@@ -76,6 +80,7 @@ export default async function Home() {
     getFeaturedShowcaseProfiles(),
     getLandingTestimonials(),
     getLandingRoadmap(),
+    getLandingMarqueeProfiles(12),
   ]);
 
   const showcaseProfiles = mergeShowcaseProfiles(showcaseProfilesRaw, featuredProfiles);
@@ -96,16 +101,12 @@ export default async function Home() {
       </header>
 
       <main className="relative z-10">
-        <HomeHero profiles={showcaseProfiles}>
+        <HomeHero profiles={showcaseProfiles} marqueeProfiles={marqueeProfiles}>
           <p className="bf-home-enter bf-home-enter-1 text-[11px] font-medium uppercase tracking-[0.28em] text-neutral-600">
             cried.bio
           </p>
 
-          <h1 className="bf-home-enter bf-home-enter-2 mt-8 text-[clamp(2.75rem,7.5vw,5.25rem)] font-semibold leading-[1.04] tracking-[-0.045em] text-white">
-            Your bio link,
-            <br />
-            <span className="text-neutral-400">elevated.</span>
-          </h1>
+          <HomeHeroHeadline />
 
           <p className="bf-home-enter bf-home-enter-3 mx-auto mt-8 max-w-md text-base leading-[1.7] text-neutral-500 sm:text-[1.0625rem]">
             Themes, music, effects, and multi-page layouts — crafted for creators who care about the details.
@@ -126,6 +127,8 @@ export default async function Home() {
               </>
             )}
           </HomeHeroActions>
+
+          <HomeHeroTrustRow />
         </HomeHero>
 
         <HomeStatsSection stats={stats} />

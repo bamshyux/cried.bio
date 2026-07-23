@@ -249,6 +249,22 @@ export async function getFeaturedShowcaseProfiles(): Promise<LandingShowcaseProf
   return enrichShowcaseProfiles(featured);
 }
 
+export async function getLandingMarqueeProfiles(limit = 10): Promise<LandingShowcaseProfile[]> {
+  const [featured, random] = await Promise.all([
+    getFeaturedProfiles(),
+    getRandomPublicProfiles(Math.max(limit, 8)),
+  ]);
+
+  const merged: LandingFeaturedProfile[] = [...featured];
+  for (const profile of random) {
+    if (!merged.some((item) => item.id === profile.id)) {
+      merged.push({ ...profile, sort_order: merged.length });
+    }
+  }
+
+  return enrichShowcaseProfiles(merged.slice(0, limit));
+}
+
 export async function getLandingTestimonials(): Promise<LandingTestimonial[]> {
   const supabase = await db();
   const { data, error } = await supabase
