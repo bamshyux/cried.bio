@@ -65,7 +65,7 @@ function NavTab({
       href={href}
       className={`relative shrink-0 transition-colors ${
         vertical ? "rounded-lg px-3 py-2.5 text-left text-[13px]" : "px-4 py-2 text-[13px]"
-      } font-medium tracking-wide ${
+      } ${position === "bottom" ? "pt-1" : ""} font-medium tracking-wide ${
         active ? "text-white" : "text-neutral-500 hover:text-neutral-300"
       } ${vertical && active ? "bg-white/[0.06]" : ""}`}
     >
@@ -98,7 +98,10 @@ function ActiveIndicator({
 
   if (position === "bottom") {
     return (
-      <span className="absolute inset-x-3 -top-px h-px bg-white/80" aria-hidden />
+      <span
+        className="absolute left-1/2 top-0 h-px w-8 -translate-x-1/2 -translate-y-full bg-white/80"
+        aria-hidden
+      />
     );
   }
 

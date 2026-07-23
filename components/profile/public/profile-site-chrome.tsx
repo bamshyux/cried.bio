@@ -30,14 +30,16 @@ export function ProfileSiteChrome({
     <header className="pointer-events-auto absolute inset-x-0 top-0 z-50 flex w-full flex-col items-stretch px-5 py-4 sm:px-8 sm:py-5">
       <div className="flex w-full items-center">{logo}</div>
       {hasTopNav ? (
-        <div className="mt-4 flex justify-center border-b border-white/[0.06]">{siteNav}</div>
+        <div className="mt-4 flex justify-center">
+          <div className="border-b border-white/[0.06]">{siteNav}</div>
+        </div>
       ) : null}
     </header>
   ) : null;
 
   const bottomBar = hasBottomNav ? (
-    <footer className="pointer-events-auto fixed inset-x-0 bottom-0 z-50 border-t border-white/[0.06] bg-black/40 px-4 py-3 backdrop-blur-md sm:px-6">
-      <div className="mx-auto flex max-w-3xl justify-center">{siteNav}</div>
+    <footer className="pointer-events-auto fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 py-3 sm:px-6">
+      {siteNav}
     </footer>
   ) : null;
 
