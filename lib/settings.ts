@@ -743,6 +743,17 @@ export function getCardLayoutStyle(settings: ProfileSettings): Record<string, st
   };
 }
 
+/** Public profile layout — horizontal offset only so vertical centering is consistent. */
+export function getPublicCardLayoutStyle(
+  settings: Pick<ProfileSettings, "card_width" | "card_offset_x">,
+): Record<string, string | number> {
+  return {
+    width: `${settings.card_width}%`,
+    maxWidth: "100%",
+    transform: `translate(${settings.card_offset_x}px, 0px)`,
+  };
+}
+
 export function clampCardLayout(values: {
   card_offset_x: number;
   card_offset_y: number;

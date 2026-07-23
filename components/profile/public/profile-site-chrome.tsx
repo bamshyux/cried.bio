@@ -1,30 +1,8 @@
 "use client";
 
-import { useLayoutEffect, useRef, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { CriedLogo } from "@/components/brand/logo";
 import type { PageNavPosition } from "@/lib/types/settings";
-
-function getViewportHeight() {
-  return window.visualViewport?.height ?? window.innerHeight;
-}
-
-function centerProfileInViewport(shell: HTMLElement, content: HTMLElement) {
-  content.style.transform = "";
-  content.style.willChange = "";
-
-  const viewport = getViewportHeight();
-  const contentHeight = Math.ceil(content.offsetHeight);
-
-  if (contentHeight <= viewport) {
-    const offsetY = (viewport - contentHeight) / 2;
-    content.style.transform = `translateY(${offsetY}px)`;
-    content.style.willChange = "transform";
-    shell.scrollTop = 0;
-    return;
-  }
-
-  shell.scrollTop = Math.max(0, (contentHeight - viewport) / 2);
-}
 
 export function ProfileSiteChrome({
   navPosition,
@@ -43,9 +21,6 @@ export function ProfileSiteChrome({
   const hasTopNav = showNav && navPosition === "top";
   const hasBottomNav = showNav && navPosition === "bottom";
   const hasSideNav = showNav && (navPosition === "left" || navPosition === "right");
-
-  const shellRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
 
   const logo = (
     <a href="/" className="group inline-flex opacity-90 transition-opacity hover:opacity-100">
@@ -103,64 +78,22 @@ export function ProfileSiteChrome({
     ? "bf-profile-viewport-main--center"
     : "bf-profile-viewport-main--flow";
 
-  useLayoutEffect(() => {
-    if (!centerContent) return;
-
-    const shell = shellRef.current;
-    const content = contentRef.current;
-    if (!shell || !content) return;
-
-    const prevHtmlOverflow = document.documentElement.style.overflow;
-    const prevBodyOverflow = document.body.style.overflow;
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-
-    const apply = () => {
-      centerProfileInViewport(shell, content);
-    };
-
-    apply();
-    requestAnimationFrame(() => {
-      apply();
-      requestAnimationFrame(apply);
-    });
-
-    const ro = new ResizeObserver(apply);
-    ro.observe(content);
-
-    const onViewportChange = () => apply();
-    window.addEventListener("resize", onViewportChange);
-    window.visualViewport?.addEventListener("resize", onViewportChange);
-    window.addEventListener("load", onViewportChange);
-
-    const delayed = window.setTimeout(apply, 250);
-    const delayedAgain = window.setTimeout(apply, 900);
-
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", onViewportChange);
-      window.visualViewport?.removeEventListener("resize", onViewportChange);
-      window.removeEventListener("load", onViewportChange);
-      window.clearTimeout(delayed);
-      window.clearTimeout(delayedAgain);
-      document.documentElement.style.overflow = prevHtmlOverflow;
-      document.body.style.overflow = prevBodyOverflow;
-      content.style.transform = "";
-      content.style.willChange = "";
-    };
-  }, [centerContent, children, edgePadding]);
-
   return (
     <>
       {fixedLogo}
       {sideRail}
       {bottomBar}
-      <div ref={shellRef} className="bf-profile-viewport-shell">
+      <div className="bf-profile-viewport-shell">
         {topBar}
-        <main className={`bf-profile-viewport-main ${mainClass} ${edgePadding} ${mainClassName}`.trim()}>
-          <div ref={contentRef} className="bf-profile-viewport-content w-full">
-            {children}
-          </div>
+        <main
+          className={`bf-profile-viewport-main ${mainClass} ${edgePadding} ${mainClassName}`.trim()}
+          style={
+            centerContent
+              ? { paddingTop: "50dvh", paddingBottom: "15dvh", boxSizing: "border-box" }
+              : undefined
+          }
+        >
+          <div className="bf-profile-viewport-content w-full">{children}</div>
         </main>
       </div>
     </>

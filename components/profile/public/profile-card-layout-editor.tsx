@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { updateCardLayoutAction } from "@/app/actions/settings";
-import { CARD_LAYOUT_MIN_HEIGHT, clampCardLayout, getCardLayoutStyle } from "@/lib/settings";
+import { CARD_LAYOUT_MIN_HEIGHT, clampCardLayout, getCardLayoutStyle, getPublicCardLayoutStyle } from "@/lib/settings";
 import type { ProfileEmbed } from "@/lib/types/embed";
 import type { ProfileSettings } from "@/lib/types/settings";
 import { ProfileEditWidgetsPanel } from "./profile-edit-widgets-panel";
@@ -285,20 +285,26 @@ export function ProfileCardLayoutEditor({
   const clipOverflow = layout.maxHeight > 0 && !parallaxEnabled;
 
   const wrapperStyle = {
-    ...getCardLayoutStyle({
-      ...settings,
-      card_offset_x: layout.offsetX,
-      card_offset_y: layout.offsetY,
-      card_width: layout.width,
-      card_max_height: layout.maxHeight,
-    }),
+    ...(editMode
+      ? getCardLayoutStyle({
+          ...settings,
+          card_offset_x: layout.offsetX,
+          card_offset_y: layout.offsetY,
+          card_width: layout.width,
+          card_max_height: layout.maxHeight,
+        })
+      : getPublicCardLayoutStyle({
+          ...settings,
+          card_offset_x: layout.offsetX,
+          card_width: layout.width,
+        })),
     ...(clipOverflow ? { height: layout.maxHeight, overflow: "hidden" as const } : { overflow: "visible" as const }),
   };
 
   if (!isOwner) {
     const viewClipOverflow = settings.card_max_height > 0 && !parallaxEnabled;
     const viewStyle = {
-      ...getCardLayoutStyle(settings),
+      ...getPublicCardLayoutStyle(settings),
       ...(viewClipOverflow
         ? { height: settings.card_max_height, overflow: "hidden" as const }
         : { overflow: "visible" as const }),

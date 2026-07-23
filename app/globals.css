@@ -129,6 +129,12 @@ body,
   width: 100%;
 }
 
+/* Profile top edge starts at vertical center — scroll down for the rest. */
+.bf-profile-viewport-main--center {
+  padding-top: 50dvh;
+  padding-bottom: max(2.5rem, 15dvh);
+}
+
 .bf-profile-viewport-main--flow {
   display: flex;
   min-height: 100dvh;
