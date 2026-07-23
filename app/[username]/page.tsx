@@ -14,6 +14,7 @@ import { getBadgesByProfileId } from "@/lib/data/badges";
 import { getEmbedsByProfileId } from "@/lib/data/embeds";
 import { getFeaturedBlocksByProfileId } from "@/lib/data/featured";
 import { getGuestbookEntries } from "@/lib/data/guestbook";
+import { getLinksByProfileId } from "@/lib/data/links";
 import { getMusicTracks } from "@/lib/data/music-tracks";
 import { getProfileByUsername } from "@/lib/data/profiles";
 import { getSettingsByProfileId } from "@/lib/data/settings";
