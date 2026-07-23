@@ -10,6 +10,7 @@ import {
   ShareIconFacebook,
   ShareIconInstagram,
   ShareIconReddit,
+  ShareIconSnapchat,
   ShareIconTelegram,
   ShareIconWhatsapp,
   ShareIconX,
@@ -331,6 +332,13 @@ export function ShareProfileModal({
                     void copyText(profileUrl, "Copied! Paste in your Instagram bio or story.")
                   }
                 />
+                <ShareChip
+                  label="Snapchat"
+                  icon={<ShareIconSnapchat />}
+                  onClick={() =>
+                    void copyText(profileUrl, "Copied! Paste in Snapchat to share.")
+                  }
+                />
               </div>
             </div>
 
@@ -421,10 +429,10 @@ function ShareChip({
     <button
       type="button"
       onClick={onClick}
-      className={`bf-share-chip inline-flex items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-[#0a0a0a] px-3 py-2.5 text-xs font-medium text-neutral-300 transition hover:border-white/[0.14] hover:bg-white/[0.05] hover:text-white ${className}`}
+      className={`bf-share-chip inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-[#0a0a0a] px-2 py-2 text-[10px] font-medium leading-none text-neutral-300 transition hover:border-white/[0.14] hover:bg-white/[0.05] hover:text-white sm:gap-2 sm:px-2.5 sm:text-[11px] ${className}`}
     >
       <span className="shrink-0">{icon}</span>
-      <span className="truncate">{label}</span>
+      <span className="whitespace-nowrap">{label}</span>
     </button>
   );
 }
