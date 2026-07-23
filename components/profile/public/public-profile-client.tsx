@@ -952,7 +952,7 @@ export function PublicProfileClient({
 
       {entered ? (
         <div
-          className={`relative z-10 flex flex-col ${presetPreviewMode ? "min-h-full" : "min-h-screen"} ${settings.cursor_image_url ? "bf-custom-cursor-active" : ""}`}
+          className={`relative z-10 flex flex-col ${presetPreviewMode ? "min-h-full" : "min-h-[100dvh]"} ${settings.cursor_image_url ? "bf-custom-cursor-active" : ""}`}
           style={{ color: settings.text_color, fontFamily: fontCss, "--bf-accent": settings.accent_color } as React.CSSProperties}
         >
           {showPresetPreviewBanner && presetPreviewTitle ? (

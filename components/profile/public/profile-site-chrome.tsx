@@ -60,27 +60,39 @@ export function ProfileSiteChrome({
 
   const mainPadding = [
     hasSideNav ? "pt-20 sm:pt-24" : "",
-    hasBottomNav ? "pb-24 sm:pb-28" : "",
+    hasBottomNav ? "pb-24 sm:pb-28" : "pb-10 sm:pb-12",
     navPosition === "left" ? "pl-[min(11rem,28vw)] sm:pl-44" : "",
     navPosition === "right" ? "pr-[min(11rem,28vw)] sm:pr-44" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
-  const mainCenterClass = centerContent
-    ? `min-h-screen ${hasTopNav ? "pt-24 sm:pt-28" : "py-10 sm:py-12"}`
-    : `min-h-screen ${hasTopNav ? "pt-24 sm:pt-28" : ""} py-10 sm:py-12`;
+  const mainLayoutClass = centerContent
+    ? "grid min-h-[100dvh] w-full grid-rows-[minmax(12dvh,1fr)_auto_minmax(12dvh,1fr)]"
+    : "flex min-h-[100dvh] w-full flex-col";
+
+  const mainSpacingClass = centerContent
+    ? "px-5"
+    : `px-5 py-10 sm:py-12 ${hasTopNav ? "pt-24 sm:pt-28" : ""}`.trim();
 
   return (
-    <div className="relative flex min-h-screen flex-1 flex-col">
+    <div className="relative flex flex-1 flex-col">
       {fixedLogo}
       {topBar}
       {sideRail}
       {bottomBar}
       <main
-        className={`relative flex w-full flex-col items-center px-5 pb-10 sm:pb-12 ${mainCenterClass} ${mainPadding} ${mainClassName}`.trim()}
+        className={`relative ${mainLayoutClass} ${mainSpacingClass} ${mainPadding} ${mainClassName}`.trim()}
       >
-        {centerContent ? <div className="my-auto w-full">{children}</div> : children}
+        {centerContent ? (
+          <>
+            <div aria-hidden className="min-h-0 w-full" />
+            <div className="w-full">{children}</div>
+            <div aria-hidden className="min-h-0 w-full" />
+          </>
+        ) : (
+          children
+        )}
       </main>
     </div>
   );
