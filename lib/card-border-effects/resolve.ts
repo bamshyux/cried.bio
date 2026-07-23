@@ -54,6 +54,39 @@ export function isCardBorderTargetEnabled(
   return config.targets.includes(target);
 }
 
+export function readContentPageBorderTargets(settings: ProfileSettings): {
+  contentCard: boolean;
+  links: boolean;
+} {
+  if (settings.card_border_effect === "none") {
+    return { contentCard: false, links: false };
+  }
+  if (settings.card_border_apply_all) {
+    return { contentCard: true, links: true };
+  }
+  const targets = parseCardBorderTargets(settings.card_border_targets);
+  return {
+    contentCard: targets.includes("main"),
+    links: targets.includes("links"),
+  };
+}
+
+export function writeContentPageBorderTargets(contentCard: boolean, links: boolean): {
+  card_border_apply_all: boolean;
+  card_border_targets: CardBorderTarget[];
+} {
+  if (contentCard && links) {
+    return { card_border_apply_all: true, card_border_targets: ["main", "links"] };
+  }
+  return {
+    card_border_apply_all: false,
+    card_border_targets: [
+      ...(contentCard ? (["main"] as CardBorderTarget[]) : []),
+      ...(links ? (["links"] as CardBorderTarget[]) : []),
+    ],
+  };
+}
+
 export function cardBorderEffectStripsDefaultBorder(
   settings: ProfileSettings,
   target: CardBorderTarget = "main",

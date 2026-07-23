@@ -13,6 +13,7 @@ import {
   SliderField,
   ToggleField,
 } from "@/components/dashboard/form-fields";
+import { useClearUnsavedOnSuccess, useUnsavedChangesOptional } from "@/components/dashboard/unsaved-changes";
 import { ProfileBio } from "@/components/profile/public/profile-bio";
 import { BIO_FONT_WEIGHT_OPTIONS, BIO_LETTER_SPACING_OPTIONS, FONT_OPTIONS, getProfileAlignClass } from "@/lib/settings";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
@@ -114,9 +115,12 @@ export function ContentPageTextEditor({
   pageId: string;
 }) {
   const router = useRouter();
+  const unsaved = useUnsavedChangesOptional();
   const [form, setForm] = useState(() => readTextForm(page, settings));
   const [feedback, setFeedback] = useState<{ error?: string; success?: string }>();
   const [isPending, startTransition] = useTransition();
+
+  useClearUnsavedOnSuccess(feedback ?? {}, isPending);
 
   useEffect(() => {
     setForm(readTextForm(page, settings));
@@ -124,6 +128,7 @@ export function ContentPageTextEditor({
 
   const patchForm = (partial: Partial<TextFormState>) => {
     setForm((current) => ({ ...current, ...partial }));
+    unsaved?.markDirty();
   };
 
   const preview = useMemo(() => previewSettings(settings, form), [settings, form]);
@@ -133,6 +138,7 @@ export function ContentPageTextEditor({
 
   const handleSave = (event: React.FormEvent) => {
     event.preventDefault();
+    unsaved?.markSaving();
     startTransition(async () => {
       const result = await updateContentPageTextAction(pageId, {
         ...form,
@@ -140,7 +146,11 @@ export function ContentPageTextEditor({
         bio_font_family: form.bio_use_page_font ? "" : form.bio_font_family,
       });
       setFeedback(result);
-      if (!result.error) router.refresh();
+      if (result.error) {
+        unsaved?.clearSaving();
+      } else {
+        router.refresh();
+      }
     });
   };
 

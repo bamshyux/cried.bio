@@ -80,7 +80,7 @@ export default async function DashboardOverviewPage() {
               <Link
                 key={action.href}
                 href={action.href}
-                className="inline-flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white transition-all hover:border-white/[0.14] hover:bg-[#141414]"
+                className="bf-dash-quick-action inline-flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-[#0a0a0a] px-4 py-3 text-sm font-medium text-white hover:border-white/[0.14] hover:bg-[#141414]"
               >
                 <action.Icon size={16} className="text-neutral-400" />
                 {action.label}
@@ -96,16 +96,16 @@ export default async function DashboardOverviewPage() {
         {statCards.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-2xl border border-white/[0.06] bg-[#111] p-6"
+            className="bf-dash-stat-card rounded-2xl border border-white/[0.06] bg-[#111] p-6"
           >
             <p className="text-sm text-neutral-500">{stat.label}</p>
-            <p className="mt-2 text-3xl font-semibold tabular-nums text-white">{stat.value}</p>
+            <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-white">{stat.value}</p>
           </div>
         ))}
       </div>
 
       <div>
-        <h2 className="mb-6 text-lg font-semibold text-white">Explore your dashboard</h2>
+        <h2 className="mb-6 text-lg font-semibold tracking-tight text-white">Explore your dashboard</h2>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {hubSections.map((section) => (
             <Link

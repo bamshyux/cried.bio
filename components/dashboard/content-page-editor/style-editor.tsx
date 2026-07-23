@@ -16,12 +16,14 @@ import {
 import { ContentPageStylePreview, type ContentPageStyleFormState } from "@/components/dashboard/content-page-editor/style-preview";
 import { useUpgradeModal } from "@/components/premium/upgrade-modal";
 import { CARD_BORDER_EFFECT_OPTIONS } from "@/lib/card-border-effects/presets";
+import { readContentPageBorderTargets } from "@/lib/card-border-effects/resolve";
 import { PREMIUM_FONT_OPTIONS, isPremiumFont } from "@/lib/premium/fonts";
 import { FONT_OPTIONS, CONTENT_ALIGNMENT_OPTIONS } from "@/lib/settings";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
 import type { ProfileSettings } from "@/lib/types/settings";
 
 function readContentPageStyleForm(settings: ProfileSettings): ContentPageStyleFormState {
+  const borderTargets = readContentPageBorderTargets(settings);
   return {
     accent_color: settings.accent_color,
     text_color: settings.text_color,
@@ -34,6 +36,8 @@ function readContentPageStyleForm(settings: ProfileSettings): ContentPageStyleFo
     neon_glow: settings.neon_glow,
     hide_card_border: settings.hide_card_border,
     card_border_effect: settings.card_border_effect,
+    border_content_card: borderTargets.contentCard,
+    border_links: borderTargets.links,
   };
 }
 
@@ -198,19 +202,68 @@ export function ContentPageStyleEditor({
               <ControlledSelect
                 label="Border animation"
                 value={form.card_border_effect}
-                onChange={(card_border_effect) =>
-                  patchForm({
-                    card_border_effect: card_border_effect as ContentPageStyleFormState["card_border_effect"],
-                  })
-                }
+                onChange={(card_border_effect) => {
+                  const next = card_border_effect as ContentPageStyleFormState["card_border_effect"];
+                  if (next === "none") {
+                    patchForm({
+                      card_border_effect: next,
+                      border_content_card: false,
+                      border_links: false,
+                    });
+                    return;
+                  }
+                  if (form.card_border_effect === "none") {
+                    patchForm({
+                      card_border_effect: next,
+                      border_content_card: true,
+                      border_links: false,
+                    });
+                    return;
+                  }
+                  patchForm({ card_border_effect: next });
+                }}
                 options={CARD_BORDER_EFFECT_OPTIONS.map((option) => ({
                   value: option.value,
                   label: option.label,
                 }))}
               />
-              <p className="mt-2 text-xs text-neutral-600">
-                Animated outline around this page&apos;s content card.
-              </p>
+              {form.card_border_effect !== "none" ? (
+                <div className="mt-4">
+                  <p className="mb-2 text-sm font-medium text-white">Apply animation to</p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <ToggleField
+                      name="border_content_card"
+                      label="Content card"
+                      description="Outline around the page title, text, and content area"
+                      checked={form.border_content_card}
+                      onCheckedChange={(border_content_card) => {
+                        const nextLinks = form.border_links;
+                        if (!border_content_card && !nextLinks) return;
+                        patchForm({ border_content_card });
+                      }}
+                    />
+                    <ToggleField
+                      name="border_links"
+                      label="Link buttons"
+                      description="Outline around each individual link button"
+                      checked={form.border_links}
+                      onCheckedChange={(border_links) => {
+                        const nextCard = form.border_content_card;
+                        if (!border_links && !nextCard) return;
+                        patchForm({ border_links });
+                      }}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-neutral-600">
+                    Turn off one to keep the animation only on the content card or only on links — not both.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <input type="hidden" name="border_content_card" value="false" />
+                  <input type="hidden" name="border_links" value="false" />
+                </>
+              )}
             </div>
 
             <SaveConfirmation success={state.success} error={state.error} />

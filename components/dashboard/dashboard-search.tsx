@@ -64,7 +64,7 @@ export function DashboardSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="hidden items-center gap-3 rounded-xl border border-white/[0.06] bg-[#111] px-3.5 py-2 text-sm text-neutral-500 transition-colors hover:border-white/10 hover:text-neutral-400 md:flex md:min-w-[220px] lg:min-w-[280px]"
+        className="bf-dash-search-trigger hidden items-center gap-3 rounded-xl border px-3.5 py-2 text-sm text-neutral-500 transition-colors hover:text-neutral-400 md:flex md:min-w-[220px] lg:min-w-[280px]"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
           <circle cx="11" cy="11" r="7" />
@@ -79,7 +79,7 @@ export function DashboardSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex rounded-xl border border-white/[0.06] bg-[#111] p-2.5 text-neutral-500 md:hidden"
+        className="bf-dash-search-trigger inline-flex rounded-xl border p-2.5 text-neutral-500 md:hidden"
         aria-label="Search dashboard"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
@@ -96,8 +96,8 @@ export function DashboardSearch() {
             aria-label="Close search"
             onClick={() => setOpen(false)}
           />
-          <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111] shadow-2xl">
-            <div className="flex items-center gap-3 border-b border-white/[0.06] px-4">
+          <div className="bf-dash-search-panel relative w-full max-w-lg overflow-hidden rounded-2xl border shadow-2xl">
+            <div className="bf-dash-search-input-wrap flex items-center gap-3 border-b border-white/[0.06] px-4">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="shrink-0 text-neutral-500">
                 <circle cx="11" cy="11" r="7" />
                 <path d="M20 20l-3-3" strokeLinecap="round" />

@@ -56,6 +56,10 @@ export function sanitizeSettingsForEntitlements(
     }
   }
 
+  if (!entitlements.can_use_multiple_profiles && settings.page_nav_position !== "top") {
+    next = { ...next, page_nav_position: "top" };
+  }
+
   return next;
 }
 

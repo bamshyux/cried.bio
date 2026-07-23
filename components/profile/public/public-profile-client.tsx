@@ -12,7 +12,6 @@ import type { Profile } from "@/lib/types/profile";
 import type { MusicTrack } from "@/lib/data/music-tracks";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
 import type { ProfileSettings } from "@/lib/types/settings";
-import { CriedLogo } from "@/components/brand/logo";
 import { CardBorderEffect } from "@/components/profile/card-border-effect";
 import { AnalyticsTracker } from "./analytics-tracker";
 import { BadgeRow } from "@/components/badges/badge-ui";
@@ -46,6 +45,7 @@ import {
 import { CustomThemeLayout } from "./custom-theme-layout";
 import { DiscordPresenceProvider } from "./discord-presence-context";
 import { ProfilePageNav } from "./profile-page-nav";
+import { ProfileSiteChrome } from "./profile-site-chrome";
 import { ProfileThemeScope } from "./profile-theme-scope";
 import { EXTENDED_LAYOUTS } from "./profile-layouts-extra";
 
@@ -902,6 +902,7 @@ export function PublicProfileClient({
         username={profile.username}
         homeLabel={profile.display_name?.trim() || profile.username}
         pages={navPages}
+        position={settings.page_nav_position}
       />
     ) : null;
   const layoutProps: LayoutProps = {
@@ -957,20 +958,7 @@ export function PublicProfileClient({
           {showPresetPreviewBanner && presetPreviewTitle ? (
             <PresetPreviewBanner title={presetPreviewTitle} />
           ) : null}
-          <header className="pointer-events-auto absolute inset-x-0 top-0 z-50 flex w-full flex-col items-stretch px-5 py-4 sm:px-8 sm:py-5">
-            <div className="flex w-full items-center">
-              <a href="/" className="group opacity-90 transition-opacity hover:opacity-100">
-                <CriedLogo size={24} variant="muted" />
-              </a>
-            </div>
-            {siteNav ? (
-              <div className="mt-4 flex justify-center border-b border-white/[0.06]">
-                {siteNav}
-              </div>
-            ) : null}
-          </header>
-
-          <main className={`relative flex flex-1 items-center justify-center px-5 py-20 ${siteNav ? "pt-28 sm:pt-32" : ""}`}>
+          <ProfileSiteChrome navPosition={settings.page_nav_position} siteNav={siteNav}>
             <div
               ref={profileRevealRef}
               className={`mx-auto w-full max-w-2xl overflow-visible${
@@ -1000,7 +988,7 @@ export function PublicProfileClient({
                 </div>
               </ProfileCardLayoutEditor>
             </div>
-          </main>
+          </ProfileSiteChrome>
         </div>
       ) : null}
 

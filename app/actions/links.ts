@@ -248,6 +248,17 @@ export async function updateLinkAction(
 
   const resolvedPageId = pageId ?? parsePageId(formData);
   const supabase = await createClient();
+
+  const isFeatured = formData.get("is_featured") != null && String(formData.get("is_featured")) === "true";
+
+  if (!resolvedPageId && isFeatured) {
+    await supabase
+      .from("links")
+      .update({ is_featured: false })
+      .eq("profile_id", userId)
+      .is("page_id", null);
+  }
+
   let updateQuery = supabase
     .from("links")
     .update({
@@ -257,6 +268,7 @@ export async function updateLinkAction(
       color,
       background_color: backgroundColor,
       animation,
+      ...(!resolvedPageId ? { is_featured: isFeatured } : {}),
     })
     .eq("id", linkId)
     .eq("profile_id", userId);

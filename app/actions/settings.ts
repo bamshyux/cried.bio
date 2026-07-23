@@ -3,6 +3,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { clampCardLayout, mergeSettings, parseCursorEffect, parseTabTitleAnimation, parseUsernameEffect } from "@/lib/settings";
 import { clampLinksIconSize } from "@/lib/links";
+import {
+  clampLinksBorderRadius,
+  clampLinksButtonOpacity,
+  parseLinksButtonStyle,
+  parseLinksSpacing,
+} from "@/lib/settings";
 import { clampCursorImageSize } from "@/lib/profile/custom-cursor";
 import { isValidProfileFaviconStorageUrl } from "@/lib/profile/favicon";
 import { backgroundUploadSizeError, MAX_BACKGROUND_UPLOAD_BYTES } from "@/lib/uploads/limits";
@@ -12,7 +18,7 @@ import { markProfileAppearanceChanged } from "@/lib/data/profile-presets";
 import { rejectIfModerated } from "@/lib/moderation/validate";
 import type { SettingsFormState, SettingsSection } from "@/lib/types/settings";
 import type { CardBorderEffectPreset } from "@/lib/types/settings";
-import { parseCardBorderTargets } from "@/lib/card-border-effects/resolve";
+import { parseCardBorderTargets, writeContentPageBorderTargets } from "@/lib/card-border-effects/resolve";
 import { CARD_BORDER_EFFECT_OPTIONS } from "@/lib/card-border-effects/presets";
 import type {
   BackgroundType,
@@ -240,6 +246,12 @@ function parseSectionUpdates(
           String(formData.get("card_border_effect") ?? existing.card_border_effect),
           existing.card_border_effect,
         ),
+        ...(formData.has("border_content_card") || formData.has("border_links")
+          ? writeContentPageBorderTargets(
+              parseBool(formData.get("border_content_card")),
+              parseBool(formData.get("border_links")),
+            )
+          : {}),
       };
     case "card_border":
       return {
@@ -284,6 +296,17 @@ function parseSectionUpdates(
         links_icon_glow: parseBool(formData.get("links_icon_glow")),
         links_icon_shadow: parseBool(formData.get("links_icon_shadow")),
         links_icon_pulse: parseBool(formData.get("links_icon_pulse")),
+        links_spacing: parseLinksSpacing(String(formData.get("links_spacing") ?? existing.links_spacing)),
+        links_button_style: parseLinksButtonStyle(
+          String(formData.get("links_button_style") ?? existing.links_button_style),
+        ),
+        links_border_radius: clampLinksBorderRadius(
+          parseIntField(formData.get("links_border_radius"), existing.links_border_radius),
+        ),
+        links_button_opacity: clampLinksButtonOpacity(
+          parseIntField(formData.get("links_button_opacity"), existing.links_button_opacity),
+        ),
+        links_show_hostname: parseBool(formData.get("links_show_hostname")),
         link_animation: String(formData.get("link_animation") ?? existing.link_animation) as LinkAnimation,
       };
     case "background":

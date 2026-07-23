@@ -103,8 +103,14 @@ export const DEFAULT_SETTINGS: Omit<
   links_icon_glow: false,
   links_icon_shadow: false,
   links_icon_pulse: false,
+  links_spacing: "default",
+  links_button_style: "filled",
+  links_border_radius: 0,
+  links_button_opacity: 100,
+  links_show_hostname: false,
   profile_parallax: false,
   content_alignment: "left",
+  page_nav_position: "top",
   enter_gate_enabled: true,
   enter_gate_title: "",
   enter_gate_subtitle: "",
@@ -165,6 +171,23 @@ export const CONTENT_ALIGNMENT_OPTIONS: { value: ContentAlignment; label: string
   { value: "center", label: "Center" },
   { value: "right", label: "Right" },
 ];
+
+export const PAGE_NAV_POSITION_OPTIONS: {
+  value: import("@/lib/types/settings").PageNavPosition;
+  label: string;
+  description: string;
+}[] = [
+  { value: "top", label: "Top", description: "Horizontal tabs below the logo" },
+  { value: "bottom", label: "Bottom", description: "Fixed bar at the bottom of the page" },
+  { value: "left", label: "Left", description: "Vertical tabs along the left edge" },
+  { value: "right", label: "Right", description: "Vertical tabs along the right edge" },
+  { value: "hidden", label: "Hidden", description: "Remove the nav bar — pages stay reachable by URL" },
+];
+
+export function parsePageNavPosition(value: string): import("@/lib/types/settings").PageNavPosition {
+  if (value === "bottom" || value === "left" || value === "right" || value === "hidden") return value;
+  return "top";
+}
 
 export const LAYOUT_OPTIONS: {
   value: ProfileLayout;
@@ -382,6 +405,40 @@ export const LINK_ANIMATION_OPTIONS: { value: LinkAnimation; label: string }[] =
   { value: "slide", label: "Slide" },
 ];
 
+export const LINKS_SPACING_OPTIONS: { value: import("@/lib/types/settings").LinksSpacing; label: string }[] = [
+  { value: "compact", label: "Compact" },
+  { value: "default", label: "Default" },
+  { value: "relaxed", label: "Relaxed" },
+];
+
+export const LINKS_BUTTON_STYLE_OPTIONS: {
+  value: import("@/lib/types/settings").LinksButtonStyle;
+  label: string;
+  description: string;
+}[] = [
+  { value: "filled", label: "Filled", description: "Soft background with subtle border" },
+  { value: "outline", label: "Outline", description: "Transparent with accent border" },
+  { value: "ghost", label: "Minimal", description: "No background or border" },
+];
+
+export function clampLinksBorderRadius(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(48, Math.max(0, Math.round(value)));
+}
+
+export function clampLinksButtonOpacity(value: number) {
+  if (!Number.isFinite(value)) return 100;
+  return Math.min(100, Math.max(0, Math.round(value)));
+}
+
+export function parseLinksSpacing(value: string): import("@/lib/types/settings").LinksSpacing {
+  return value === "compact" || value === "relaxed" ? value : "default";
+}
+
+export function parseLinksButtonStyle(value: string): import("@/lib/types/settings").LinksButtonStyle {
+  return value === "outline" || value === "ghost" ? value : "filled";
+}
+
 export const BACKGROUND_TYPE_OPTIONS: { value: BackgroundType; label: string }[] = [
   { value: "solid", label: "Solid Color" },
   { value: "animated_gradient", label: "Animated Gradient" },
@@ -505,8 +562,18 @@ export function mergeSettings(
     links_icon_glow: row?.links_icon_glow ?? DEFAULT_SETTINGS.links_icon_glow,
     links_icon_shadow: row?.links_icon_shadow ?? DEFAULT_SETTINGS.links_icon_shadow,
     links_icon_pulse: row?.links_icon_pulse ?? DEFAULT_SETTINGS.links_icon_pulse,
+    links_spacing: (["compact", "default", "relaxed"].includes(String(row?.links_spacing))
+      ? row?.links_spacing
+      : DEFAULT_SETTINGS.links_spacing) as import("@/lib/types/settings").LinksSpacing,
+    links_button_style: (["filled", "outline", "ghost"].includes(String(row?.links_button_style))
+      ? row?.links_button_style
+      : DEFAULT_SETTINGS.links_button_style) as import("@/lib/types/settings").LinksButtonStyle,
+    links_border_radius: clampLinksBorderRadius(row?.links_border_radius ?? DEFAULT_SETTINGS.links_border_radius),
+    links_button_opacity: clampLinksButtonOpacity(row?.links_button_opacity ?? DEFAULT_SETTINGS.links_button_opacity),
+    links_show_hostname: row?.links_show_hostname ?? DEFAULT_SETTINGS.links_show_hostname,
     profile_parallax: row?.profile_parallax ?? DEFAULT_SETTINGS.profile_parallax,
     content_alignment: (row?.content_alignment ?? DEFAULT_SETTINGS.content_alignment) as ContentAlignment,
+    page_nav_position: parsePageNavPosition(String(row?.page_nav_position ?? DEFAULT_SETTINGS.page_nav_position)),
     enter_gate_enabled: true,
     enter_gate_title: row?.enter_gate_title ?? DEFAULT_SETTINGS.enter_gate_title,
     enter_gate_subtitle: row?.enter_gate_subtitle ?? DEFAULT_SETTINGS.enter_gate_subtitle,

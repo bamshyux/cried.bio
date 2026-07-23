@@ -81,7 +81,10 @@ export function AccountSettingsShell({ data }: { data: AccountSettingsData }) {
     const result = await restartDashboardTourAction();
     setTourRestartMsg(result.success ?? result.error);
     setTourRestartPending(false);
-    if (result.success) router.push("/dashboard");
+    if (result.success) {
+      router.push("/dashboard");
+      router.refresh();
+    }
   }
 
   return (

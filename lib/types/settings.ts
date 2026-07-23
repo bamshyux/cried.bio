@@ -1,5 +1,7 @@
 export type ContentAlignment = "left" | "center" | "right";
 
+export type PageNavPosition = "top" | "bottom" | "left" | "right" | "hidden";
+
 export type ProfileLayout =
   | "classic"
   | "modern"
@@ -119,6 +121,10 @@ export type TabTitleAnimation =
 export type LinkAnimation = "none" | "pulse" | "bounce" | "glow" | "slide";
 
 export type LinksStyle = "buttons" | "icons" | "icons_only";
+
+export type LinksSpacing = "compact" | "default" | "relaxed";
+
+export type LinksButtonStyle = "filled" | "outline" | "ghost";
 
 export type EnterGateBackgroundType = "solid" | "image" | "video" | "gradient" | "profile";
 
@@ -261,8 +267,14 @@ export type ProfileSettings = {
   links_icon_glow: boolean;
   links_icon_shadow: boolean;
   links_icon_pulse: boolean;
+  links_spacing: LinksSpacing;
+  links_button_style: LinksButtonStyle;
+  links_border_radius: number;
+  links_button_opacity: number;
+  links_show_hostname: boolean;
   profile_parallax: boolean;
   content_alignment: ContentAlignment;
+  page_nav_position: PageNavPosition;
   enter_gate_enabled: boolean;
   enter_gate_title: string;
   enter_gate_subtitle: string;

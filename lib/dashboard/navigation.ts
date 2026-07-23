@@ -420,3 +420,32 @@ export function isNavActive(pathname: string, href: string): boolean {
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
+
+/** Only one submenu item should look active — longest / exact href wins; ties go to first item. */
+export function isSubNavItemActive(
+  pathname: string,
+  item: DashboardNavItem,
+  items: DashboardNavItem[],
+): boolean {
+  let bestScore = -1;
+  let bestIndex = -1;
+
+  items.forEach((it, index) => {
+    let score = -1;
+    if (pathname === it.href) {
+      score = 1000 + it.href.length * 100;
+    } else if (it.href !== "/dashboard" && pathname.startsWith(`${it.href}/`)) {
+      score = it.href.length * 100;
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    } else if (score === bestScore && score >= 0 && index < bestIndex) {
+      bestIndex = index;
+    }
+  });
+
+  const itemIndex = items.findIndex((it) => it.href === item.href && it.label === item.label);
+  return itemIndex === bestIndex && bestScore >= 0;
+}

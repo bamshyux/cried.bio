@@ -39,6 +39,6 @@ export async function getOnboardingState(
     wizardCompletedAt,
     tourCompletedAt,
     needsSetupWizard: !wizardCompletedAt && !username,
-    needsDashboardTour: !!wizardCompletedAt && !tourCompletedAt,
+    needsDashboardTour: !tourCompletedAt && (!!wizardCompletedAt || !!username),
   };
 }

@@ -7,7 +7,6 @@ import type { ProfileEmbed } from "@/lib/types/embed";
 import type { FeaturedBlock } from "@/lib/types/featured";
 import type { ProfileLink } from "@/lib/types/link";
 import type { ProfileSettings } from "@/lib/types/settings";
-import { CriedLogo } from "@/components/brand/logo";
 import { CardBorderEffect } from "@/components/profile/card-border-effect";
 import { buildCardStyle } from "./layout-primitives";
 import { AnalyticsTracker } from "./analytics-tracker";
@@ -17,6 +16,7 @@ import { ParticleCanvas } from "./particle-canvas";
 import { ProfileBackground } from "./profile-background";
 import { ProfileBio } from "./profile-bio";
 import { ProfilePageNav } from "./profile-page-nav";
+import { ProfileSiteChrome } from "./profile-site-chrome";
 import { CursorEffectCanvas, CustomProfileCursor } from "./profile-effects";
 import { ProfileTabBranding } from "./profile-tab-branding";
 
@@ -50,6 +50,17 @@ export function PublicContentPageClient({
     settings.particle_effect;
   const pageTitle = page.label || page.slug;
 
+  const siteNav =
+    navPages.length > 0 ? (
+      <ProfilePageNav
+        username={username}
+        homeLabel={displayName}
+        pages={navPages}
+        activeSlug={page.slug}
+        position={settings.page_nav_position}
+      />
+    ) : null;
+
   return (
     <>
       <ProfileTabBranding
@@ -82,25 +93,11 @@ export function PublicContentPageClient({
           } as React.CSSProperties
         }
       >
-        <header className="pointer-events-auto absolute inset-x-0 top-0 z-50 flex w-full flex-col items-stretch px-5 py-4 sm:px-8 sm:py-5">
-          <div className="flex w-full items-center">
-            <a href="/" className="group opacity-90 transition-opacity hover:opacity-100">
-              <CriedLogo size={24} variant="muted" />
-            </a>
-          </div>
-          {navPages.length > 0 ? (
-            <div className="mt-4 flex justify-center border-b border-white/[0.06]">
-              <ProfilePageNav
-                username={username}
-                homeLabel={displayName}
-                pages={navPages}
-                activeSlug={page.slug}
-              />
-            </div>
-          ) : null}
-        </header>
-
-        <main className="relative flex flex-1 items-start justify-center px-5 py-24 sm:py-28">
+        <ProfileSiteChrome
+          navPosition={settings.page_nav_position}
+          siteNav={siteNav}
+          mainClassName="!items-start !justify-center !py-24 sm:!py-28"
+        >
           <div className="mx-auto w-full max-w-2xl">
             <CardBorderEffect
               settings={settings}
@@ -133,7 +130,7 @@ export function PublicContentPageClient({
               </div>
             </CardBorderEffect>
           </div>
-        </main>
+        </ProfileSiteChrome>
       </div>
 
       {settings.music_url || musicTracks.length > 0 ? (

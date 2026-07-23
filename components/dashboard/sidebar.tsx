@@ -8,6 +8,7 @@ import {
   DASHBOARD_SECTIONS,
   getSectionForPath,
   isNavActive,
+  isSubNavItemActive,
 } from "@/lib/dashboard/navigation";
 
 function SectionBlock({
@@ -25,6 +26,7 @@ function SectionBlock({
 }) {
   const active = isNavActive(pathname, section.href);
   const hasItems = section.items.length > 0;
+  const parentActive = active && hasItems;
 
   if (isAdminRoute && section.id !== "overview") return null;
 
@@ -35,10 +37,18 @@ function SectionBlock({
           href={section.href}
           data-tour={section.id}
           className={`bf-dash-nav-link flex min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium ${
-            active && !hasItems ? "bf-dash-nav-link--active" : active ? "text-white" : ""
+            active && !hasItems
+              ? "bf-dash-nav-link--active"
+              : parentActive
+                ? "bf-dash-nav-link--parent-active"
+                : ""
           }`}
         >
-          <span className={`inline-flex rounded-lg p-1.5 ${active ? "bg-white/[0.08] text-white" : "text-neutral-500"}`}>
+          <span
+            className={`bf-dash-nav-icon inline-flex rounded-lg p-1.5 ${
+              active ? "bg-white/[0.08] text-white" : "text-neutral-500"
+            }`}
+          >
             <section.Icon size={18} />
           </span>
           <span className="truncate">{section.label}</span>
@@ -65,17 +75,15 @@ function SectionBlock({
       </div>
 
       {hasItems && expanded ? (
-        <div className="mt-1 space-y-0.5 border-l border-white/[0.06] pl-2 ml-5">
+        <div className="bf-dash-nav-submenu mt-1 space-y-0.5 border-l pl-2 ml-5">
           {section.items.map((item) => {
-            const itemActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+            const itemActive = isSubNavItemActive(pathname, item, section.items);
             return (
               <Link
                 key={`${item.href}-${item.label}`}
                 href={item.href}
-                className={`block rounded-lg px-3 py-2 text-[13px] transition-colors ${
-                  itemActive
-                    ? "bg-white/[0.06] font-medium text-white"
-                    : "text-neutral-500 hover:bg-white/[0.03] hover:text-neutral-300"
+                className={`bf-dash-nav-sublink block rounded-lg px-3 py-2 text-[13px] ${
+                  itemActive ? "bf-dash-nav-sublink--active" : ""
                 }`}
               >
                 {item.label}
@@ -146,7 +154,7 @@ export function DashboardSidebar({
         ))}
 
         {showAdminPanel ? (
-          <div className="mt-4 space-y-3 border-t border-white/[0.06] pt-4">
+          <div className="bf-dash-nav-divider mt-4 space-y-3 border-t pt-4">
             <Link
               href="/dashboard/admin"
               className={`bf-dash-admin-link flex items-center gap-3 rounded-xl border px-3 py-3 text-[14px] font-medium transition-all ${
@@ -186,7 +194,7 @@ export function DashboardSidebar({
           </div>
         ) : null}
 
-        <div className="mt-4 shrink-0 border-t border-white/[0.06] pt-4">
+        <div className="bf-dash-nav-divider mt-4 shrink-0 border-t pt-4">
           <DiscordCommunityPromo variant="sidebar" />
         </div>
       </nav>

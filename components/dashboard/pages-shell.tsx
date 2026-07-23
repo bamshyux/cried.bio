@@ -9,6 +9,7 @@ import {
   duplicateProfilePageAction,
   reorderProfilePagesAction,
   toggleProfilePagePublishedAction,
+  updatePageNavPositionAction,
   updateProfilePageAction,
 } from "@/app/actions/profile-pages";
 import { PremiumLocked } from "@/components/premium/premium-locked";
@@ -22,24 +23,30 @@ import {
   labelClassName,
 } from "@/components/dashboard/form-fields";
 import { SITE_HOST } from "@/lib/site";
+import { PAGE_NAV_POSITION_OPTIONS } from "@/lib/settings";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
+import type { PageNavPosition } from "@/lib/types/settings";
 import type { UserEntitlements } from "@/lib/premium/types";
 
 export function PagesShell({
   pages: initialPages,
   username,
   entitlements,
+  pageNavPosition: initialPageNavPosition,
 }: {
   pages: ProfilePage[];
   username: string | null;
   entitlements: UserEntitlements;
+  pageNavPosition: PageNavPosition;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [pages, setPages] = useState(initialPages);
+  const [pageNavPosition, setPageNavPosition] = useState(initialPageNavPosition);
   const [slug, setSlug] = useState("");
   const [label, setLabel] = useState("");
   const [feedback, setFeedback] = useState<{ error?: string; success?: string }>();
+  const [navFeedback, setNavFeedback] = useState<{ error?: string; success?: string }>();
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const allowed = entitlements.can_use_multiple_profiles;
@@ -47,6 +54,10 @@ export function PagesShell({
   useEffect(() => {
     setPages(initialPages);
   }, [initialPages]);
+
+  useEffect(() => {
+    setPageNavPosition(initialPageNavPosition);
+  }, [initialPageNavPosition]);
 
   const handleCreate = () => {
     startTransition(async () => {
@@ -77,6 +88,20 @@ export function PagesShell({
     startTransition(async () => {
       await reorderProfilePagesAction(reordered.map((p) => p.id));
       router.refresh();
+    });
+  };
+
+  const handleNavPositionChange = (value: PageNavPosition) => {
+    if (!allowed || value === pageNavPosition) return;
+    setPageNavPosition(value);
+    startTransition(async () => {
+      const result = await updatePageNavPositionAction(value);
+      setNavFeedback(result);
+      if (result.error) {
+        setPageNavPosition(initialPageNavPosition);
+      } else {
+        router.refresh();
+      }
     });
   };
 
@@ -151,6 +176,39 @@ export function PagesShell({
           <FormFeedback {...feedback} />
         </div>
       </PremiumLocked>
+
+      {allowed && pages.length > 0 ? (
+        <div className={`${cardClassName} mb-6`}>
+          <h2 className="mb-1 text-sm font-medium text-white">Page navigation bar</h2>
+          <p className="mb-4 text-xs text-neutral-500">
+            Choose where visitors see tabs for your Home page and content pages.
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {PAGE_NAV_POSITION_OPTIONS.map((option) => {
+              const active = pageNavPosition === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => handleNavPositionChange(option.value)}
+                  className={`rounded-xl border px-4 py-3 text-left transition-colors ${
+                    active
+                      ? "border-[var(--bf-accent)]/40 bg-[var(--bf-accent)]/10"
+                      : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.14]"
+                  }`}
+                >
+                  <p className={`text-sm font-medium ${active ? "text-white" : "text-neutral-300"}`}>
+                    {option.label}
+                  </p>
+                  <p className="mt-0.5 text-xs text-neutral-500">{option.description}</p>
+                </button>
+              );
+            })}
+          </div>
+          <FormFeedback {...navFeedback} />
+        </div>
+      ) : null}
 
       <div className={cardClassName}>
         <div className="mb-4 flex items-center justify-between gap-3">

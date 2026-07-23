@@ -325,3 +325,36 @@ export async function updateContentPageTextAction(
   await revalidateAllPagePaths(userId, pageId);
   return { success: "Page text saved." };
 }
+
+export async function updatePageNavPositionAction(
+  position: string,
+): Promise<ActionResult> {
+  const userId = await getUserId();
+  if (!userId) return { error: "You must be logged in." };
+
+  const gate = await requireEntitlement(userId, "can_use_multiple_profiles");
+  if (!gate.ok) return { error: gate.error };
+
+  const { parsePageNavPosition } = await import("@/lib/settings");
+  const parsed = parsePageNavPosition(position);
+
+  const ensure = await ensureProfileSettingsRow(userId, null);
+  if (ensure.error) return { error: ensure.error };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profile_settings")
+    .update({
+      page_nav_position: parsed,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("profile_id", userId)
+    .is("page_id", null)
+    .select("id");
+
+  if (error) return { error: error.message };
+  if (!data?.length) return { error: "Profile settings not found." };
+
+  await revalidateAllPagePaths(userId);
+  return { success: "Page navigation placement saved." };
+}

@@ -2,7 +2,9 @@
 
 import { useMemo } from "react";
 import { buildCardStyle, FONT_OPTIONS, getFontCss, getGoogleFontsUrl, getProfileAlignClass } from "@/lib/settings";
+import { writeContentPageBorderTargets } from "@/lib/card-border-effects/resolve";
 import { ProfileBio } from "@/components/profile/public/profile-bio";
+import { CardBorderEffect } from "@/components/profile/card-border-effect";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
 import type { ContentAlignment, ProfileSettings, CardBorderEffectPreset } from "@/lib/types/settings";
 
@@ -18,12 +20,19 @@ export type ContentPageStyleFormState = {
   neon_glow: boolean;
   hide_card_border: boolean;
   card_border_effect: CardBorderEffectPreset;
+  border_content_card: boolean;
+  border_links: boolean;
 };
 
 function mergePreviewSettings(
   base: ProfileSettings,
   form: ContentPageStyleFormState,
 ): ProfileSettings {
+  const border =
+    form.card_border_effect === "none"
+      ? { card_border_apply_all: false, card_border_targets: [] as ProfileSettings["card_border_targets"] }
+      : writeContentPageBorderTargets(form.border_content_card, form.border_links);
+
   return {
     ...base,
     accent_color: form.accent_color,
@@ -37,6 +46,8 @@ function mergePreviewSettings(
     neon_glow: form.neon_glow,
     hide_card_border: form.hide_card_border,
     card_border_effect: form.card_border_effect,
+    card_border_apply_all: border.card_border_apply_all,
+    card_border_targets: border.card_border_targets,
   };
 }
 
@@ -58,6 +69,7 @@ export function ContentPageStylePreview({
   const cardStyle = buildCardStyle(preview);
   const alignClass = getProfileAlignClass(preview.content_alignment);
   const pageTitle = page.label || page.slug;
+  const showLinkBorder = form.card_border_effect !== "none" && form.border_links;
 
   return (
     <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a0a0a]">
@@ -99,34 +111,60 @@ export function ContentPageStylePreview({
             } as React.CSSProperties
           }
         >
-          <div className="p-4" style={cardStyle as React.CSSProperties}>
-            <div className="mb-4 flex items-center gap-2">
-              {page.icon ? (
-                <span className="text-xl leading-none" aria-hidden>
-                  {page.icon}
-                </span>
-              ) : null}
-              <h2 className="text-lg font-bold tracking-tight">{pageTitle}</h2>
-            </div>
+          <CardBorderEffect
+            settings={preview}
+            target="main"
+            borderRadius={preview.border_radius}
+            className="w-full"
+          >
+            <div className="p-4" style={cardStyle as React.CSSProperties}>
+              <div className="mb-4 flex items-center gap-2">
+                {page.icon ? (
+                  <span className="text-xl leading-none" aria-hidden>
+                    {page.icon}
+                  </span>
+                ) : null}
+                <h2 className="text-lg font-bold tracking-tight">{pageTitle}</h2>
+              </div>
 
-            {page.bio?.trim() ? (
-              <ProfileBio text={page.bio} settings={preview} className="!mb-4" />
-            ) : (
-              <p className="mb-4 text-sm leading-relaxed opacity-70">
-                Your page text, links, embeds, and featured blocks appear here on the live page.
-              </p>
-            )}
+              {page.bio?.trim() ? (
+                <ProfileBio text={page.bio} settings={preview} className="!mb-4" />
+              ) : (
+                <p className="mb-4 text-sm leading-relaxed opacity-70">
+                  Your page text, links, embeds, and featured blocks appear here on the live page.
+                </p>
+              )}
 
-            <div
-              className="rounded-lg border px-3 py-2.5 text-sm transition-colors"
-              style={{
-                borderColor: `${preview.accent_color}35`,
-                backgroundColor: `${preview.accent_color}12`,
-              }}
-            >
-              Sample link
+              {showLinkBorder ? (
+                <CardBorderEffect
+                  settings={preview}
+                  target="links"
+                  borderRadius={preview.border_radius}
+                  className="w-full"
+                >
+                  <div
+                    className="rounded-lg border px-3 py-2.5 text-sm"
+                    style={{
+                      borderColor: `${preview.accent_color}35`,
+                      backgroundColor: `${preview.accent_color}12`,
+                    }}
+                  >
+                    Sample link
+                  </div>
+                </CardBorderEffect>
+              ) : (
+                <div
+                  className="rounded-lg border px-3 py-2.5 text-sm"
+                  style={{
+                    borderColor: `${preview.accent_color}35`,
+                    backgroundColor: `${preview.accent_color}12`,
+                  }}
+                >
+                  Sample link
+                </div>
+              )}
             </div>
-          </div>
+          </CardBorderEffect>
         </div>
       </div>
     </div>

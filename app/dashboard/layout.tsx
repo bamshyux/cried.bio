@@ -48,8 +48,8 @@ export default async function DashboardLayout({
   const showAdminPanel = !!adminAccess;
 
   return (
-    <div className="min-h-screen bg-[#090909] text-neutral-100">
-      <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#090909]/95 backdrop-blur-md">
+    <div className="bf-dash-root min-h-screen text-neutral-100">
+      <header className="bf-dash-header sticky top-0 z-40 border-b backdrop-blur-md">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-5 py-3 lg:px-10">
           <Link href="/dashboard" className="shrink-0">
             <CriedLogo size={28} />

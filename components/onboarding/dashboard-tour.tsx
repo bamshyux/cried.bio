@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { completeDashboardTourAction } from "@/app/actions/onboarding";
 import {
   buttonPrimaryClassName,
@@ -70,10 +71,14 @@ function getSpotlightRect(selector: string): SpotlightRect | null {
 }
 
 export function DashboardTour({ active }: { active: boolean }) {
+  const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
   const [isPending, startTransition] = useTransition();
   const [visible, setVisible] = useState(active);
+  const [mounted, setMounted] = useState(false);
+  const [viewport, setViewport] = useState({ width: 0, height: 0 });
+  const [tourError, setTourError] = useState<string>();
 
   const step = DASHBOARD_TOUR_STEPS[stepIndex];
   const isLastStep = stepIndex === DASHBOARD_TOUR_STEPS.length - 1;
@@ -84,26 +89,51 @@ export function DashboardTour({ active }: { active: boolean }) {
   }, [visible, step]);
 
   useEffect(() => {
+    setMounted(true);
+    const syncViewport = () => {
+      setViewport({ width: window.innerWidth, height: window.innerHeight });
+    };
+    syncViewport();
+    window.addEventListener("resize", syncViewport);
+    return () => window.removeEventListener("resize", syncViewport);
+  }, []);
+
+  useEffect(() => {
     setVisible(active);
-    if (active) setStepIndex(0);
+    if (active) {
+      setStepIndex(0);
+      setTourError(undefined);
+    }
   }, [active]);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || !mounted) return;
+
     updateSpotlight();
+    const raf = requestAnimationFrame(updateSpotlight);
+    const timer = window.setTimeout(updateSpotlight, 120);
+
     const handleLayoutChange = () => updateSpotlight();
     window.addEventListener("resize", handleLayoutChange);
     window.addEventListener("scroll", handleLayoutChange, true);
+
     return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(timer);
       window.removeEventListener("resize", handleLayoutChange);
       window.removeEventListener("scroll", handleLayoutChange, true);
     };
-  }, [visible, stepIndex, updateSpotlight]);
+  }, [visible, mounted, stepIndex, updateSpotlight]);
 
   const finishTour = () => {
     startTransition(async () => {
-      await completeDashboardTourAction();
+      const result = await completeDashboardTourAction();
+      if (result.error) {
+        setTourError(result.error);
+        return;
+      }
       setVisible(false);
+      router.refresh();
     });
   };
 
@@ -117,22 +147,22 @@ export function DashboardTour({ active }: { active: boolean }) {
   };
   const handleBack = () => setStepIndex((index) => Math.max(0, index - 1));
 
-  if (!visible || !step) return null;
+  if (!mounted || !visible || !step || viewport.width === 0) return null;
 
   const tooltipTop = spotlight
-    ? Math.min(spotlight.top + spotlight.height + 16, window.innerHeight - 220)
-    : window.innerHeight / 2 - 100;
+    ? Math.min(spotlight.top + spotlight.height + 16, viewport.height - 220)
+    : viewport.height / 2 - 100;
   const tooltipLeft = spotlight
-    ? Math.min(Math.max(16, spotlight.left), window.innerWidth - 360)
-    : Math.max(16, window.innerWidth / 2 - 180);
+    ? Math.min(Math.max(16, spotlight.left), viewport.width - 360)
+    : Math.max(16, viewport.width / 2 - 180);
 
   return (
     <div className="fixed inset-0 z-[120]">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-[1px]" aria-hidden />
+      <div className="absolute inset-0 bg-black/72 backdrop-blur-[2px]" aria-hidden />
 
       {spotlight ? (
         <div
-          className="pointer-events-none absolute rounded-xl border-2 border-[#fafafa]/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.72)] transition-all duration-200"
+          className="pointer-events-none absolute rounded-xl border-2 border-[#fafafa]/75 shadow-[0_0_0_9999px_rgba(0,0,0,0.74)] transition-all duration-300 ease-out"
           style={{
             top: spotlight.top,
             left: spotlight.left,
@@ -159,6 +189,10 @@ export function DashboardTour({ active }: { active: boolean }) {
             <p className="mt-1 text-sm leading-relaxed text-neutral-400">{step.description}</p>
           </div>
         </div>
+
+        {tourError ? (
+          <p className="mt-4 text-sm text-red-400">{tourError}</p>
+        ) : null}
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <button

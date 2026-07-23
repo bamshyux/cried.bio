@@ -23,8 +23,9 @@ import {
   SliderField,
   ToggleField,
 } from "@/components/dashboard/form-fields";
-import { LINK_ANIMATION_OPTIONS } from "@/lib/settings";
+import { LINK_ANIMATION_OPTIONS, LINKS_BUTTON_STYLE_OPTIONS, LINKS_SPACING_OPTIONS } from "@/lib/settings";
 import { isCustomLinkIcon, LINKS_ICON_SIZE_MAX, LINKS_ICON_SIZE_MIN } from "@/lib/links";
+import { ProfileLinkButton, SocialIconOnlyRow, SocialIconRow } from "@/components/profile/public/profile-links";
 import { uploadLinkIconToStorage } from "@/lib/uploads/link-icon-client";
 import { getPlatform, type SocialPlatformId } from "@/lib/social-platforms";
 import { useSettingsRefresh } from "@/components/dashboard/use-settings-refresh";
@@ -36,6 +37,79 @@ const settingsInitial: SettingsFormState = {};
 
 const fileInputClassName =
   "block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#fafafa] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]";
+
+function readBackgroundOpacity(color: string | null | undefined): number {
+  if (!color) return 5;
+  const match = color.match(/rgba?\([^)]*,\s*([\d.]+)\s*\)/);
+  if (!match) return 5;
+  const alpha = parseFloat(match[1] ?? "");
+  return Number.isFinite(alpha) ? Math.min(100, Math.max(0, Math.round(alpha * 100))) : 5;
+}
+
+function LinksDisplayPreview({
+  settings,
+  links,
+  contentPage,
+}: {
+  settings: ProfileSettings;
+  links: ProfileLink[];
+  contentPage: boolean;
+}) {
+  const first = links[0];
+  const sample: ProfileLink = {
+    id: "preview",
+    profile_id: "preview",
+    title: first?.title ?? (contentPage ? "cried.bio" : "My Website"),
+    url: first?.url ?? "https://cried.bio",
+    icon: first?.icon ?? "link",
+    color: first?.color ?? settings.text_color,
+    background_color: first?.background_color ?? "rgba(255,255,255,0.05)",
+    animation: "none",
+    is_featured: false,
+    sort_order: 0,
+    created_at: new Date().toISOString(),
+  };
+
+  return (
+    <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0a] p-4">
+      <p className="mb-3 text-xs font-medium uppercase tracking-wider text-neutral-500">Live preview</p>
+      <div className="mx-auto max-w-sm rounded-xl border border-white/[0.06] bg-[#050505] p-4">
+        {settings.links_style === "icons" ? (
+          <SocialIconRow links={[sample, ...(links[1] ? [links[1]] : [])]} settings={settings} profileId="preview" />
+        ) : settings.links_style === "icons_only" ? (
+          <SocialIconOnlyRow links={[sample]} settings={settings} profileId="preview" />
+        ) : (
+          <ProfileLinkButton link={sample} settings={settings} profileId="preview" />
+        )}
+      </div>
+      <p className="mt-3 text-xs text-neutral-600">Preview uses your saved settings and first link as sample.</p>
+    </div>
+  );
+}
+
+function LinkBackgroundField({
+  defaultOpacity,
+}: {
+  defaultOpacity: number;
+}) {
+  const [opacity, setOpacity] = useState(defaultOpacity);
+
+  return (
+    <div>
+      <SliderField
+        name="link_bg_opacity_display"
+        label="Button background"
+        min={0}
+        max={100}
+        value={opacity}
+        onChange={setOpacity}
+        unit="%"
+      />
+      <input type="hidden" name="background_color" value={`rgba(255,255,255,${(opacity / 100).toFixed(2)})`} />
+      <p className="mt-1 text-xs text-neutral-600">Background strength for this link when using filled buttons.</p>
+    </div>
+  );
+}
 
 function CustomLinkIconField({
   icon,
@@ -180,7 +254,7 @@ function AddCustomLinkForm({ onDone, pageId }: { onDone: () => void; pageId?: st
         <input id="custom-url" name="url" type="url" required placeholder="https://example.com" className={inputClassName} />
       </div>
       <ColorField name="color" label="Text color" defaultValue="#ffffff" />
-      <input type="hidden" name="background_color" value="rgba(255,255,255,0.05)" />
+      <LinkBackgroundField defaultOpacity={5} />
       <FormFeedback error={state.error} success={state.success} />
       <div className="flex gap-3">
         <button type="submit" disabled={isPending || iconUploading} className={buttonPrimaryClassName}>
@@ -200,6 +274,7 @@ function LinkRow({
   onDrop,
   isDragging,
   pageId,
+  allowFeatured = false,
 }: {
   link: ProfileLink;
   index: number;
@@ -208,6 +283,7 @@ function LinkRow({
   onDrop: (i: number) => void;
   isDragging: boolean;
   pageId?: string;
+  allowFeatured?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -247,7 +323,17 @@ function LinkRow({
           </div>
         </div>
         <ColorField name="color" label="Text color" defaultValue={link.color ?? "#ffffff"} />
-        <input type="hidden" name="background_color" value={link.background_color ?? "rgba(255,255,255,0.05)"} />
+        <LinkBackgroundField defaultOpacity={readBackgroundOpacity(link.background_color)} />
+        {allowFeatured ? (
+          <ToggleField
+            name="is_featured"
+            label="Featured link"
+            description="Highlight this link with accent styling at the top of your profile"
+            defaultChecked={link.is_featured}
+          />
+        ) : (
+          <input type="hidden" name="is_featured" value="false" />
+        )}
         {state.error && <p className="text-sm text-red-400">{state.error}</p>}
         <div className="flex gap-2">
           <button type="submit" disabled={isSaving || iconUploading} className={buttonPrimaryClassName}>Save</button>
@@ -272,7 +358,14 @@ function LinkRow({
       <span className="text-neutral-600 select-none" aria-hidden>⠿</span>
       <LinkIcon platform={link.icon} size={20} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-white">{link.title}</p>
+        <p className="truncate text-sm font-medium text-white">
+          {link.title}
+          {link.is_featured ? (
+            <span className="ml-2 rounded-md bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-300">
+              Featured
+            </span>
+          ) : null}
+        </p>
         <p className="truncate text-xs text-neutral-500">{platformName} · {link.url}</p>
       </div>
       <div className="flex gap-1">
@@ -339,9 +432,12 @@ export function LinksEditor({
 
       <div className="bf-card mb-6 p-5">
         <h2 className="mb-4 text-sm font-medium text-white">Link display</h2>
-        <form action={linkSettingsAction} className="space-y-4">
+        <form action={linkSettingsAction} className="space-y-6">
           <input type="hidden" name="_section" value="links" />
           {pageId ? <input type="hidden" name="_page_id" value={pageId} /> : null}
+
+          <LinksDisplayPreview settings={settings} links={links} contentPage={contentPage} />
+
           <div>
             <label htmlFor="links_style" className={labelClassName}>Link style</label>
             <select id="links_style" name="links_style" className={inputClassName} defaultValue={settings.links_style}>
@@ -350,9 +446,63 @@ export function LinksEditor({
               <option value="icons_only">Icons only</option>
             </select>
             <p className="mt-1.5 text-xs text-neutral-500">
-              Full buttons show titles; icon boxes wrap icons in a subtle tile; icons only show bare platform icons with no label.
+              Full buttons show titles; icon boxes wrap icons in a tile; icons only show bare platform icons.
             </p>
           </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label htmlFor="links_button_style" className={labelClassName}>Button look</label>
+              <select
+                id="links_button_style"
+                name="links_button_style"
+                className={inputClassName}
+                defaultValue={settings.links_button_style ?? "filled"}
+              >
+                {LINKS_BUTTON_STYLE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label} — {option.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="links_spacing" className={labelClassName}>Spacing</label>
+              <select
+                id="links_spacing"
+                name="links_spacing"
+                className={inputClassName}
+                defaultValue={settings.links_spacing ?? "default"}
+              >
+                {LINKS_SPACING_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <SliderField
+              name="links_border_radius"
+              label="Corner radius"
+              min={0}
+              max={48}
+              defaultValue={settings.links_border_radius ?? 0}
+              unit="px"
+            />
+            <SliderField
+              name="links_button_opacity"
+              label="Fill strength"
+              min={0}
+              max={100}
+              defaultValue={settings.links_button_opacity ?? 100}
+              unit="%"
+            />
+          </div>
+          <p className="-mt-3 text-xs text-neutral-600">
+            Corner radius 0 uses your profile card radius. Fill strength applies to filled buttons and icon boxes.
+          </p>
+
           <SliderField
             name="links_icon_size"
             label="Icon size"
@@ -361,11 +511,6 @@ export function LinksEditor({
             defaultValue={settings.links_icon_size}
             unit="px"
           />
-          <p className="-mt-2 text-xs text-neutral-600">
-            {contentPage
-              ? "Applies to all link styles on this page."
-              : "Applies to all link styles on your public profile. Icon boxes scale with the icon."}
-          </p>
 
           <div>
             <label htmlFor="link_animation" className={labelClassName}>Link animation</label>
@@ -374,17 +519,12 @@ export function LinksEditor({
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
-            <p className="mt-1.5 text-xs text-neutral-500">
-              {contentPage
-                ? "Applies to all links on this page."
-                : "Applies to all links on your public profile. Use Icon effects above for icon-specific styling."}
-            </p>
           </div>
 
           <div className="rounded-lg border border-white/[0.06] bg-[#0a0a0a] p-4">
             <p className="mb-3 text-xs font-medium uppercase tracking-wider text-neutral-500">Icon effects</p>
             <p className="mb-3 text-xs text-neutral-600">
-              Style how icons look on your profile. Brand icons keep their official artwork — these only add visual effects.
+              Brand icons keep their official artwork — these add visual effects on top.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <ToggleField
@@ -405,21 +545,28 @@ export function LinksEditor({
                 description="Gentle breathing animation on icons"
                 defaultChecked={settings.links_icon_pulse}
               />
+              <ToggleField
+                name="links_monochrome"
+                label="Monochrome links"
+                description={`Use text color (${settings.text_color}) for all icons`}
+                defaultChecked={settings.links_monochrome}
+              />
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-4 rounded-lg border border-white/[0.06] bg-[#0f0f0f] p-4">
               <LinkIcon {...buildLinkIconProps("roblox", settings, settings.links_icon_size)} />
               <LinkIcon {...buildLinkIconProps("discord", settings, settings.links_icon_size)} />
               <LinkIcon {...buildLinkIconProps("youtube", settings, settings.links_icon_size)} />
-              <span className="text-xs text-neutral-600">Preview reflects saved settings</span>
+              <span className="text-xs text-neutral-600">Icon preview</span>
             </div>
           </div>
 
           <ToggleField
-            name="links_monochrome"
-            label="Monochrome links"
-            description={`Use your text color (${settings.text_color}) for all link icons on your public profile`}
-            defaultChecked={settings.links_monochrome}
+            name="links_show_hostname"
+            label="Show link URL"
+            description="Always show the hostname on full buttons (otherwise only on hover)"
+            defaultChecked={settings.links_show_hostname ?? false}
           />
+
           <FormFeedback error={linkSettingsState.error} success={linkSettingsState.success} />
           <button type="submit" disabled={linkSettingsPending} className={buttonSecondaryClassName}>
             {linkSettingsPending ? "Saving..." : "Save link settings"}
@@ -439,6 +586,7 @@ export function LinksEditor({
               onDragOver={(e, i) => { e.preventDefault(); if (dragIndex !== null && dragIndex !== i) setDragIndex(i); }}
               onDrop={handleDrop}
               pageId={pageId}
+              allowFeatured={!pageId && !contentPage}
             />
           ))}
           {isPending && <p className="text-xs text-neutral-600">Saving order...</p>}
