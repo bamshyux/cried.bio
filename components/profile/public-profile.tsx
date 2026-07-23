@@ -1,4 +1,5 @@
 import type { MusicTrack } from "@/lib/data/music-tracks";
+import type { ProfilePage } from "@/lib/profile-pages/slug";
 import type { DiscordPresence } from "@/lib/discord/types";
 import type { ActivityEvent } from "@/lib/types/activity";
 import type { FeaturedBlock } from "@/lib/types/featured";
@@ -32,6 +33,7 @@ export function PublicProfileView({
   presetPreviewTitle = null,
   presetPreviewMode = false,
   musicTracks = [],
+  navPages = [],
 }: {
   profile: Profile;
   links: ProfileLink[];
@@ -53,6 +55,7 @@ export function PublicProfileView({
   presetPreviewTitle?: string | null;
   presetPreviewMode?: boolean;
   musicTracks?: MusicTrack[];
+  navPages?: ProfilePage[];
 }) {
   return (
     <PublicProfileClient
@@ -76,6 +79,7 @@ export function PublicProfileView({
       presetPreviewTitle={presetPreviewTitle}
       presetPreviewMode={presetPreviewMode}
       musicTracks={musicTracks}
+      navPages={navPages}
     />
   );
 }

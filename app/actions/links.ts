@@ -50,7 +50,7 @@ function applyPageFilter<T extends { eq: (col: string, val: string) => T; is: (c
 
 async function revalidateProfilePaths(userId: string, pageId?: string | null) {
   const paths = ["/dashboard/links"];
-  if (pageId) paths.push(`/dashboard/profile-pages/${pageId}/links`);
+  if (pageId) paths.push(`/dashboard/pages/${pageId}/links`);
   await revalidateAfterProfileAppearanceChange(userId, paths);
   if (pageId) {
     const { revalidateProfilePagePaths } = await import("@/lib/profile-pages/revalidate");

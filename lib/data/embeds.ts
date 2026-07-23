@@ -16,6 +16,7 @@ export async function getEmbedsByProfileId(profileId: string, publicOnly = false
     .from("profile_embeds")
     .select("*")
     .eq("profile_id", profileId)
+    .is("page_id", null)
     .order("sort_order", { ascending: true });
 
   if (publicOnly) query = query.eq("is_visible", true);

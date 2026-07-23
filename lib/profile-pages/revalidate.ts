@@ -10,8 +10,8 @@ export async function revalidateProfilePagePaths(profileId: string, pageId: stri
     getProfilePageById(profileId, pageId),
   ]);
 
-  revalidatePath("/dashboard/profile-pages");
-  revalidatePath(`/dashboard/profile-pages/${pageId}`, "layout");
+  revalidatePath("/dashboard/pages");
+  revalidatePath(`/dashboard/pages/${pageId}`, "layout");
 
   if (profile?.username) {
     revalidatePath(`/${profile.username}`);

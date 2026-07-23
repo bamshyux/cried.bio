@@ -24,7 +24,7 @@ function applyPageFilter<T extends { eq: (col: string, val: string) => T; is: (c
 async function revalidateMusicPaths(userId: string, pageId?: string | null) {
   revalidatePath("/dashboard/music");
   if (pageId) {
-    revalidatePath(`/dashboard/profile-pages/${pageId}/music`);
+    revalidatePath(`/dashboard/pages/${pageId}/music`);
     const { revalidateProfilePagePaths } = await import("@/lib/profile-pages/revalidate");
     await revalidateProfilePagePaths(userId, pageId);
   }

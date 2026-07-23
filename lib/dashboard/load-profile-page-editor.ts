@@ -11,7 +11,7 @@ export async function loadProfilePageEditor(pageId: string) {
 
   const userId = data.claims.sub as string;
   const gate = await requireEntitlement(userId, "can_use_multiple_profiles");
-  if (!gate.ok) redirect("/dashboard/profile-pages");
+  if (!gate.ok) redirect("/dashboard/pages");
 
   const [page, profile, settings] = await Promise.all([
     getProfilePageById(userId, pageId),

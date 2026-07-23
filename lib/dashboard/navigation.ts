@@ -309,10 +309,10 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
         Icon: IconPremium,
       },
       {
-        href: "/dashboard/profile-pages",
-        label: "Profile pages",
-        description: "Additional pages with full customization",
-        keywords: ["pages", "multi profile"],
+        href: "/dashboard/pages",
+        label: "Pages",
+        description: "Content pages for your personal site",
+        keywords: ["pages", "content", "gallery", "about"],
         Icon: IconProfile,
       },
       {
@@ -408,6 +408,7 @@ export function isNavActive(pathname: string, href: string): boolean {
   if (href === "/dashboard/premium") {
     return [
       "/dashboard/premium",
+      "/dashboard/pages",
       "/dashboard/profile-pages",
       "/dashboard/preset-schedules",
       "/dashboard/premium/custom-effect",

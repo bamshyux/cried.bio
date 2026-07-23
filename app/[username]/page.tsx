@@ -15,6 +15,7 @@ import { getEmbedsByProfileId } from "@/lib/data/embeds";
 import { getFeaturedBlocksByProfileId } from "@/lib/data/featured";
 import { getGuestbookEntries } from "@/lib/data/guestbook";
 import { getLinksByProfileId } from "@/lib/data/links";
+import { getPublishedProfilePages } from "@/lib/data/profile-pages";
 import { getMusicTracks } from "@/lib/data/music-tracks";
 import { getProfileByUsername } from "@/lib/data/profiles";
 import { getSettingsByProfileId } from "@/lib/data/settings";
@@ -105,6 +106,7 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
     following,
     hideViewCounts,
     musicTracks,
+    navPages,
   ] = await Promise.all([
     getLinksByProfileId(baseProfile.id),
     getSettingsByProfileId(baseProfile.id),
@@ -119,6 +121,7 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
     currentUserId ? isFollowing(currentUserId, baseProfile.id) : Promise.resolve(false),
     shouldHideViewCounts(baseProfile.id),
     getMusicTracks(baseProfile.id),
+    getPublishedProfilePages(baseProfile.id),
   ]);
 
   let profile: Profile = baseProfile;
@@ -214,6 +217,7 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
         scopedCustomCss={scopedCustomCss}
         presetPreviewTitle={presetPreviewTitle}
         musicTracks={musicTracks}
+        navPages={navPages}
       />
     </>
   );

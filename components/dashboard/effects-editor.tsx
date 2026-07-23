@@ -64,10 +64,12 @@ export function EffectsEditor({
   settings,
   profile,
   pageId,
+  hideEnterGate = false,
 }: {
   settings: ProfileSettings;
   profile: Profile;
   pageId?: string;
+  hideEnterGate?: boolean;
 }) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
@@ -278,12 +280,14 @@ export function EffectsEditor({
             </div>
           </div>
 
-          <EnterGateEditor
-            settings={settings}
-            profile={profile}
-            form={form}
-            patchForm={patchForm}
-          />
+          {!hideEnterGate ? (
+            <EnterGateEditor
+              settings={settings}
+              profile={profile}
+              form={form}
+              patchForm={patchForm}
+            />
+          ) : null}
 
           <ControlledSelect
             label="Cursor effect"
@@ -399,10 +403,19 @@ export function EffectsPageShell({
   settings,
   profile,
   pageId,
+  hideEnterGate = false,
 }: {
   settings: ProfileSettings;
   profile: Profile;
   pageId?: string;
+  hideEnterGate?: boolean;
 }) {
-  return <EffectsEditor settings={settings} profile={profile} pageId={pageId} />;
+  return (
+    <EffectsEditor
+      settings={settings}
+      profile={profile}
+      pageId={pageId}
+      hideEnterGate={hideEnterGate}
+    />
+  );
 }

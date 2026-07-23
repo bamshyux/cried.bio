@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useCallback, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { buildCardStyle, getUsernameEffectClass } from "@/lib/settings";
@@ -35,6 +36,7 @@ export type LayoutProps = {
   isLoggedIn: boolean;
   currentUserId?: string | null;
   discordPresence?: DiscordPresence | null;
+  pageNav?: ReactNode;
 };
 
 export function ProfileHandle({ profile, className = "" }: { profile: Profile; className?: string }) {

@@ -9,7 +9,7 @@ import {
 } from "@/components/support/support-widget";
 import { SupportReplyToast } from "@/components/support/support-reply-toast";
 import type { SupportReplyAlert } from "@/lib/support/notifications";
-import { isPublicProfilePath } from "@/lib/profile";
+import { isContentPagePath, isProfileSocialPath } from "@/lib/profile";
 
 const SCROLL_TOP_THRESHOLD = 240;
 
@@ -76,7 +76,7 @@ export function FloatingSiteDock({ userId }: { userId: string | null }) {
     [],
   );
 
-  if (isPublicProfilePath(pathname)) {
+  if (isContentPagePath(pathname) || isProfileSocialPath(pathname)) {
     return null;
   }
 

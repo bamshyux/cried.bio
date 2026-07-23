@@ -13,6 +13,7 @@ export async function getSettingsByProfileId(
     .from("profile_settings")
     .select("*")
     .eq("profile_id", profileId)
+    .is("page_id", null)
     .maybeSingle();
 
   const row = data as Partial<ProfileSettings> & { widgets_discord_user_id?: string } | null;

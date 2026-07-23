@@ -6,6 +6,7 @@ export async function getLinksByProfileId(profileId: string) {
     .from("links")
     .select("*")
     .eq("profile_id", profileId)
+    .is("page_id", null)
     .order("sort_order", { ascending: true });
 
   return (data ?? []).map((link) => ({

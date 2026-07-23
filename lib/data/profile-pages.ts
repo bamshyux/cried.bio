@@ -9,7 +9,27 @@ export async function getProfilePages(profileId: string): Promise<ProfilePage[]>
     .eq("profile_id", profileId)
     .order("sort_order", { ascending: true });
 
-  return (data as ProfilePage[]) ?? [];
+  return ((data as ProfilePage[]) ?? []).map(normalizeProfilePage);
+}
+
+export async function getPublishedProfilePages(profileId: string): Promise<ProfilePage[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profile_pages")
+    .select("*")
+    .eq("profile_id", profileId)
+    .eq("published", true)
+    .order("sort_order", { ascending: true });
+
+  return ((data as ProfilePage[]) ?? []).map(normalizeProfilePage);
+}
+
+function normalizeProfilePage(page: ProfilePage): ProfilePage {
+  return {
+    ...page,
+    icon: page.icon ?? "",
+    published: page.published ?? true,
+  };
 }
 
 export async function getProfilePageById(

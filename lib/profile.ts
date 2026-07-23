@@ -29,10 +29,14 @@ export function isValidUsername(username: string) {
 }
 
 export function isPublicProfilePath(pathname: string) {
+  return isHomeProfilePath(pathname) || isProfileSocialPath(pathname);
+}
+
+export function isHomeProfilePath(pathname: string) {
   const normalized = pathname.replace(/\/+$/, "") || "/";
   const segments = normalized.split("/").filter(Boolean);
 
-  if (segments.length === 0 || segments.length > 2) {
+  if (segments.length !== 1) {
     return false;
   }
 
@@ -41,16 +45,42 @@ export function isPublicProfilePath(pathname: string) {
     return false;
   }
 
-  if (!USERNAME_REGEX.test(username)) {
+  return USERNAME_REGEX.test(username);
+}
+
+export function isProfileSocialPath(pathname: string) {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  const segments = normalized.split("/").filter(Boolean);
+
+  if (segments.length !== 2) {
     return false;
   }
 
-  if (segments.length === 2) {
-    const subpage = segments[1].toLowerCase();
-    return subpage === "followers" || subpage === "following";
+  const username = segments[0].toLowerCase();
+  if (!username || RESERVED_USERNAMES.has(username) || !USERNAME_REGEX.test(username)) {
+    return false;
   }
 
-  return true;
+  const subpage = segments[1].toLowerCase();
+  return subpage === "followers" || subpage === "following";
+}
+
+/** Premium content pages at /{username}/{slug} — not the home profile. */
+export function isContentPagePath(pathname: string) {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  const segments = normalized.split("/").filter(Boolean);
+
+  if (segments.length !== 2) {
+    return false;
+  }
+
+  const username = segments[0].toLowerCase();
+  if (!username || RESERVED_USERNAMES.has(username) || !USERNAME_REGEX.test(username)) {
+    return false;
+  }
+
+  const subpage = segments[1].toLowerCase();
+  return subpage !== "followers" && subpage !== "following";
 }
 
 export function formatProfileUid(uid: number) {

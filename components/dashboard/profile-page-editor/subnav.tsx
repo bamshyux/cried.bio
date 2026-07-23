@@ -4,9 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const EDITOR_LINKS = [
-  { href: "identity", label: "Identity" },
-  { href: "customize", label: "Customize" },
   { href: "background", label: "Background" },
+  { href: "customize", label: "Customize" },
   { href: "links", label: "Links" },
   { href: "music", label: "Music" },
   { href: "themes", label: "Layouts" },
@@ -15,7 +14,7 @@ const EDITOR_LINKS = [
 
 export function ProfilePageEditorSubnav({ pageId }: { pageId: string }) {
   const pathname = usePathname();
-  const base = `/dashboard/profile-pages/${pageId}`;
+  const base = `/dashboard/pages/${pageId}`;
 
   return (
     <div className="bf-card overflow-x-auto p-2">

@@ -7,6 +7,7 @@ export async function getFeaturedBlocksByProfileId(profileId: string, publicOnly
     .from("featured_blocks")
     .select("*")
     .eq("profile_id", profileId)
+    .is("page_id", null)
     .order("sort_order", { ascending: true });
 
   if (publicOnly) query = query.eq("is_enabled", true);

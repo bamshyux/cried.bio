@@ -58,10 +58,11 @@ async function revalidateProfile(userId: string, pageId?: string | null) {
   revalidatePath("/dashboard/links");
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/guestbook");
+  revalidatePath("/dashboard/pages");
   revalidatePath("/dashboard/profile-pages");
 
   if (pageId) {
-    revalidatePath(`/dashboard/profile-pages/${pageId}`, "layout");
+    revalidatePath(`/dashboard/pages/${pageId}`, "layout");
     if (profile?.username) {
       const { getProfilePageById } = await import("@/lib/data/profile-pages");
       const page = await getProfilePageById(userId, pageId);

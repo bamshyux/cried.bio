@@ -29,6 +29,8 @@ export type ProfilePage = {
   profile_id: string;
   slug: string;
   label: string;
+  icon: string;
+  published: boolean;
   display_name: string;
   bio: string;
   avatar_url: string | null;

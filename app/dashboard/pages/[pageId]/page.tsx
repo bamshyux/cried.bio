@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default async function LegacyPageEditorRedirect({
+export default async function ContentPageEditorIndex({
   params,
 }: {
   params: Promise<{ pageId: string }>;
