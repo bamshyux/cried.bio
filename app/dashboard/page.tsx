@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { syncMilestoneBadges } from "@/app/actions/badges";
 import { DashboardSearchHint } from "@/components/dashboard/dashboard-search";
-import { OverviewProfileActions } from "@/components/dashboard/overview-profile-actions";
 import {
   IconAnalytics,
   IconCustomize,
@@ -16,7 +15,6 @@ import { getProfileByUserId } from "@/lib/data/profiles";
 import { getSettingsByProfileId } from "@/lib/data/settings";
 import { formatProfileUid } from "@/lib/profile";
 import { formatPublicProfileDisplay } from "@/lib/profile/public-profile-url";
-import { SITE_URL } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
 const QUICK_ACTIONS = [
@@ -68,18 +66,12 @@ export default async function DashboardOverviewPage() {
                 : "Finish your profile and publish when you're ready."}
             </p>
             {isLive ? (
-              <>
-                <p className="mt-4 font-mono text-sm text-neutral-600">
-                  {formatPublicProfileDisplay(profile!.username!)}
-                  {profile?.uid != null ? (
-                    <span className="ml-3 text-neutral-700">· {formatProfileUid(profile.uid)}</span>
-                  ) : null}
-                </p>
-                <OverviewProfileActions
-                  username={profile!.username!}
-                  profileUrl={`${SITE_URL}/${profile!.username!}`}
-                />
-              </>
+              <p className="mt-4 font-mono text-sm text-neutral-600">
+                {formatPublicProfileDisplay(profile!.username!)}
+                {profile?.uid != null ? (
+                  <span className="ml-3 text-neutral-700">· {formatProfileUid(profile.uid)}</span>
+                ) : null}
+              </p>
             ) : null}
           </div>
 

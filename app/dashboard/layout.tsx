@@ -9,12 +9,14 @@ import { DashboardSearch } from "@/components/dashboard/dashboard-search";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { EmailVerificationBanner } from "@/components/dashboard/email-verification-banner";
 import { ProfilePresetQuickSave } from "@/components/dashboard/profile-presets/profile-preset-quick-save";
+import { ShareProfileButton } from "@/components/dashboard/share-profile-button";
 import { ViewLiveProfileButton } from "@/components/dashboard/view-live-profile-button";
 import { PlatformUpdateShell } from "@/components/platform-updates/platform-update-shell";
 import { getOnboardingState } from "@/lib/data/onboarding";
 import { getProfileByUserId } from "@/lib/data/profiles";
 import { resolveAppliedPresetId } from "@/lib/data/profile-presets";
 import { getAdminAccess } from "@/lib/auth/admin-access";
+import { buildPublicProfileUrl } from "@/lib/profile/public-profile-url";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({
@@ -63,7 +65,17 @@ export default async function DashboardLayout({
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <ProfilePresetQuickSave activePresetId={activePresetId} />
-            <ViewLiveProfileButton username={profile?.username} />
+            {profile?.username ? (
+              <>
+                <ShareProfileButton
+                  username={profile.username}
+                  profileUrl={buildPublicProfileUrl(profile.username)}
+                />
+                <ViewLiveProfileButton username={profile.username} />
+              </>
+            ) : (
+              <ViewLiveProfileButton username={profile?.username} />
+            )}
             <span className="hidden h-4 w-px bg-white/[0.08] md:block" aria-hidden />
             <span className="hidden max-w-[160px] truncate text-[13px] text-neutral-500 xl:inline">
               {email}
