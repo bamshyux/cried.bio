@@ -9,7 +9,10 @@ type ViewLiveProfileButtonProps = {
 };
 
 const headerCtaClassName =
-  "bf-live-profile-cta group inline-flex max-w-full shrink-0 items-center gap-2.5 rounded-full bg-[#fafafa] px-4 py-2 text-[13px] font-semibold text-[#090909] shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_4px_18px_rgba(0,0,0,0.35)] transition-all duration-200 hover:bg-white hover:shadow-[0_0_0_1px_rgba(255,255,255,0.2),0_6px_24px_rgba(255,255,255,0.12),0_4px_18px_rgba(0,0,0,0.35)] active:scale-[0.98]";
+  "bf-live-profile-cta group inline-flex max-w-full shrink-0 items-center gap-2.5 rounded-full px-4 py-2 text-[13px] font-semibold";
+
+const headerSetupCtaClassName =
+  "bf-live-profile-cta bf-live-profile-cta--setup group inline-flex max-w-full shrink-0 items-center gap-2.5 rounded-full px-4 py-2 text-[13px] font-semibold";
 
 export function ViewLiveProfileButton({
   username,
@@ -22,7 +25,7 @@ export function ViewLiveProfileButton({
         href="/dashboard/profile"
         className={
           variant === "header"
-            ? `${headerCtaClassName} ${className}`
+            ? `${headerSetupCtaClassName} ${className}`
             : `text-[13px] font-medium text-neutral-300 hover:text-white ${className}`
         }
       >
@@ -55,18 +58,18 @@ export function ViewLiveProfileButton({
       className={`${headerCtaClassName} ${className}`}
     >
       <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
-        <span className="bf-live-profile-cta__pulse absolute inline-flex h-full w-full rounded-full bg-emerald-500/45" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-[#fafafa] group-hover:ring-white" />
+        <span className="bf-live-profile-cta__pulse absolute inline-flex h-full w-full rounded-full bg-emerald-400/50" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-[#101010] group-hover:ring-[#161616]" />
       </span>
-      <span className="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap">
+      <span className="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap text-neutral-100">
         <span>View live profile</span>
-        <span className="hidden font-mono text-[11px] font-medium text-neutral-500 sm:inline">
+        <span className="hidden font-mono text-[11px] font-medium text-emerald-400/70 sm:inline">
           /{username}
         </span>
       </span>
       <IconExternal
         size={13}
-        className="shrink-0 text-neutral-400 transition-colors group-hover:text-neutral-700"
+        className="shrink-0 text-neutral-500 transition-colors group-hover:text-neutral-300"
       />
     </Link>
   );

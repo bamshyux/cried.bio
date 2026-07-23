@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import QRCode from "qrcode";
 import { IconExternal, IconShare } from "@/components/icons/dashboard-icons";
 import { formatPublicProfileDisplay } from "@/lib/profile/public-profile-url";
@@ -16,8 +17,8 @@ type ShareProfileModalProps = {
 
 type ToastState = { message: string; id: number } | null;
 
-const QR_SIZE = 220;
-const QR_SIZE_ENLARGED = 320;
+const QR_SIZE = 196;
+const QR_SIZE_ENLARGED = 300;
 
 function shareMessage(profileUrl: string): string {
   return `Check out my cried.bio profile: ${profileUrl}`;
@@ -34,8 +35,13 @@ export function ShareProfileModal({
   const [enlarged, setEnlarged] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
   const [qrReady, setQrReady] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const displayUrl = formatPublicProfileDisplay(username);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const showToast = useCallback((message: string) => {
     const id = Date.now();
@@ -158,17 +164,17 @@ export function ShareProfileModal({
     window.open(href, "_blank", "noopener,noreferrer,width=600,height=640");
   };
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  const modal = (
     <>
       <div
-        className="bf-share-modal-backdrop fixed inset-0 z-[140] flex items-end justify-center bg-black/75 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+        className="bf-share-modal-backdrop fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
         role="presentation"
         onClick={onClose}
       >
         <div
-          className="bf-share-modal-panel relative flex max-h-[94dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-white/[0.1] bg-[#0c0c0c] shadow-[0_24px_80px_rgba(0,0,0,0.65)] sm:max-h-[90dvh] sm:rounded-3xl"
+          className="bf-share-modal-panel relative flex max-h-[min(88dvh,820px)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/[0.1] bg-[#0c0c0c] shadow-[0_24px_80px_rgba(0,0,0,0.75)]"
           role="dialog"
           aria-modal="true"
           aria-labelledby="share-profile-title"
@@ -177,16 +183,16 @@ export function ShareProfileModal({
           <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-white/[0.04] blur-3xl" />
           <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-[var(--bf-accent)]/[0.05] blur-3xl" />
 
-          <div className="relative overflow-y-auto overscroll-contain px-5 pb-6 pt-5 sm:px-7 sm:pb-7 sm:pt-6">
-            <div className="mb-6 flex items-start justify-between gap-4">
-              <div>
+          <div className="relative flex min-h-0 flex-1 flex-col">
+            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/[0.06] px-5 py-5 sm:px-6">
+              <div className="min-w-0 pr-2">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
                   Share
                 </p>
                 <h2 id="share-profile-title" className="mt-2 text-xl font-semibold tracking-tight text-white">
                   Share Your Profile
                 </h2>
-                <p className="mt-2 max-w-sm text-sm leading-relaxed text-neutral-500">
+                <p className="mt-2 text-sm leading-relaxed text-neutral-500">
                   Share your profile anywhere and let more people discover your page.
                 </p>
               </div>
@@ -202,33 +208,34 @@ export function ShareProfileModal({
               </button>
             </div>
 
-            <div className="flex flex-col items-center">
-              <button
-                type="button"
-                onClick={() => setEnlarged(true)}
-                disabled={!qrReady}
-                className="bf-share-qr group relative overflow-hidden rounded-2xl border border-white/[0.1] bg-white p-4 shadow-[0_12px_40px_rgba(0,0,0,0.35)] transition hover:scale-[1.02] hover:border-white/[0.16] disabled:cursor-wait disabled:opacity-70"
-                aria-label="Enlarge QR code"
-              >
-                <canvas ref={canvasRef} className="block rounded-xl" />
-                <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-3 py-2 text-[11px] font-medium text-white/90 opacity-0 transition group-hover:opacity-100">
-                  Tap to enlarge
-                </span>
-              </button>
-
-              <div className="mt-5 flex w-full max-w-md items-center gap-2 rounded-xl border border-white/[0.08] bg-black/30 px-3 py-2.5">
-                <p className="min-w-0 flex-1 truncate font-mono text-sm text-neutral-300">{displayUrl}</p>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6 sm:py-6">
+              <div className="flex flex-col items-center">
                 <button
                   type="button"
-                  onClick={copyProfileUrl}
-                  className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-[#090909] transition hover:bg-[#e5e5e5]"
+                  onClick={() => setEnlarged(true)}
+                  disabled={!qrReady}
+                  className="bf-share-qr group relative overflow-hidden rounded-2xl border border-white/[0.1] bg-white p-3 shadow-[0_12px_40px_rgba(0,0,0,0.35)] transition hover:scale-[1.02] hover:border-white/[0.16] disabled:cursor-wait disabled:opacity-70"
+                  aria-label="Enlarge QR code"
                 >
-                  Copy
+                  <canvas ref={canvasRef} className="block max-w-full rounded-xl" />
+                  <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-3 py-2 text-[11px] font-medium text-white/90 opacity-0 transition group-hover:opacity-100">
+                    Click to enlarge
+                  </span>
                 </button>
-              </div>
-            </div>
 
-            <div className="mt-7 grid gap-2 sm:grid-cols-3">
+                <div className="mt-4 flex w-full items-center gap-2 rounded-xl border border-white/[0.08] bg-black/30 px-3 py-2.5">
+                  <p className="min-w-0 flex-1 truncate font-mono text-sm text-neutral-300">{displayUrl}</p>
+                  <button
+                    type="button"
+                    onClick={copyProfileUrl}
+                    className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-[#090909] transition hover:bg-[#e5e5e5]"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-2 sm:grid-cols-3">
               <QuickActionButton
                 label="Open Profile"
                 onClick={() => window.open(profileUrl, "_blank", "noopener,noreferrer")}
@@ -255,7 +262,7 @@ export function ShareProfileModal({
               />
             </div>
 
-            <div className="mt-7">
+            <div className="mt-6">
               <p className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-neutral-600">
                 Share to
               </p>
@@ -321,11 +328,12 @@ export function ShareProfileModal({
               </div>
             </div>
 
-            <div className="mt-7 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-center">
+            <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-center">
               <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-600">
                 Current Profile
               </p>
               <p className="mt-1 font-mono text-sm text-neutral-300">{displayUrl}</p>
+            </div>
             </div>
           </div>
         </div>
@@ -333,7 +341,7 @@ export function ShareProfileModal({
 
       {enlarged ? (
         <div
-          className="bf-share-modal-backdrop fixed inset-0 z-[150] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md"
+          className="bf-share-modal-backdrop fixed inset-0 z-[210] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
           role="presentation"
           onClick={() => setEnlarged(false)}
         >
@@ -358,7 +366,7 @@ export function ShareProfileModal({
 
       {toast ? (
         <div
-          className="bf-share-toast fixed bottom-6 left-1/2 z-[160] -translate-x-1/2 rounded-full border border-white/[0.12] bg-[#141414]/95 px-4 py-2.5 text-sm font-medium text-white shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-md"
+          className="bf-share-toast fixed bottom-6 left-1/2 z-[220] -translate-x-1/2 rounded-full border border-white/[0.12] bg-[#141414]/95 px-4 py-2.5 text-sm font-medium text-white shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-md"
           role="status"
           aria-live="polite"
         >
@@ -367,6 +375,8 @@ export function ShareProfileModal({
       ) : null}
     </>
   );
+
+  return createPortal(modal, document.body);
 }
 
 function QuickActionButton({
