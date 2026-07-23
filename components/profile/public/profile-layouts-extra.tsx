@@ -41,7 +41,7 @@ function VaporwaveLayout(props: LayoutProps) {
       <div className="h-1 bg-gradient-to-r from-[#ff71ce] via-[#01cdfe] to-[#05ffa1]" />
       <div className="px-6 py-6">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -64,7 +64,7 @@ function BrutalistLayout(props: LayoutProps) {
       </div>
       <div className="px-6 py-6">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -95,7 +95,7 @@ function NewspaperLayout(props: LayoutProps) {
         )}
       </div>
       <div className="mt-4 border-t border-white/10 pt-6">
-        {props.pageNav}<ProfileMainContent {...props} hideBio />
+        <ProfileMainContent {...props} hideBio />
       </div>
     </div>
   );
@@ -128,7 +128,7 @@ function TicketLayout(props: LayoutProps) {
         </div>
       </div>
       <div className="px-5 py-4">
-        {props.pageNav}<ProfileMainContent {...props} hideBio />
+        <ProfileMainContent {...props} hideBio />
       </div>
     </div>
   );
@@ -167,7 +167,7 @@ function VinylLayout(props: LayoutProps) {
           </div>
           <ProfileHandle profile={profile} className="mt-1" />
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-          {props.pageNav}<ProfileMainContent {...props} />
+          <ProfileMainContent {...props} />
         </div>
       </div>
     </div>
@@ -207,7 +207,7 @@ function DiscordLayout(props: LayoutProps) {
           </div>
         )}
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {props.pageNav}<ProfileMainContent {...props} hideBio />
+        <ProfileMainContent {...props} hideBio />
       </div>
     </div>
   );
@@ -240,7 +240,7 @@ function TwitchLayout(props: LayoutProps) {
         </div>
       </div>
       <div className="border-t border-[#9146ff]/20 px-5 py-5">
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -287,7 +287,7 @@ function IdcardLayout(props: LayoutProps) {
         ))}
       </div>
       <div className="px-5 py-4">
-        {props.pageNav}<ProfileMainContent {...props} hideBio />
+        <ProfileMainContent {...props} hideBio />
       </div>
     </div>
   );
@@ -322,7 +322,7 @@ function BlueprintLayout(props: LayoutProps) {
       </div>
       <div className="mt-5 border border-dashed border-[#4a9eff]/30 p-4">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -365,7 +365,7 @@ function ComicLayout(props: LayoutProps) {
         )}
         <div className="mt-6 border-t-2 border-dashed border-black/20 pt-5 text-black [&_*]:text-inherit">
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-          {props.pageNav}<ProfileMainContent {...props} hideBio />
+          <ProfileMainContent {...props} hideBio />
         </div>
       </div>
     </div>
@@ -398,7 +398,7 @@ function CyberpunkLayout(props: LayoutProps) {
           </div>
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -425,7 +425,7 @@ function LuxuryLayout(props: LayoutProps) {
       <div className="mx-auto mb-6 mt-6 h-px w-24 bg-white/10" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
       <div className="bf-profile-block mx-auto mt-2 max-w-md">
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -448,7 +448,7 @@ function ReceiptLayout(props: LayoutProps) {
       <div className="my-3 border-t border-dashed border-neutral-400" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mb-3 text-neutral-600" />
       <div className="text-neutral-800 [&_*]:text-inherit">
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
       <div className="my-3 border-t border-dashed border-neutral-400" />
       <p className="text-center text-[9px] uppercase">Thank you for visiting</p>
@@ -474,7 +474,7 @@ function ZineLayout(props: LayoutProps) {
       </div>
       <div className="px-6 py-6">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -504,7 +504,7 @@ function OrbitLayout(props: LayoutProps) {
       <ProfileHandle profile={profile} className="mt-1" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
       <div className="bf-profile-block mx-auto mt-2 max-w-md">
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -533,7 +533,7 @@ function WaveLayout(props: LayoutProps) {
       </div>
       <div className="px-6 py-6">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -578,7 +578,7 @@ function MosaicLayout(props: LayoutProps) {
         </div>
         <ProfileHandle profile={profile} className="mt-1" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -603,7 +603,7 @@ function AuroraLayout(props: LayoutProps) {
       </div>
       <div className="px-6 pb-8">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -631,7 +631,7 @@ function HologramLayout(props: LayoutProps) {
         </div>
         <ProfileHandle profile={profile} className="mt-1 text-center" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -665,7 +665,7 @@ function SpotifyLayout(props: LayoutProps) {
         </div>
         <ProfileHandle profile={profile} className="mt-2 text-neutral-400" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {props.pageNav}<ProfileMainContent {...props} />
+        <ProfileMainContent {...props} />
       </div>
     </div>
   );
@@ -693,7 +693,7 @@ function SpotlightLayout(props: LayoutProps) {
         <ProfileHandle profile={profile} className="mt-1" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
         <div className="bf-profile-block mx-auto mt-4 max-w-md">
-          {props.pageNav}<ProfileMainContent {...props} />
+          <ProfileMainContent {...props} />
         </div>
       </div>
     </div>

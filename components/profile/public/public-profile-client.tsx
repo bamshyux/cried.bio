@@ -50,7 +50,7 @@ import { ProfilePageNav } from "./profile-page-nav";
 import { ProfileThemeScope } from "./profile-theme-scope";
 import { EXTENDED_LAYOUTS } from "./profile-layouts-extra";
 
-function ClassicLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function ClassicLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -75,13 +75,13 @@ function ClassicLayout({ profile, links, settings, badges, viewCount, embeds, fe
           </div>
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
     </div>
   );
 }
 
-function ModernLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function ModernLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -97,13 +97,13 @@ function ModernLayout({ profile, links, settings, badges, viewCount, embeds, fea
       <ProfileHandle profile={profile} className="mb-4" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
       <div className="bf-profile-block max-w-md">
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
     </div>
   );
 }
 
-function GamingLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function GamingLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -124,13 +124,13 @@ function GamingLayout({ profile, links, settings, badges, viewCount, embeds, fea
         </div>
       </div>
       <div className="space-y-2 px-5 pb-5">
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
     </div>
   );
 }
 
-function PortfolioLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function PortfolioLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -146,13 +146,13 @@ function PortfolioLayout({ profile, links, settings, badges, viewCount, embeds, 
         </div>
         <ProfileHandle profile={profile} className="mb-3" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
     </div>
   );
 }
 
-function MinimalLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function MinimalLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -164,12 +164,12 @@ function MinimalLayout({ profile, links, settings, badges, viewCount, embeds, fe
       </div>
       <ProfileHandle profile={profile} className="mb-3" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
     </div>
   );
 }
 
-function StackedLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function StackedLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -196,14 +196,14 @@ function StackedLayout({ profile, links, settings, badges, viewCount, embeds, fe
         </div>
 
         <div className="bf-profile-block max-w-md">
-          {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+          <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
         </div>
       </div>
     </div>
   );
 }
 
-function SplitLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function SplitLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -239,7 +239,7 @@ function SplitLayout({ profile, links, settings, badges, viewCount, embeds, feat
         </div>
         <ProfileHandle profile={profile} className="mb-3" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
     </div>
   );
@@ -266,7 +266,7 @@ function TerminalSection({
   );
 }
 
-function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const title = profile.username ? `@${profile.username}` : "profile";
@@ -303,7 +303,7 @@ function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, f
         )}
 
         <TerminalSection className={profile.bio ? undefined : "!border-t-0 !pt-0"}>
-          {pageNav}<ProfileMainContent
+          <ProfileMainContent
             profile={profile}
             links={links}
             settings={settings}
@@ -325,7 +325,7 @@ function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, f
   );
 }
 
-function CompactLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function CompactLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -342,12 +342,12 @@ function CompactLayout({ profile, links, settings, badges, viewCount, embeds, fe
         </div>
       </div>
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-      {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+      <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
     </div>
   );
 }
 
-function CardLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function CardLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -366,13 +366,13 @@ function CardLayout({ profile, links, settings, badges, viewCount, embeds, featu
         </div>
         <ProfileHandle profile={profile} className="mb-3" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
     </div>
   );
 }
 
-function NeonLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function NeonLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -397,13 +397,13 @@ function NeonLayout({ profile, links, settings, badges, viewCount, embeds, featu
           </div>
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
     </div>
   );
 }
 
-function MagazineLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function MagazineLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -428,13 +428,13 @@ function MagazineLayout({ profile, links, settings, badges, viewCount, embeds, f
       </div>
       <div className="mt-6 border-t border-white/[0.06] pt-6">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
     </div>
   );
 }
 
-function BentoLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function BentoLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -463,14 +463,14 @@ function BentoLayout({ profile, links, settings, badges, viewCount, embeds, feat
         )}
         <div className="rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4 sm:col-span-2">
           <p className="mb-3 text-[10px] font-medium uppercase tracking-wider text-neutral-600">Links</p>
-          {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} hideBio />
+          <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} hideBio />
         </div>
       </div>
     </div>
   );
 }
 
-function SidebarLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function SidebarLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -488,13 +488,13 @@ function SidebarLayout({ profile, links, settings, badges, viewCount, embeds, fe
         </div>
       </aside>
       <main className="min-w-0 flex-1 p-6">
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </main>
     </div>
   );
 }
 
-function HeroLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function HeroLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const heroStyle = profile.banner_url
@@ -525,7 +525,7 @@ function HeroLayout({ profile, links, settings, badges, viewCount, embeds, featu
         </div>
         <div className="pt-14">
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-          {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+          <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
         </div>
       </div>
     </div>
@@ -561,7 +561,7 @@ function PolaroidAvatar({
   );
 }
 
-function PolaroidLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function PolaroidLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -583,12 +583,12 @@ function PolaroidLayout({ profile, links, settings, badges, viewCount, embeds, f
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         </div>
       </div>
-      {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+      <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
     </div>
   );
 }
 
-function CinematicLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function CinematicLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const frameStyle = profile.banner_url
@@ -615,13 +615,13 @@ function CinematicLayout({ profile, links, settings, badges, viewCount, embeds, 
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
     </div>
   );
 }
 
-function ShowcaseLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function ShowcaseLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -651,13 +651,13 @@ function ShowcaseLayout({ profile, links, settings, badges, viewCount, embeds, f
       <ProfileHandle profile={profile} className="mt-1" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
       <div className="bf-profile-block mx-auto mt-2 max-w-md">
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
     </div>
   );
 }
 
-function RetroLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function RetroLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -685,7 +685,7 @@ function RetroLayout({ profile, links, settings, badges, viewCount, embeds, feat
             </div>
           </div>
           <div className="mt-5 border-t border-dashed border-white/10 pt-5">
-            {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+            <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
           </div>
         </div>
       </div>
@@ -693,7 +693,7 @@ function RetroLayout({ profile, links, settings, badges, viewCount, embeds, feat
   );
 }
 
-function PosterLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function PosterLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -727,13 +727,13 @@ function PosterLayout({ profile, links, settings, badges, viewCount, embeds, fea
         </div>
       </div>
       <div className="border-t border-white/[0.06] px-6 py-6">
-        {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
     </div>
   );
 }
 
-function GlassLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId, pageNav }: LayoutProps) {
+function GlassLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const opacity = settings.profile_opacity / 100;
@@ -772,7 +772,7 @@ function GlassLayout({ profile, links, settings, badges, viewCount, embeds, feat
         <ProfileHandle profile={profile} className="mt-1" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
         <div className="bf-profile-block mt-2 w-full max-w-md">
-          {pageNav}<ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+          <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
         </div>
       </div>
     </div>
@@ -897,7 +897,7 @@ export function PublicProfileClient({
     ? CustomThemeLayout
     : (LAYOUTS[settings.layout] ?? ClassicLayout);
   const isOwner = currentUserId === profile.id;
-  const pageNav =
+  const siteNav =
     profile.username && navPages.length > 0 ? (
       <ProfilePageNav username={profile.username} pages={navPages} />
     ) : null;
@@ -918,7 +918,6 @@ export function PublicProfileClient({
     isLoggedIn,
     currentUserId,
     discordPresence,
-    pageNav,
   };
 
   return (
@@ -955,13 +954,20 @@ export function PublicProfileClient({
           {showPresetPreviewBanner && presetPreviewTitle ? (
             <PresetPreviewBanner title={presetPreviewTitle} />
           ) : null}
-          <header className="absolute inset-x-0 top-0 z-20 flex w-full items-center px-5 py-4 sm:px-8 sm:py-5">
-            <Link href="/" className="group opacity-90 transition-opacity hover:opacity-100">
-              <CriedLogo size={24} variant="muted" />
-            </Link>
+          <header className="absolute inset-x-0 top-0 z-20 flex w-full flex-col items-stretch px-5 py-4 sm:px-8 sm:py-5">
+            <div className="flex w-full items-center">
+              <Link href="/" className="group opacity-90 transition-opacity hover:opacity-100">
+                <CriedLogo size={24} variant="muted" />
+              </Link>
+            </div>
+            {siteNav ? (
+              <div className="mt-4 flex justify-center border-b border-white/[0.06] pb-0">
+                {siteNav}
+              </div>
+            ) : null}
           </header>
 
-          <main className="relative flex flex-1 items-center justify-center px-5 py-20">
+          <main className={`relative flex flex-1 items-center justify-center px-5 py-20 ${siteNav ? "pt-28 sm:pt-32" : ""}`}>
             <div
               ref={profileRevealRef}
               className={`mx-auto w-full max-w-2xl overflow-visible${

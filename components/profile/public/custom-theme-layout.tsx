@@ -29,7 +29,6 @@ export function CustomThemeLayout({
   isFollowing,
   isLoggedIn,
   currentUserId,
-  pageNav,
   discordPresence,
 }: LayoutProps) {
   const displayName = getDisplayName(profile);
@@ -63,7 +62,6 @@ export function CustomThemeLayout({
           </div>
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="profile-meta" />
-        {pageNav}
         <ProfileMainContent
           profile={profile}
           links={links}

@@ -29,7 +29,11 @@ export function isValidUsername(username: string) {
 }
 
 export function isPublicProfilePath(pathname: string) {
-  return isHomeProfilePath(pathname) || isProfileSocialPath(pathname);
+  return (
+    isHomeProfilePath(pathname) ||
+    isProfileSocialPath(pathname) ||
+    isContentPagePath(pathname)
+  );
 }
 
 export function isHomeProfilePath(pathname: string) {

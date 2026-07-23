@@ -19,14 +19,9 @@ export function ProfilePageNav({
   return (
     <nav
       aria-label="Site pages"
-      className="bf-profile-page-nav mb-5 flex flex-wrap gap-1 rounded-xl border border-white/[0.06] bg-black/20 p-1"
+      className="bf-profile-page-nav flex items-center justify-center gap-1 overflow-x-auto"
     >
-      <NavTab
-        href={`/${username}`}
-        label="Home"
-        icon="🏠"
-        active={homeActive}
-      />
+      <NavTab href={`/${username}`} label="Home" active={homeActive} />
       {pages.map((page) => (
         <NavTab
           key={page.id}
@@ -54,14 +49,22 @@ function NavTab({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+      className={`relative shrink-0 px-4 py-2 text-[13px] font-medium tracking-wide transition-colors ${
         active
-          ? "bg-white/[0.1] text-white shadow-sm"
-          : "text-neutral-400 hover:bg-white/[0.05] hover:text-neutral-200"
+          ? "text-white"
+          : "text-neutral-500 hover:text-neutral-300"
       }`}
     >
-      {icon ? <span aria-hidden className="text-base leading-none">{icon}</span> : null}
-      <span>{label}</span>
+      <span className="inline-flex items-center gap-1.5">
+        {icon ? <span aria-hidden className="text-sm leading-none opacity-80">{icon}</span> : null}
+        <span>{label}</span>
+      </span>
+      {active ? (
+        <span
+          className="absolute inset-x-3 -bottom-px h-px bg-white/80"
+          aria-hidden
+        />
+      ) : null}
     </Link>
   );
 }

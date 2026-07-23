@@ -16,7 +16,18 @@ export async function getSettingsByProfileId(
     .is("page_id", null)
     .maybeSingle();
 
-  const row = data as Partial<ProfileSettings> & { widgets_discord_user_id?: string } | null;
+  // Fallback: if no primary row exists yet, use the oldest settings row for this profile.
+  let row = data as Partial<ProfileSettings> & { widgets_discord_user_id?: string } | null;
+  if (!row) {
+    const { data: fallback } = await supabase
+      .from("profile_settings")
+      .select("*")
+      .eq("profile_id", profileId)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    row = fallback as typeof row;
+  }
   if (row?.gradient_colors && typeof row.gradient_colors === "string") {
     try {
       row.gradient_colors = JSON.parse(row.gradient_colors as unknown as string);

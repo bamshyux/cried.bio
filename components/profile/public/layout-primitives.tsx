@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useCallback, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { buildCardStyle, getUsernameEffectClass } from "@/lib/settings";
@@ -36,7 +35,6 @@ export type LayoutProps = {
   isLoggedIn: boolean;
   currentUserId?: string | null;
   discordPresence?: DiscordPresence | null;
-  pageNav?: ReactNode;
 };
 
 export function ProfileHandle({ profile, className = "" }: { profile: Profile; className?: string }) {
@@ -157,14 +155,16 @@ export function ProfileAvatar({
   rounded?: string;
 }) {
   const ring = `0 0 0 2px ${accentColor}40, 0 8px 24px rgba(0,0,0,0.5)`;
+  const [imageFailed, setImageFailed] = useState(false);
 
-  if (profile.avatar_url) {
+  if (profile.avatar_url && !imageFailed) {
     return (
       <img
         src={profile.avatar_url}
         alt={displayName}
         className={`${className} ${rounded} object-cover`}
         style={{ boxShadow: ring }}
+        onError={() => setImageFailed(true)}
       />
     );
   }
