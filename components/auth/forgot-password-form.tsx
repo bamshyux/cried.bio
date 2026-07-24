@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { requestPasswordResetAction, type AuthActionState } from "@/app/actions/auth";
+import { AuthHumanVerification, shouldHideAuthError } from "@/components/auth/auth-human-verification";
 
 const initialState: AuthActionState = {};
 
@@ -12,7 +13,8 @@ export function ForgotPasswordForm() {
   const [state, formAction, isPending] = useActionState(requestPasswordResetAction, initialState);
 
   return (
-    <form action={formAction} className="space-y-5">
+    <>
+      <form action={formAction} className="space-y-5">
       <div>
         <label htmlFor="email" className="mb-1.5 block text-[13px] font-medium text-neutral-400">
           Email
@@ -27,7 +29,7 @@ export function ForgotPasswordForm() {
         />
       </div>
 
-      {state.error && (
+      {state.error && !shouldHideAuthError(state.error) && (
         <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
           {state.error}
         </p>
@@ -53,6 +55,9 @@ export function ForgotPasswordForm() {
           Back to login
         </Link>
       </p>
-    </form>
+      </form>
+
+      <AuthHumanVerification error={state.error} from="password_reset" />
+    </>
   );
 }

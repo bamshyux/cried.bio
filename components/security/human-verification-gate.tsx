@@ -3,25 +3,36 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TurnstileWidget } from "@/components/security/turnstile-widget";
+import type { HumanVerificationRedirectFrom } from "@/lib/security/guard-action";
 
 type VerifyStatus = "loading" | "verified" | "pending";
 
-const RETURN_MESSAGES: Record<string, string> = {
-  login: "Complete the check below, then go back to login.",
-  signup: "Complete the check below, then return to create your profile.",
+const RETURN_MESSAGES: Record<HumanVerificationRedirectFrom, string> = {
+  login: "Complete the check below, then try logging in again.",
+  signup: "Complete the check below, then try creating your profile again.",
   password_reset: "Complete the check below, then try resetting your password again.",
 };
 
-const RETURN_PATHS: Record<string, string> = {
+const RETURN_PATHS: Record<HumanVerificationRedirectFrom, string> = {
   login: "/login",
   signup: "/signup",
   password_reset: "/forgot-password",
 };
 
-export function HumanVerificationGate() {
+export function HumanVerificationGate({
+  variant = "landing",
+  from: fromProp,
+  open: openProp = false,
+  onVerified,
+}: {
+  variant?: "landing" | "auth";
+  from?: HumanVerificationRedirectFrom;
+  open?: boolean;
+  onVerified?: () => void;
+} = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnFrom = searchParams.get("from");
+  const returnFrom = fromProp ?? (searchParams.get("from") as HumanVerificationRedirectFrom | null);
   const returnMessage = returnFrom ? RETURN_MESSAGES[returnFrom] : null;
   const [status, setStatus] = useState<VerifyStatus>("loading");
   const [challenge, setChallenge] = useState<string | null>(null);
@@ -99,12 +110,17 @@ export function HumanVerificationGate() {
 
       setStatus("verified");
 
+      if (onVerified) {
+        onVerified();
+        return;
+      }
+
       const returnPath = returnFrom ? RETURN_PATHS[returnFrom] : null;
       if (returnPath) {
         router.replace(returnPath);
       }
     },
-    [challenge, turnstile, loadChallenge, returnFrom, router],
+    [challenge, turnstile, loadChallenge, returnFrom, router, onVerified],
   );
 
   const stopHold = useCallback(() => {
@@ -146,6 +162,7 @@ export function HumanVerificationGate() {
   }, []);
 
   if (status === "loading" || status === "verified") return null;
+  if (variant === "auth" && !openProp) return null;
 
   return (
     <div className="bf-human-gate fixed inset-0 z-[200] flex items-center justify-center p-4">

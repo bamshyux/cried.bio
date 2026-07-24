@@ -1,5 +1,11 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import {
+  HUMAN_VERIFICATION_REQUIRED_MESSAGE,
+  isHumanVerificationRequired,
+} from "@/lib/security/human-verification-messages";
+
+export { HUMAN_VERIFICATION_REQUIRED_MESSAGE, isHumanVerificationRequired };
 
 export const HUMAN_COOKIE_NAME = "bf_human_v";
 export const HUMAN_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 30; // 30 days
@@ -83,13 +89,6 @@ export function parseHumanCookieValue(value: string | undefined | null): boolean
 export async function isHumanVerified(): Promise<boolean> {
   const jar = await cookies();
   return parseHumanCookieValue(jar.get(HUMAN_COOKIE_NAME)?.value);
-}
-
-export const HUMAN_VERIFICATION_REQUIRED_MESSAGE =
-  "Please complete human verification before continuing.";
-
-export function isHumanVerificationRequired(error: string | null | undefined): boolean {
-  return error === HUMAN_VERIFICATION_REQUIRED_MESSAGE;
 }
 
 export async function assertHumanVerified(): Promise<string | null> {
