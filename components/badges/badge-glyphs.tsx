@@ -50,6 +50,7 @@ function ShieldBadge({ c, hi, children }: { c: string; hi: string; children: Rea
 export function BadgeGlyph({ slug, color }: { slug: string; color: string }): ReactNode {
   const c = color;
   const hi = "rgba(255,255,255,0.35)";
+  const ink = color.trim().toLowerCase() === "#e4e4e7" ? "rgba(0,0,0,0.45)" : hi;
 
   switch (slug) {
     case "verified":
@@ -145,17 +146,18 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
     case "supporter":
       return (
         <>
-          <MedallionRibbon c={c} />
-          <MedallionDisc c={c} hi={hi} />
+          <rect x="8.5" y="3.2" width="7" height="2.2" rx="0.7" fill={c} />
+          <circle cx="12" cy="4.2" r="1.15" fill={ink} />
           <path
-            d="M12 17.5S7.8 14.2 7.8 11a2.6 2.6 0 0 1 4.2 0 2.6 2.6 0 0 1 4.2 0c0 3.2-4.2 6.5-4.2 6.5z"
-            fill="#000"
-            fillOpacity="0.3"
+            d="M12 21.2S4.8 15.8 4.8 10.8a4 4 0 0 1 7.2-2.2A4 4 0 0 1 19.2 10.8c0 5-7.2 10.4-7.2 10.4z"
+            fill={c}
           />
           <path
-            d="M12 17.5S7.8 14.2 7.8 11a2.6 2.6 0 0 1 4.2 0 2.6 2.6 0 0 1 4.2 0c0 3.2-4.2 6.5-4.2 6.5z"
-            fill={hi}
-            opacity="0.18"
+            d="M12 18.8S8.2 15.2 8.2 12a2.8 2.8 0 0 1 3.8 0"
+            fill="none"
+            stroke={ink}
+            strokeWidth="1.8"
+            strokeLinecap="round"
           />
         </>
       );
@@ -180,18 +182,12 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
     case "contributor":
       return (
         <>
-          <MedallionRibbon c={c} />
-          <MedallionDisc c={c} hi={hi} />
-          <path
-            d="M13.4 11.6h2.1v1.4a1 1 0 1 0 0 2H13.4v2h-1.6a1 1 0 1 1-2 0v-2H8.5a1 1 0 1 1 0-2h1.3v-1.4h1.6a1 1 0 1 1 2 0v1.4z"
-            fill="#000"
-            fillOpacity="0.32"
-          />
-          <path
-            d="M13.4 11.6h2.1v1.4a1 1 0 1 0 0 2H13.4v2h-1.6a1 1 0 1 1-2 0v-2H8.5a1 1 0 1 1 0-2h1.3v-1.4h1.6a1 1 0 1 1 2 0v1.4z"
-            fill={hi}
-            opacity="0.2"
-          />
+          <path d="M12 2.6 19.4 6.8v8.6L12 21.4 4.6 15.4V6.8L12 2.6z" fill={c} />
+          <path d="M12 2.6 19.4 6.8v8.6L12 21.4 4.6 15.4V6.8L12 2.6z" fill={hi} opacity="0.12" />
+          <circle cx="12" cy="7.8" r="2.1" fill={ink} />
+          <circle cx="8.2" cy="15.8" r="2.1" fill={ink} />
+          <circle cx="15.8" cy="15.8" r="2.1" fill={ink} />
+          <path d="M12 9.9v3.2M12 13.1 8.2 15.8M12 13.1 15.8 15.8" stroke={ink} strokeWidth="2.2" strokeLinecap="round" />
         </>
       );
 
@@ -281,8 +277,7 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
           <MedallionDisc c={c} hi={hi} />
           <path
             d="M12 11.4 13.1 13.7 15.7 14 13.7 15.6 14.4 18 12 16.6 9.6 18 10.3 15.6 8.3 14 10.9 13.7 12 11.4z"
-            fill="#000"
-            fillOpacity="0.28"
+            fill={ink}
           />
         </>
       );
@@ -292,7 +287,7 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
         <>
           <MedallionRibbon c={c} />
           <MedallionDisc c={c} hi={hi} />
-          <text x="12" y="16.4" textAnchor="middle" fill="#000" fillOpacity="0.3" fontSize="7.5" fontWeight="900" fontFamily="system-ui,sans-serif">
+          <text x="12" y="16.4" textAnchor="middle" fill={ink} fontSize="7.5" fontWeight="900" fontFamily="system-ui,sans-serif">
             2
           </text>
         </>
@@ -303,7 +298,7 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
         <>
           <MedallionRibbon c={c} />
           <MedallionDisc c={c} hi={hi} />
-          <text x="12" y="16.4" textAnchor="middle" fill="#000" fillOpacity="0.3" fontSize="7.5" fontWeight="900" fontFamily="system-ui,sans-serif">
+          <text x="12" y="16.4" textAnchor="middle" fill={ink} fontSize="7.5" fontWeight="900" fontFamily="system-ui,sans-serif">
             3
           </text>
         </>
@@ -312,18 +307,16 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
     case "tournament-winner":
       return (
         <>
-          <MedallionRibbon c={c} />
-          <MedallionDisc c={c} hi={hi} />
-          <path d="M10 10.8 12 9.2 14 10.8" stroke={hi} strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.75" />
-          <path d="M9.6 11h4.8l-.5 4.2h-3.8L9.6 11z" fill="#000" fillOpacity="0.32" />
-          <rect x="8.8" y="15.2" width="6.4" height="1.5" rx="0.4" fill="#000" fillOpacity="0.32" />
-          <rect x="10.4" y="16.7" width="3.2" height="1.8" rx="0.4" fill="#000" fillOpacity="0.32" />
-          <rect x="8.1" y="11.8" width="1.3" height="2.8" rx="0.5" fill="#000" fillOpacity="0.25" />
-          <rect x="14.6" y="11.8" width="1.3" height="2.8" rx="0.5" fill="#000" fillOpacity="0.25" />
+          <path d="M5.2 11.8a9 9 0 0 1 13.6 0" stroke={c} strokeWidth="2.4" fill="none" strokeLinecap="round" />
+          <path d="M7 10.2H5.6a2 2 0 0 0 0 4H7" stroke={c} strokeWidth="2.4" fill="none" strokeLinecap="round" />
+          <path d="M17 10.2h1.4a2 2 0 0 1 0 4H17" stroke={c} strokeWidth="2.4" fill="none" strokeLinecap="round" />
+          <path d="M7.2 10h9.6l-1 7.2H8.2L7.2 10z" fill={c} />
           <path
-            d="M12 9.8 12.35 10.65 13.25 10.65 12.55 11.15 12.85 12 12 11.55 11.15 12 11.45 11.15 10.75 10.65 11.65 10.65 12 9.8z"
-            fill={hi}
+            d="M12 7.8 12.55 9.2 14.05 9.2 12.85 10.1 13.3 11.5 12 10.65 10.7 11.5 11.15 10.1 9.95 9.2 11.45 9.2 12 7.8z"
+            fill={ink}
           />
+          <rect x="8.2" y="17.2" width="7.6" height="2" rx="0.5" fill={c} />
+          <rect x="9.8" y="19.2" width="4.4" height="2.8" rx="0.6" fill={c} />
         </>
       );
 
@@ -340,19 +333,18 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
     case "christmas-2026":
       return (
         <>
-          <MedallionRibbon c={c} />
-          <MedallionDisc c={c} hi={hi} />
           <path
-            d="M12 9.2 12.35 10.05 13.25 10.05 12.55 10.55 12.85 11.4 12 10.95 11.15 11.4 11.45 10.55 10.75 10.05 11.65 10.05 12 9.2z"
-            fill={hi}
+            d="M12 2.8 13.4 6.2 16.8 6.2 14 8.2 15 11.5 12 9.5 9 11.5 10 8.2 7.2 6.2 10.6 6.2 12 2.8z"
+            fill={c}
           />
-          <path d="M12 10.8 9.2 14.2h5.6L12 10.8z" fill="#000" fillOpacity="0.32" />
-          <path d="M12 12.8 8 17h8L12 12.8z" fill="#000" fillOpacity="0.32" />
-          <rect x="11" y="17" width="2" height="2.4" fill="#000" fillOpacity="0.32" />
-          <circle cx="8.4" cy="12.4" r="0.75" fill={hi} opacity="0.65" />
-          <circle cx="15.6" cy="13.2" r="0.75" fill={hi} opacity="0.65" />
-          <circle cx="9.8" cy="16.2" r="0.65" fill={hi} opacity="0.5" />
-          <circle cx="14.2" cy="16.5" r="0.65" fill={hi} opacity="0.5" />
+          <path d="M12 6.8 9.2 11h5.6L12 6.8z" fill={c} />
+          <path d="M12 9.8 7.8 14.8h8.4L12 9.8z" fill={c} />
+          <path d="M12 12.8 6 19.5h12L12 12.8z" fill={c} />
+          <rect x="10.1" y="19.5" width="3.8" height="2.5" rx="0.5" fill={c} />
+          <circle cx="10.2" cy="13.2" r="0.95" fill={ink} />
+          <circle cx="14.2" cy="15.5" r="0.95" fill={ink} />
+          <circle cx="11.2" cy="17.8" r="0.85" fill={ink} />
+          <path d="M12 10.2v1.4M12 14.2v1.4" stroke={ink} strokeWidth="1.3" strokeLinecap="round" />
         </>
       );
 
