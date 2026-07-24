@@ -6,6 +6,7 @@ export type OgBadgeChip = {
 
 export type OgBackground =
   | { kind: "image"; url: string }
+  | { kind: "video"; url: string }
   | { kind: "gradient"; colors: string[] }
   | { kind: "solid"; color: string };
 

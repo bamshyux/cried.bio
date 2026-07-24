@@ -237,12 +237,15 @@ export function applySiteMusicSettings<T extends ProfileSettings>(
   };
 }
 
-export const LAYOUT_OPTIONS: {
+export type LayoutOption = {
   value: ProfileLayout;
   label: string;
   description: string;
   preview: string;
-}[] = [
+  premiumOnly?: boolean;
+};
+
+export const LAYOUT_OPTIONS: LayoutOption[] = [
   { value: "classic", label: "Classic", description: "Banner header with avatar overlap", preview: "classic" },
   { value: "modern", label: "Modern", description: "Centered card, clean hierarchy", preview: "modern" },
   { value: "gaming", label: "Gaming", description: "Sharp edges, bold header strip", preview: "gaming" },
@@ -285,8 +288,31 @@ export const LAYOUT_OPTIONS: {
   { value: "hologram", label: "Hologram", description: "Iridescent animated border frame", preview: "hologram" },
   { value: "spotify", label: "Spotify", description: "Artist page with large square avatar", preview: "spotify" },
   { value: "spotlight", label: "Spotlight", description: "Stage spotlight on dark background", preview: "spotlight" },
+  { value: "monarch", label: "Monarch", description: "Regal gold crown header with refined spacing", preview: "monarch", premiumOnly: true },
+  { value: "glitch", label: "Glitch", description: "Digital RGB split and scanline distortion", preview: "glitch", premiumOnly: true },
+  { value: "noir", label: "Noir", description: "Film noir letterbox with high-contrast type", preview: "noir", premiumOnly: true },
+  { value: "runway", label: "Runway", description: "Fashion editorial stripe and bold masthead", preview: "runway", premiumOnly: true },
+  { value: "arcade", label: "Arcade", description: "Retro cabinet bezel with pixel chrome", preview: "arcade", premiumOnly: true },
+  { value: "passport", label: "Passport", description: "Travel document stamps and visa stripes", preview: "passport", premiumOnly: true },
+  { value: "cassette", label: "Cassette", description: "Mixtape reels and labeled spine strip", preview: "cassette", premiumOnly: true },
+  { value: "crystal", label: "Crystal", description: "Faceted gem header with prismatic shine", preview: "crystal", premiumOnly: true },
+  { value: "nebuladrift", label: "Nebula Drift", description: "Deep-space cloud band with star dust", preview: "nebuladrift", premiumOnly: true },
+  { value: "samurai", label: "Samurai", description: "Crimson blade accent and vertical rhythm", preview: "samurai", premiumOnly: true },
+  { value: "graffiti", label: "Graffiti", description: "Street-art drip header and spray texture", preview: "graffiti", premiumOnly: true },
+  { value: "monolith", label: "Monolith", description: "Tall narrow monument column layout", preview: "monolith", premiumOnly: true },
+  { value: "prismstack", label: "Prism Stack", description: "Stacked rainbow panels above content", preview: "prismstack", premiumOnly: true },
+  { value: "dashboard", label: "Dashboard", description: "Widget tiles and metric strip header", preview: "dashboard", premiumOnly: true },
+  { value: "command", label: "Command", description: "Tactical ops console with status rail", preview: "command", premiumOnly: true },
+  { value: "bloom", label: "Bloom", description: "Soft floral gradient and petal glow", preview: "bloom", premiumOnly: true },
+  { value: "stealth", label: "Stealth", description: "Covert dark UI with night-vision accent", preview: "stealth", premiumOnly: true },
+  { value: "festival", label: "Festival", description: "Concert wristband notch and stage badge", preview: "festival", premiumOnly: true },
+  { value: "manga", label: "Manga", description: "Ink panel borders and speech-bubble bio", preview: "manga", premiumOnly: true },
+  { value: "emberforge", label: "Ember Forge", description: "Industrial forge sparks and heat shimmer", preview: "emberforge", premiumOnly: true },
   { value: "custom", label: "Custom Theme", description: "Build your own layout with scoped CSS", preview: "custom" },
 ];
+
+export const FREE_LAYOUT_OPTIONS = LAYOUT_OPTIONS.filter((option) => !option.premiumOnly);
+export const PREMIUM_LAYOUT_OPTIONS = LAYOUT_OPTIONS.filter((option) => option.premiumOnly);
 
 export type FontOption = {
   value: string;

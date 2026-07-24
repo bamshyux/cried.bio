@@ -16,6 +16,7 @@ import {
 import { ContentPageStylePreview, type ContentPageStyleFormState } from "@/components/dashboard/content-page-editor/style-preview";
 import { useUpgradeModal } from "@/components/premium/upgrade-modal";
 import { CARD_BORDER_EFFECT_OPTIONS } from "@/lib/card-border-effects/presets";
+import { isPremiumCardBorderEffect, sanitizeCardBorderEffectSelection } from "@/lib/card-border-effects/premium";
 import { readContentPageBorderTargets } from "@/lib/card-border-effects/resolve";
 import { PREMIUM_FONT_OPTIONS, isPremiumFont } from "@/lib/premium/fonts";
 import { FONT_OPTIONS, CONTENT_ALIGNMENT_OPTIONS } from "@/lib/settings";
@@ -46,11 +47,13 @@ export function ContentPageStyleEditor({
   settings,
   pageId,
   canUsePremiumFonts = false,
+  canUsePremiumBorderEffects = false,
 }: {
   page: ProfilePage;
   settings: ProfileSettings;
   pageId: string;
   canUsePremiumFonts?: boolean;
+  canUsePremiumBorderEffects?: boolean;
 }) {
   const { openUpgrade } = useUpgradeModal();
   const { form, patchForm, submit, state, isPending } = useDashboardSettingsSection(
@@ -64,7 +67,13 @@ export function ContentPageStyleEditor({
 
   const handleSave = (event: React.FormEvent) => {
     event.preventDefault();
-    submit(form);
+    submit({
+      ...form,
+      card_border_effect: sanitizeCardBorderEffectSelection(
+        form.card_border_effect,
+        canUsePremiumBorderEffects,
+      ),
+    });
   };
 
   return (
@@ -204,6 +213,10 @@ export function ContentPageStyleEditor({
                 value={form.card_border_effect}
                 onChange={(card_border_effect) => {
                   const next = card_border_effect as ContentPageStyleFormState["card_border_effect"];
+                  if (isPremiumCardBorderEffect(next) && !canUsePremiumBorderEffects) {
+                    openUpgrade();
+                    return;
+                  }
                   if (next === "none") {
                     patchForm({
                       card_border_effect: next,
@@ -224,7 +237,10 @@ export function ContentPageStyleEditor({
                 }}
                 options={CARD_BORDER_EFFECT_OPTIONS.map((option) => ({
                   value: option.value,
-                  label: option.label,
+                  label:
+                    option.premiumOnly && !canUsePremiumBorderEffects
+                      ? `${option.label} — Premium Lite`
+                      : option.label,
                 }))}
               />
               {form.card_border_effect !== "none" ? (

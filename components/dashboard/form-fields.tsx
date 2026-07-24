@@ -40,6 +40,8 @@ export function ToggleField({
   defaultChecked,
   checked,
   onCheckedChange,
+  disabled = false,
+  badge,
 }: {
   name: string;
   label: string;
@@ -48,26 +50,37 @@ export function ToggleField({
   /** When set, the toggle is fully controlled by the parent (preferred for settings forms). */
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
+  disabled?: boolean;
+  badge?: ReactNode;
 }) {
   const [internalChecked, setInternalChecked] = useState(defaultChecked ?? false);
   const isControlled = checked !== undefined;
   const resolvedChecked = isControlled ? checked : internalChecked;
 
   return (
-    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/[0.06] bg-[#0f0f0f] p-4 transition-colors hover:border-white/10">
+    <label
+      className={`flex items-start gap-3 rounded-lg border border-white/[0.06] bg-[#0f0f0f] p-4 transition-colors ${
+        disabled ? "cursor-not-allowed opacity-80" : "cursor-pointer hover:border-white/10"
+      }`}
+    >
       {!isControlled ? <input type="hidden" name={name} value={resolvedChecked ? "true" : "false"} /> : null}
       <input
         type="checkbox"
         checked={resolvedChecked}
+        disabled={disabled}
         onChange={(e) => {
+          if (disabled) return;
           const next = e.target.checked;
           if (!isControlled) setInternalChecked(next);
           onCheckedChange?.(next);
         }}
-        className="mt-0.5 h-4 w-4 rounded border-white/20 bg-[#090909] accent-[#fafafa]"
+        className="mt-0.5 h-4 w-4 rounded border-white/20 bg-[#090909] accent-[#fafafa] disabled:cursor-not-allowed"
       />
       <span>
-        <span className="block text-sm font-medium text-neutral-100">{label}</span>
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="block text-sm font-medium text-neutral-100">{label}</span>
+          {badge}
+        </span>
         {description && (
           <span className="mt-0.5 block text-xs text-neutral-500">{description}</span>
         )}

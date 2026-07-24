@@ -11,6 +11,10 @@ export const LAYOUT_LABEL_DEFAULTS: Partial<Record<ProfileLayout, string>> = {
   twitch: "Live",
   blueprint: "cried.bio",
   zine: "Issue",
+  passport: "VISITOR",
+  cassette: "Side A",
+  command: "OPS-ACTIVE",
+  festival: "ALL ACCESS",
 };
 
 export function layoutSupportsCustomLabel(layout: ProfileLayout): boolean {

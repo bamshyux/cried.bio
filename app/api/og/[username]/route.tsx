@@ -10,6 +10,7 @@ type RouteContext = {
 };
 
 export const revalidate = 300;
+export const maxDuration = 60;
 
 const OG_SIZE = { width: 1200, height: 630 } as const;
 

@@ -1,6 +1,9 @@
 import type { OgProfileSnapshot } from "@/lib/og/types";
+import { extractOgVideoBackgroundFrame } from "@/lib/og/extract-video-frame";
 
 const IMAGE_FETCH_TIMEOUT_MS = 8_000;
+
+const DEFAULT_GRADIENT = ["#090909", "#141414", "#1a1a1a"] as const;
 
 async function fetchAsDataUrl(url: string): Promise<string | null> {
   const trimmed = url.trim();
@@ -41,10 +44,19 @@ export async function embedOgImages(
     ? fetchAsDataUrl(snapshot.avatarUrl)
     : Promise.resolve(null);
 
-  const backgroundPromise =
-    snapshot.background.kind === "image"
-      ? fetchAsDataUrl(snapshot.background.url)
-      : Promise.resolve(null);
+  const backgroundPromise = (async () => {
+    if (snapshot.background.kind === "image") {
+      return fetchAsDataUrl(snapshot.background.url);
+    }
+
+    if (snapshot.background.kind === "video") {
+      const frame = await extractOgVideoBackgroundFrame(snapshot.background.url);
+      if (!frame) return null;
+      return `data:image/jpeg;base64,${frame.toString("base64")}`;
+    }
+
+    return null;
+  })();
 
   const [avatarUrl, backgroundUrl] = await Promise.all([
     avatarPromise,
@@ -55,10 +67,11 @@ export async function embedOgImages(
     ...snapshot,
     avatarUrl: avatarUrl ?? snapshot.avatarUrl,
     background:
-      snapshot.background.kind === "image" && backgroundUrl
+      (snapshot.background.kind === "image" || snapshot.background.kind === "video") &&
+      backgroundUrl
         ? { kind: "image", url: backgroundUrl }
-        : snapshot.background.kind === "image"
-          ? { kind: "gradient", colors: ["#090909", "#141414", "#1a1a1a"] }
+        : snapshot.background.kind === "image" || snapshot.background.kind === "video"
+          ? { kind: "gradient", colors: [...DEFAULT_GRADIENT] }
           : snapshot.background,
   };
 }

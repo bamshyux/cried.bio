@@ -107,7 +107,18 @@ export async function getSettingsByPageId(
     .maybeSingle();
 
   const { mergeSettings, applySiteProfileSettings } = await import("@/lib/settings");
-  return applySiteProfileSettings(mergeSettings(data, profileId), siteSettings);
+  const { getUserEntitlements } = await import("@/lib/premium/entitlements");
+  const { enforceMusicPlayerVisibility } = await import("@/lib/premium/music-settings");
+  const { enforceCardBorderEffectEntitlement } = await import("@/lib/card-border-effects/premium");
+  const { enforceProfileLayoutEntitlement } = await import("@/lib/premium/layout-settings");
+  const settings = applySiteProfileSettings(mergeSettings(data, profileId), siteSettings);
+  const entitlements = await getUserEntitlements(profileId);
+  const withMusic = enforceMusicPlayerVisibility(settings, entitlements.can_use_playlist);
+  const withBorders = enforceCardBorderEffectEntitlement(withMusic, entitlements.animated_effects);
+  return {
+    ...withBorders,
+    layout: enforceProfileLayoutEntitlement(withBorders.layout, entitlements.animated_effects),
+  };
 }
 
 export async function resolvePublicPageMusic(

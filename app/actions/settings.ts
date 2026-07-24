@@ -20,6 +20,8 @@ import type { SettingsFormState, SettingsSection } from "@/lib/types/settings";
 import type { CardBorderEffectPreset } from "@/lib/types/settings";
 import { parseCardBorderTargets, writeContentPageBorderTargets } from "@/lib/card-border-effects/resolve";
 import { CARD_BORDER_EFFECT_OPTIONS } from "@/lib/card-border-effects/presets";
+import { sanitizeCardBorderEffectSelection } from "@/lib/card-border-effects/premium";
+import { sanitizeProfileLayoutSelection } from "@/lib/premium/layout-settings";
 import type {
   BackgroundType,
   EnterGateAnimation,
@@ -564,6 +566,32 @@ export async function updateSettingsAction(
     if (!entitlements.can_use_premium_fonts) {
       return { error: "Premium Lite is required for this font." };
     }
+  }
+
+  if (section === "music") {
+    const entitlements = await getUserEntitlements(userId);
+    if (!entitlements.can_use_playlist) {
+      updates.music_show_player = true;
+    }
+  }
+
+  if (
+    (section === "card_border" || section === "customize") &&
+    updates.card_border_effect
+  ) {
+    const entitlements = await getUserEntitlements(userId);
+    updates.card_border_effect = sanitizeCardBorderEffectSelection(
+      updates.card_border_effect,
+      entitlements.animated_effects,
+    );
+  }
+
+  if (section === "themes" && updates.layout) {
+    const entitlements = await getUserEntitlements(userId);
+    updates.layout = sanitizeProfileLayoutSelection(
+      updates.layout,
+      entitlements.animated_effects,
+    );
   }
 
   if (section === "customize" && updates.layout_label) {

@@ -524,6 +524,238 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
     </div>
   ),
 
+  monarch: (
+    <div className={`${BASE} border-[#d4af37]/20`}>
+      <div className="border-b border-[#d4af37]/15 bg-[#d4af37]/10 py-1 text-center text-[8px] text-[#d4af37]">MONARCH</div>
+      <div className="flex flex-col items-center gap-1 p-2">
+        <Avatar className="h-5 w-5 ring-1 ring-[#d4af37]/30" />
+        <Line w="w-10" className="bg-white/15" />
+      </div>
+    </div>
+  ),
+
+  glitch: (
+    <div className={BASE}>
+      <div className="flex gap-2 p-2">
+        <Avatar className="h-5 w-5" />
+        <div className="relative flex-1">
+          <Line w="w-10" className="bg-white/20" />
+          <Line w="w-9" className="absolute left-0.5 top-0 bg-[#ff0080]/40" />
+        </div>
+      </div>
+    </div>
+  ),
+
+  noir: (
+    <div className={`${BASE} bg-black`}>
+      <Line w="w-8" className="mx-auto mt-1 bg-white/30" />
+      <div className="flex flex-col items-center gap-1 p-2">
+        <Line w="w-10" h="h-1.5" className="bg-white/20" />
+        <Avatar className="h-4 w-4 grayscale" />
+      </div>
+      <Line w="w-8" className="mx-auto mb-1 bg-white/30" />
+    </div>
+  ),
+
+  runway: (
+    <div className={`${BASE} flex`}>
+      <div className="w-1 bg-[var(--bf-accent,#fafafa)]/40" />
+      <div className="flex flex-1 flex-col gap-1 p-2">
+        <Line w="w-8" className="bg-white/10" />
+        <Avatar className="h-4 w-4" />
+        <Line w="w-10" className="bg-white/15" />
+      </div>
+    </div>
+  ),
+
+  arcade: (
+    <div className={`${BASE} border-2 border-[#6366f1]/30`}>
+      <div className="border-b border-[#6366f1]/20 bg-[#6366f1]/10 py-0.5 text-center text-[7px] text-[#c7d2fe]">P1</div>
+      <div className="flex gap-1 p-2">
+        <Avatar className="h-4 w-4 rounded-sm" />
+        <Line w="w-8" className="mt-1 bg-white/15" />
+      </div>
+    </div>
+  ),
+
+  passport: (
+    <div className={`${BASE} border-[#60a5fa]/20 bg-[#0c1420]`}>
+      <div className="flex justify-between px-2 py-1">
+        <Line w="w-8" h="h-1" className="bg-[#60a5fa]/40" />
+        <div className="h-3 w-3 rounded-full border border-dashed border-[#60a5fa]/40" />
+      </div>
+      <div className="flex gap-1 px-2 pb-2">
+        <Avatar className="h-5 w-5 rounded-sm" />
+        <Line w="w-8" className="mt-1" />
+      </div>
+    </div>
+  ),
+
+  cassette: (
+    <div className={BASE}>
+      <div className="flex items-center justify-between border-b border-white/10 px-2 py-1">
+        <Line w="w-6" h="h-1" />
+        <div className="flex gap-1">
+          <div className="h-2 w-2 rounded-full border border-white/20" />
+          <div className="h-2 w-2 rounded-full border border-white/20" />
+        </div>
+      </div>
+      <div className="flex gap-1 p-2">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" className="mt-1" />
+      </div>
+    </div>
+  ),
+
+  crystal: (
+    <div className={BASE}>
+      <div className="mx-2 mt-1 h-6 bg-gradient-to-b from-white/15 to-transparent" style={{ clipPath: "polygon(0 0,100% 0,100% 70%,50% 100%,0 70%)" }} />
+      <div className="flex flex-col items-center gap-1 p-1">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" />
+      </div>
+    </div>
+  ),
+
+  nebuladrift: (
+    <div className={`${BASE} bg-gradient-to-b from-[#6366f1]/20 via-[#a855f7]/10 to-transparent`}>
+      <div className="flex flex-col items-center justify-end gap-1 pb-2 pt-4">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" className="bg-white/15" />
+      </div>
+    </div>
+  ),
+
+  samurai: (
+    <div className={`${BASE} flex`}>
+      <div className="flex flex-1 flex-col gap-1 p-2">
+        <Line w="w-6" h="h-1" className="bg-[#dc2626]/50" />
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" />
+      </div>
+      <div className="w-1 bg-gradient-to-b from-[#dc2626] to-[#450a0a]" />
+    </div>
+  ),
+
+  graffiti: (
+    <div className={BASE}>
+      <div className="relative bg-white/10 px-2 py-2">
+        <Line w="w-10" h="h-1.5" className="bg-white/25" />
+        <div className="absolute bottom-0 left-3 h-4 w-1 rotate-12 rounded-full bg-[#f472b6]/60" />
+      </div>
+      <Line w="w-8" className="mx-2 mt-2" />
+    </div>
+  ),
+
+  monolith: (
+    <div className={`${BASE} mx-auto max-w-[70%]`}>
+      <div className="flex flex-col items-center gap-1 p-3">
+        <Avatar className="h-5 w-5" />
+        <Line w="w-8" className="bg-white/15" />
+        <Line w="w-full" />
+      </div>
+    </div>
+  ),
+
+  prismstack: (
+    <div className={BASE}>
+      <div className="flex h-1">
+        <div className="flex-1 bg-[#ef4444]/70" />
+        <div className="flex-1 bg-[#22c55e]/70" />
+        <div className="flex-1 bg-[#3b82f6]/70" />
+        <div className="flex-1 bg-[#f97316]/70" />
+      </div>
+      <div className="flex gap-1 p-2">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" className="mt-1" />
+      </div>
+    </div>
+  ),
+
+  dashboard: (
+    <div className={BASE}>
+      <div className="grid grid-cols-3 gap-0.5 p-1">
+        <div className="rounded border border-white/10 p-1"><Line w="w-full" h="h-1" /></div>
+        <div className="rounded border border-white/10 p-1"><Line w="w-full" h="h-1" /></div>
+        <div className="rounded border border-white/10 p-1"><Line w="w-full" h="h-1" /></div>
+      </div>
+      <div className="flex gap-1 px-2 pb-2">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" className="mt-1" />
+      </div>
+    </div>
+  ),
+
+  command: (
+    <div className={`${BASE} border-[#22c55e]/20 bg-[#050805]`}>
+      <div className="flex items-center gap-1 border-b border-[#22c55e]/15 px-2 py-0.5">
+        <div className="h-1 w-1 rounded-full bg-[#22c55e]" />
+        <Line w="w-8" h="h-1" className="bg-[#22c55e]/40" />
+      </div>
+      <div className="flex gap-1 p-2">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" className="mt-1" />
+      </div>
+    </div>
+  ),
+
+  bloom: (
+    <div className={`${BASE} bg-gradient-to-br from-[#f472b6]/15 to-transparent`}>
+      <div className="flex flex-col items-center gap-1 p-3">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" className="bg-white/15" />
+      </div>
+    </div>
+  ),
+
+  stealth: (
+    <div className={`${BASE} border-[#14532d]/30 bg-[#030303]`}>
+      <div className="flex items-center gap-1 px-2 pt-1">
+        <div className="h-1 w-1 rounded-full bg-[#4ade80]" />
+        <Line w="w-6" h="h-1" className="bg-[#4ade80]/30" />
+      </div>
+      <div className="flex gap-1 p-2">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" className="mt-1" />
+      </div>
+    </div>
+  ),
+
+  festival: (
+    <div className={`${BASE} relative mx-auto max-w-[85%]`}>
+      <div className="absolute left-0 top-1/2 h-3 w-1.5 -translate-y-1/2 rounded-r-full bg-[#0a0a0a]" />
+      <div className="absolute right-0 top-1/2 h-3 w-1.5 -translate-y-1/2 rounded-l-full bg-[#0a0a0a]" />
+      <div className="border-b border-dashed border-white/10 py-1 text-center text-[7px] text-white/40">VIP</div>
+      <div className="flex flex-col items-center gap-1 p-2">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" />
+      </div>
+    </div>
+  ),
+
+  manga: (
+    <div className={`${BASE} border-2 border-white bg-[#fafafa]`}>
+      <div className="border-b-2 border-black p-1">
+        <Line w="w-10" h="h-1.5" className="bg-black/20" />
+      </div>
+      <div className="rounded border border-black bg-white p-1 mx-1 mt-1">
+        <Line w="w-full" h="h-1" className="bg-black/10" />
+      </div>
+    </div>
+  ),
+
+  emberforge: (
+    <div className={`${BASE} border-[#ea580c]/25`}>
+      <div className="border-b border-[#ea580c]/20 bg-[#ea580c]/10 px-2 py-1">
+        <Line w="w-8" h="h-1" className="bg-[#fb923c]/50" />
+      </div>
+      <div className="flex gap-1 p-2">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" className="mt-1" />
+      </div>
+    </div>
+  ),
+
   custom: (
     <div className={`${BASE} flex items-center justify-center bg-gradient-to-br from-[var(--bf-accent,#fafafa)]/20 to-transparent`}>
       <span className="text-[10px] font-medium text-white/50">CSS</span>

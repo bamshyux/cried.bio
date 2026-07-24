@@ -19,11 +19,17 @@ import {
   ToggleField,
 } from "@/components/dashboard/form-fields";
 import {
-  CARD_BORDER_EFFECT_OPTIONS,
   CARD_BORDER_TARGET_OPTIONS,
+  FREE_CARD_BORDER_EFFECT_OPTIONS,
+  PREMIUM_CARD_BORDER_EFFECT_OPTIONS,
+  type CardBorderEffectOption,
 } from "@/lib/card-border-effects/presets";
+import { isPremiumCardBorderEffect, sanitizeCardBorderEffectSelection } from "@/lib/card-border-effects/premium";
 import { CARD_BORDER_TARGETS } from "@/lib/card-border-effects/types";
 import { parseCardBorderTargets } from "@/lib/card-border-effects/resolve";
+import { PremiumLockBadge } from "@/components/premium/premium-locked";
+import { useUpgradeModal } from "@/components/premium/upgrade-modal";
+import type { UserEntitlements } from "@/lib/premium/types";
 import type { CardBorderTarget, ProfileSettings } from "@/lib/types/settings";
 
 function readCardBorderForm(settings: ProfileSettings): CardBorderFormState {
@@ -53,7 +59,64 @@ function toggleTarget(targets: CardBorderTarget[], target: CardBorderTarget): Ca
     : [...targets, target];
 }
 
-export function CardBorderEffectsEditor({ settings }: { settings: ProfileSettings }) {
+function EffectPresetGrid({
+  options,
+  activeEffect,
+  canUsePremiumEffects,
+  onSelect,
+}: {
+  options: CardBorderEffectOption[];
+  activeEffect: ProfileSettings["card_border_effect"];
+  canUsePremiumEffects: boolean;
+  onSelect: (value: ProfileSettings["card_border_effect"]) => void;
+}) {
+  const { openUpgrade } = useUpgradeModal();
+
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      {options.map((option) => {
+        const locked = option.premiumOnly && !canUsePremiumEffects;
+        const active = activeEffect === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => {
+              if (locked) {
+                openUpgrade();
+                return;
+              }
+              onSelect(option.value);
+            }}
+            className={`rounded-xl border px-3 py-3 text-left transition-colors ${
+              active
+                ? "border-[var(--bf-accent)]/40 bg-[var(--bf-accent)]/10"
+                : locked
+                  ? "border-amber-500/15 bg-[#0f0f0f]/80 opacity-75 hover:border-amber-500/25"
+                  : "border-white/[0.08] bg-[#0f0f0f] hover:border-white/[0.14]"
+            }`}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <p className={`text-sm font-semibold ${active ? "text-white" : "text-neutral-200"}`}>
+                {option.label}
+              </p>
+              {locked ? <PremiumLockBadge /> : null}
+            </div>
+            <p className="mt-1 text-xs text-neutral-500">{option.description}</p>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function CardBorderEffectsEditor({
+  settings,
+  entitlements,
+}: {
+  settings: ProfileSettings;
+  entitlements: UserEntitlements;
+}) {
   const { form, patchForm, submit, state, isPending } = useDashboardSettingsSection(
     "card_border",
     settings,
@@ -62,10 +125,17 @@ export function CardBorderEffectsEditor({ settings }: { settings: ProfileSetting
   );
 
   const selectedTargets = parseCardBorderTargets(form.card_border_targets);
+  const canUsePremiumEffects = entitlements.animated_effects;
 
   const handleSave = (event: React.FormEvent) => {
     event.preventDefault();
-    submit(form);
+    submit({
+      ...form,
+      card_border_effect: sanitizeCardBorderEffectSelection(
+        form.card_border_effect,
+        canUsePremiumEffects,
+      ),
+    });
   };
 
   return (
@@ -97,32 +167,39 @@ export function CardBorderEffectsEditor({ settings }: { settings: ProfileSetting
             <input type="hidden" name="card_border_targets" value={form.card_border_targets} />
 
             <div>
-              <label className={labelClassName}>Border preset</label>
+              <label className={labelClassName}>Standard effects</label>
               <p className="mb-3 text-xs text-neutral-600">
                 Choose an animated outline style. None keeps your current card border.
               </p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {CARD_BORDER_EFFECT_OPTIONS.map((option) => {
-                  const active = form.card_border_effect === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => patchForm({ card_border_effect: option.value })}
-                      className={`rounded-xl border px-3 py-3 text-left transition-colors ${
-                        active
-                          ? "border-[var(--bf-accent)]/40 bg-[var(--bf-accent)]/10"
-                          : "border-white/[0.08] bg-[#0f0f0f] hover:border-white/[0.14]"
-                      }`}
-                    >
-                      <p className={`text-sm font-semibold ${active ? "text-white" : "text-neutral-200"}`}>
-                        {option.label}
-                      </p>
-                      <p className="mt-1 text-xs text-neutral-500">{option.description}</p>
-                    </button>
-                  );
-                })}
+              <EffectPresetGrid
+                options={FREE_CARD_BORDER_EFFECT_OPTIONS}
+                activeEffect={form.card_border_effect}
+                canUsePremiumEffects={canUsePremiumEffects}
+                onSelect={(card_border_effect) => patchForm({ card_border_effect })}
+              />
+            </div>
+
+            <div>
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <label className={labelClassName}>Premium Lite effects</label>
+                <span className="rounded-full border border-[rgba(201,184,150,0.28)] bg-[rgba(201,184,150,0.08)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#d4c4a8]">
+                  25 exclusive
+                </span>
               </div>
+              <p className="mb-3 text-xs text-neutral-600">
+                Extra animated borders unlocked with Premium Lite.
+              </p>
+              <EffectPresetGrid
+                options={PREMIUM_CARD_BORDER_EFFECT_OPTIONS}
+                activeEffect={form.card_border_effect}
+                canUsePremiumEffects={canUsePremiumEffects}
+                onSelect={(card_border_effect) => patchForm({ card_border_effect })}
+              />
+              {!canUsePremiumEffects && isPremiumCardBorderEffect(form.card_border_effect) ? (
+                <p className="mt-3 text-xs text-amber-200/80">
+                  Your current premium effect will not appear on your profile until you upgrade.
+                </p>
+              ) : null}
               <input type="hidden" name="card_border_effect" value={form.card_border_effect} />
             </div>
 
@@ -222,6 +299,12 @@ export function CardBorderEffectsEditor({ settings }: { settings: ProfileSetting
   );
 }
 
-export function CardBorderEffectsPageShell({ settings }: { settings: ProfileSettings }) {
-  return <CardBorderEffectsEditor settings={settings} />;
+export function CardBorderEffectsPageShell({
+  settings,
+  entitlements,
+}: {
+  settings: ProfileSettings;
+  entitlements: UserEntitlements;
+}) {
+  return <CardBorderEffectsEditor settings={settings} entitlements={entitlements} />;
 }

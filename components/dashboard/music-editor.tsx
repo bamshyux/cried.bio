@@ -89,6 +89,7 @@ export function MusicEditor({
   const [playlistFeedback, setPlaylistFeedback] = useState<{ error?: string; success?: string }>();
 
   const canPlaylist = entitlements.can_use_playlist;
+  const canHideMusicPlayer = canPlaylist;
   const maxTracks = entitlements.max_music_tracks;
   const displayTracks = tracks.length > 0 ? tracks : settings.music_url
     ? [{ id: "legacy", url: settings.music_url, title: settings.music_title || "Profile Track", sort_order: 0 } as MusicTrack]
@@ -146,7 +147,10 @@ export function MusicEditor({
 
   const handleSave = (event: React.FormEvent) => {
     event.preventDefault();
-    submit(form);
+    submit({
+      ...form,
+      music_show_player: canHideMusicPlayer ? form.music_show_player : true,
+    });
   };
 
   const savePlaylistSettings = (patch: Parameters<typeof updateMusicPlaylistSettingsAction>[0]) => {
@@ -370,9 +374,18 @@ export function MusicEditor({
             <ToggleField
               name="music_show_player"
               label="Show player button"
-              description="Display the play/pause control in the bottom-right corner of your page"
-              checked={form.music_show_player}
-              onCheckedChange={(music_show_player) => patchForm({ music_show_player })}
+              description={
+                canHideMusicPlayer
+                  ? "Display the play/pause control in the bottom-right corner of your page"
+                  : "Premium Lite is required to hide the player button on your profile"
+              }
+              checked={canHideMusicPlayer ? form.music_show_player : true}
+              disabled={!canHideMusicPlayer}
+              badge={!canHideMusicPlayer ? <PremiumLockBadge /> : undefined}
+              onCheckedChange={(music_show_player) => {
+                if (!canHideMusicPlayer) return;
+                patchForm({ music_show_player });
+              }}
             />
             <SaveConfirmation success={state.success} error={state.error} />
             <button type="submit" disabled={isPending} className={buttonPrimaryClassName}>

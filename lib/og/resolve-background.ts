@@ -10,6 +10,13 @@ export function resolveOgBackground(settings: ProfileSettings): OgBackground {
     return { kind: "image", url: settings.background_image_url.trim() };
   }
 
+  if (
+    settings.background_type === "video" &&
+    settings.background_video_url?.trim()
+  ) {
+    return { kind: "video", url: settings.background_video_url.trim() };
+  }
+
   const colors =
     settings.gradient_colors?.filter(Boolean).length >= 2
       ? settings.gradient_colors.filter(Boolean).slice(0, 4)
@@ -17,8 +24,7 @@ export function resolveOgBackground(settings: ProfileSettings): OgBackground {
 
   if (
     settings.background_type === "animated_gradient" ||
-    settings.background_type === "particles" ||
-    settings.background_type === "video"
+    settings.background_type === "particles"
   ) {
     return { kind: "gradient", colors };
   }
@@ -31,7 +37,7 @@ export function resolveOgBackground(settings: ProfileSettings): OgBackground {
 }
 
 export function ogBackgroundCss(background: OgBackground): string {
-  if (background.kind === "image") return "#090909";
+  if (background.kind === "image" || background.kind === "video") return "#090909";
   if (background.kind === "solid") return background.color;
   if (background.colors.length === 1) return background.colors[0];
   const stops = background.colors

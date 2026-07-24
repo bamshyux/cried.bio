@@ -48,6 +48,7 @@ import { ProfilePageNav } from "./profile-page-nav";
 import { ProfileSiteChrome } from "./profile-site-chrome";
 import { ProfileThemeScope } from "./profile-theme-scope";
 import { EXTENDED_LAYOUTS } from "./profile-layouts-extra";
+import { PREMIUM_LAYOUTS } from "./profile-layouts-premium";
 
 function ClassicLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
@@ -802,6 +803,7 @@ const LAYOUTS = {
   glass: GlassLayout,
   custom: CustomThemeLayout,
   ...EXTENDED_LAYOUTS,
+  ...PREMIUM_LAYOUTS,
 };
 
 export function getProfileLayoutComponent(layout: ProfileSettings["layout"]) {

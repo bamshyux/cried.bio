@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useCallback } from "react";
 import {
   SaveConfirmation,
   useDashboardSettingsSection,
@@ -13,10 +11,20 @@ import {
   labelClassName,
   PageHeader,
 } from "@/components/dashboard/form-fields";
-import { LAYOUT_OPTIONS } from "@/lib/settings";
+import { LayoutPreview } from "@/components/dashboard/layout-preview";
+import { PremiumLockBadge } from "@/components/premium/premium-locked";
+import { useUpgradeModal } from "@/components/premium/upgrade-modal";
+import {
+  FREE_LAYOUT_OPTIONS,
+  PREMIUM_LAYOUT_OPTIONS,
+  type LayoutOption,
+} from "@/lib/settings";
+import { isPremiumProfileLayout, sanitizeProfileLayoutSelection } from "@/lib/premium/layout-settings";
 import type { CustomTheme } from "@/lib/types/custom-theme";
 import type { ProfileLayout, ProfileSettings } from "@/lib/types/settings";
-import { LayoutPreview } from "@/components/dashboard/layout-preview";
+import Link from "next/link";
+import { useCallback } from "react";
+import type { UserEntitlements } from "@/lib/premium/types";
 
 type ThemesFormState = {
   layout: ProfileLayout;
@@ -30,13 +38,65 @@ function readThemesForm(settings: ProfileSettings, fallbackThemeId: string): The
   };
 }
 
+function LayoutGrid({
+  options,
+  activeLayout,
+  canUsePremiumLayouts,
+  onSelect,
+}: {
+  options: LayoutOption[];
+  activeLayout: ProfileLayout;
+  canUsePremiumLayouts: boolean;
+  onSelect: (layout: ProfileLayout) => void;
+}) {
+  const { openUpgrade } = useUpgradeModal();
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {options.map((layout) => {
+        const locked = layout.premiumOnly && !canUsePremiumLayouts;
+        const isActive = activeLayout === layout.value;
+        return (
+          <button
+            key={layout.value}
+            type="button"
+            onClick={() => {
+              if (locked) {
+                openUpgrade();
+                return;
+              }
+              onSelect(layout.value);
+            }}
+            className={`rounded-xl border p-4 text-left transition-all ${
+              isActive
+                ? "border-[#fafafa]/50 bg-[#fafafa]/[0.06] ring-1 ring-[#fafafa]/30"
+                : locked
+                  ? "border-amber-500/15 bg-[#0f0f0f]/80 opacity-80 hover:border-amber-500/25"
+                  : "border-white/[0.06] bg-[#0f0f0f] hover:border-white/10 hover:bg-[#141414]"
+            }`}
+          >
+            <LayoutPreview layout={layout.value} />
+            <div className="mt-3 flex items-start justify-between gap-2">
+              <p className="text-sm font-medium text-white">{layout.label}</p>
+              {locked ? <PremiumLockBadge /> : null}
+            </div>
+            <p className="mt-0.5 text-xs text-neutral-500">{layout.description}</p>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function ThemesEditor({
   settings,
   themes,
+  entitlements,
   pageId,
 }: {
   settings: ProfileSettings;
   themes: CustomTheme[];
+  entitlements: UserEntitlements;
   pageId?: string;
 }) {
   const fallbackThemeId = themes[0]?.id ?? "";
@@ -54,36 +114,51 @@ export function ThemesEditor({
     pageId,
   );
 
+  const canUsePremiumLayouts = entitlements.animated_effects;
+
   const handleSave = (event: React.FormEvent) => {
     event.preventDefault();
-    submit(form);
+    submit({
+      ...form,
+      layout: sanitizeProfileLayoutSelection(form.layout, canUsePremiumLayouts),
+    });
   };
 
   return (
     <>
       <PageHeader title="Layouts" description="Choose how your public profile is structured." />
       <div className={cardClassName}>
-        <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-6">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {LAYOUT_OPTIONS.map((layout) => {
-              const isActive = form.layout === layout.value;
-              return (
-                <button
-                  key={layout.value}
-                  type="button"
-                  onClick={() => patchForm({ layout: layout.value })}
-                  className={`rounded-xl border p-4 text-left transition-all ${
-                    isActive
-                      ? "border-[#fafafa]/50 bg-[#fafafa]/[0.06] ring-1 ring-[#fafafa]/30"
-                      : "border-white/[0.06] bg-[#0f0f0f] hover:border-white/10 hover:bg-[#141414]"
-                  }`}
-                >
-                  <LayoutPreview layout={layout.value} />
-                  <p className="mt-3 text-sm font-medium text-white">{layout.label}</p>
-                  <p className="mt-0.5 text-xs text-neutral-500">{layout.description}</p>
-                </button>
-              );
-            })}
+        <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-8">
+          <div>
+            <label className={labelClassName}>Standard layouts</label>
+            <p className="mb-3 text-xs text-neutral-600">Included on every plan.</p>
+            <LayoutGrid
+              options={FREE_LAYOUT_OPTIONS}
+              activeLayout={form.layout}
+              canUsePremiumLayouts={canUsePremiumLayouts}
+              onSelect={(layout) => patchForm({ layout })}
+            />
+          </div>
+
+          <div>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <label className={labelClassName}>Premium Lite layouts</label>
+              <span className="rounded-full border border-[rgba(201,184,150,0.28)] bg-[rgba(201,184,150,0.08)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#d4c4a8]">
+                20 exclusive
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-neutral-600">Extra profile structures unlocked with Premium Lite.</p>
+            <LayoutGrid
+              options={PREMIUM_LAYOUT_OPTIONS}
+              activeLayout={form.layout}
+              canUsePremiumLayouts={canUsePremiumLayouts}
+              onSelect={(layout) => patchForm({ layout })}
+            />
+            {!canUsePremiumLayouts && isPremiumProfileLayout(form.layout) ? (
+              <p className="mt-3 text-xs text-amber-200/80">
+                Your current premium layout will fall back to Classic on your public profile until you upgrade.
+              </p>
+            ) : null}
           </div>
 
           {form.layout === "custom" && (
@@ -129,11 +204,13 @@ export function ThemesEditor({
 export function ThemesPageShell({
   settings,
   themes,
+  entitlements,
   pageId,
 }: {
   settings: ProfileSettings;
   themes: CustomTheme[];
+  entitlements: UserEntitlements;
   pageId?: string;
 }) {
-  return <ThemesEditor settings={settings} themes={themes} pageId={pageId} />;
+  return <ThemesEditor settings={settings} themes={themes} entitlements={entitlements} pageId={pageId} />;
 }

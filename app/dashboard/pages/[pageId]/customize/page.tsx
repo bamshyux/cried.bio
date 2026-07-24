@@ -17,6 +17,7 @@ export default async function ContentPageStylePage({
       settings={settings}
       pageId={pageId}
       canUsePremiumFonts={entitlements.can_use_premium_fonts}
+      canUsePremiumBorderEffects={entitlements.animated_effects}
     />
   );
 }
