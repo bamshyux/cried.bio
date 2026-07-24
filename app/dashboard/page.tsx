@@ -119,7 +119,7 @@ export default async function DashboardOverviewPage() {
               <p className="mt-5 text-lg font-medium text-white">{section.label}</p>
               <p className="mt-2 flex-1 text-sm leading-relaxed text-neutral-500">{section.description}</p>
               <p className="mt-4 text-xs font-medium text-neutral-600 group-hover:text-neutral-400">
-                {section.items.length} tools →
+                →
               </p>
             </Link>
           ))}
