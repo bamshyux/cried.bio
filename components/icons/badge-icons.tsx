@@ -56,15 +56,18 @@ const paths: Record<string, (p: IconProps) => React.ReactNode> = {
   partner: (p) => (
     <Svg {...p}>
       <path
-        d="M12 3 4.5 6.5v6.2c0 4.8 3.5 8 7.5 8.8 4-.8 7.5-4 7.5-8.8V6.5L12 3z"
+        d="M12 2.5 3.5 6.5v7c0 5.2 4 8.8 8.5 9.5 4.5-.7 8.5-4.3 8.5-9.5v-7L12 2.5z"
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinejoin="round"
       />
-      <ellipse cx="9.3" cy="12.8" rx="2.2" ry="2.6" stroke="currentColor" strokeWidth="1.5" />
-      <ellipse cx="14.7" cy="12.8" rx="2.2" ry="2.6" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M11.2 12.8h1.6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M12 5.8v2.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
+      <path
+        d="M12 7.2 14.1 11.2 18.4 11.6 15 14.2 16 18.2 12 16.2 8 18.2 9 14.2 5.6 11.6 9.9 11.2 12 7.2z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M12 4.8v1.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.45" />
     </Svg>
   ),
   premium: (p) => (
@@ -101,9 +104,18 @@ const paths: Record<string, (p: IconProps) => React.ReactNode> = {
   ),
   supporter: (p) => (
     <Svg {...p}>
-      <path d="M5 10 9.5 8v9L5 15V10z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-      <path d="M9.5 10.5H12c2.2 0 4 1.4 4 3.2S14.2 17 12 17H9.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M16.5 11.5v4M18.5 12v3" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" />
+      <path d="M8.8 8 6.8 4.2 9.8 4.2 10.8 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M15.2 8 17.2 4.2 14.2 4.2 13.2 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M9.5 7.2h5v2.2H9.5z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <circle cx="12" cy="14.8" r="6.9" stroke="currentColor" strokeWidth="1.75" opacity="0.45" />
+      <circle cx="12" cy="14.8" r="6.4" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="12" cy="14.8" r="4.7" stroke="currentColor" strokeWidth="1.25" opacity="0.55" />
+      <path
+        d="M12 17.5S7.8 14.2 7.8 11a2.6 2.6 0 0 1 4.2 0 2.6 2.6 0 0 1 4.2 0c0 3.2-4.2 6.5-4.2 6.5z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
     </Svg>
   ),
   helper: (p) => (
@@ -120,14 +132,18 @@ const paths: Record<string, (p: IconProps) => React.ReactNode> = {
   ),
   contributor: (p) => (
     <Svg {...p}>
-      <path d="M9 7.8 7.4 4.8 9.6 4.8 10.4 7.8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-      <path d="M15 7.8 16.6 4.8 14.4 4.8 13.6 7.8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-      <path d="M9.8 7.2h4.4v1.6H9.8z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M8.8 8 6.8 4.2 9.8 4.2 10.8 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M15.2 8 17.2 4.2 14.2 4.2 13.2 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M9.5 7.2h5v2.2H9.5z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <circle cx="12" cy="14.8" r="6.9" stroke="currentColor" strokeWidth="1.75" opacity="0.45" />
       <circle cx="12" cy="14.8" r="6.4" stroke="currentColor" strokeWidth="1.75" />
       <circle cx="12" cy="14.8" r="4.7" stroke="currentColor" strokeWidth="1.25" opacity="0.55" />
-      <path d="M14.6 10.5 12 12.8l2.6 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M9.4 10.5 12 12.8 9.4 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M13.5 15.8 10.5 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.65" />
+      <path
+        d="M13.4 11.6h2.1v1.4a1 1 0 1 0 0 2H13.4v2h-1.6a1 1 0 1 1-2 0v-2H8.5a1 1 0 1 1 0-2h1.3v-1.4h1.6a1 1 0 1 1 2 0v1.4z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
     </Svg>
   ),
   "community-choice": (p) => (
@@ -215,9 +231,10 @@ const paths: Record<string, (p: IconProps) => React.ReactNode> = {
   ),
   champion: (p) => (
     <Svg {...p}>
-      <path d="M9 7.8 7.4 4.8 9.6 4.8 10.4 7.8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-      <path d="M15 7.8 16.6 4.8 14.4 4.8 13.6 7.8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-      <path d="M9.8 7.2h4.4v1.6H9.8z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M8.8 8 6.8 4.2 9.8 4.2 10.8 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M15.2 8 17.2 4.2 14.2 4.2 13.2 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M9.5 7.2h5v2.2H9.5z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <circle cx="12" cy="14.8" r="6.9" stroke="currentColor" strokeWidth="1.75" opacity="0.45" />
       <circle cx="12" cy="14.8" r="6.4" stroke="currentColor" strokeWidth="1.75" />
       <circle cx="12" cy="14.8" r="4.7" stroke="currentColor" strokeWidth="1.25" opacity="0.55" />
       <path
@@ -230,9 +247,10 @@ const paths: Record<string, (p: IconProps) => React.ReactNode> = {
   ),
   "runner-up": (p) => (
     <Svg {...p}>
-      <path d="M9 7.8 7.4 4.8 9.6 4.8 10.4 7.8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-      <path d="M15 7.8 16.6 4.8 14.4 4.8 13.6 7.8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-      <path d="M9.8 7.2h4.4v1.6H9.8z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M8.8 8 6.8 4.2 9.8 4.2 10.8 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M15.2 8 17.2 4.2 14.2 4.2 13.2 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M9.5 7.2h5v2.2H9.5z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <circle cx="12" cy="14.8" r="6.9" stroke="currentColor" strokeWidth="1.75" opacity="0.45" />
       <circle cx="12" cy="14.8" r="6.4" stroke="currentColor" strokeWidth="1.75" />
       <circle cx="12" cy="14.8" r="4.7" stroke="currentColor" strokeWidth="1.25" opacity="0.55" />
       <text x="12" y="16.4" textAnchor="middle" fill="currentColor" fontSize="7.5" fontWeight="900" fontFamily="system-ui,sans-serif">
@@ -242,9 +260,10 @@ const paths: Record<string, (p: IconProps) => React.ReactNode> = {
   ),
   finalist: (p) => (
     <Svg {...p}>
-      <path d="M9 7.8 7.4 4.8 9.6 4.8 10.4 7.8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-      <path d="M15 7.8 16.6 4.8 14.4 4.8 13.6 7.8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-      <path d="M9.8 7.2h4.4v1.6H9.8z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M8.8 8 6.8 4.2 9.8 4.2 10.8 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M15.2 8 17.2 4.2 14.2 4.2 13.2 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M9.5 7.2h5v2.2H9.5z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <circle cx="12" cy="14.8" r="6.9" stroke="currentColor" strokeWidth="1.75" opacity="0.45" />
       <circle cx="12" cy="14.8" r="6.4" stroke="currentColor" strokeWidth="1.75" />
       <circle cx="12" cy="14.8" r="4.7" stroke="currentColor" strokeWidth="1.25" opacity="0.55" />
       <text x="12" y="16.4" textAnchor="middle" fill="currentColor" fontSize="7.5" fontWeight="900" fontFamily="system-ui,sans-serif">
@@ -254,7 +273,21 @@ const paths: Record<string, (p: IconProps) => React.ReactNode> = {
   ),
   "tournament-winner": (p) => (
     <Svg {...p}>
-      <path d="M8 21h8M12 17v4M7 4h10l-1 8H8L7 4z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M8.8 8 6.8 4.2 9.8 4.2 10.8 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M15.2 8 17.2 4.2 14.2 4.2 13.2 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M9.5 7.2h5v2.2H9.5z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <circle cx="12" cy="14.8" r="6.9" stroke="currentColor" strokeWidth="1.75" opacity="0.45" />
+      <circle cx="12" cy="14.8" r="6.4" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="12" cy="14.8" r="4.7" stroke="currentColor" strokeWidth="1.25" opacity="0.55" />
+      <path d="M10 10.8 12 9.2 14 10.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.65" />
+      <path d="M9.6 11h4.8l-.5 4.2h-3.8L9.6 11z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M8.8 15.2h6.4v1.5H8.8z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M10.4 16.7h3.2v1.8H10.4z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path
+        d="M12 9.8 12.35 10.65 13.25 10.65 12.55 11.15 12.85 12 12 11.55 11.15 12 11.45 11.15 10.75 10.65 11.65 10.65 12 9.8z"
+        fill="currentColor"
+        fillOpacity="0.55"
+      />
     </Svg>
   ),
   "halloween-2026": (p) => (
@@ -265,22 +298,22 @@ const paths: Record<string, (p: IconProps) => React.ReactNode> = {
   ),
   "christmas-2026": (p) => (
     <Svg {...p}>
-      <path d="M9 7.8 7.4 4.8 9.6 4.8 10.4 7.8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-      <path d="M15 7.8 16.6 4.8 14.4 4.8 13.6 7.8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-      <path d="M9.8 7.2h4.4v1.6H9.8z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M8.8 8 6.8 4.2 9.8 4.2 10.8 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M15.2 8 17.2 4.2 14.2 4.2 13.2 8Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <path d="M9.5 7.2h5v2.2H9.5z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <circle cx="12" cy="14.8" r="6.9" stroke="currentColor" strokeWidth="1.75" opacity="0.45" />
       <circle cx="12" cy="14.8" r="6.4" stroke="currentColor" strokeWidth="1.75" />
       <circle cx="12" cy="14.8" r="4.7" stroke="currentColor" strokeWidth="1.25" opacity="0.55" />
-      <circle cx="12" cy="8.8" r="1" fill="currentColor" opacity="0.65" />
-      <circle cx="16.8" cy="11.4" r="0.85" fill="currentColor" opacity="0.45" />
-      <circle cx="7.2" cy="11.4" r="0.85" fill="currentColor" opacity="0.45" />
-      <path d="M12 10 10.5 12.2h3L12 10z" fill="currentColor" fillOpacity="0.35" />
-      <path d="M12 11.8 9.2 14.8h5.6L12 11.8z" fill="currentColor" fillOpacity="0.35" />
-      <path d="M11.2 14.8h1.6v2H11.2z" fill="currentColor" fillOpacity="0.35" />
       <path
-        d="M12 9.2 12.4 10.2 13.5 10.2 12.6 10.8 12.9 11.9 12 11.3 11.1 11.9 11.4 10.8 10.5 10.2 11.6 10.2 12 9.2z"
+        d="M12 9.2 12.35 10.05 13.25 10.05 12.55 10.55 12.85 11.4 12 10.95 11.15 11.4 11.45 10.55 10.75 10.05 11.65 10.05 12 9.2z"
         fill="currentColor"
         fillOpacity="0.55"
       />
+      <path d="M12 10.8 9.2 14.2h5.6L12 10.8z" fill="currentColor" fillOpacity="0.35" />
+      <path d="M12 12.8 8 17h8L12 12.8z" fill="currentColor" fillOpacity="0.35" />
+      <path d="M11 17h2v2.4H11z" fill="currentColor" fillOpacity="0.35" />
+      <circle cx="8.4" cy="12.4" r="0.75" fill="currentColor" opacity="0.55" />
+      <circle cx="15.6" cy="13.2" r="0.75" fill="currentColor" opacity="0.55" />
     </Svg>
   ),
   "new-year-2027": (p) => (
