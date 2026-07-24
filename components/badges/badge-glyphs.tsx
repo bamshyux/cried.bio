@@ -1,6 +1,35 @@
 import type { ReactNode } from "react";
 import { OgBadgeMarkFromColor } from "@/components/badges/og-badge-mark";
 
+function MedallionRibbon({ c }: { c: string }) {
+  return (
+    <>
+      <path d="M9 7.8 7.4 4.8 9.6 4.8 10.4 7.8Z" fill={c} />
+      <path d="M15 7.8 16.6 4.8 14.4 4.8 13.6 7.8Z" fill={c} />
+      <rect x="9.8" y="7.2" width="4.4" height="1.6" rx="0.4" fill={c} />
+    </>
+  );
+}
+
+function MedallionDisc({
+  c,
+  hi,
+  cy = 14.8,
+  r = 6.4,
+}: {
+  c: string;
+  hi: string;
+  cy?: number;
+  r?: number;
+}) {
+  return (
+    <>
+      <circle cx="12" cy={cy} r={r} fill={c} />
+      <circle cx="12" cy={cy} r={r - 1.7} fill="none" stroke={hi} strokeWidth="1.3" />
+    </>
+  );
+}
+
 /**
  * Icon-first badge glyphs — 24×24 viewBox, readable at 16×16 by silhouette.
  * Bold filled shapes, no circular backgrounds.
@@ -62,9 +91,14 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
     case "partner":
       return (
         <>
-          <circle cx="8.5" cy="12" r="4.2" stroke={c} strokeWidth="2.6" fill="none" />
-          <circle cx="15.5" cy="12" r="4.2" stroke={c} strokeWidth="2.6" fill="none" />
-          <path d="M11.2 12h1.6" stroke={c} strokeWidth="2.4" strokeLinecap="round" />
+          <path d="M12 3 4.5 6.5v6.2c0 4.8 3.5 8 7.5 8.8 4-.8 7.5-4 7.5-8.8V6.5L12 3z" fill={c} />
+          <path d="M12 3 4.5 6.5v6.2c0 4.8 3.5 8 7.5 8.8 4-.8 7.5-4 7.5-8.8V6.5L12 3z" fill={hi} opacity="0.18" />
+          <ellipse cx="9.3" cy="12.8" rx="2.6" ry="3" fill="#000" fillOpacity="0.22" />
+          <ellipse cx="14.7" cy="12.8" rx="2.6" ry="3" fill="#000" fillOpacity="0.22" />
+          <rect x="10" y="11.8" width="4" height="2.2" rx="0.6" fill="#000" fillOpacity="0.22" />
+          <ellipse cx="9.3" cy="12.8" rx="1.9" ry="2.2" fill="none" stroke={hi} strokeWidth="1.5" />
+          <ellipse cx="14.7" cy="12.8" rx="1.9" ry="2.2" fill="none" stroke={hi} strokeWidth="1.5" />
+          <path d="M12 5.8v2.2" stroke={hi} strokeWidth="1.8" strokeLinecap="round" opacity="0.65" />
         </>
       );
 
@@ -122,8 +156,27 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
     case "contributor":
       return (
         <>
-          <circle cx="12" cy="12" r="8.5" stroke={c} strokeWidth="2.6" fill="none" />
-          <path d="M12 7.5v9M7.5 12h9" stroke={c} strokeWidth="2.8" strokeLinecap="round" />
+          <MedallionRibbon c={c} />
+          <MedallionDisc c={c} hi={hi} />
+          <path
+            d="M14.6 10.5 12 12.8l2.6 2"
+            stroke="#000"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeOpacity="0.32"
+            fill="none"
+          />
+          <path
+            d="M9.4 10.5 12 12.8 9.4 15"
+            stroke="#000"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeOpacity="0.32"
+            fill="none"
+          />
+          <path d="M13.5 15.8 10.5 12" stroke="#000" strokeWidth="1.8" strokeLinecap="round" strokeOpacity="0.25" />
         </>
       );
 
@@ -209,26 +262,38 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
     case "champion":
       return (
         <>
-          <path d="M7 8.5H5a1.5 1.5 0 0 0-1.5 1.5V12H7V8.5zM19 8.5h-1.5a2 2 0 0 0-2 2V12H19V8.5z" fill={c} />
-          <path d="M8 8.5h8v4.5a4 4 0 0 1-8 0V8.5z" fill={c} />
-          <path d="M9.5 17h5v3h-5v-3zM12 14.5v2.5" stroke={c} strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M9 7.8 7.4 4.8 9.6 4.8 10.4 7.8Z" fill={c} />
+          <path d="M15 7.8 16.6 4.8 14.4 4.8 13.6 7.8Z" fill={c} />
+          <rect x="9.8" y="7.2" width="4.4" height="1.6" rx="0.4" fill={c} />
+          <circle cx="12" cy="14.8" r="6.4" fill={c} />
+          <circle cx="12" cy="14.8" r="4.7" fill="none" stroke={hi} strokeWidth="1.3" />
+          <path
+            d="M12 11.4 13.1 13.7 15.7 14 13.7 15.6 14.4 18 12 16.6 9.6 18 10.3 15.6 8.3 14 10.9 13.7 12 11.4z"
+            fill="#000"
+            fillOpacity="0.28"
+          />
         </>
       );
 
     case "runner-up":
       return (
         <>
-          <circle cx="12" cy="14" r="6" fill={c} />
-          <path d="M12 6.5V4M9 4h6" stroke={c} strokeWidth="2.4" strokeLinecap="round" />
-          <text x="12" y="16.5" textAnchor="middle" fill="#000" fillOpacity="0.3" fontSize="7" fontWeight="900" fontFamily="system-ui,sans-serif">2</text>
+          <MedallionRibbon c={c} />
+          <MedallionDisc c={c} hi={hi} />
+          <text x="12" y="16.4" textAnchor="middle" fill="#000" fillOpacity="0.3" fontSize="7.5" fontWeight="900" fontFamily="system-ui,sans-serif">
+            2
+          </text>
         </>
       );
 
     case "finalist":
       return (
         <>
-          <path d="M5 18h14v-3H5v3z" fill={c} />
-          <path d="M8 15V9h3v6H8zM13 15V6h3v9h-3z" fill={c} />
+          <MedallionRibbon c={c} />
+          <MedallionDisc c={c} hi={hi} />
+          <text x="12" y="16.4" textAnchor="middle" fill="#000" fillOpacity="0.3" fontSize="7.5" fontWeight="900" fontFamily="system-ui,sans-serif">
+            3
+          </text>
         </>
       );
 
@@ -254,9 +319,18 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
     case "christmas-2026":
       return (
         <>
-          <path d="M12 3 6.5 12.5h11L12 3z" fill={c} />
-          <rect x="9.5" y="12.5" width="5" height="7.5" fill={c} />
-          <circle cx="12" cy="9" r="1.2" fill={hi} />
+          <MedallionRibbon c={c} />
+          <MedallionDisc c={c} hi={hi} />
+          <circle cx="12" cy="8.8" r="1" fill={hi} opacity="0.75" />
+          <circle cx="16.8" cy="11.4" r="0.85" fill={hi} opacity="0.55" />
+          <circle cx="7.2" cy="11.4" r="0.85" fill={hi} opacity="0.55" />
+          <path d="M12 10 10.5 12.2h3L12 10z" fill="#000" fillOpacity="0.28" />
+          <path d="M12 11.8 9.2 14.8h5.6L12 11.8z" fill="#000" fillOpacity="0.28" />
+          <rect x="11.2" y="14.8" width="1.6" height="2" fill="#000" fillOpacity="0.28" />
+          <path
+            d="M12 9.2 12.4 10.2 13.5 10.2 12.6 10.8 12.9 11.9 12 11.3 11.1 11.9 11.4 10.8 10.5 10.2 11.6 10.2 12 9.2z"
+            fill={hi}
+          />
         </>
       );
 
