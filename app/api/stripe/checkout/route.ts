@@ -103,7 +103,7 @@ export async function POST(request: Request) {
       client_reference_id: userId,
       mode: isLifetime ? "payment" : "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${siteUrl}/dashboard/premium/plans?checkout=success`,
+      success_url: `${siteUrl}/dashboard/premium/plans?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/dashboard/premium/plans?checkout=canceled`,
       metadata: {
         checkout_type: "premium",

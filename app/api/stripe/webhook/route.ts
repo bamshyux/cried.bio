@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { grantPremiumAccess, findUserIdByStripeCustomer, revokePremiumAccess } from "@/lib/premium/sync";
-import { resolveCheckoutPlan } from "@/lib/stripe/prices";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe/client";
+import {
+  fulfillPremiumCheckoutSession,
+  resolvePremiumPlanFromPriceId,
+} from "@/lib/stripe/premium-checkout";
 
 export const runtime = "nodejs";
 
@@ -38,55 +41,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
-  const recipientId =
-    session.metadata?.recipient_profile_id && session.metadata?.is_gift === "true"
-      ? session.metadata.recipient_profile_id
-      : buyerId;
-
-  const userId = recipientId;
-
-  const priceId =
-    session.metadata?.price_id ??
-    (session.mode === "subscription" ? null : session.metadata?.price_id);
-
-  const lineItems = session.line_items?.data?.length
-    ? session.line_items.data
-    : null;
-
-  let resolvedPriceId = priceId ?? "";
-  if (!resolvedPriceId && lineItems?.[0]?.price?.id) {
-    resolvedPriceId = lineItems[0].price.id;
-  }
-
-  const plan = resolveCheckoutPlan(resolvedPriceId);
-  if (!plan) return;
-
-  const isLifetime = plan.billingType === "lifetime" || session.mode === "payment";
-
-  await grantPremiumAccess({
-    userId,
-    stripeCustomerId: String(session.customer ?? ""),
-    stripeSubscriptionId: isLifetime ? null : String(session.subscription ?? ""),
-    stripePriceId: resolvedPriceId,
-    planName: plan.planName,
-    billingType: plan.billingType,
-    lifetime: isLifetime,
-    status: "active",
-    currentPeriodEnd: isLifetime
-      ? null
-      : session.expires_at
-        ? new Date(session.expires_at * 1000).toISOString()
-        : null,
-  });
-
-  if (
-    session.metadata?.is_gift === "true" &&
-    session.metadata?.recipient_profile_id &&
-    session.metadata.recipient_profile_id !== buyerId
-  ) {
-    const { syncGifterBadge } = await import("@/lib/store/fulfillment");
-    await syncGifterBadge(buyerId);
-  }
+  await fulfillPremiumCheckoutSession(getStripe(), session);
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
@@ -97,8 +52,12 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   if (!userId) return;
 
   const priceId = subscription.items.data[0]?.price?.id ?? "";
-  const plan = resolveCheckoutPlan(priceId);
-  if (!plan) return;
+  const stripe = getStripe();
+  const plan =
+    (await resolvePremiumPlanFromPriceId(stripe, priceId, { mode: "subscription" })) ?? {
+      planName: "premium_lite",
+      billingType: "monthly" as const,
+    };
 
   const active = subscription.status === "active" || subscription.status === "trialing";
 
@@ -155,7 +114,7 @@ export async function POST(request: Request) {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.mode === "subscription" || session.mode === "payment") {
           const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
-            expand: ["line_items"],
+            expand: ["line_items.data.price", "subscription"],
           });
           await handleCheckoutCompleted(fullSession);
         }

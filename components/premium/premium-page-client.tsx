@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   PREMIUM_LITE_LIFETIME_PRICE,
   PREMIUM_LITE_MONTHLY_PRICE,
@@ -121,15 +121,79 @@ export function PremiumPageClient({
   buyerUsername: string | null;
 }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const checkoutStatus = searchParams.get("checkout");
+  const sessionId = searchParams.get("session_id");
   const [loading, setLoading] = useState<"monthly" | "lifetime" | "portal" | null>(null);
   const [error, setError] = useState<string>();
+  const [syncingPremium, setSyncingPremium] = useState(false);
+  const [syncComplete, setSyncComplete] = useState(false);
   const [giftPlan, setGiftPlan] = useState<"monthly" | "lifetime" | null>(null);
-  const [, startRefresh] = useTransition();
 
   const isPaid = entitlements.is_active && entitlements.plan_tier !== "free";
   const tierName = getTierDisplayName(entitlements);
   const billingLabel = getBillingLabel(entitlements);
+
+  useEffect(() => {
+    if (checkoutStatus !== "success" || syncComplete) return;
+
+    let cancelled = false;
+    setSyncingPremium(true);
+
+    fetch("/api/stripe/sync-premium", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId: sessionId ?? undefined }),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error ?? "Premium sync failed.");
+        }
+      })
+      .then(() => {
+        if (cancelled) return;
+        setSyncComplete(true);
+        router.replace("/dashboard/premium/plans");
+        router.refresh();
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Premium sync failed.");
+      })
+      .finally(() => {
+        if (!cancelled) setSyncingPremium(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [checkoutStatus, sessionId, syncComplete, router]);
+
+  useEffect(() => {
+    if (isPaid || !hasStripeCustomer || checkoutStatus === "success" || syncingPremium) return;
+
+    let cancelled = false;
+
+    fetch("/api/stripe/sync-premium", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled || !data?.entitlements?.is_active) return;
+        router.refresh();
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isPaid, hasStripeCustomer, checkoutStatus, syncingPremium, router]);
 
   const handleCheckout = async (plan: "monthly" | "lifetime") => {
     if (!stripeConfigured) {
@@ -169,14 +233,9 @@ export function PremiumPageClient({
     <div className="mx-auto max-w-4xl">
       {checkoutStatus === "success" ? (
         <div className="mb-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-          Payment successful — welcome to Premium Lite! Your entitlements will activate shortly.
-          <button
-            type="button"
-            className="ml-2 underline"
-            onClick={() => startRefresh(() => window.location.replace("/dashboard/premium/plans"))}
-          >
-            Refresh
-          </button>
+          {syncingPremium
+            ? "Payment successful — activating Premium Lite…"
+            : "Payment successful — welcome to Premium Lite!"}
         </div>
       ) : null}
       {checkoutStatus === "canceled" ? (

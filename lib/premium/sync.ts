@@ -32,7 +32,7 @@ export async function grantPremiumAccess(input: GrantPremiumInput): Promise<void
   const tier = normalizePlanTier(input.planName);
   const now = new Date().toISOString();
 
-  await supabase
+  const { error: profileError } = await supabase
     .from("profiles")
     .update({
       premium_tier: tier === "free" ? "premium_lite" : tier,
@@ -41,6 +41,10 @@ export async function grantPremiumAccess(input: GrantPremiumInput): Promise<void
       updated_at: now,
     })
     .eq("id", input.userId);
+
+  if (profileError) {
+    throw new Error(`Failed to update profile premium tier: ${profileError.message}`);
+  }
 
   const row = {
     user_id: input.userId,
@@ -55,16 +59,29 @@ export async function grantPremiumAccess(input: GrantPremiumInput): Promise<void
     updated_at: now,
   };
 
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from("premium_subscriptions")
     .select("id")
     .eq("user_id", input.userId)
     .maybeSingle();
 
+  if (existingError) {
+    throw new Error(`Failed to read premium subscription: ${existingError.message}`);
+  }
+
   if (existing) {
-    await supabase.from("premium_subscriptions").update(row).eq("user_id", input.userId);
+    const { error: updateError } = await supabase
+      .from("premium_subscriptions")
+      .update(row)
+      .eq("user_id", input.userId);
+    if (updateError) {
+      throw new Error(`Failed to update premium subscription: ${updateError.message}`);
+    }
   } else {
-    await supabase.from("premium_subscriptions").insert(row);
+    const { error: insertError } = await supabase.from("premium_subscriptions").insert(row);
+    if (insertError) {
+      throw new Error(`Failed to create premium subscription: ${insertError.message}`);
+    }
   }
 
   await syncPremiumBadge(input.userId, true);
