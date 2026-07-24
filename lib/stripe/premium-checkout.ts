@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 import { grantPremiumAccess, findUserIdByStripeCustomer } from "@/lib/premium/sync";
 import { resolveCheckoutPlan } from "@/lib/stripe/config";
+import { getSubscriptionPeriodEndIso } from "@/lib/stripe/subscription-period";
 
 export function extractCheckoutPriceId(session: Stripe.Checkout.Session): string {
   const fromMetadata = session.metadata?.price_id?.trim();
@@ -70,15 +71,14 @@ export async function resolveCheckoutPeriodEnd(
   const subscriptionRef = session.subscription;
   if (!subscriptionRef) return null;
 
-  if (typeof subscriptionRef === "object" && subscriptionRef.current_period_end) {
-    return new Date(subscriptionRef.current_period_end * 1000).toISOString();
+  if (typeof subscriptionRef === "object") {
+    const fromExpanded = getSubscriptionPeriodEndIso(subscriptionRef);
+    if (fromExpanded) return fromExpanded;
   }
 
   const subscriptionId = typeof subscriptionRef === "string" ? subscriptionRef : subscriptionRef.id;
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  return subscription.current_period_end
-    ? new Date(subscription.current_period_end * 1000).toISOString()
-    : null;
+  return getSubscriptionPeriodEndIso(subscription);
 }
 
 export async function fulfillPremiumCheckoutSession(
@@ -173,9 +173,7 @@ export async function syncPremiumFromStripeCustomer(
       billingType: plan.billingType,
       lifetime: false,
       status: active.status as "active" | "trialing",
-      currentPeriodEnd: active.current_period_end
-        ? new Date(active.current_period_end * 1000).toISOString()
-        : null,
+      currentPeriodEnd: getSubscriptionPeriodEndIso(active),
     });
     return true;
   }

@@ -6,6 +6,7 @@ import {
   fulfillPremiumCheckoutSession,
   resolvePremiumPlanFromPriceId,
 } from "@/lib/stripe/premium-checkout";
+import { getSubscriptionPeriodEndIso } from "@/lib/stripe/subscription-period";
 
 export const runtime = "nodejs";
 
@@ -71,9 +72,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       billingType: "monthly",
       lifetime: false,
       status: subscription.status as "active" | "trialing",
-      currentPeriodEnd: subscription.current_period_end
-        ? new Date(subscription.current_period_end * 1000).toISOString()
-        : null,
+      currentPeriodEnd: getSubscriptionPeriodEndIso(subscription),
     });
     return;
   }

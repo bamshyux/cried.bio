@@ -171,6 +171,46 @@ export function PremiumPageClient({
   }, [checkoutStatus, sessionId, syncComplete, router]);
 
   useEffect(() => {
+    if (
+      !isPaid ||
+      entitlements.lifetime ||
+      entitlements.current_period_end ||
+      !hasStripeCustomer ||
+      syncingPremium
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+
+    fetch("/api/stripe/sync-premium", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled || !data?.ok) return;
+        router.refresh();
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    isPaid,
+    entitlements.lifetime,
+    entitlements.current_period_end,
+    hasStripeCustomer,
+    syncingPremium,
+    router,
+  ]);
+
+  useEffect(() => {
     if (isPaid || !hasStripeCustomer || checkoutStatus === "success" || syncingPremium) return;
 
     let cancelled = false;
