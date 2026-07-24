@@ -15,6 +15,10 @@ type PremiumLockedProps = {
   className?: string;
   /** When true, show children dimmed with overlay instead of replacing */
   overlay?: boolean;
+  /** Custom overlay message */
+  lockMessage?: string;
+  /** Custom overlay CTA line */
+  lockCta?: string;
 };
 
 export function PremiumLocked({
@@ -23,6 +27,8 @@ export function PremiumLocked({
   children,
   className = "",
   overlay = true,
+  lockMessage,
+  lockCta = "Upgrade to unlock",
 }: PremiumLockedProps) {
   const { openUpgrade } = useUpgradeModal();
 
@@ -58,9 +64,9 @@ export function PremiumLocked({
       >
         <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-sm font-medium text-amber-100">
           <span aria-hidden>🔒</span>
-          {tierLabel}
+          {lockMessage ?? tierLabel}
         </span>
-        <span className="text-xs text-neutral-400">Upgrade to unlock</span>
+        <span className="max-w-xs text-center text-xs text-neutral-400">{lockCta}</span>
       </button>
     </div>
   );

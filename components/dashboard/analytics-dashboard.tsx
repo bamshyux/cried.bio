@@ -1,7 +1,8 @@
 "use client";
 
-import type { AnalyticsSummary } from "@/lib/types/analytics";
+import type { AnalyticsSummary, PremiumAnalyticsSummary } from "@/lib/types/analytics";
 import { cardClassName, PageHeader } from "@/components/dashboard/form-fields";
+import { PremiumAnalyticsSection } from "@/components/dashboard/premium-analytics-section";
 
 const CHART_HEIGHT = 112;
 
@@ -106,7 +107,15 @@ function RankedList({
   );
 }
 
-export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
+export function AnalyticsDashboard({
+  summary,
+  premium,
+  hasAdvancedAnalytics,
+}: {
+  summary: AnalyticsSummary;
+  premium: PremiumAnalyticsSummary;
+  hasAdvancedAnalytics: boolean;
+}) {
   const daysWithViews = summary.dailyViews.filter((d) => d.count > 0).length;
   const avgViewsPerDay =
     daysWithViews > 0 ? summary.totalViews / daysWithViews : summary.totalViews / summary.dailyViews.length;
@@ -139,9 +148,9 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
             <p className="mt-1 text-xs text-neutral-500">{clickRate}% click-through</p>
           </div>
           <div className={cardClassName}>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-neutral-500">Avg active days</p>
+            <p className="text-[11px] font-medium uppercase tracking-wider text-neutral-500">Avg views/day</p>
             <p className="mt-2 text-3xl font-semibold tabular-nums text-white">{avgViewsPerDay.toFixed(1)}</p>
-            <p className="mt-1 text-xs text-neutral-500">views per day with traffic</p>
+            <p className="mt-1 text-xs text-neutral-500">on days with traffic</p>
           </div>
           <div className={cardClassName}>
             <p className="text-[11px] font-medium uppercase tracking-wider text-neutral-500">Countries</p>
@@ -183,11 +192,27 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
             }))}
           />
         </div>
+
+        <PremiumAnalyticsSection premium={premium} allowed={hasAdvancedAnalytics} />
       </div>
     </>
   );
 }
 
-export function AnalyticsPageShell({ summary }: { summary: AnalyticsSummary }) {
-  return <AnalyticsDashboard summary={summary} />;
+export function AnalyticsPageShell({
+  summary,
+  premium,
+  hasAdvancedAnalytics,
+}: {
+  summary: AnalyticsSummary;
+  premium: PremiumAnalyticsSummary;
+  hasAdvancedAnalytics: boolean;
+}) {
+  return (
+    <AnalyticsDashboard
+      summary={summary}
+      premium={premium}
+      hasAdvancedAnalytics={hasAdvancedAnalytics}
+    />
+  );
 }

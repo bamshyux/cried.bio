@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { canRecordProfileView, hasAnalyticsConsent } from "@/lib/analytics/consent";
+import { canRecordLinkClick, canRecordProfileView } from "@/lib/analytics/consent";
 import {
   getSessionId,
   getVisitorId,
@@ -50,7 +50,7 @@ export function AnalyticsTracker({ profileId }: { profileId: string }) {
 }
 
 export function trackLinkClick(profileId: string, linkId: string) {
-  if (!hasAnalyticsConsent()) return;
+  if (!canRecordLinkClick()) return;
   fetch("/api/analytics", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -23,3 +23,8 @@ export function hasAnalyticsConsent(): boolean {
 export function canRecordProfileView(): boolean {
   return true;
 }
+
+/** Link click analytics are first-party product metrics for profile owners. */
+export function canRecordLinkClick(): boolean {
+  return true;
+}
