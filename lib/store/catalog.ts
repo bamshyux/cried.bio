@@ -39,6 +39,7 @@ export const STORE_CATALOG: StoreCatalogEntry[] = [
     fulfillmentAction: "grant_badge_creation",
     category: "badges",
     sortOrder: 10,
+    allowRepeatPurchase: true,
   },
   {
     slug: "verified-badge",
@@ -74,6 +75,7 @@ export const STORE_CATALOG: StoreCatalogEntry[] = [
     fulfillmentAction: "grant_badge_creation",
     category: "badges",
     sortOrder: 30,
+    allowRepeatPurchase: true,
   },
   {
     slug: "animated-badge",
@@ -92,6 +94,7 @@ export const STORE_CATALOG: StoreCatalogEntry[] = [
     badgeLabel: "New",
     category: "badges",
     sortOrder: 40,
+    allowRepeatPurchase: true,
   },
   {
     slug: "support-1",

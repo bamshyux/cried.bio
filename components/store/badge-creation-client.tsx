@@ -75,8 +75,14 @@ export function BadgeCreationClient({
 
   useEffect(() => {
     if (!state.success) return;
-    router.refresh();
-  }, [state.success, router]);
+
+    const hasRemainingPackSlots =
+      route === "static-pack" && credit.slots_used + 1 < credit.slots_total;
+
+    if (hasRemainingPackSlots) {
+      router.refresh();
+    }
+  }, [state.success, route, credit.slots_used, credit.slots_total, router]);
 
   const completed =
     state.success && (route !== "static-pack" || slotNumber >= credit.slots_total);
@@ -84,13 +90,18 @@ export function BadgeCreationClient({
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-8">
-        <Link
-          href="/dashboard/store"
-          className="text-sm text-neutral-500 transition-colors hover:text-neutral-300"
-        >
-          ← Back to Store
-        </Link>
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-white">{title}</h1>
+        {!completed ? (
+          <div className="mb-6 rounded-2xl border border-violet-500/25 bg-violet-500/[0.08] px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-300/90">
+              Setup required
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-violet-100/90">
+              You purchased a custom badge. Complete this form to finish your order — navigation is
+              locked until your badge is created.
+            </p>
+          </div>
+        ) : null}
+        <h1 className="text-3xl font-bold tracking-tight text-white">{title}</h1>
         <p className="mt-2 text-sm leading-relaxed text-neutral-400">{description}</p>
         {route === "static-pack" ? (
           <p className="mt-3 text-xs font-medium uppercase tracking-[0.16em] text-violet-300/90">
@@ -113,8 +124,16 @@ export function BadgeCreationClient({
       ) : null}
 
       {completed ? (
-        <div className={`${cardClassName} space-y-4`}>
-          <FormFeedback error={state.error} success={state.success} />
+        <div className="space-y-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300/90">
+              Confirmed
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-white">Badge created successfully</h2>
+            <p className="mt-2 text-sm leading-relaxed text-emerald-100">
+              {state.success ?? "Your badge is live on your profile."}
+            </p>
+          </div>
           <div className="flex flex-wrap gap-3">
             <Link href="/dashboard/badges" className={buttonPrimaryClassName}>
               View your badges
@@ -130,7 +149,12 @@ export function BadgeCreationClient({
       ) : (
         <form action={formAction} className={`${cardClassName} space-y-5`}>
           <input type="hidden" name="route" value={route} />
-          <FormFeedback error={state.error} success={state.success} />
+          {state.success ? (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+              {state.success}
+            </div>
+          ) : null}
+          <FormFeedback error={state.error} />
 
           <div>
             <label htmlFor="badge-name" className={labelClassName}>

@@ -9,6 +9,7 @@ import {
 } from "@/components/dashboard/unsaved-changes";
 import { DashboardTour } from "@/components/onboarding/dashboard-tour";
 import { SetupRedirect } from "@/components/onboarding/setup-redirect";
+import { isBadgeCreationPath } from "@/lib/store/badge-creation-route";
 
 const FORCE_TOUR_STORAGE_KEY = "bf_dashboard_tour_force";
 
@@ -46,8 +47,12 @@ export function DashboardShell({
   const [forcedTour, setForcedTour] = useState(false);
   const [tourKey, setTourKey] = useState(0);
   const isSetupRoute = pathname.startsWith("/dashboard/setup");
+  const isBadgeCreationRoute = isBadgeCreationPath(pathname);
   const showTour =
-    (needsDashboardTour || forcedTour) && !isSetupRoute && !pathname.startsWith("/dashboard/admin");
+    (needsDashboardTour || forcedTour) &&
+    !isSetupRoute &&
+    !isBadgeCreationRoute &&
+    !pathname.startsWith("/dashboard/admin");
 
   useEffect(() => {
     const activateForcedTour = () => {

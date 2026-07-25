@@ -142,6 +142,27 @@ export async function sendSupportAiMessageAction(
     })
     .eq("id", sessionId);
 
+  if (result.shouldAutoEscalate) {
+    const escalation = await escalateSessionToTicket(sessionId, user);
+    if (escalation.error) {
+      return {
+        success: "Reply sent.",
+        aiReply: result.reply,
+        shouldEscalate: true,
+        error: escalation.error,
+        sessionId,
+      };
+    }
+
+    return {
+      success: escalation.success,
+      aiReply: result.reply,
+      conversationId: escalation.conversationId,
+      messageId: escalation.messageId,
+      sessionId,
+    };
+  }
+
   return {
     success: result.resolved ? "Glad we could help!" : "Reply sent.",
     aiReply: result.reply,
@@ -164,13 +185,11 @@ export async function resolveSupportAiSessionAction(sessionId: string): Promise<
   return { success: "Marked as resolved. Glad we could help!" };
 }
 
-export async function escalateSupportAiToTicketAction(
+async function escalateSessionToTicket(
   sessionId: string,
+  user: { userId: string; email: string },
   subject?: string,
 ): Promise<SupportActionState> {
-  const user = await requireUser();
-  if ("error" in user) return user;
-
   const supabase = await db();
   const { data: session } = await supabase
     .from("support_ai_sessions")
@@ -274,6 +293,15 @@ export async function escalateSupportAiToTicketAction(
     conversationId: conversation.id,
     messageId: message?.id,
   };
+}
+
+export async function escalateSupportAiToTicketAction(
+  sessionId: string,
+  subject?: string,
+): Promise<SupportActionState> {
+  const user = await requireUser();
+  if ("error" in user) return user;
+  return escalateSessionToTicket(sessionId, user, subject);
 }
 
 export async function fetchSupportAiSessionAction(sessionId: string): Promise<

@@ -10,6 +10,7 @@ import {
 import { SupportReplyToast } from "@/components/support/support-reply-toast";
 import type { SupportReplyAlert } from "@/lib/support/notifications";
 import { isPublicProfilePath } from "@/lib/profile";
+import { isBadgeCreationPath } from "@/lib/store/badge-creation-route";
 
 const SCROLL_TOP_THRESHOLD = 240;
 
@@ -76,7 +77,7 @@ export function FloatingSiteDock({ userId }: { userId: string | null }) {
     [],
   );
 
-  if (isPublicProfilePath(pathname)) {
+  if (isPublicProfilePath(pathname) || isBadgeCreationPath(pathname)) {
     return null;
   }
 

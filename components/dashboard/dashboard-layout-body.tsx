@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { UpgradeModalProvider } from "@/components/premium/upgrade-modal";
+import { isBadgeCreationPath } from "@/lib/store/badge-creation-route";
 
 export function DashboardLayoutBody({
   children,
@@ -13,9 +14,14 @@ export function DashboardLayoutBody({
 }) {
   const pathname = usePathname();
   const isSetupRoute = pathname.startsWith("/dashboard/setup");
+  const isBadgeCreationRoute = isBadgeCreationPath(pathname);
 
-  if (isSetupRoute) {
-    return <main className="min-w-0 flex-1">{children}</main>;
+  if (isSetupRoute || isBadgeCreationRoute) {
+    return (
+      <main className={`min-w-0 flex-1 ${isBadgeCreationRoute ? "bf-badge-setup-main" : ""}`}>
+        {children}
+      </main>
+    );
   }
 
   return (

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { BadgeCreationClient } from "@/components/store/badge-creation-client";
 import { requireBadgeCreationAccess } from "@/lib/store/badge-credits";
 import { createClient } from "@/lib/supabase/server";
@@ -11,7 +11,7 @@ async function AnimatedBadgeCreationPage() {
 
   const userId = data.claims.sub as string;
   const credit = await requireBadgeCreationAccess(userId, "animated");
-  if (!credit) notFound();
+  if (!credit) redirect("/dashboard/badges");
 
   return (
     <BadgeCreationClient

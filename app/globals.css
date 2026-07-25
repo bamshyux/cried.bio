@@ -1965,6 +1965,20 @@ body,
   position: relative;
 }
 
+.bf-badge-setup-main {
+  animation: bf-dash-page-in 0.35s ease;
+  margin: 0 auto;
+  max-width: 56rem;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+@media (min-width: 1024px) {
+  .bf-badge-setup-main {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
 .bf-dash-main {
   animation: bf-dash-page-in 0.35s ease;
 }

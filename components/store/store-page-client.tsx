@@ -88,19 +88,17 @@ function StoreProductCard({
           )}
         </p>
 
-        {owned && !product.allowRepeatPurchase ? (
-          pendingCredit ? (
-            <Link
-              href={badgeCreationPath(pendingCredit)}
-              className={`${buttonPrimaryClassName} inline-flex w-full items-center justify-center`}
-            >
-              Continue badge setup
-            </Link>
-          ) : (
-            <span className="inline-flex w-full items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-2.5 text-sm font-medium text-emerald-200">
-              Owned
-            </span>
-          )
+        {pendingCredit ? (
+          <Link
+            href={badgeCreationPath(pendingCredit)}
+            className={`${buttonPrimaryClassName} inline-flex w-full items-center justify-center`}
+          >
+            Continue badge setup
+          </Link>
+        ) : owned && !product.allowRepeatPurchase ? (
+          <span className="inline-flex w-full items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-2.5 text-sm font-medium text-emerald-200">
+            Owned
+          </span>
         ) : (
           <button
             type="button"

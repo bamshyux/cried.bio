@@ -29,9 +29,6 @@ async function revalidateAfterBadgeCreation(userId: string) {
 
   revalidatePath("/dashboard/badges");
   revalidatePath("/dashboard/store");
-  revalidatePath("/dashboard/store/create-badge/static");
-  revalidatePath("/dashboard/store/create-badge/static-pack");
-  revalidatePath("/dashboard/store/create-badge/animated");
   if (profile?.username) revalidatePath(`/${profile.username}`);
 }
 

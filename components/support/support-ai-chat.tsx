@@ -128,6 +128,11 @@ export function SupportAiChat({
         ]);
       }
 
+      if (result.conversationId) {
+        onTicketCreated(result.conversationId);
+        return;
+      }
+
       if (result.shouldEscalate) setShouldEscalate(true);
       if (result.success?.includes("Glad")) setResolved(true);
     });

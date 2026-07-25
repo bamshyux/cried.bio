@@ -18,6 +18,7 @@ export type AiAssistantInput = {
 export type AiAssistantResult = {
   reply: string;
   shouldEscalate: boolean;
+  shouldAutoEscalate: boolean;
   resolved: boolean;
   category: SupportCategory;
   confidence: number;
@@ -28,6 +29,15 @@ const RESOLVED_PATTERNS =
 
 const ESCALATE_PATTERNS =
   /\b(speak to (a )?human|real person|talk to staff|support team|create (a )?ticket|escalate|refund|charged twice|hacked|banned wrongly|account locked|lawyer|legal)\b/i;
+
+const TICKET_OFFER_PATTERNS =
+  /\b(would you like (me )?to create (a )?ticket|shall i create (a )?ticket|create (a )?ticket for you|connect you with (our )?(support )?team|talk to (a )?(member of )?our (support )?team|escalate (this )?to (our )?team|send (this )?(conversation )?to (our )?staff|want me to (create|open) (a )?ticket|i can create (a )?ticket)\b/i;
+
+const ANSWERED_QUESTION_PATTERNS =
+  /\b(did this answer|does this help|was this helpful|answer your question)\b/i;
+
+const AFFIRMATIVE_PATTERNS =
+  /^(yes|yeah|yep|yup|sure|ok(?:ay)?|please|go ahead|do it|sounds good|that works|yes please|correct|affirmative)[!.?\s]*$/i;
 
 const UNCERTAIN_PATTERNS =
   /\b(still not|doesn't work|didn't work|same issue|not fixed|urgent|asap|frustrated|keeps happening)\b/i;
@@ -40,6 +50,27 @@ const VAGUE_HELP_PATTERNS =
 
 function countUserTurns(history: SupportAiMessage[]): number {
   return history.filter((m) => m.role === "user").length;
+}
+
+function lastAssistantMessage(history: SupportAiMessage[]): string | null {
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].role === "assistant") return history[i].body;
+  }
+  return null;
+}
+
+function replyOffersTicket(text: string): boolean {
+  return TICKET_OFFER_PATTERNS.test(text);
+}
+
+function userConfirmsTicketOffer(lastAssistant: string | null, userMessage: string): boolean {
+  if (!lastAssistant || !replyOffersTicket(lastAssistant)) return false;
+  return AFFIRMATIVE_PATTERNS.test(userMessage.trim());
+}
+
+function userConfirmsAnsweredQuestion(lastAssistant: string | null, userMessage: string): boolean {
+  if (!lastAssistant || !ANSWERED_QUESTION_PATTERNS.test(lastAssistant)) return false;
+  return AFFIRMATIVE_PATTERNS.test(userMessage.trim());
 }
 
 function buildKnowledgeReply(entries: KnowledgeEntry[]): string {
@@ -131,7 +162,33 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
     return {
       reply: "Glad I could help! 🎉 If anything else comes up, I'm here — or you can always reach our team through support. Have a great day!",
       shouldEscalate: false,
+      shouldAutoEscalate: false,
       resolved: true,
+      category,
+      confidence: 1,
+    };
+  }
+
+  const previousAssistant = lastAssistantMessage(history);
+
+  if (userConfirmsAnsweredQuestion(previousAssistant, trimmed)) {
+    return {
+      reply: "Glad I could help! 🎉 If anything else comes up, I'm here — or you can always reach our team through support. Have a great day!",
+      shouldEscalate: false,
+      shouldAutoEscalate: false,
+      resolved: true,
+      category,
+      confidence: 1,
+    };
+  }
+
+  if (userConfirmsTicketOffer(previousAssistant, trimmed)) {
+    return {
+      reply:
+        "On it — I'm creating your support ticket now and attaching this whole conversation so our team has full context.",
+      shouldEscalate: true,
+      shouldAutoEscalate: true,
+      resolved: false,
       category,
       confidence: 1,
     };
@@ -141,6 +198,7 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
     return {
       reply: "No problem — I can connect you with our support team and include this whole conversation so you don't have to repeat yourself.",
       shouldEscalate: true,
+      shouldAutoEscalate: false,
       resolved: false,
       category,
       confidence: 0,
@@ -154,6 +212,7 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
           ? "Hey! 👋 What can I help you with on cried.bio? Tell me what's going on — billing, your profile, a bug, Premium, presets, or anything else."
           : "I'm still here — could you share a bit more detail about the issue? That'll help me give you a useful answer.",
       shouldEscalate: false,
+      shouldAutoEscalate: false,
       resolved: false,
       category,
       confidence: 0.5,
@@ -168,6 +227,7 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
     return {
       reply: buildKnowledgeReply(matches),
       shouldEscalate: false,
+      shouldAutoEscalate: false,
       resolved: false,
       category,
       confidence,
@@ -194,15 +254,19 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
       reply:
         "I've tried my best, but this might need a human on our team. You can tap **Talk to staff** below whenever you're ready — I'll attach this whole chat so they have full context.",
       shouldEscalate: true,
+      shouldAutoEscalate: false,
       resolved: false,
       category,
       confidence,
     };
   }
 
+  const offersTicket = replyOffersTicket(reply);
+
   return {
     reply,
-    shouldEscalate: false,
+    shouldEscalate: offersTicket,
+    shouldAutoEscalate: false,
     resolved: false,
     category,
     confidence,

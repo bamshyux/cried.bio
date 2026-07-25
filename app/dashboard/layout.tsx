@@ -1,16 +1,10 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { syncFounderBadges, syncSignupBadgesAction } from "@/app/actions/badges";
-import { CriedLogo } from "@/components/brand/logo";
-import { LogoutButton } from "@/components/auth/logout-button";
 import { GlobalSiteBanner } from "@/components/admin/global-site-banner";
 import { DashboardLayoutBody } from "@/components/dashboard/dashboard-layout-body";
-import { DashboardSearch } from "@/components/dashboard/dashboard-search";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { DashboardTopChrome } from "@/components/dashboard/dashboard-top-chrome";
 import { EmailVerificationBanner } from "@/components/dashboard/email-verification-banner";
-import { ProfilePresetQuickSave } from "@/components/dashboard/profile-presets/profile-preset-quick-save";
-import { ShareProfileButton } from "@/components/dashboard/share-profile-button";
-import { ViewLiveProfileButton } from "@/components/dashboard/view-live-profile-button";
 import { PlatformUpdateShell } from "@/components/platform-updates/platform-update-shell";
 import { getOnboardingState } from "@/lib/data/onboarding";
 import { getProfileByUserId } from "@/lib/data/profiles";
@@ -53,37 +47,12 @@ export default async function DashboardLayout({
   return (
     <div className="bf-dash-root min-h-screen text-neutral-100">
       <GlobalSiteBanner />
-      <header className="bf-dash-header border-b backdrop-blur-md">
-        <div className="bf-dash-header-inner mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-5 py-3 lg:px-10">
-          <Link href="/dashboard" className="shrink-0">
-            <CriedLogo size={28} />
-          </Link>
-
-          <div className="flex flex-1 items-center justify-center px-2">
-            <DashboardSearch />
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <ProfilePresetQuickSave activePresetId={activePresetId} />
-            {profile?.username ? (
-              <>
-                <ShareProfileButton
-                  username={profile.username}
-                  profileUrl={buildPublicProfileUrl(profile.username)}
-                />
-                <ViewLiveProfileButton username={profile.username} />
-              </>
-            ) : (
-              <ViewLiveProfileButton username={profile?.username} />
-            )}
-            <span className="hidden h-4 w-px bg-white/[0.08] md:block" aria-hidden />
-            <span className="hidden max-w-[160px] truncate text-[13px] text-neutral-500 xl:inline">
-              {email}
-            </span>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
+      <DashboardTopChrome
+        email={email}
+        username={profile?.username}
+        profileUrl={profile?.username ? buildPublicProfileUrl(profile.username) : null}
+        activePresetId={activePresetId}
+      />
 
       {needsEmailVerification && userData.user?.email ? (
         <EmailVerificationBanner email={userData.user.email} />

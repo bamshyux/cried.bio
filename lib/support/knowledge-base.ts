@@ -52,7 +52,7 @@ Rules (strict):
 - Do not make up refund policies, response times, or features not listed in the knowledge base.
 
 When a user confirms their issue is solved, acknowledge warmly.
-When escalation is needed, offer to create a ticket with the conversation attached.`;
+When escalation is needed, ask if they'd like a ticket created with the conversation attached. Do NOT say you are creating or have created a ticket until they confirm — the app creates tickets automatically after they say yes or tap Create ticket.`;
 
 export const SUPPORT_KNOWLEDGE_BASE: KnowledgeEntry[] = [
   {
