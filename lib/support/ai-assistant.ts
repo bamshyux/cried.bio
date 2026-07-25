@@ -4,6 +4,8 @@ import {
   formatFullKnowledgeForPrompt,
   formatKnowledgeForPrompt,
   getCriticalFactsBlock,
+  getPurchaseReferenceReply,
+  isPurchaseReferenceQuery,
   searchKnowledgeBase,
   type KnowledgeEntry,
 } from "@/lib/support/knowledge-base";
@@ -200,8 +202,19 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
       shouldEscalate: true,
       shouldAutoEscalate: false,
       resolved: false,
-      category,
+      category: "billing",
       confidence: 0,
+    };
+  }
+
+  if (isPurchaseReferenceQuery(trimmed)) {
+    return {
+      reply: getPurchaseReferenceReply(),
+      shouldEscalate: false,
+      shouldAutoEscalate: false,
+      resolved: false,
+      category: "billing",
+      confidence: 1,
     };
   }
 
@@ -275,6 +288,8 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
 
 export const CRIED_AI_GREETING = `Hey! I'm **cried AI** — cried.bio's support assistant. 🤖
 
-I can help with Premium & billing, profile customization, presets, layouts, badges, widgets, music, and troubleshooting.
+I can help with Premium & billing, **transaction / Reference IDs**, profile customization, presets, layouts, badges, widgets, music, and troubleshooting.
+
+**Looking for a transaction ID or Reference ID?** Go to **Dashboard → Settings → Billing & Purchases**.
 
 What can I help you with today?`;

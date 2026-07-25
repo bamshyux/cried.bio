@@ -34,7 +34,16 @@ export function getCriticalFactsBlock(): string {
 
 **Premium Lite includes:** animated card border effects, 20+ premium layouts, advanced analytics, premium fonts, up to ${lite.max_music_tracks} music tracks + playlists, ${lite.max_profile_pages} extra profile pages, scheduled presets, premium badge, custom domain support, 24-hour username change cooldown, early access features.
 
-**Billing:** Stripe handles all payments. Manage subscription in Dashboard → Premium → Stripe customer portal.
+**Billing:** Stripe handles all payments.
+
+**Premium Lite subscriptions:** Manage at **Dashboard → Premium** (Stripe customer portal for monthly/lifetime Premium).
+
+**Store purchases & Reference IDs (Transaction IDs):**
+- Every store purchase gets a **Reference ID** — this is your **transaction ID** for support (format: **CRIED-XXXXXXXX**, e.g. CRIED-7F4A92E1)
+- **Where to find it:** **Dashboard → Settings → Billing & Purchases** (/dashboard/settings?tab=billing)
+- Also shown on the **purchase success page** immediately after checkout
+- The Store page has a **Billing & Purchases** button in the top-right
+- Use this for one-time store purchases (badges, donations, etc.) — NOT Premium subscription billing
 
 **Support escalation:** If unsure about a specific account issue, billing dispute, or bug you cannot verify — offer to create a ticket for staff. Never guess account-specific details.`;
 }
@@ -47,7 +56,8 @@ Rules (strict):
 - Users CAN set their profile to Private, Unlisted, or Public under Settings → Account → Profile visibility.
 - Be concise, warm, and helpful. Use short paragraphs and bullet points when useful.
 - Only answer about cried.bio. Redirect unrelated topics politely.
-- Link to dashboard pages when relevant (e.g. /dashboard/settings, /dashboard/premium).
+- Link to dashboard pages when relevant (e.g. /dashboard/settings?tab=billing, /dashboard/premium).
+- **Reference ID / transaction ID / purchase history questions** → ALWAYS answer with **Settings → Billing & Purchases** (/dashboard/settings?tab=billing). Users may say "transaction id", "order id", or "reference id" — they all mean the CRIED-XXXXXXXX Reference ID. Do NOT answer with Store browsing or Premium Lite pricing.
 - If you cannot answer confidently from the knowledge base, say so and offer to connect the user with support staff.
 - Do not make up refund policies, response times, or features not listed in the knowledge base.
 
@@ -55,6 +65,65 @@ When a user confirms their issue is solved, acknowledge warmly.
 When escalation is needed, ask if they'd like a ticket created with the conversation attached. Do NOT say you are creating or have created a ticket until they confirm — the app creates tickets automatically after they say yes or tap Create ticket.`;
 
 export const SUPPORT_KNOWLEDGE_BASE: KnowledgeEntry[] = [
+  {
+    id: "billing-purchases-reference",
+    category: "billing",
+    keywords: [
+      "reference id",
+      "reference number",
+      "reference",
+      "purchase reference",
+      "order reference",
+      "transaction reference",
+      "transaction id",
+      "transaction number",
+      "order id",
+      "order number",
+      "payment id",
+      "payment reference",
+      "receipt id",
+      "receipt number",
+      "confirmation id",
+      "confirmation number",
+      "cried-",
+      "purchase history",
+      "payment history",
+      "billing & purchases",
+      "billing and purchases",
+      "billing purchases",
+      "where is my payment",
+      "where is my purchase",
+      "where is my receipt",
+      "where is my reference",
+      "where is my transaction",
+      "where do i find",
+      "find my payment",
+      "find my purchase",
+      "find my order",
+      "find my reference",
+      "find my transaction",
+      "find transaction",
+      "my order",
+      "store purchase",
+      "purchase receipt",
+    ],
+    title: "Billing & Purchases — Transaction / Reference ID",
+    content: `Your **transaction ID** on cried.bio is called a **Reference ID** (format: **CRIED-XXXXXXXX**).
+
+**Where to find it:**
+1. Go to **Dashboard → Settings → Billing & Purchases** (/dashboard/settings?tab=billing)
+2. Click any purchase to view the Reference ID, date, amount, and receipt
+3. Tap **Copy Reference ID** to copy it for support
+
+You can also open **Billing & Purchases** from the button on the **Store** page (top-right).
+
+Right after checkout, your Reference ID is shown on the **purchase success page** too.
+
+**Important:** This is for **one-time store purchases** (badges, donations, etc.). **Premium Lite subscriptions** use Stripe billing at **Dashboard → Premium** — those do not use CRIED Reference IDs.
+
+Need help with a specific order? Share your Reference ID (e.g. CRIED-7F4A92E1) and I can connect you with staff.`,
+    links: [{ label: "Billing & Purchases", href: "/dashboard/settings?tab=billing" }],
+  },
   {
     id: "premium-pricing",
     category: "premium",
@@ -65,11 +134,10 @@ export const SUPPORT_KNOWLEDGE_BASE: KnowledgeEntry[] = [
       "pricing",
       "monthly",
       "lifetime",
-      "pay",
-      "$",
-      "dollar",
-      "subscription fee",
       "premium cost",
+      "subscription fee",
+      "how much is premium",
+      "premium price",
     ],
     title: "Premium Lite Pricing",
     content: `**Premium Lite** on cried.bio has two payment options:
@@ -126,18 +194,22 @@ Save after selecting your option. This is separate from individual toggles like 
   {
     id: "billing-stripe",
     category: "billing",
-    keywords: ["billing", "payment", "stripe", "charge", "invoice", "receipt", "renewal", "next renewal", "card", "refund"],
-    title: "Billing & Stripe",
-    content: `Billing is handled securely through **Stripe**.
+    keywords: ["stripe", "charge", "renewal", "next renewal", "card", "cancel subscription", "subscription billing"],
+    title: "Premium Subscription Billing (Stripe)",
+    content: `**Premium Lite subscription** billing is handled through **Stripe**.
 
-• View your plan and renewal date at **Dashboard → Premium**
+• View your plan and renewal date at **Dashboard → Premium** (/dashboard/premium)
 • **Lifetime** plans do not renew — you pay $${PREMIUM_LITE_LIFETIME_PRICE} once
 • **Monthly** plans renew at **$${PREMIUM_LITE_MONTHLY_PRICE}/month** until cancelled
 • Update payment method through the Stripe customer portal (linked from Premium page)
-• **Next renewal** shows your upcoming billing date after a successful monthly payment
+
+**One-time store purchases** (badges, donations, etc.) use **Reference IDs** — find those at **Dashboard → Settings → Billing & Purchases** (/dashboard/settings?tab=billing), not the Premium page.
 
 For billing disputes or refund requests, staff can review your account — I can create a ticket if needed.`,
-    links: [{ label: "Premium & billing", href: "/dashboard/premium" }],
+    links: [
+      { label: "Premium subscriptions", href: "/dashboard/premium" },
+      { label: "Billing & Purchases", href: "/dashboard/settings?tab=billing" },
+    ],
   },
   {
     id: "cancel-premium",
@@ -315,16 +387,20 @@ If you can't access your account, tell me your email and I can escalate to staff
   {
     id: "store",
     category: "billing",
-    keywords: ["store", "shop", "buy", "purchase", "product", "gifter", "gift premium"],
+    keywords: ["store page", "shop", "buy badge", "buy from store", "gift premium", "store catalog"],
     title: "Store & Gifts",
     content: `The cried.bio **Store** offers one-time purchases and Premium gifts.
 
 • Browse at **Dashboard → Store** (/dashboard/store)
 • Gift Premium Lite (monthly or lifetime) to another user
 • Purchases processed via Stripe
+• After purchase, view receipts and **Reference IDs** in **Settings → Billing & Purchases** (/dashboard/settings?tab=billing)
 
 Premium pricing for gifts matches regular pricing: $${PREMIUM_LITE_MONTHLY_PRICE}/mo or $${PREMIUM_LITE_LIFETIME_PRICE} lifetime.`,
-    links: [{ label: "Store", href: "/dashboard/store" }],
+    links: [
+      { label: "Store", href: "/dashboard/store" },
+      { label: "Billing & Purchases", href: "/dashboard/settings?tab=billing" },
+    ],
   },
   {
     id: "troubleshoot-save",
@@ -409,15 +485,25 @@ If a username is taken or reserved, pick a different one.`,
 ];
 
 export function searchKnowledgeBase(query: string, limit = 3): KnowledgeEntry[] {
+  if (isPurchaseReferenceQuery(query)) {
+    const entry = SUPPORT_KNOWLEDGE_BASE.find((item) => item.id === "billing-purchases-reference");
+    if (entry) return [entry];
+  }
+
   const normalized = query.toLowerCase();
   const tokens = normalized.split(/\s+/).filter((t) => t.length > 2);
 
   const scored = SUPPORT_KNOWLEDGE_BASE.map((entry) => {
     let score = 0;
     for (const keyword of entry.keywords) {
-      if (normalized.includes(keyword)) score += 3;
-      for (const token of tokens) {
-        if (keyword.includes(token) || token.includes(keyword)) score += 1;
+      if (normalized.includes(keyword)) {
+        score += 5 + keyword.length;
+      } else {
+        for (const token of tokens) {
+          if (token === keyword || keyword.includes(token) || token.includes(keyword)) {
+            score += 1 + Math.min(keyword.length, token.length);
+          }
+        }
       }
     }
     if (normalized.includes(entry.category.replace("_", " "))) score += 2;
@@ -432,11 +518,66 @@ export function searchKnowledgeBase(query: string, limit = 3): KnowledgeEntry[] 
     .map((s) => s.entry);
 }
 
+export function isPurchaseReferenceQuery(message: string): boolean {
+  const normalized = message.toLowerCase();
+
+  if (
+    /\b(transaction|reference|order|payment|receipt|confirmation)\s*(id|#|number)\b/i.test(
+      normalized,
+    )
+  ) {
+    return true;
+  }
+
+  if (/\bcried-[a-f0-9]{4,}\b/i.test(normalized)) {
+    return true;
+  }
+
+  if (/\b(purchase\s*history|payment\s*history|billing\s*(and|&)\s*purchases?)\b/i.test(normalized)) {
+    return true;
+  }
+
+  if (
+    /\b(where|find|locate|get|look)\b.{0,40}\b(transaction|reference|receipt|order|purchase|payment|billing)\b/i.test(
+      normalized,
+    )
+  ) {
+    return true;
+  }
+
+  if (
+    /\b(transaction|reference|receipt|order|purchase)\b.{0,40}\b(where|find|located|see)\b/i.test(
+      normalized,
+    )
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+export function getPurchaseReferenceReply(): string {
+  const entry = SUPPORT_KNOWLEDGE_BASE.find((item) => item.id === "billing-purchases-reference");
+  if (!entry) {
+    return "Your Reference ID is in **Dashboard → Settings → Billing & Purchases** (/dashboard/settings?tab=billing).";
+  }
+  return buildKnowledgeEntryReply(entry);
+}
+
+function buildKnowledgeEntryReply(entry: KnowledgeEntry): string {
+  let reply = `Here's what I know about **${entry.title}**:\n\n${entry.content}`;
+  if (entry.links?.length) {
+    reply += `\n\n📎 **Helpful links:** ${entry.links.map((l) => `[${l.label}](${l.href})`).join(" · ")}`;
+  }
+  reply += `\n\nDid this answer your question? If not, I can connect you with our support team.`;
+  return reply;
+}
+
 export function detectSupportCategory(message: string): SupportCategory {
   const normalized = message.toLowerCase();
   const categoryKeywords: Array<[SupportCategory, string[]]> = [
-    ["billing", ["billing", "payment", "stripe", "charge", "refund", "invoice", "cancel subscription", "cost", "price"]],
-    ["premium", ["premium", "upgrade", "subscription", "premium lite", "lifetime", "how much"]],
+    ["billing", ["billing", "stripe", "charge", "refund", "invoice", "reference id", "transaction id", "order id", "receipt", "purchase history", "billing & purchases", "cried-", "transaction number", "order number"]],
+    ["premium", ["premium", "upgrade", "subscription", "premium lite", "lifetime", "how much is premium", "premium price", "premium cost"]],
     ["presets", ["preset", "import", "export", "json"]],
     ["layouts", ["layout", "theme layout"]],
     ["effects", ["border", "effect", "animated", "glow"]],

@@ -9,6 +9,7 @@ export type SupportTopicOption = {
 export const SUPPORT_WIDGET_TOPICS: SupportTopicOption[] = [
   { icon: "🐛", label: "Report a bug", category: "bug" },
   { icon: "💳", label: "Billing & premium", category: "billing" },
+  { icon: "🧾", label: "Reference ID / purchases", category: "billing" },
   { icon: "🔐", label: "Account access", category: "account" },
   { icon: "✨", label: "Profile help", category: "profile" },
 ];
@@ -20,9 +21,19 @@ export function getTopicByLabel(label: string | null | undefined): SupportTopicO
 }
 
 export function buildTopicGreeting(topic: SupportTopicOption): string {
+  if (topic.label === "Reference ID / purchases") {
+    return `I'll help you find your **purchase Reference ID** or **Billing & Purchases** history.
+
+• **Reference IDs** look like **CRIED-XXXXXXXX**
+• View all purchases at **Dashboard → Settings → Billing & Purchases** (/dashboard/settings?tab=billing)
+• Also shown on the purchase success page after checkout
+
+Tell me what you're looking for — a receipt, Reference ID, or a specific order.`;
+  }
+
   const intros: Record<SupportCategory, string> = {
     bug: "I see you want to **report a bug**. Sorry you're running into trouble!",
-    billing: "Looks like you need help with **billing or Premium**.",
+    billing: "Looks like you need help with **billing, purchases, or Premium**.",
     account: "I'll help with **account access** — login, password, or verification.",
     profile: "You're here for **profile help** — customization, saving, or how something looks.",
     premium: "Happy to help with **Premium** questions.",

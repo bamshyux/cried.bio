@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
+import { DownloadReceiptButton } from "@/components/billing/download-receipt-button";
 import { buttonPrimaryClassName, cardClassName } from "@/components/dashboard/form-fields";
 import {
   formatPurchaseAmount,
@@ -26,6 +27,7 @@ export function CopyValueButton({ value, label }: { value: string; label?: strin
     <button
       type="button"
       onClick={() => void copy()}
+      data-receipt-exclude="true"
       className="rounded-lg border border-white/[0.1] px-3 py-1.5 text-xs font-medium text-neutral-300 transition-colors hover:border-white/[0.18] hover:text-white"
     >
       {copied ? "Copied" : label ?? "Copy"}
@@ -80,86 +82,91 @@ export function PurchaseReceiptCard({
   showAdvanced?: boolean;
   showActions?: boolean;
 }) {
-  const receiptDownloadUrl = purchase.receipt_number
-    ? `https://pay.stripe.com/receipts/payment/${purchase.stripe_payment_intent ?? ""}`
-    : null;
+  const receiptRef = useRef<HTMLDivElement>(null);
+  const receiptFilename = `cried-receipt-${purchase.reference_id}.png`;
 
   return (
     <div className={`${cardClassName} overflow-hidden p-0`}>
-      <div className="border-b border-white/[0.06] px-5 py-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-500">Receipt</p>
-            <h2 className="mt-1 text-xl font-semibold text-white">{purchase.product_name}</h2>
+      <div ref={receiptRef}>
+        <div className="border-b border-white/[0.06] px-5 py-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-500">Receipt</p>
+              <h2 className="mt-1 text-xl font-semibold text-white">{purchase.product_name}</h2>
+            </div>
+            <PurchaseStatusPill status={purchase.status} />
           </div>
-          <PurchaseStatusPill status={purchase.status} />
+        </div>
+
+        <ReceiptRow label="Product" value={purchase.product_name} />
+        <ReceiptRow
+          label="Amount"
+          value={formatPurchaseAmount(purchase.amount_paid, purchase.currency)}
+        />
+        <ReceiptRow
+          label="Date"
+          value={new Date(purchase.created_at).toLocaleString(undefined, {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          })}
+        />
+        <ReceiptRow label="Status" value={formatPurchaseStatus(purchase.status)} />
+        <ReceiptRow
+          label="Reference ID"
+          value={purchase.reference_id}
+          mono
+          copyValue={purchase.reference_id}
+        />
+        {purchase.payment_method ? (
+          <ReceiptRow label="Payment method" value={purchase.payment_method} />
+        ) : null}
+        {purchase.receipt_number ? (
+          <ReceiptRow label="Receipt number" value={purchase.receipt_number} mono />
+        ) : null}
+        {purchase.invoice_number ? (
+          <ReceiptRow label="Invoice number" value={purchase.invoice_number} mono />
+        ) : null}
+        <ReceiptRow label="Currency" value={purchase.currency.toUpperCase()} />
+
+        {showAdvanced ? (
+          <div className="border-t border-white/[0.06] bg-white/[0.02]">
+            <div className="px-5 py-3">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-500">
+                Advanced details
+              </p>
+            </div>
+            {purchase.stripe_payment_intent ? (
+              <ReceiptRow
+                label="Stripe Payment ID"
+                value={purchase.stripe_payment_intent}
+                mono
+                copyValue={purchase.stripe_payment_intent}
+              />
+            ) : null}
+            <ReceiptRow
+              label="Stripe Checkout Session"
+              value={purchase.stripe_checkout_session_id}
+              mono
+              copyValue={purchase.stripe_checkout_session_id}
+            />
+            {purchase.stripe_customer_id ? (
+              <ReceiptRow
+                label="Stripe Customer ID"
+                value={purchase.stripe_customer_id}
+                mono
+                copyValue={purchase.stripe_customer_id}
+              />
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="border-t border-white/[0.06] px-5 py-3 text-center">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">cried.bio</p>
         </div>
       </div>
-
-      <ReceiptRow label="Product" value={purchase.product_name} />
-      <ReceiptRow
-        label="Amount"
-        value={formatPurchaseAmount(purchase.amount_paid, purchase.currency)}
-      />
-      <ReceiptRow
-        label="Date"
-        value={new Date(purchase.created_at).toLocaleString(undefined, {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-        })}
-      />
-      <ReceiptRow label="Status" value={formatPurchaseStatus(purchase.status)} />
-      <ReceiptRow
-        label="Reference ID"
-        value={purchase.reference_id}
-        mono
-        copyValue={purchase.reference_id}
-      />
-      {purchase.payment_method ? (
-        <ReceiptRow label="Payment method" value={purchase.payment_method} />
-      ) : null}
-      {purchase.receipt_number ? (
-        <ReceiptRow label="Receipt number" value={purchase.receipt_number} mono />
-      ) : null}
-      {purchase.invoice_number ? (
-        <ReceiptRow label="Invoice number" value={purchase.invoice_number} mono />
-      ) : null}
-      <ReceiptRow label="Currency" value={purchase.currency.toUpperCase()} />
-
-      {showAdvanced ? (
-        <div className="border-t border-white/[0.06] bg-white/[0.02]">
-          <div className="px-5 py-3">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-neutral-500">
-              Advanced details
-            </p>
-          </div>
-          {purchase.stripe_payment_intent ? (
-            <ReceiptRow
-              label="Stripe Payment ID"
-              value={purchase.stripe_payment_intent}
-              mono
-              copyValue={purchase.stripe_payment_intent}
-            />
-          ) : null}
-          <ReceiptRow
-            label="Stripe Checkout Session"
-            value={purchase.stripe_checkout_session_id}
-            mono
-            copyValue={purchase.stripe_checkout_session_id}
-          />
-          {purchase.stripe_customer_id ? (
-            <ReceiptRow
-              label="Stripe Customer ID"
-              value={purchase.stripe_customer_id}
-              mono
-              copyValue={purchase.stripe_customer_id}
-            />
-          ) : null}
-        </div>
-      ) : null}
 
       {showActions ? (
         <div className="flex flex-wrap gap-3 border-t border-white/[0.06] px-5 py-4">
@@ -167,16 +174,7 @@ export function PurchaseReceiptCard({
           {purchase.stripe_payment_intent ? (
             <CopyValueButton value={purchase.stripe_payment_intent} label="Copy Payment ID" />
           ) : null}
-          {receiptDownloadUrl && purchase.stripe_payment_intent ? (
-            <a
-              href={receiptDownloadUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-lg border border-white/[0.1] px-3 py-1.5 text-xs font-medium text-neutral-300 transition-colors hover:border-white/[0.18] hover:text-white"
-            >
-              Download receipt
-            </a>
-          ) : null}
+          <DownloadReceiptButton targetRef={receiptRef} filename={receiptFilename} />
         </div>
       ) : null}
     </div>

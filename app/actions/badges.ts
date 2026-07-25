@@ -14,6 +14,7 @@ import {
   getBadgesByProfileId,
 } from "@/lib/data/badges";
 import { resolveUniqueBadgeSlug } from "@/lib/badges/slug";
+import { uploadStoreBadgeIcon, validateStoreBadgeIcon } from "@/lib/badges/store-badge-create";
 import { createNotification } from "@/lib/data/notifications";
 import { formatSchemaError } from "@/lib/db/schema";
 import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
@@ -400,6 +401,106 @@ export async function createCustomBadgeAction(
 
   return {
     success: `Custom badge "${name}" created and assigned to @${profile.username}.`,
+  };
+}
+
+function isLikelyAnimatedStoreBadge(iconUrl: string | null | undefined): boolean {
+  const normalized = iconUrl?.toLowerCase() ?? "";
+  return normalized.includes(".gif") || normalized.includes("animated");
+}
+
+export async function updateCustomBadgeForAdminAction(
+  _prev: BadgeFormState,
+  formData: FormData,
+): Promise<BadgeFormState> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "You must be logged in." };
+  if (!(await isAdmin(userId))) return { error: "Admin access required." };
+
+  const badgeId = String(formData.get("badge_id") ?? "").trim();
+  const username = String(formData.get("username") ?? "").trim().toLowerCase();
+  const name = String(formData.get("name") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const color = String(formData.get("color") ?? "").trim();
+  const rarity = String(formData.get("rarity") ?? "").trim();
+
+  if (!badgeId) return { error: "Badge is required." };
+  if (!username) return { error: "Username is required." };
+  if (!name) return { error: "Badge name is required." };
+
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, username")
+    .eq("username", username)
+    .maybeSingle();
+
+  if (!profile) return { error: "User not found." };
+
+  const { data: assignment } = await supabase
+    .from("profile_badges")
+    .select("id, award_source, badges(id, slug, name, category, icon_url, rarity)")
+    .eq("profile_id", profile.id)
+    .eq("badge_id", badgeId)
+    .maybeSingle();
+
+  if (!assignment) return { error: "This badge is not assigned to that user." };
+
+  const badge = assignment.badges && !Array.isArray(assignment.badges)
+    ? (assignment.badges as {
+        id: string;
+        slug: string;
+        name: string;
+        category: string;
+        icon_url: string | null;
+        rarity: string;
+      })
+    : null;
+
+  if (!badge) return { error: "Badge not found." };
+  if (badge.category !== "custom") {
+    return { error: "Only custom badges can be edited here." };
+  }
+
+  const isStoreBadge = assignment.award_source === "store";
+  const updates: Record<string, string> = {
+    name,
+    description,
+  };
+
+  if (!isStoreBadge) {
+    if (color) updates.color = color;
+    if (rarity) updates.rarity = rarity;
+  }
+
+  const iconFile = formData.get("icon_image");
+  if (iconFile instanceof File && iconFile.size > 0) {
+    try {
+      if (isStoreBadge) {
+        const animated =
+          isLikelyAnimatedStoreBadge(badge.icon_url) || iconFile.type === "image/gif";
+        const validationError = validateStoreBadgeIcon(iconFile, animated);
+        if (validationError) return { error: validationError };
+        updates.icon_url = await uploadStoreBadgeIcon(badge.slug, iconFile, animated);
+      } else {
+        updates.icon_url = await uploadBadgeIcon(badge.slug, iconFile);
+      }
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : "Badge image upload failed.",
+      };
+    }
+  }
+
+  const { error } = await supabase.from("badges").update(updates).eq("id", badge.id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard/badges");
+  revalidatePath("/dashboard/admin/badges");
+  if (profile.username) revalidatePath(`/${profile.username}`);
+
+  return {
+    success: `Custom badge "${name}" updated for @${profile.username}.`,
   };
 }
 

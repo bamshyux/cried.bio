@@ -7,6 +7,7 @@ import {
   createCustomBadgeAction,
   lookupUserBadgesForAdmin,
   removeBadgeAssignmentAction,
+  updateCustomBadgeForAdminAction,
 } from "@/app/actions/badges";
 import { BadgeChip } from "@/components/badges/badge-ui";
 import {
@@ -34,6 +35,8 @@ export function BadgesAdminPanel({ catalog }: { catalog: Badge[] }) {
 
   const [assignState, assignAction, assignPending] = useActionState(assignBadgeByUsernameAction, initial);
   const [createState, createAction, createPending] = useActionState(createCustomBadgeAction, initial);
+  const [editState, editAction, editPending] = useActionState(updateCustomBadgeForAdminAction, initial);
+  const [editingBadge, setEditingBadge] = useState<ProfileBadge | null>(null);
 
   const assignableBadges = catalog.filter(
     (b) => b.is_assignable && b.category !== "custom",
@@ -86,6 +89,14 @@ export function BadgesAdminPanel({ catalog }: { catalog: Badge[] }) {
     if (target) refreshLookup(target);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createState.success, router]);
+
+  useEffect(() => {
+    if (!editState.success || !lookupProfile) return;
+    setEditingBadge(null);
+    refreshLookup(lookupProfile.username);
+    router.refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editState.success]);
 
   return (
     <div className={`${cardClassName} border-[#a855f7]/30 bg-[#a855f7]/[0.04]`}>
@@ -141,22 +152,132 @@ export function BadgesAdminPanel({ catalog }: { catalog: Badge[] }) {
                 <p className="mt-3 text-sm text-neutral-600">No badges assigned yet.</p>
               ) : (
                 <div className="mt-3 space-y-2">
-                  {userBadges.map((badge) => (
-                    <div
-                      key={badge.profile_badge_id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/[0.06] bg-[#141414] p-3"
-                    >
-                      <BadgeChip badge={badge} />
-                      <button
-                        type="button"
-                        disabled={isRemoving}
-                        onClick={() => handleRemove(badge.profile_badge_id)}
-                        className="text-xs font-medium text-red-400 transition-colors hover:text-red-300 disabled:opacity-50"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
+                  {userBadges.map((badge) => {
+                    const isCustom = badge.category === "custom";
+                    const isEditing = editingBadge?.id === badge.id;
+
+                    return (
+                      <div key={badge.profile_badge_id} className="rounded-lg border border-white/[0.06] bg-[#141414]">
+                        <div className="flex flex-wrap items-center justify-between gap-2 p-3">
+                          <BadgeChip badge={badge} />
+                          <div className="flex items-center gap-3">
+                            {isCustom ? (
+                              <button
+                                type="button"
+                                onClick={() => setEditingBadge(isEditing ? null : badge)}
+                                className="text-xs font-medium text-violet-300 transition-colors hover:text-violet-200"
+                              >
+                                {isEditing ? "Cancel" : "Edit badge"}
+                              </button>
+                            ) : null}
+                            <button
+                              type="button"
+                              disabled={isRemoving}
+                              onClick={() => handleRemove(badge.profile_badge_id)}
+                              className="text-xs font-medium text-red-400 transition-colors hover:text-red-300 disabled:opacity-50"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+
+                        {isEditing && lookupProfile ? (
+                          <form
+                            action={editAction}
+                            encType="multipart/form-data"
+                            className="space-y-3 border-t border-white/[0.06] p-4"
+                          >
+                            <input type="hidden" name="badge_id" value={badge.id} />
+                            <input type="hidden" name="username" value={lookupProfile.username} />
+                            <p className="text-xs text-neutral-500">
+                              {badge.award_source === "store"
+                                ? "Store custom badge — update name, bio, or image. Rarity stays Mythic."
+                                : "Staff custom badge — update name, bio, image, color, or rarity."}
+                            </p>
+                            <div>
+                              <label htmlFor={`edit-name-${badge.id}`} className={labelClassName}>
+                                Name
+                              </label>
+                              <input
+                                id={`edit-name-${badge.id}`}
+                                name="name"
+                                required
+                                defaultValue={badge.name}
+                                className={inputClassName}
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor={`edit-description-${badge.id}`} className={labelClassName}>
+                                Description
+                              </label>
+                              <input
+                                id={`edit-description-${badge.id}`}
+                                name="description"
+                                defaultValue={badge.description}
+                                className={inputClassName}
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor={`edit-icon-${badge.id}`} className={labelClassName}>
+                                Replace badge image
+                              </label>
+                              <input
+                                id={`edit-icon-${badge.id}`}
+                                name="icon_image"
+                                type="file"
+                                accept={
+                                  badge.award_source === "store"
+                                    ? "image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+                                    : "image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+                                }
+                                className="block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#fafafa] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]"
+                              />
+                              <p className="mt-1.5 text-xs text-neutral-600">
+                                Leave empty to keep the current image. Max 2 MB.
+                              </p>
+                            </div>
+                            {badge.award_source !== "store" ? (
+                              <div className="grid gap-3 sm:grid-cols-2">
+                                <div>
+                                  <label htmlFor={`edit-color-${badge.id}`} className={labelClassName}>
+                                    Color
+                                  </label>
+                                  <input
+                                    id={`edit-color-${badge.id}`}
+                                    name="color"
+                                    type="color"
+                                    defaultValue={badge.color}
+                                    className="h-10 w-full cursor-pointer rounded-lg border border-white/[0.06] bg-[#141414]"
+                                  />
+                                </div>
+                                <div>
+                                  <label htmlFor={`edit-rarity-${badge.id}`} className={labelClassName}>
+                                    Rarity
+                                  </label>
+                                  <select
+                                    id={`edit-rarity-${badge.id}`}
+                                    name="rarity"
+                                    defaultValue={badge.rarity}
+                                    className={inputClassName}
+                                  >
+                                    {BADGE_RARITIES.map((r) => (
+                                      <option key={r} value={r}>
+                                        {r}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            ) : null}
+                            <FormFeedback error={editState.error} success={editState.success} />
+                            <button type="submit" disabled={editPending} className={buttonPrimaryClassName}>
+                              {editPending ? "Saving..." : "Save badge changes"}
+                            </button>
+                          </form>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
