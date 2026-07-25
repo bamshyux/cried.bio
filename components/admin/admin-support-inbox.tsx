@@ -8,7 +8,9 @@ import {
   fetchAdminSupportInboxAction,
   toggleSupportPinAction,
   toggleSupportPriorityAction,
+  updateSupportStatusAction,
 } from "@/app/actions/support";
+import Link from "next/link";
 import { AdminStatCard } from "@/components/admin/admin-ui";
 import { SupportChatThread } from "@/components/support/support-chat-thread";
 import { useSupportRealtime, useSupportTypingIndicator } from "@/hooks/use-support-realtime";
@@ -19,6 +21,7 @@ import {
 import { formatSupportTimestamp, supportDisplayName } from "@/lib/support/format";
 import {
   getSupportStatusDisplay,
+  type SupportAiMessage,
   type SupportAnalytics,
   type SupportConversation,
   type SupportInternalNote,
@@ -42,6 +45,7 @@ export function AdminSupportInbox({
   const [activeConversation, setActiveConversation] = useState<SupportConversation | null>(null);
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [notes, setNotes] = useState<SupportInternalNote[]>([]);
+  const [aiMessages, setAiMessages] = useState<SupportAiMessage[]>([]);
   const [noteDraft, setNoteDraft] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [assignedFilter, setAssignedFilter] = useState("all");
@@ -84,6 +88,7 @@ export function AdminSupportInbox({
     setActiveConversation(result.conversation);
     setMessages(result.messages);
     setNotes(result.notes);
+    setAiMessages("aiMessages" in result ? (result.aiMessages ?? []) : []);
     void refreshInbox();
   }, [refreshInbox]);
 
@@ -131,6 +136,7 @@ export function AdminSupportInbox({
     setActiveConversation(null);
     setMessages([]);
     setNotes([]);
+    setAiMessages([]);
     void refreshInbox();
   }, [refreshInbox]);
 
@@ -146,18 +152,57 @@ export function AdminSupportInbox({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
         <AdminStatCard label="Open tickets" value={analytics.openCount} />
         <AdminStatCard label="Waiting on staff" value={analytics.waitingOnStaff} />
+        <AdminStatCard label="In progress" value={analytics.inProgress} />
+        <AdminStatCard label="Closed today" value={analytics.closedToday} />
         <AdminStatCard
-          label="Avg first response"
+          label="AI resolution rate"
+          value={analytics.aiResolutionRate != null ? `${analytics.aiResolutionRate}%` : "—"}
+        />
+        <AdminStatCard
+          label="AI escalation rate"
           value={
-            analytics.avgFirstResponseMinutes != null
-              ? `${analytics.avgFirstResponseMinutes}m`
+            analytics.aiEscalationPercentage != null
+              ? `${analytics.aiEscalationPercentage}%`
               : "—"
           }
         />
-        <AdminStatCard label="Resolved this week" value={analytics.resolvedThisWeek} />
+        <AdminStatCard
+          label="Avg AI chat length"
+          value={
+            analytics.avgAiConversationLength != null
+              ? `${analytics.avgAiConversationLength} msgs`
+              : "—"
+          }
+        />
+        <AdminStatCard
+          label="Avg human response"
+          value={
+            analytics.avgHumanResponseMinutes != null
+              ? `${analytics.avgHumanResponseMinutes}m`
+              : "—"
+          }
+        />
+        <AdminStatCard
+          label="Avg resolution time"
+          value={
+            analytics.avgResolutionMinutes != null
+              ? `${analytics.avgResolutionMinutes}m`
+              : "—"
+          }
+        />
+        <AdminStatCard label="Archived transcripts" value={analytics.archivedTranscriptCount} />
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Link
+          href="/dashboard/admin/support/archives"
+          className="rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-neutral-300 hover:bg-white/[0.04]"
+        >
+          Archived Transcripts →
+        </Link>
       </div>
 
       <div className="bf-card overflow-hidden p-0">
@@ -170,8 +215,11 @@ export function AdminSupportInbox({
             <option value="all">All statuses</option>
             <option value="open">Open</option>
             <option value="waiting_on_staff">Waiting on staff</option>
-            <option value="waiting_on_user">Waiting on user</option>
+            <option value="waiting_on_user">Waiting on customer</option>
+            <option value="in_progress">In progress</option>
+            <option value="ai_assisting">AI assisting</option>
             <option value="closed">Closed</option>
+            <option value="archived">Archived</option>
           </select>
           <select
             value={assignedFilter}
@@ -200,7 +248,7 @@ export function AdminSupportInbox({
 
         {feedback ? <p className="border-b border-white/[0.06] px-4 py-2 text-xs text-neutral-400">{feedback}</p> : null}
 
-        <div className="grid min-h-[640px] lg:grid-cols-[1.1fr_1fr]">
+        <div className="grid min-h-[640px] lg:grid-cols-[1fr_1.2fr_280px]">
           <div className="overflow-x-auto border-b border-white/[0.06] lg:border-b-0 lg:border-r">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-white/[0.02] text-[11px] uppercase tracking-[0.12em] text-neutral-500">
@@ -262,10 +310,30 @@ export function AdminSupportInbox({
             ) : null}
           </div>
 
-          <div className="flex min-h-[640px] flex-col bg-black/20">
+          <div className="flex min-h-[640px] flex-col border-b border-white/[0.06] bg-black/20 lg:border-b-0 lg:border-r">
             {activeConversation ? (
               <>
                 <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+                  <select
+                    value={activeConversation.status}
+                    onChange={(e) =>
+                      run(() =>
+                        updateSupportStatusAction(
+                          activeConversation.id,
+                          e.target.value as typeof activeConversation.status,
+                        ),
+                      )
+                    }
+                    className="rounded-lg border border-white/[0.08] bg-[#0f0f0f] px-2 py-1.5 text-xs text-neutral-300"
+                  >
+                    <option value="open">🟢 Open</option>
+                    <option value="waiting_on_staff">🟢 Waiting on Staff</option>
+                    <option value="waiting_on_user">🟡 Waiting on Customer</option>
+                    <option value="in_progress">🔵 In Progress</option>
+                    <option value="ai_assisting">🟣 AI Assisting</option>
+                    <option value="closed">🔴 Closed</option>
+                    <option value="archived">⚫ Archived</option>
+                  </select>
                   <select
                     value={activeConversation.assigned_to ?? ""}
                     onChange={(e) =>
@@ -285,6 +353,11 @@ export function AdminSupportInbox({
                       </option>
                     ))}
                   </select>
+                  {activeConversation.ai_escalated ? (
+                    <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-medium text-violet-200">
+                      AI Escalated
+                    </span>
+                  ) : null}
                   <button
                     type="button"
                     disabled={isPending}
@@ -314,6 +387,25 @@ export function AdminSupportInbox({
                   </button>
                 </div>
 
+                {aiMessages.length > 0 ? (
+                  <div className="max-h-48 overflow-y-auto border-b border-violet-500/20 bg-violet-500/[0.04] px-4 py-3">
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-300/80">
+                      cried AI conversation
+                    </p>
+                    <div className="space-y-2">
+                      {aiMessages.map((msg) => (
+                        <div key={msg.id} className="text-xs leading-relaxed text-neutral-300">
+                          <span className="font-medium text-violet-200/90">
+                            {msg.role === "user" ? "Customer" : msg.role === "assistant" ? "cried AI" : "System"}:
+                          </span>{" "}
+                          {msg.body.slice(0, 280)}
+                          {msg.body.length > 280 ? "…" : ""}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="min-h-0 flex-1">
                   <SupportChatThread
                     conversation={activeConversation}
@@ -326,47 +418,6 @@ export function AdminSupportInbox({
                     onDeleted={handleTicketDeleted}
                   />
                 </div>
-
-                <div className="border-t border-white/[0.06] p-4">
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
-                    Internal notes (staff only)
-                  </p>
-                  <div className="mb-3 max-h-28 space-y-2 overflow-y-auto">
-                    {notes.map((note) => (
-                      <div key={note.id} className="rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2 text-xs text-amber-100/90">
-                        <p>{note.body}</p>
-                        <p className="mt-1 text-[10px] text-amber-200/50">
-                          {supportDisplayName(note.author)} · {formatSupportTimestamp(note.created_at)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      value={noteDraft}
-                      onChange={(e) => setNoteDraft(e.target.value)}
-                      placeholder="Add internal note…"
-                      className="min-w-0 flex-1 rounded-lg border border-white/[0.08] bg-[#0f0f0f] px-3 py-2 text-sm text-white"
-                    />
-                    <button
-                      type="button"
-                      disabled={isPending || !noteDraft.trim()}
-                      onClick={() =>
-                        run(async () => {
-                          const result = await addSupportInternalNoteAction(
-                            activeConversation.id,
-                            noteDraft,
-                          );
-                          if (!result.error) setNoteDraft("");
-                          return result;
-                        })
-                      }
-                      className="rounded-lg bg-amber-600/80 px-3 py-2 text-xs font-medium text-white"
-                    >
-                      Add note
-                    </button>
-                  </div>
-                </div>
               </>
             ) : (
               <div className="flex flex-1 items-center justify-center px-6 text-center text-sm text-neutral-500">
@@ -374,6 +425,61 @@ export function AdminSupportInbox({
               </div>
             )}
           </div>
+
+          <aside className="hidden min-h-[640px] flex-col border-white/[0.06] bg-black/30 p-4 lg:flex">
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-400/80">
+              Staff notes
+            </p>
+            {activeConversation ? (
+              <>
+                <div className="mb-3 min-h-0 flex-1 space-y-2 overflow-y-auto">
+                  {notes.length === 0 ? (
+                    <p className="text-xs text-neutral-500">No internal notes yet.</p>
+                  ) : (
+                    notes.map((note) => (
+                      <div
+                        key={note.id}
+                        className="rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2 text-xs text-amber-100/90"
+                      >
+                        <p>{note.body}</p>
+                        <p className="mt-1 text-[10px] text-amber-200/50">
+                          {supportDisplayName(note.author)} · {formatSupportTimestamp(note.created_at)}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="flex shrink-0 flex-col gap-2">
+                  <textarea
+                    value={noteDraft}
+                    onChange={(e) => setNoteDraft(e.target.value)}
+                    placeholder="Private note — customer cannot see this…"
+                    rows={3}
+                    className="rounded-lg border border-white/[0.08] bg-[#0f0f0f] px-3 py-2 text-sm text-white"
+                  />
+                  <button
+                    type="button"
+                    disabled={isPending || !noteDraft.trim()}
+                    onClick={() =>
+                      run(async () => {
+                        const result = await addSupportInternalNoteAction(
+                          activeConversation.id,
+                          noteDraft,
+                        );
+                        if (!result.error) setNoteDraft("");
+                        return result;
+                      })
+                    }
+                    className="rounded-lg bg-amber-600/80 px-3 py-2 text-xs font-medium text-white"
+                  >
+                    Add note
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-neutral-500">Select a ticket to view and add staff notes.</p>
+            )}
+          </aside>
         </div>
       </div>
     </div>

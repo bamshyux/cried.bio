@@ -25,9 +25,8 @@ import {
 } from "@/lib/support/format";
 import type { SupportConversation, SupportMessage } from "@/lib/types/support";
 import {
+  getSupportStatusDisplay,
   SUPPORT_QUICK_REPLIES,
-  SUPPORT_STATUS_EMOJI,
-  SUPPORT_STATUS_LABELS,
 } from "@/lib/types/support";
 
 const COMMON_EMOJIS = ["👍", "❤️", "😊", "🙏", "✨", "🔥", "😅", "💯"];
@@ -111,7 +110,11 @@ export function SupportChatThread({
     };
   }, [conversation.id, isStaff, viewerId, viewerLabel]);
 
-  const isClosed = conversation.status === "closed";
+  const isClosed = conversation.status === "closed" || conversation.status === "archived";
+  const statusDisplay = getSupportStatusDisplay(conversation.status);
+  const waitingForStaff =
+    !isStaff &&
+    (conversation.status === "waiting_on_staff" || conversation.status === "in_progress");
 
   function notifyTyping(isTyping: boolean) {
     if (isTyping === typingActiveRef.current) return;
@@ -180,7 +183,7 @@ export function SupportChatThread({
   function deleteTicket() {
     if (
       !window.confirm(
-        "Delete this closed ticket permanently? All messages and attachments will be removed.",
+        "Delete this closed ticket? A transcript will be kept for 72 hours in staff archives, then permanently removed.",
       )
     ) {
       return;
@@ -207,8 +210,8 @@ export function SupportChatThread({
         <div className="bf-support-thread__info">
           <p className="bf-support-thread__subject">{conversation.subject}</p>
           <span className="bf-support-status-pill mt-1">
-            {SUPPORT_STATUS_EMOJI[conversation.status]}{" "}
-            {SUPPORT_STATUS_LABELS[conversation.status]}
+            {statusDisplay.emoji} {statusDisplay.label}
+            {conversation.ai_escalated ? " · AI Escalated" : ""}
           </span>
         </div>
         <div className="bf-support-thread__actions">
@@ -232,6 +235,18 @@ export function SupportChatThread({
           </button>
         </div>
       </div>
+
+      {!isStaff && waitingForStaff ? (
+        <div className="border-b border-violet-500/20 bg-violet-500/[0.06] px-4 py-3 text-xs leading-relaxed text-violet-100/90">
+          <p className="font-medium text-violet-100">Waiting for staff…</p>
+          <p className="mt-1 text-violet-200/70">
+            {conversation.assignee
+              ? `Assigned to ${supportDisplayName(conversation.assignee)}`
+              : "A team member will be assigned shortly"}
+            {" · "}Typical response within a few hours
+          </p>
+        </div>
+      ) : null}
 
       <div ref={scrollRef} className="bf-support-chat-scroll min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4">
         {groupedMessages.map((message, index) => {

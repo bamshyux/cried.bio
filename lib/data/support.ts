@@ -4,12 +4,15 @@ import {
   normalizeSupportStatus,
   type SupportAnalytics,
   type SupportAttachment,
+  type SupportArchivedTranscript,
+  type SupportAiMessage,
   type SupportConversation,
   type SupportConversationStatus,
   type SupportInboxFilters,
   type SupportInternalNote,
   type SupportMessage,
   type SupportProfileSummary,
+  type SupportStatusHistoryEntry,
 } from "@/lib/types/support";
 
 const PROFILE_SELECT = "id, username, display_name, avatar_url";
@@ -36,6 +39,12 @@ type ConversationRow = {
   last_message_preview: string | null;
   created_at: string;
   updated_at: string;
+  category?: string | null;
+  ai_escalated?: boolean;
+  ai_session_id?: string | null;
+  closed_at?: string | null;
+  first_staff_response_at?: string | null;
+  status_history?: SupportStatusHistoryEntry[] | null;
 };
 
 function mapConversationRow(
@@ -54,6 +63,14 @@ function mapConversationRow(
     last_message_preview: row.last_message_preview,
     created_at: row.created_at,
     updated_at: row.updated_at,
+    category: row.category ?? null,
+    ai_escalated: Boolean(row.ai_escalated),
+    ai_session_id: row.ai_session_id ? String(row.ai_session_id) : null,
+    closed_at: row.closed_at ?? null,
+    first_staff_response_at: row.first_staff_response_at ?? null,
+    status_history: Array.isArray(row.status_history)
+      ? (row.status_history as SupportStatusHistoryEntry[])
+      : [],
     customer: profileMap.get(String(row.user_id)) ?? null,
     assignee: row.assigned_to ? profileMap.get(String(row.assigned_to)) ?? null : null,
   };
@@ -354,29 +371,58 @@ export async function listPlatformAdminUserIds(): Promise<string[]> {
   return (data ?? []).map((row) => row.id as string);
 }
 
+export async function getSupportAiMessages(sessionId: string): Promise<SupportAiMessage[]> {
+  const supabase = await adminDb();
+  const { data, error } = await supabase
+    .from("support_ai_messages")
+    .select("*")
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("[support] getSupportAiMessages:", error.message);
+    return [];
+  }
+  return (data ?? []) as SupportAiMessage[];
+}
+
 export async function getSupportAnalytics(): Promise<SupportAnalytics> {
   const supabase = await adminDb();
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
 
-  const { data: conversations } = await supabase
-    .from("support_conversations")
-    .select("id, status, created_at, updated_at");
+  const [
+    { data: conversations },
+    { data: staffMessages },
+    { data: aiSessions },
+    { count: archivedCount },
+  ] = await Promise.all([
+    supabase.from("support_conversations").select("id, status, created_at, updated_at, closed_at, first_staff_response_at, ai_escalated"),
+    supabase.from("support_messages").select("conversation_id, created_at").eq("is_staff", true).order("created_at", { ascending: true }),
+    supabase.from("support_ai_sessions").select("id, status, message_count, created_at, updated_at"),
+    supabase.from("support_archived_transcripts").select("*", { count: "exact", head: true }),
+  ]);
 
   const rows = conversations ?? [];
-  const openCount = rows.filter((r) => r.status !== "closed").length;
+  const openCount = rows.filter((r) => r.status !== "closed" && r.status !== "archived").length;
   const closedCount = rows.filter((r) => r.status === "closed").length;
   const waitingOnStaff = rows.filter((r) => r.status === "waiting_on_staff").length;
   const waitingOnUser = rows.filter((r) => r.status === "waiting_on_user").length;
+  const inProgress = rows.filter((r) => r.status === "in_progress").length;
+  const aiAssisting = rows.filter((r) => r.status === "ai_assisting").length;
   const resolvedThisWeek = rows.filter(
     (r) => r.status === "closed" && r.updated_at >= weekAgo,
   ).length;
+  const closedToday = rows.filter(
+    (r) =>
+      r.status === "closed" &&
+      (r.closed_at ?? r.updated_at) >= todayStart.toISOString(),
+  ).length;
 
   let avgFirstResponseMinutes: number | null = null;
-  const { data: staffMessages } = await supabase
-    .from("support_messages")
-    .select("conversation_id, created_at")
-    .eq("is_staff", true)
-    .order("created_at", { ascending: true });
+  let avgHumanResponseMinutes: number | null = null;
+  let avgResolutionMinutes: number | null = null;
 
   if (staffMessages && staffMessages.length > 0) {
     const firstStaffByConversation = new Map<string, string>();
@@ -386,29 +432,70 @@ export async function getSupportAnalytics(): Promise<SupportAnalytics> {
       }
     }
 
-    const deltas: number[] = [];
+    const firstResponseDeltas: number[] = [];
+    const resolutionDeltas: number[] = [];
     for (const row of rows) {
       const firstStaffAt = firstStaffByConversation.get(row.id);
-      if (!firstStaffAt) continue;
-      const delta =
-        (new Date(firstStaffAt).getTime() - new Date(row.created_at).getTime()) / 60000;
-      if (delta >= 0) deltas.push(delta);
+      if (firstStaffAt) {
+        const delta =
+          (new Date(firstStaffAt).getTime() - new Date(row.created_at).getTime()) / 60000;
+        if (delta >= 0) firstResponseDeltas.push(delta);
+      }
+      if (row.status === "closed" && row.closed_at) {
+        const resDelta =
+          (new Date(row.closed_at).getTime() - new Date(row.created_at).getTime()) / 60000;
+        if (resDelta >= 0) resolutionDeltas.push(resDelta);
+      }
     }
 
-    if (deltas.length > 0) {
+    if (firstResponseDeltas.length > 0) {
       avgFirstResponseMinutes = Math.round(
-        deltas.reduce((a, b) => a + b, 0) / deltas.length,
+        firstResponseDeltas.reduce((a, b) => a + b, 0) / firstResponseDeltas.length,
+      );
+      avgHumanResponseMinutes = avgFirstResponseMinutes;
+    }
+    if (resolutionDeltas.length > 0) {
+      avgResolutionMinutes = Math.round(
+        resolutionDeltas.reduce((a, b) => a + b, 0) / resolutionDeltas.length,
       );
     }
   }
+
+  const aiRows = aiSessions ?? [];
+  const aiResolved = aiRows.filter((s) => s.status === "resolved").length;
+  const aiEscalated = aiRows.filter((s) => s.status === "escalated").length;
+  const aiTotal = aiRows.length;
+  const aiResolutionRate = aiTotal > 0 ? Math.round((aiResolved / aiTotal) * 100) : null;
+  const aiEscalationPercentage = aiTotal > 0 ? Math.round((aiEscalated / aiTotal) * 100) : null;
+  const humanResolved = rows.filter((r) => r.status === "closed" && !r.ai_escalated).length;
+  const humanTotal = rows.filter((r) => r.status === "closed").length;
+  const humanResolutionRate =
+    humanTotal > 0 ? Math.round((humanResolved / humanTotal) * 100) : null;
+
+  const avgAiConversationLength =
+    aiRows.length > 0
+      ? Math.round(
+          aiRows.reduce((sum, s) => sum + (Number(s.message_count) || 0), 0) / aiRows.length,
+        )
+      : null;
 
   return {
     openCount,
     closedCount,
     waitingOnStaff,
     waitingOnUser,
+    inProgress,
+    aiAssisting,
     avgFirstResponseMinutes,
     resolvedThisWeek,
+    closedToday,
+    archivedTranscriptCount: archivedCount ?? 0,
+    aiResolutionRate,
+    humanResolutionRate,
+    avgAiConversationLength,
+    avgHumanResponseMinutes,
+    avgResolutionMinutes,
+    aiEscalationPercentage,
   };
 }
 
@@ -450,3 +537,75 @@ export async function signSupportAttachmentUrls(
     url: `/api/support/attachment/${attachment.id}`,
   }));
 }
+
+export async function purgeExpiredSupportTranscripts(): Promise<number> {
+  const supabase = await adminDb();
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("support_archived_transcripts")
+    .delete()
+    .lt("purge_at", now)
+    .select("id");
+
+  if (error) {
+    console.error("[support] purgeExpiredSupportTranscripts:", error.message);
+    return 0;
+  }
+  return data?.length ?? 0;
+}
+
+export async function listArchivedTranscripts(search?: string): Promise<SupportArchivedTranscript[]> {
+  const supabase = await adminDb();
+  await purgeExpiredSupportTranscripts();
+
+  let query = supabase
+    .from("support_archived_transcripts")
+    .select("*")
+    .order("archived_at", { ascending: false });
+
+  if (search?.trim()) {
+    query = query.ilike("subject", `%${search.trim()}%`);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error("[support] listArchivedTranscripts:", error.message);
+    return [];
+  }
+
+  const rows = (data ?? []) as SupportArchivedTranscript[];
+  const profileIds = [
+    ...rows.map((r) => r.user_id).filter(Boolean),
+    ...rows.map((r) => r.assigned_staff_id).filter(Boolean),
+  ] as string[];
+  const profileMap = await loadProfileMap(profileIds);
+
+  return rows.map((row) => ({
+    ...row,
+    customer: row.user_id ? profileMap.get(row.user_id) ?? null : null,
+    staff: row.assigned_staff_id ? profileMap.get(row.assigned_staff_id) ?? null : null,
+  }));
+}
+
+export async function getArchivedTranscriptById(
+  id: string,
+): Promise<SupportArchivedTranscript | null> {
+  const supabase = await adminDb();
+  const { data, error } = await supabase
+    .from("support_archived_transcripts")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  const row = data as SupportArchivedTranscript;
+  const profileMap = await loadProfileMap(
+    [row.user_id, row.assigned_staff_id].filter(Boolean) as string[],
+  );
+  return {
+    ...row,
+    customer: row.user_id ? profileMap.get(row.user_id) ?? null : null,
+    staff: row.assigned_staff_id ? profileMap.get(row.assigned_staff_id) ?? null : null,
+  };
+}
+

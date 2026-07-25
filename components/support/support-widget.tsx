@@ -8,6 +8,7 @@ import {
   fetchUserSupportInboxAction,
   uploadSupportAttachmentAction,
 } from "@/app/actions/support";
+import { SupportAiChat } from "@/components/support/support-ai-chat";
 import { SupportChatThread } from "@/components/support/support-chat-thread";
 import { useSupportRealtime, useSupportTypingIndicator } from "@/hooks/use-support-realtime";
 import { formatSupportTimestamp, supportUnreadTotal } from "@/lib/support/format";
@@ -44,7 +45,7 @@ function SupportPanelHeader({ onClose }: { onClose: () => void }) {
         </div>
         <div>
           <p className="bf-support-panel__title">Support</p>
-          <p className="bf-support-panel__subtitle">Real people · Usually replies within a few hours</p>
+          <p className="bf-support-panel__subtitle">cried AI first · Staff when you need them</p>
         </div>
       </div>
       <button type="button" onClick={onClose} className="bf-support-panel__close" aria-label="Close support">
@@ -171,7 +172,7 @@ export function SupportWidgetBody({
   onOpenChange: (open: boolean) => void;
   onUnreadChange: (count: number) => void;
 }) {
-  const [view, setView] = useState<"home" | "new" | "chat">("home");
+  const [view, setView] = useState<"home" | "ai" | "new" | "chat">("home");
   const [search, setSearch] = useState("");
   const [conversations, setConversations] = useState<SupportConversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<SupportConversation | null>(null);
@@ -359,6 +360,14 @@ export function SupportWidgetBody({
             Sign in to get help
           </Link>
         </div>
+      ) : view === "ai" ? (
+        <SupportAiChat
+          onBack={resetToHome}
+          onTicketCreated={async (conversationId) => {
+            await loadInbox();
+            await loadConversation(conversationId);
+          }}
+        />
       ) : view === "chat" && activeConversation ? (
         <div className="flex min-h-0 flex-1 flex-col">
           <SupportChatThread
@@ -459,20 +468,17 @@ export function SupportWidgetBody({
           <div className="bf-support-hero">
             <p className="bf-support-hero__title">How can we help?</p>
             <p className="bf-support-hero__text">
-              Message our team about bugs, billing, account access, or anything on your profile.
+              Start with <strong className="text-violet-200">cried AI</strong> for instant answers about Premium, billing, presets, and more.
               {openTicketCount > 0
                 ? ` You have ${openTicketCount} open ticket${openTicketCount === 1 ? "" : "s"}.`
-                : " Start a ticket and we'll get back to you."}
+                : " Need a human? AI will connect you to staff."}
             </p>
             <div className="bf-support-topics">
               {SUPPORT_TOPICS.map((topic) => (
                 <button
                   key={topic.label}
                   type="button"
-                  onClick={() => {
-                    setSubject(topic.label);
-                    setView("new");
-                  }}
+                  onClick={() => setView("ai")}
                   className="bf-support-topic"
                 >
                   <span aria-hidden>{topic.icon}</span>
@@ -482,7 +488,24 @@ export function SupportWidgetBody({
             </div>
           </div>
 
-          <div className="bf-support-search">
+          <button type="button" onClick={() => setView("ai")} className="bf-support-cta">
+            <span className="bf-support-cta__icon" aria-hidden>
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7v1h1a2 2 0 0 1 0 4h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a2 2 0 0 1 0-4h1v-1a7 7 0 0 1 7-7h1V5.73A2 2 0 0 1 12 2Z" />
+              </svg>
+            </span>
+            Chat with cried AI
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setView("new")}
+            className="mt-2 w-full rounded-xl border border-white/[0.08] px-4 py-2.5 text-sm text-neutral-400 transition-colors hover:border-white/[0.14] hover:text-white"
+          >
+            Skip AI — create ticket directly
+          </button>
+
+          <div className="bf-support-search mt-3">
             <svg className="bf-support-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.5-3.5" />
@@ -494,15 +517,6 @@ export function SupportWidgetBody({
               className="bf-support-search__input"
             />
           </div>
-
-          <button type="button" onClick={() => setView("new")} className="bf-support-cta">
-            <span className="bf-support-cta__icon" aria-hidden>
-              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </span>
-            New conversation
-          </button>
 
           <p className="bf-support-inbox-label">Your tickets</p>
 

@@ -4978,6 +4978,19 @@ body,
   box-shadow: 0 0 20px rgba(124, 58, 237, 0.25);
 }
 
+.bf-support-ai-avatar {
+  display: flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: linear-gradient(145deg, rgba(124, 58, 237, 0.4), rgba(76, 29, 149, 0.25));
+  color: #e9d5ff;
+}
+
 .bf-support-panel__title {
   font-size: 0.9375rem;
   font-weight: 650;

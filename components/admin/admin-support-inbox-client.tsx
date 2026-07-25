@@ -9,8 +9,18 @@ const EMPTY_ANALYTICS: SupportAnalytics = {
   closedCount: 0,
   waitingOnStaff: 0,
   waitingOnUser: 0,
+  inProgress: 0,
+  aiAssisting: 0,
   avgFirstResponseMinutes: null,
   resolvedThisWeek: 0,
+  closedToday: 0,
+  archivedTranscriptCount: 0,
+  aiResolutionRate: null,
+  humanResolutionRate: null,
+  avgAiConversationLength: null,
+  avgHumanResponseMinutes: null,
+  avgResolutionMinutes: null,
+  aiEscalationPercentage: null,
 };
 
 class SupportInboxErrorBoundary extends Component<

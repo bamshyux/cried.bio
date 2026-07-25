@@ -6,11 +6,14 @@ import { getAdminAccess, isAdminUser, type AdminAccess } from "@/lib/auth/admin-
 import { createNotification } from "@/lib/data/notifications";
 import {
   getSupportConversationById,
+  getSupportInternalNotes,
   getSupportMessages,
+  getSupportAiMessages,
   listPlatformAdminUserIds,
   listUserSupportConversations,
   signSupportAttachmentUrls,
 } from "@/lib/data/support";
+import { buildSupportTranscriptPayload } from "@/lib/support/transcript";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -20,6 +23,7 @@ import type {
   SupportActionState,
   SupportConversationDetailResult,
   SupportConversationStatus,
+  SupportStatusHistoryEntry,
   UserSupportInboxResult,
 } from "@/lib/types/support";
 
@@ -55,10 +59,28 @@ async function requireStaff(): Promise<AdminAccess | SupportActionError> {
 function revalidateSupport() {
   revalidatePath("/", "layout");
   revalidatePath("/dashboard/admin/support");
+  revalidatePath("/dashboard/admin/support/archives");
 }
 
 function nextStatusAfterMessage(isStaff: boolean): SupportConversationStatus {
   return isStaff ? "waiting_on_user" : "waiting_on_staff";
+}
+
+function appendStatusHistory(
+  existing: SupportStatusHistoryEntry[] | undefined,
+  status: SupportConversationStatus,
+  changedBy?: string,
+  note?: string,
+): SupportStatusHistoryEntry[] {
+  return [
+    ...(existing ?? []),
+    {
+      status,
+      changed_at: new Date().toISOString(),
+      changed_by: changedBy ?? null,
+      note,
+    },
+  ];
 }
 
 async function notifyAdminsNewTicket(
@@ -213,9 +235,23 @@ export async function sendSupportMessageAction(input: {
     updated_at: now,
   };
 
+  if (isStaff && !conversation.first_staff_response_at) {
+    updates.first_staff_response_at = now;
+    if (conversation.status === "waiting_on_staff") {
+      updates.status = "in_progress";
+    }
+  }
+
   if (isStaff && !conversation.assigned_to) {
     updates.assigned_to = authorId;
   }
+
+  updates.status_history = appendStatusHistory(
+    conversation.status_history,
+    updates.status as SupportConversationStatus,
+    authorId,
+    isStaff ? "Staff replied" : "Customer replied",
+  );
 
   const { error: updateError } = await supabase
     .from("support_conversations")
@@ -309,9 +345,20 @@ export async function closeSupportConversationAction(
   const conversation = await getSupportConversationById(conversationId, userId, isStaff);
   if (!conversation) return { error: "Conversation not found." };
 
+  const now = new Date().toISOString();
   const { error } = await supabase
     .from("support_conversations")
-    .update({ status: "closed", updated_at: new Date().toISOString() })
+    .update({
+      status: "closed",
+      closed_at: now,
+      updated_at: now,
+      status_history: appendStatusHistory(
+        conversation.status_history,
+        "closed",
+        userId,
+        isStaff ? "Closed by staff" : "Closed by customer",
+      ),
+    })
     .eq("id", conversationId);
 
   if (error) return { error: error.message };
@@ -352,11 +399,19 @@ export async function reopenSupportConversationAction(
   const conversation = await getSupportConversationById(conversationId, userId, isStaff);
   if (!conversation) return { error: "Conversation not found." };
 
+  const newStatus: SupportConversationStatus = isStaff ? "waiting_on_user" : "waiting_on_staff";
   const { error } = await supabase
     .from("support_conversations")
     .update({
-      status: isStaff ? "waiting_on_user" : "waiting_on_staff",
+      status: newStatus,
+      closed_at: null,
       updated_at: new Date().toISOString(),
+      status_history: appendStatusHistory(
+        conversation.status_history,
+        newStatus,
+        userId,
+        "Ticket reopened",
+      ),
     })
     .eq("id", conversationId);
 
@@ -413,9 +468,61 @@ export async function deleteSupportConversationAction(
   }
 
   const messages = await getSupportMessages(conversationId);
+  const notes = isStaff ? await getSupportInternalNotes(conversationId) : [];
+  const aiMessages = conversation.ai_session_id
+    ? await getSupportAiMessages(conversation.ai_session_id)
+    : [];
+
   const storagePaths = messages.flatMap(
     (message) => message.attachments?.map((attachment) => attachment.storage_path) ?? [],
   );
+
+  const customerSnapshot = conversation.customer
+    ? {
+        id: conversation.customer.id,
+        username: conversation.customer.username,
+        display_name: conversation.customer.display_name,
+      }
+    : { id: conversation.user_id };
+
+  const staffSnapshot = conversation.assignee
+    ? {
+        id: conversation.assignee.id,
+        username: conversation.assignee.username,
+        display_name: conversation.assignee.display_name,
+      }
+    : null;
+
+  const transcript = buildSupportTranscriptPayload({
+    conversation,
+    messages,
+    notes,
+    aiMessages,
+  });
+
+  const archivedAt = new Date();
+  const purgeAt = new Date(archivedAt.getTime() + 72 * 60 * 60 * 1000);
+
+  const { error: archiveError } = await supabase.from("support_archived_transcripts").insert({
+    original_conversation_id: conversationId,
+    user_id: conversation.user_id,
+    subject: conversation.subject,
+    category: conversation.category ?? null,
+    ai_escalated: Boolean(conversation.ai_escalated),
+    assigned_staff_id: conversation.assigned_to,
+    customer_snapshot: customerSnapshot,
+    staff_snapshot: staffSnapshot,
+    transcript,
+    status_history: conversation.status_history ?? [],
+    opened_at: conversation.created_at,
+    closed_at: conversation.closed_at ?? conversation.updated_at,
+    archived_at: archivedAt.toISOString(),
+    purge_at: purgeAt.toISOString(),
+  });
+
+  if (archiveError) {
+    console.error("[support] archive before delete:", archiveError.message);
+  }
 
   const { error } = await supabase
     .from("support_conversations")
@@ -541,6 +648,118 @@ export async function toggleSupportPinAction(
   if (error) return { error: error.message };
   revalidateSupport();
   return { success: isPinned ? "Conversation pinned." : "Conversation unpinned." };
+}
+
+export async function updateSupportStatusAction(
+  conversationId: string,
+  status: SupportConversationStatus,
+): Promise<SupportActionState> {
+  const access = await requireStaff();
+  if ("error" in access) return access;
+
+  const supabase = await db();
+  const conversation = await getSupportConversationById(conversationId, access.userId, true);
+  if (!conversation) return { error: "Conversation not found." };
+
+  const now = new Date().toISOString();
+  const updates: Record<string, unknown> = {
+    status,
+    updated_at: now,
+    status_history: appendStatusHistory(
+      conversation.status_history,
+      status,
+      access.userId,
+      "Status changed by staff",
+    ),
+  };
+
+  if (status === "closed") updates.closed_at = now;
+  if (status !== "closed") updates.closed_at = null;
+
+  const { error } = await supabase
+    .from("support_conversations")
+    .update(updates)
+    .eq("id", conversationId);
+
+  if (error) return { error: error.message };
+  revalidateSupport();
+  return { success: "Status updated." };
+}
+
+export async function restoreArchivedTranscriptAction(
+  transcriptId: string,
+): Promise<SupportActionState> {
+  const access = await requireStaff();
+  if ("error" in access) return access;
+
+  const { getArchivedTranscriptById } = await import("@/lib/data/support");
+  const archive = await getArchivedTranscriptById(transcriptId);
+  if (!archive) return { error: "Transcript not found." };
+  if (archive.restored_conversation_id) {
+    return {
+      success: "Already restored.",
+      conversationId: archive.restored_conversation_id,
+    };
+  }
+  if (!archive.user_id) return { error: "Cannot restore — customer account missing." };
+
+  const supabase = await db();
+  const now = new Date().toISOString();
+  const statusHistory = appendStatusHistory(
+    archive.status_history,
+    "waiting_on_staff",
+    access.userId,
+    "Restored from archive",
+  );
+
+  const { data: conversation, error: convError } = await supabase
+    .from("support_conversations")
+    .insert({
+      user_id: archive.user_id,
+      subject: archive.subject,
+      status: "waiting_on_staff",
+      category: archive.category,
+      ai_escalated: archive.ai_escalated,
+      assigned_to: archive.assigned_staff_id,
+      last_message_at: now,
+      last_message_preview: "Restored from archive",
+      status_history: statusHistory,
+      updated_at: now,
+    })
+    .select("id")
+    .single();
+
+  if (convError || !conversation) {
+    return { error: convError?.message ?? "Could not restore ticket." };
+  }
+
+  for (const msg of archive.transcript.messages) {
+    await supabase.from("support_messages").insert({
+      conversation_id: conversation.id,
+      author_id: msg.author_id,
+      body: msg.body,
+      is_staff: msg.is_staff,
+      created_at: msg.created_at,
+    });
+  }
+
+  for (const note of archive.transcript.internal_notes) {
+    const noteAuthor = archive.assigned_staff_id ?? access.userId;
+    await supabase.from("support_internal_notes").insert({
+      conversation_id: conversation.id,
+      author_id: noteAuthor,
+      body: `[Restored] ${note.body}`,
+      created_at: note.created_at,
+    });
+  }
+
+  await supabase
+    .from("support_archived_transcripts")
+    .update({ restored_conversation_id: conversation.id })
+    .eq("id", transcriptId);
+
+  revalidateSupport();
+  return { success: "Ticket restored.", conversationId: conversation.id };
 }
 
 export async function markSupportMessagesReadAction(
@@ -800,13 +1019,16 @@ export async function fetchAdminSupportDetailAction(
   const opened = await openSupportConversationAsStaffAction(conversationId);
   if ("error" in opened) return opened;
 
-  const { getSupportInternalNotes } = await import("@/lib/data/support");
   const notes = await getSupportInternalNotes(conversationId);
+  const aiMessages = opened.conversation.ai_session_id
+    ? await getSupportAiMessages(opened.conversation.ai_session_id)
+    : [];
 
   return {
     conversation: opened.conversation,
     messages: opened.messages,
     notes,
+    aiMessages,
     staffUserId: access.userId,
   };
 }
