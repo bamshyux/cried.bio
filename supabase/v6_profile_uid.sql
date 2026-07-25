@@ -52,8 +52,13 @@ begin
   on conflict (id) do nothing;
 
   insert into public.profile_settings (profile_id)
-  values (new.id)
-  on conflict (profile_id) do nothing;
+  select new.id
+  where not exists (
+    select 1
+    from public.profile_settings ps
+    where ps.profile_id = new.id
+      and ps.page_id is null
+  );
 
   return new;
 end;

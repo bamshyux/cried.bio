@@ -4,17 +4,55 @@ import {
   PREMIUM_LITE_BENEFITS,
 } from "@/lib/premium/constants";
 import { PLAN_DEFINITIONS } from "@/lib/premium/plans";
+import { buildDashboardFeatureKnowledge } from "@/lib/support/knowledge-from-dashboard";
+import type { KnowledgeEntry } from "@/lib/support/knowledge-types";
 import type { SupportCategory } from "@/lib/types/support";
 import { getSharedPurchaseReferenceId } from "@/lib/purchases/reference";
 
-export type KnowledgeEntry = {
-  id: string;
-  category: SupportCategory;
-  keywords: string[];
-  title: string;
-  content: string;
-  links?: Array<{ label: string; href: string }>;
-};
+export type { KnowledgeEntry } from "@/lib/support/knowledge-types";
+
+const QUERY_STOP_TOKENS = new Set([
+  "how",
+  "what",
+  "where",
+  "when",
+  "why",
+  "do",
+  "does",
+  "can",
+  "could",
+  "would",
+  "should",
+  "i",
+  "my",
+  "me",
+  "the",
+  "a",
+  "an",
+  "to",
+  "for",
+  "on",
+  "in",
+  "at",
+  "is",
+  "are",
+  "was",
+  "were",
+  "be",
+  "get",
+  "set",
+  "change",
+  "make",
+  "help",
+  "need",
+  "want",
+  "tell",
+  "show",
+  "use",
+  "using",
+  "update",
+  "edit",
+]);
 
 const lite = PLAN_DEFINITIONS.premium_lite.entitlements;
 const premiumBenefitsList = PREMIUM_LITE_BENEFITS.map((b) => `• ${b}`).join("\n");
@@ -65,7 +103,7 @@ Rules (strict):
 When a user confirms their issue is solved, acknowledge warmly.
 When escalation is needed, ask if they'd like a ticket created with the conversation attached. Do NOT say you are creating or have created a ticket until they confirm — the app creates tickets automatically after they say yes or tap Create ticket.`;
 
-export const SUPPORT_KNOWLEDGE_BASE: KnowledgeEntry[] = [
+const MANUAL_KNOWLEDGE_BASE: KnowledgeEntry[] = [
   {
     id: "billing-purchases-reference",
     category: "billing",
@@ -229,9 +267,53 @@ After Premium ends, premium-only settings may revert to defaults, but your profi
     links: [{ label: "Premium page", href: "/dashboard/premium" }],
   },
   {
+    id: "profile-favicon",
+    category: "effects",
+    keywords: [
+      "favicon",
+      "profile favicon",
+      "tab favicon",
+      "tab icon",
+      "browser icon",
+      "browser tab icon",
+      "site icon",
+      "change favicon",
+      "custom favicon",
+      "profile icon",
+      "ico",
+      "browser tab",
+    ],
+    title: "Profile Favicon (Tab Icon)",
+    content: `Your **profile favicon** is the small icon shown in the browser tab when someone visits your cried.bio page.
+
+**How to change it:**
+1. Go to **Dashboard → Effects** (/dashboard/effects)
+2. Find the **Profile favicon** section (near the top)
+3. Upload an image — **ICO, PNG, JPEG, WebP, or GIF** up to **512 KB**
+4. The favicon applies to your live profile immediately after upload
+
+**To remove it:** tap **Remove favicon** in the same section.
+
+This is separate from your profile avatar/picture (those are under **Dashboard → Profile**). It's also separate from **Profile visibility** in Settings.`,
+    links: [{ label: "Effects", href: "/dashboard/effects" }],
+    priority: 98,
+  },
+  {
     id: "profile-customize",
     category: "profile",
-    keywords: ["customize", "profile", "edit", "bio", "avatar", "banner", "display name", "username", "save"],
+    keywords: [
+      "customize",
+      "customize profile",
+      "edit profile",
+      "edit",
+      "bio",
+      "avatar",
+      "banner",
+      "display name",
+      "save profile",
+      "profile colors",
+      "profile style",
+    ],
     title: "Profile Customization",
     content: `Customize your public profile from **Dashboard → Customize** (/dashboard/customize):
 
@@ -280,16 +362,29 @@ Each layout changes how your links, bio, and widgets are arranged on your public
   {
     id: "border-effects",
     category: "effects",
-    keywords: ["border", "effect", "effects", "card border", "animated", "glow", "premium effect"],
+    keywords: [
+      "border",
+      "effect",
+      "effects",
+      "card border",
+      "animated border",
+      "animated",
+      "glow",
+      "premium effect",
+      "snake border",
+      "neon glow",
+      "card effects",
+    ],
     title: "Card Border Effects",
-    content: `Card border effects are in **Dashboard → Customize** (card border section):
+    content: `Animated card border effects live at **Dashboard → Card Border Effects** (/dashboard/card-border-effects):
 
 • Free users get basic border options
-• **Premium Lite** unlocks 25+ animated border effects
+• **Premium Lite** unlocks 25+ animated border effects (snake, neon glow, RGB, and more)
 • Preview effects in the dashboard before applying
 
 Effects apply to your profile card on your public page.`,
-    links: [{ label: "Customize", href: "/dashboard/customize" }],
+    links: [{ label: "Card Border Effects", href: "/dashboard/card-border-effects" }],
+    priority: 85,
   },
   {
     id: "backgrounds",
@@ -369,7 +464,19 @@ View counts on your public profile update as people visit.`,
   {
     id: "account-access",
     category: "account",
-    keywords: ["login", "password", "sign in", "sign up", "account", "email", "forgot", "reset", "locked", "verify", "settings"],
+    keywords: [
+      "login",
+      "password",
+      "sign in",
+      "sign up",
+      "account access",
+      "email",
+      "forgot",
+      "reset password",
+      "locked",
+      "verify email",
+      "account settings",
+    ],
     title: "Account & Settings",
     content: `Account help:
 
@@ -388,20 +495,56 @@ If you can't access your account, tell me your email and I can escalate to staff
   {
     id: "store",
     category: "billing",
-    keywords: ["store page", "shop", "buy badge", "buy from store", "gift premium", "store catalog"],
-    title: "Store & Gifts",
-    content: `The cried.bio **Store** offers one-time purchases and Premium gifts.
+    keywords: ["store page", "shop", "buy badge", "buy from store", "store catalog", "cosmetics", "donation"],
+    title: "Store",
+    content: `The cried.bio **Store** offers one-time purchases like badges and cosmetics.
 
 • Browse at **Dashboard → Store** (/dashboard/store)
-• Gift Premium Lite (monthly or lifetime) to another user
+• Use **Buy** on any item to purchase for yourself
 • Purchases processed via Stripe
 • After purchase, view receipts and **Reference IDs** in **Settings → Billing & Purchases** (/dashboard/settings?tab=billing)
 
-Premium pricing for gifts matches regular pricing: $${PREMIUM_LITE_MONTHLY_PRICE}/mo or $${PREMIUM_LITE_LIFETIME_PRICE} lifetime.`,
+To gift Premium or store items to someone else, see **Gifts** below.`,
     links: [
       { label: "Store", href: "/dashboard/store" },
       { label: "Billing & Purchases", href: "/dashboard/settings?tab=billing" },
     ],
+  },
+  {
+    id: "gifts",
+    category: "billing",
+    keywords: [
+      "gift",
+      "gifts",
+      "gift premium",
+      "buy as gift",
+      "send gift",
+      "gift badge",
+      "gift store",
+      "gifted",
+      "gifter",
+      "gift received",
+      "gift history",
+    ],
+    title: "Gifts",
+    content: `**Gifting** lets you buy Premium Lite or store items for another cried.bio user.
+
+**Send a gift:**
+1. On **Premium** (/dashboard/premium) or **Store** (/dashboard/store), tap the **gift icon** next to Buy
+2. Enter the recipient's **username** and complete checkout via Stripe
+3. They receive a notification when the gift arrives
+
+**View gift history:**
+• **Dashboard → Settings → Gifts** (/dashboard/settings?tab=gifts)
+• See gifts you've sent and received
+
+Premium gift pricing matches regular pricing: **$${PREMIUM_LITE_MONTHLY_PRICE}/mo** or **$${PREMIUM_LITE_LIFETIME_PRICE} lifetime**.`,
+    links: [
+      { label: "Gifts settings", href: "/dashboard/settings?tab=gifts" },
+      { label: "Store", href: "/dashboard/store" },
+      { label: "Premium", href: "/dashboard/premium" },
+    ],
+    priority: 88,
   },
   {
     id: "troubleshoot-save",
@@ -485,42 +628,128 @@ If a username is taken or reserved, pick a different one.`,
   },
 ];
 
-export function searchKnowledgeBase(query: string, limit = 3): KnowledgeEntry[] {
+function mergeKnowledgeBases(manual: KnowledgeEntry[], generated: KnowledgeEntry[]): KnowledgeEntry[] {
+  const manualTitles = new Set(manual.map((entry) => entry.title.toLowerCase()));
+  const dedupedGenerated = generated.filter((entry) => !manualTitles.has(entry.title.toLowerCase()));
+  return [...manual, ...dedupedGenerated];
+}
+
+export const SUPPORT_KNOWLEDGE_BASE: KnowledgeEntry[] = mergeKnowledgeBases(
+  MANUAL_KNOWLEDGE_BASE,
+  buildDashboardFeatureKnowledge(),
+);
+
+function tokenizeQuery(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[\s,./+|]+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 0);
+}
+
+export function scoreKnowledgeEntry(entry: KnowledgeEntry, query: string): number {
+  const q = query.trim().toLowerCase();
+  if (!q) return 0;
+
+  const title = entry.title.toLowerCase();
+  const content = entry.content.toLowerCase();
+  const keywords = entry.keywords.map((keyword) => keyword.toLowerCase());
+  const haystack = [title, content, ...keywords].join(" ");
+  const tokens = tokenizeQuery(q);
+
+  if (title === q) return 300;
+  if (keywords.some((keyword) => keyword === q)) return 280;
+  if (title.startsWith(q)) return 270;
+  if (q.length >= 3 && keywords.some((keyword) => keyword.startsWith(q))) return 265;
+  if (title.includes(q)) return 260;
+  if (keywords.some((keyword) => keyword.includes(q))) return 240;
+
+  let phraseScore = 0;
+  for (const keyword of keywords) {
+    if (keyword.length >= 3 && q.includes(keyword)) {
+      phraseScore = Math.max(phraseScore, 220 + keyword.length * 2);
+    }
+  }
+  if (phraseScore > 0) return phraseScore;
+
+  if (content.includes(q)) return 200;
+  if (haystack.includes(q)) return 180;
+
+  const meaningfulTokens = tokens.filter(
+    (token) => !QUERY_STOP_TOKENS.has(token) && token.length >= 3,
+  );
+
+  if (
+    meaningfulTokens.length > 0 &&
+    meaningfulTokens.every((token) => haystack.includes(token))
+  ) {
+    const titleHits = meaningfulTokens.filter((token) => title.includes(token)).length;
+    const keywordHits = meaningfulTokens.filter((token) =>
+      keywords.some((keyword) => keyword.includes(token)),
+    ).length;
+    return 150 + titleHits * 25 + keywordHits * 20 + meaningfulTokens.length * 5;
+  }
+
+  const matchedMeaningful = meaningfulTokens.filter((token) => haystack.includes(token)).length;
+  if (matchedMeaningful > 0) {
+    return 40 + matchedMeaningful * 30 + (entry.priority ?? 0) * 0.1;
+  }
+
+  return 0;
+}
+
+export type KnowledgeMatch = {
+  entry: KnowledgeEntry;
+  score: number;
+};
+
+export function searchKnowledgeBaseWithScores(query: string, limit = 3): KnowledgeMatch[] {
   if (getSharedPurchaseReferenceId(query)) {
     return [];
   }
 
   if (isPurchaseReferenceQuery(query)) {
     const entry = SUPPORT_KNOWLEDGE_BASE.find((item) => item.id === "billing-purchases-reference");
-    if (entry) return [entry];
+    if (entry) return [{ entry, score: 300 }];
   }
 
-  const normalized = query.toLowerCase();
-  const tokens = normalized.split(/\s+/).filter((t) => t.length > 2);
+  return SUPPORT_KNOWLEDGE_BASE.map((entry) => ({
+    entry,
+    score: scoreKnowledgeEntry(entry, query),
+  }))
+    .filter((match) => match.score > 0)
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        (b.entry.priority ?? 0) - (a.entry.priority ?? 0) ||
+        b.entry.title.length - a.entry.title.length,
+    )
+    .slice(0, limit);
+}
 
-  const scored = SUPPORT_KNOWLEDGE_BASE.map((entry) => {
-    let score = 0;
-    for (const keyword of entry.keywords) {
-      if (normalized.includes(keyword)) {
-        score += 5 + keyword.length;
-      } else {
-        for (const token of tokens) {
-          if (token === keyword || keyword.includes(token) || token.includes(keyword)) {
-            score += 1 + Math.min(keyword.length, token.length);
-          }
-        }
-      }
-    }
-    if (normalized.includes(entry.category.replace("_", " "))) score += 2;
-    if (normalized.includes(entry.category)) score += 2;
-    return { entry, score };
-  });
+export function searchKnowledgeBase(query: string, limit = 3): KnowledgeEntry[] {
+  return searchKnowledgeBaseWithScores(query, limit).map((match) => match.entry);
+}
 
-  return scored
-    .filter((s) => s.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit)
-    .map((s) => s.entry);
+export function computeKnowledgeConfidence(matches: KnowledgeMatch[]): number {
+  if (matches.length === 0) return 0.1;
+
+  const topScore = matches[0].score;
+  const secondScore = matches[1]?.score ?? 0;
+  const margin = topScore - secondScore;
+
+  let confidence = 0.35;
+  if (topScore >= 260) confidence = 0.92;
+  else if (topScore >= 220) confidence = 0.85;
+  else if (topScore >= 180) confidence = 0.75;
+  else if (topScore >= 150) confidence = 0.65;
+  else if (topScore >= 100) confidence = 0.5;
+  else if (topScore >= 40) confidence = 0.38;
+
+  if (margin >= 80) confidence = Math.min(confidence + 0.08, 0.98);
+  else if (margin < 20 && matches.length > 1) confidence = Math.max(confidence - 0.12, 0.25);
+
+  return confidence;
 }
 
 export function isPurchaseReferenceQuery(message: string): boolean {
@@ -585,7 +814,7 @@ export function detectSupportCategory(message: string): SupportCategory {
     ["premium", ["premium", "upgrade", "subscription", "premium lite", "lifetime", "how much is premium", "premium price", "premium cost"]],
     ["presets", ["preset", "import", "export", "json"]],
     ["layouts", ["layout", "theme layout"]],
-    ["effects", ["border", "effect", "animated", "glow"]],
+    ["effects", ["border", "effect", "animated", "glow", "favicon", "tab icon", "cursor", "enter gate", "tab title"]],
     ["backgrounds", ["background", "video", "wallpaper"]],
     ["music", ["music", "spotify", "playlist", "player"]],
     ["badges", ["badge", "medallion"]],

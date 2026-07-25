@@ -1,12 +1,13 @@
 import {
   CRIED_AI_SYSTEM_PROMPT,
+  computeKnowledgeConfidence,
   detectSupportCategory,
   formatFullKnowledgeForPrompt,
   formatKnowledgeForPrompt,
   getCriticalFactsBlock,
   getPurchaseReferenceReply,
   isPurchaseReferenceQuery,
-  searchKnowledgeBase,
+  searchKnowledgeBaseWithScores,
   type KnowledgeEntry,
 } from "@/lib/support/knowledge-base";
 import { buildTopicGreeting, getTopicByLabel } from "@/lib/support/topics";
@@ -95,15 +96,9 @@ function buildKnowledgeReply(entries: KnowledgeEntry[]): string {
   return reply;
 }
 
-function computeConfidence(entries: KnowledgeEntry[], message: string): number {
-  if (entries.length === 0) return 0.1;
-  const top = entries[0];
-  let score = 0.4;
-  const normalized = message.toLowerCase();
-  for (const kw of top.keywords) {
-    if (normalized.includes(kw)) score += 0.15;
-  }
-  return Math.min(score, 0.95);
+function computeConfidence(matches: ReturnType<typeof searchKnowledgeBaseWithScores>, message: string): number {
+  void message;
+  return computeKnowledgeConfidence(matches);
 }
 
 async function callOpenAi(
@@ -232,13 +227,14 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
     };
   }
 
-  const matches = searchKnowledgeBase(trimmed, 5);
+  const matches = searchKnowledgeBaseWithScores(trimmed, 5);
+  const kbEntries = matches.map((match) => match.entry);
   const confidence = computeConfidence(matches, trimmed);
 
   // Prefer verified knowledge-base answers — prevents OpenAI from inventing prices/features
-  if (matches.length > 0 && confidence >= 0.35) {
+  if (kbEntries.length > 0 && confidence >= 0.35) {
     return {
-      reply: buildKnowledgeReply(matches),
+      reply: buildKnowledgeReply(kbEntries),
       shouldEscalate: false,
       shouldAutoEscalate: false,
       resolved: false,
@@ -248,14 +244,14 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
   }
 
   const knowledgeContext =
-    matches.length > 0
-      ? formatKnowledgeForPrompt(matches)
+    kbEntries.length > 0
+      ? formatKnowledgeForPrompt(kbEntries)
       : formatFullKnowledgeForPrompt();
 
   const openAiReply = await callOpenAi(trimmed, history, knowledgeContext);
   const reply =
     openAiReply ??
-    (matches.length > 0 ? buildKnowledgeReply(matches) : buildKnowledgeReply([]));
+    (kbEntries.length > 0 ? buildKnowledgeReply(kbEntries) : buildKnowledgeReply([]));
 
   // Only suggest escalation after several back-and-forths with no progress
   const lowConfidenceEscalate = confidence < 0.25 && userTurns >= 4;
@@ -288,7 +284,7 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
 
 export const CRIED_AI_GREETING = `Hey! I'm **cried AI** — cried.bio's support assistant. 🤖
 
-I can help with Premium & billing, **transaction / Reference IDs**, profile customization, presets, layouts, badges, widgets, music, and troubleshooting.
+I can help with Premium & billing, **transaction / Reference IDs**, profile customization, effects (favicon, cursor, borders), presets, layouts, badges, widgets, music, gifts, and troubleshooting.
 
 **Looking for a transaction ID or Reference ID?** Go to **Dashboard → Settings → Billing & Purchases**.
 
