@@ -1,5 +1,5 @@
 import { isSupportMessageMine } from "@/lib/support/format";
-import { playSupportMessageSound } from "@/lib/support/notifications";
+import { playSupportReceiveSound } from "@/lib/support/notifications";
 
 export type SupportMessageSoundTracker = {
   seenIds: Set<string>;
@@ -34,7 +34,7 @@ export function playSoundsForNewIncomingMessages(
   for (const message of messages) tracker.seenIds.add(message.id);
 
   newIncoming.forEach((_, index) => {
-    window.setTimeout(() => playSupportMessageSound(), index * 220);
+    window.setTimeout(() => playSupportReceiveSound(), index * 220);
   });
 
   return newIncoming.length;

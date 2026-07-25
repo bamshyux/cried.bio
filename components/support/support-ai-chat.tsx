@@ -7,6 +7,9 @@ import {
   sendSupportAiMessageAction,
   startSupportAiSessionAction,
 } from "@/app/actions/support-ai";
+import { SupportNewMessagesPill } from "@/components/support/support-new-messages-pill";
+import { useSupportChatScroll } from "@/hooks/use-support-chat-scroll";
+import { playSupportReceiveSound, playSupportSendSound } from "@/lib/support/notifications";
 import { SUPPORT_AI_ESCALATION_PROMPT } from "@/lib/types/support";
 import type { SupportAiMessage } from "@/lib/types/support";
 
@@ -53,8 +56,10 @@ export function SupportAiChat({
   const [resolved, setResolved] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [booting, setBooting] = useState(true);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const topicRef = useRef(topicLabel);
+  const scrollItemCount = messages.length + (isPending ? 1 : 0);
+  const { scrollRef, showNewMessages, scrollToBottom, handleScroll, markForceScroll } =
+    useSupportChatScroll(scrollItemCount, [isPending, shouldEscalate]);
 
   useEffect(() => {
     topicRef.current = topicLabel;
@@ -81,13 +86,12 @@ export function SupportAiChat({
     });
   }, [topicLabel]);
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length, shouldEscalate]);
-
   function sendMessage() {
     const trimmed = draft.trim();
     if (!trimmed || !sessionId || resolved) return;
+
+    markForceScroll();
+    playSupportSendSound();
 
     startTransition(async () => {
       setError(null);
@@ -111,6 +115,7 @@ export function SupportAiChat({
       }
 
       if (result.aiReply) {
+        playSupportReceiveSound();
         setMessages((prev) => [
           ...prev,
           {
@@ -177,38 +182,45 @@ export function SupportAiChat({
         </div>
       </div>
 
-      <div ref={scrollRef} className="bf-support-chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        {booting ? (
-          <p className="text-center text-sm text-neutral-500">Starting cried AI…</p>
-        ) : (
-          <div className="space-y-4">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
-              >
-                {msg.role === "assistant" ? <AiAvatar /> : null}
+      <div className="bf-support-scroll-area">
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="bf-support-chat-scroll min-h-0 h-full overflow-y-auto px-4 py-4"
+        >
+          {booting ? (
+            <p className="text-center text-sm text-neutral-500">Starting cried AI…</p>
+          ) : (
+            <div className="space-y-4">
+              {messages.map((msg) => (
                 <div
-                  className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-violet-600/30 text-violet-50"
-                      : "bg-white/[0.06] text-neutral-200"
-                  }`}
+                  key={msg.id}
+                  className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
                 >
-                  {msg.role === "assistant" ? renderMarkdownLite(msg.body) : msg.body}
+                  {msg.role === "assistant" ? <AiAvatar /> : null}
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                      msg.role === "user"
+                        ? "bg-violet-600/30 text-violet-50"
+                        : "bg-white/[0.06] text-neutral-200"
+                    }`}
+                  >
+                    {msg.role === "assistant" ? renderMarkdownLite(msg.body) : msg.body}
+                  </div>
                 </div>
-              </div>
-            ))}
-            {isPending ? (
-              <div className="flex gap-2">
-                <AiAvatar />
-                <div className="rounded-2xl bg-white/[0.06] px-3.5 py-2.5 text-sm text-neutral-500">
-                  cried AI is typing…
+              ))}
+              {isPending ? (
+                <div className="flex gap-2">
+                  <AiAvatar />
+                  <div className="rounded-2xl bg-white/[0.06] px-3.5 py-2.5 text-sm text-neutral-500">
+                    cried AI is typing…
+                  </div>
                 </div>
-              </div>
-            ) : null}
-          </div>
-        )}
+              ) : null}
+            </div>
+          )}
+        </div>
+        {showNewMessages ? <SupportNewMessagesPill onClick={() => scrollToBottom()} /> : null}
       </div>
 
       {error ? <p className="px-4 pb-2 text-xs text-red-400">{error}</p> : null}

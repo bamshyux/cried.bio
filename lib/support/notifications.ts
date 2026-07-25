@@ -9,6 +9,11 @@ function getAudioContext() {
 }
 
 export function playSupportMessageSound() {
+  playSupportReceiveSound();
+}
+
+/** Incoming message — soft two-tone chime */
+export function playSupportReceiveSound() {
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
@@ -38,6 +43,36 @@ export function playSupportMessageSound() {
     osc2.start(now + 0.08);
     osc1.stop(now + 0.42);
     osc2.stop(now + 0.42);
+  } catch {
+    // Ignore if autoplay is blocked or audio is unavailable.
+  }
+}
+
+/** Outgoing message — short soft tap */
+export function playSupportSendSound() {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    void ctx.resume();
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(520, now);
+    osc.frequency.exponentialRampToValueAtTime(680, now + 0.06);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.08, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.14);
   } catch {
     // Ignore if autoplay is blocked or audio is unavailable.
   }

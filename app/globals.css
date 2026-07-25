@@ -5171,6 +5171,53 @@ body,
   white-space: pre-wrap;
 }
 
+.bf-support-scroll-area {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+}
+
+.bf-support-new-messages-wrap {
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0.75rem;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+}
+
+.bf-support-new-messages {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(196, 181, 253, 0.45);
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(91, 33, 182, 0.45);
+  animation: bf-support-new-pulse 2s ease-in-out infinite;
+}
+
+.bf-support-new-messages:hover {
+  filter: brightness(1.08);
+}
+
+@keyframes bf-support-new-pulse {
+  0%,
+  100% {
+    box-shadow: 0 8px 24px rgba(91, 33, 182, 0.45);
+  }
+  50% {
+    box-shadow: 0 8px 28px rgba(124, 58, 237, 0.65);
+  }
+}
+
 .bf-support-panel__title {
   font-size: 0.9375rem;
   font-weight: 650;

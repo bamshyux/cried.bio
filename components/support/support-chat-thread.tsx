@@ -14,7 +14,10 @@ import {
   isLegacyAiTranscriptMessage,
   SupportAiTranscriptPanel,
 } from "@/components/support/support-ai-transcript-panel";
+import { SupportNewMessagesPill } from "@/components/support/support-new-messages-pill";
 import { broadcastSupportTyping } from "@/hooks/use-support-realtime";
+import { useSupportChatScroll } from "@/hooks/use-support-chat-scroll";
+import { playSupportSendSound } from "@/lib/support/notifications";
 import {
   createSupportMessageSoundTracker,
   playSoundsForNewIncomingMessages,
@@ -63,9 +66,11 @@ export function SupportChatThread({
   const [error, setError] = useState<string | null>(null);
   const [showEmoji, setShowEmoji] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const typingActiveRef = useRef(false);
   const messageSoundTrackerRef = useRef(createSupportMessageSoundTracker());
+  const scrollItemCount = messages.length + (typingLabel ? 1 : 0) + (aiTranscript.length > 0 ? 1 : 0);
+  const { scrollRef, showNewMessages, scrollToBottom, handleScroll, markForceScroll } =
+    useSupportChatScroll(scrollItemCount, [typingLabel, isPending]);
+  const typingActiveRef = useRef(false);
 
   useEffect(() => {
     resetSupportMessageSoundTracker(messageSoundTrackerRef.current);
@@ -78,10 +83,6 @@ export function SupportChatThread({
   useEffect(() => {
     void markSupportMessagesReadAction(conversation.id, isStaff);
   }, [conversation.id, isStaff, messages.length]);
-
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length, typingLabel]);
 
   // Poll while thread is open so messages appear even if Realtime is delayed.
   useEffect(() => {
@@ -142,6 +143,9 @@ export function SupportChatThread({
   function sendMessage(body: string) {
     const trimmed = body.trim();
     if (!trimmed && !file) return;
+
+    markForceScroll();
+    playSupportSendSound();
 
     startTransition(async () => {
       setError(null);
@@ -254,12 +258,17 @@ export function SupportChatThread({
         </div>
       ) : null}
 
-      <div ref={scrollRef} className="bf-support-chat-scroll min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4">
-        {aiTranscript.length > 0 ? (
-          <SupportAiTranscriptPanel messages={aiTranscript} />
-        ) : null}
+      <div className="bf-support-scroll-area">
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="bf-support-chat-scroll min-h-0 h-full space-y-3 overflow-y-auto px-4 py-4"
+        >
+          {aiTranscript.length > 0 ? (
+            <SupportAiTranscriptPanel messages={aiTranscript} />
+          ) : null}
 
-        {groupedMessages.map((message, index) => {
+          {groupedMessages.map((message, index) => {
           if (aiTranscript.length > 0 && isLegacyAiTranscriptMessage(message.body)) {
             return null;
           }
@@ -338,6 +347,8 @@ export function SupportChatThread({
             <span>{typingLabel} is typing…</span>
           </div>
         ) : null}
+        </div>
+        {showNewMessages ? <SupportNewMessagesPill onClick={() => scrollToBottom()} /> : null}
       </div>
 
       {error ? <p className="px-4 pb-2 text-xs text-red-400">{error}</p> : null}

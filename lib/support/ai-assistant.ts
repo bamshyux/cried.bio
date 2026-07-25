@@ -1,7 +1,9 @@
 import {
   CRIED_AI_SYSTEM_PROMPT,
   detectSupportCategory,
+  formatFullKnowledgeForPrompt,
   formatKnowledgeForPrompt,
+  getCriticalFactsBlock,
   searchKnowledgeBase,
   type KnowledgeEntry,
 } from "@/lib/support/knowledge-base";
@@ -82,7 +84,7 @@ async function callOpenAi(
   const messages = [
     {
       role: "system" as const,
-      content: `${CRIED_AI_SYSTEM_PROMPT}\n\n## Knowledge Base\n${knowledgeContext}`,
+      content: `${CRIED_AI_SYSTEM_PROMPT}\n\n${getCriticalFactsBlock()}\n\n## Knowledge Base\n${knowledgeContext}`,
     },
     ...history
       .filter((m) => m.role !== "system")
@@ -104,7 +106,7 @@ async function callOpenAi(
       body: JSON.stringify({
         model: process.env.OPENAI_SUPPORT_MODEL ?? "gpt-4o-mini",
         messages,
-        temperature: 0.4,
+        temperature: 0.15,
         max_tokens: 600,
       }),
     });
@@ -158,12 +160,29 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
     };
   }
 
-  const matches = searchKnowledgeBase(trimmed, 3);
+  const matches = searchKnowledgeBase(trimmed, 5);
   const confidence = computeConfidence(matches, trimmed);
-  const knowledgeContext = formatKnowledgeForPrompt(matches);
+
+  // Prefer verified knowledge-base answers — prevents OpenAI from inventing prices/features
+  if (matches.length > 0 && confidence >= 0.35) {
+    return {
+      reply: buildKnowledgeReply(matches),
+      shouldEscalate: false,
+      resolved: false,
+      category,
+      confidence,
+    };
+  }
+
+  const knowledgeContext =
+    matches.length > 0
+      ? formatKnowledgeForPrompt(matches)
+      : formatFullKnowledgeForPrompt();
 
   const openAiReply = await callOpenAi(trimmed, history, knowledgeContext);
-  const reply = openAiReply ?? buildKnowledgeReply(matches);
+  const reply =
+    openAiReply ??
+    (matches.length > 0 ? buildKnowledgeReply(matches) : buildKnowledgeReply([]));
 
   // Only suggest escalation after several back-and-forths with no progress
   const lowConfidenceEscalate = confidence < 0.25 && userTurns >= 4;
