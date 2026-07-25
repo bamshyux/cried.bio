@@ -5,6 +5,7 @@ import {
 } from "@/lib/premium/constants";
 import { PLAN_DEFINITIONS } from "@/lib/premium/plans";
 import type { SupportCategory } from "@/lib/types/support";
+import { getSharedPurchaseReferenceId } from "@/lib/purchases/reference";
 
 export type KnowledgeEntry = {
   id: string;
@@ -485,6 +486,10 @@ If a username is taken or reserved, pick a different one.`,
 ];
 
 export function searchKnowledgeBase(query: string, limit = 3): KnowledgeEntry[] {
+  if (getSharedPurchaseReferenceId(query)) {
+    return [];
+  }
+
   if (isPurchaseReferenceQuery(query)) {
     const entry = SUPPORT_KNOWLEDGE_BASE.find((item) => item.id === "billing-purchases-reference");
     if (entry) return [entry];
@@ -521,15 +526,15 @@ export function searchKnowledgeBase(query: string, limit = 3): KnowledgeEntry[] 
 export function isPurchaseReferenceQuery(message: string): boolean {
   const normalized = message.toLowerCase();
 
+  if (getSharedPurchaseReferenceId(message)) {
+    return false;
+  }
+
   if (
     /\b(transaction|reference|order|payment|receipt|confirmation)\s*(id|#|number)\b/i.test(
       normalized,
     )
   ) {
-    return true;
-  }
-
-  if (/\bcried-[a-f0-9]{4,}\b/i.test(normalized)) {
     return true;
   }
 

@@ -9,6 +9,7 @@ import {
   searchKnowledgeBase,
   type KnowledgeEntry,
 } from "@/lib/support/knowledge-base";
+import { getSharedPurchaseReferenceId } from "@/lib/purchases/reference";
 import { buildTopicGreeting, getTopicByLabel } from "@/lib/support/topics";
 import type { SupportAiMessage, SupportCategory } from "@/lib/types/support";
 
@@ -204,6 +205,18 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
       resolved: false,
       category: "billing",
       confidence: 0,
+    };
+  }
+
+  const sharedReferenceId = getSharedPurchaseReferenceId(trimmed);
+  if (sharedReferenceId) {
+    return {
+      reply: `Got it — I see reference **${sharedReferenceId}**. I'm connecting you with our support team now so they can look up this purchase and help you directly.`,
+      shouldEscalate: true,
+      shouldAutoEscalate: true,
+      resolved: false,
+      category: "billing",
+      confidence: 1,
     };
   }
 

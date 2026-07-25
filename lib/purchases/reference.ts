@@ -12,3 +12,8 @@ export function extractPurchaseReferenceIds(text: string): string[] {
   if (!matches) return [];
   return [...new Set(matches.map((match) => match.toUpperCase()))];
 }
+
+/** User pasted a purchase reference ID into chat — route to staff, not the FAQ. */
+export function getSharedPurchaseReferenceId(text: string): string | null {
+  return extractPurchaseReferenceIds(text)[0] ?? null;
+}
