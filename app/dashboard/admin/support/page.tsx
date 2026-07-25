@@ -68,6 +68,7 @@ export default async function AdminSupportPage() {
         analytics={analytics}
         staffProfiles={staffProfiles}
         staffUserId={access.userId}
+        isOwner={access.role === "owner"}
       />
     </>
   );

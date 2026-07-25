@@ -2,6 +2,7 @@
 export type StoreFulfillmentAction =
   | "grant_verified_badge"
   | "grant_donor_badge"
+  | "grant_badge_creation"
   | "contact_support";
 
 export type StoreCatalogEntry = {
@@ -29,13 +30,13 @@ export const STORE_CATALOG: StoreCatalogEntry[] = [
     features: [
       "One custom badge design",
       "Shown on your public profile",
-      "Crafted by the cried.bio team",
+      "Upload your own static image",
     ],
     icon: "✦",
     stripeProductId: "prod_UwFJWSv6PIMg9C",
     stripePriceId: "price_1TwMobCZc2iqkh61qdNuBGk2",
     fulfillmentKey: "custom_badge_1",
-    fulfillmentAction: "contact_support",
+    fulfillmentAction: "grant_badge_creation",
     category: "badges",
     sortOrder: 10,
   },
@@ -64,13 +65,13 @@ export const STORE_CATALOG: StoreCatalogEntry[] = [
     features: [
       "Three unique badge designs",
       "Mix styles and themes",
-      "Crafted by the cried.bio team",
+      "Upload static images for each badge",
     ],
     icon: "★",
     stripeProductId: "prod_Uwqf6eE4bTsJC2",
     stripePriceId: "price_1TwwxpCZc2iqkh61AQth3Daf",
     fulfillmentKey: "custom_badges_3",
-    fulfillmentAction: "contact_support",
+    fulfillmentAction: "grant_badge_creation",
     category: "badges",
     sortOrder: 30,
   },
@@ -81,13 +82,13 @@ export const STORE_CATALOG: StoreCatalogEntry[] = [
     features: [
       "Custom animated badge design",
       "Motion effects on your profile",
-      "Crafted by the cried.bio team",
+      "Upload GIF or animated WebP",
     ],
     icon: "◈",
     stripeProductId: "prod_UwqjCw4XFPfqS1",
     stripePriceId: "price_1Twx1mCZc2iqkh61bJ5rlvzD",
     fulfillmentKey: "animated_badge",
-    fulfillmentAction: "contact_support",
+    fulfillmentAction: "grant_badge_creation",
     badgeLabel: "New",
     category: "badges",
     sortOrder: 40,

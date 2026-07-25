@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   changePasswordAction,
   deleteAccountAction,
@@ -26,8 +26,10 @@ import {
   ToggleField,
 } from "@/components/dashboard/form-fields";
 import { MfaSettings } from "./mfa-settings";
+import { BillingPurchasesPanel } from "@/components/billing/billing-purchases-panel";
 import { SettingRow, SettingsNav, SettingsSection } from "./settings-ui";
 import type { AccountSettingsData, AccountSettingsFormState, SettingsCategory } from "@/lib/types/account-settings";
+import type { Purchase } from "@/lib/types/store";
 import {
   formatUsernameChangeAvailableDate,
   USERNAME_CHANGE_COOLDOWN_DAYS,
@@ -45,9 +47,36 @@ function formatWhen(iso: string) {
   });
 }
 
-export function AccountSettingsShell({ data }: { data: AccountSettingsData }) {
+export function AccountSettingsShell({
+  data,
+  purchases,
+  initialTab,
+}: {
+  data: AccountSettingsData;
+  purchases: Purchase[];
+  initialTab?: string | null;
+}) {
   const router = useRouter();
-  const [category, setCategory] = useState<SettingsCategory>("account");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab") ?? initialTab ?? "account";
+  const normalizedTab: SettingsCategory =
+    tabParam === "billing" ||
+    tabParam === "security" ||
+    tabParam === "contact" ||
+    tabParam === "privacy" ||
+    tabParam === "danger"
+      ? tabParam
+      : "account";
+  const [category, setCategory] = useState<SettingsCategory>(normalizedTab);
+
+  useEffect(() => {
+    setCategory(normalizedTab);
+  }, [normalizedTab]);
+
+  const handleCategoryChange = (next: SettingsCategory) => {
+    setCategory(next);
+    router.replace(`/dashboard/settings?tab=${next}`, { scroll: false });
+  };
 
   const [usernameState, usernameAction, usernamePending] = useActionState(updateUsernameAction, initial);
   const [emailState, emailAction, emailPending] = useActionState(updateEmailAction, initial);
@@ -92,12 +121,12 @@ export function AccountSettingsShell({ data }: { data: AccountSettingsData }) {
     <div>
       <PageHeader
         title="Settings"
-        description="Manage your account, security, contact preferences, and privacy."
+        description="Manage your account, security, billing, contact preferences, and privacy."
       />
 
       <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
         <div className="lg:w-44 lg:shrink-0">
-          <SettingsNav active={category} onChange={(id) => setCategory(id as SettingsCategory)} />
+          <SettingsNav active={category} onChange={(id) => handleCategoryChange(id as SettingsCategory)} />
         </div>
 
         <div className="min-w-0 flex-1 space-y-8">
@@ -406,6 +435,17 @@ export function AccountSettingsShell({ data }: { data: AccountSettingsData }) {
                   </button>
                 </div>
               </form>
+            </SettingsSection>
+          ) : null}
+
+          {category === "billing" ? (
+            <SettingsSection
+              title="Billing & Purchases"
+              description="View receipts, reference IDs, and payment details for everything you've purchased on cried.bio."
+            >
+              <div className="p-5">
+                <BillingPurchasesPanel purchases={purchases} />
+              </div>
             </SettingsSection>
           ) : null}
 

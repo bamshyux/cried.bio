@@ -36,7 +36,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     const { getStoreProductBySlug } = await import("@/lib/data/store");
     const { fulfillStoreCheckout } = await import("@/lib/store/fulfillment");
+    const { resolveCheckoutPaymentDetails } = await import("@/lib/store/payment-details");
     const product = productSlug ? await getStoreProductBySlug(productSlug) : null;
+    const paymentDetails = await resolveCheckoutPaymentDetails(session);
 
     await fulfillStoreCheckout({
       buyerProfileId: buyerId,
@@ -45,15 +47,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       productSlug: productSlug ?? undefined,
       priceId: priceId ?? undefined,
       stripeSessionId: session.id,
-      stripePaymentIntent:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : session.payment_intent?.id ?? null,
+      stripePaymentIntent: paymentDetails.stripePaymentIntentId,
+      stripeCustomerId: paymentDetails.stripeCustomerId,
       amountPaid: session.amount_total ?? 0,
       currency: session.currency ?? "usd",
       isGift: session.metadata?.is_gift === "true",
       giftMessage: session.metadata?.gift_message,
       reservedUsername: session.metadata?.reserved_username,
+      paymentMethod: paymentDetails.paymentMethod,
+      receiptNumber: paymentDetails.receiptNumber,
+      invoiceNumber: paymentDetails.invoiceNumber,
     });
     return;
   }

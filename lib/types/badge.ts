@@ -22,7 +22,8 @@ export type BadgeAwardSource =
   | "event"
   | "discord"
   | "seasonal"
-  | "staff";
+  | "staff"
+  | "store";
 
 export type Badge = {
   id: string;

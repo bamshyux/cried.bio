@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { getOwnedStoreProductSlugs } from "@/lib/data/store";
 import { getSiteUrl } from "@/lib/site";
 import { getStoreCatalogEntry } from "@/lib/store/catalog";
+import { getCheckoutCompleteSuccessUrl } from "@/lib/store/post-checkout";
 import { getStripe, getStripeConfigErrorMessage, isStripeConfigured } from "@/lib/stripe/client";
 import { createClient } from "@/lib/supabase/server";
 
@@ -88,13 +89,14 @@ export async function POST(request: Request) {
       buyerId,
       data.claims.email as string | undefined,
     );
+    const successUrl = getCheckoutCompleteSuccessUrl(siteUrl);
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       client_reference_id: buyerId,
       mode: "payment",
       line_items: [{ price: catalogEntry.stripePriceId, quantity: 1 }],
-      success_url: `${siteUrl}/dashboard/store?success=true&product=${encodeURIComponent(productSlug)}`,
+      success_url: successUrl,
       cancel_url: `${siteUrl}/dashboard/store?cancelled=true`,
       metadata: {
         checkout_type: "store",

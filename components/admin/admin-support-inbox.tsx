@@ -34,11 +34,13 @@ export function AdminSupportInbox({
   analytics,
   staffProfiles,
   staffUserId,
+  isOwner = false,
 }: {
   initialConversations: SupportConversation[];
   analytics: SupportAnalytics;
   staffProfiles: SupportProfileSummary[];
   staffUserId: string;
+  isOwner?: boolean;
 }) {
   const [conversations, setConversations] = useState(initialConversations);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -393,6 +395,7 @@ export function AdminSupportInbox({
                     messages={messages}
                     viewerId={staffUserId}
                     isStaff
+                    isOwner={isOwner}
                     typingLabel={typingLabel}
                     quickReplies
                     aiTranscript={aiMessages}

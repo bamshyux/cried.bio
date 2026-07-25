@@ -23,6 +23,7 @@ import {
   playSoundsForNewIncomingMessages,
   resetSupportMessageSoundTracker,
 } from "@/lib/support/message-sounds";
+import { SupportMessageBody } from "@/components/support/support-purchase-reference";
 import {
   formatSupportDateSeparator,
   formatSupportTimestamp,
@@ -49,6 +50,7 @@ export function SupportChatThread({
   typingLabel = null,
   quickReplies = false,
   aiTranscript = [],
+  isOwner = false,
 }: {
   conversation: SupportConversation;
   messages: SupportMessage[];
@@ -60,6 +62,7 @@ export function SupportChatThread({
   typingLabel?: string | null;
   quickReplies?: boolean;
   aiTranscript?: SupportAiMessage[];
+  isOwner?: boolean;
 }) {
   const [draft, setDraft] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -295,7 +298,7 @@ export function SupportChatThread({
                   </div>
                   <div className={`bf-support-bubble${isMine ? " bf-support-bubble--mine" : " bf-support-bubble--theirs"}`}>
                     {message.body !== "(attachment)" ? (
-                      <p className="bf-support-bubble__text">{message.body}</p>
+                      <SupportMessageBody body={message.body} isStaff={isStaff} isOwner={isOwner} />
                     ) : null}
                     {message.attachments?.map((attachment) =>
                       attachment.mime_type.startsWith("image/") ? (

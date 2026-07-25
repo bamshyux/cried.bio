@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { getPurchaseBySessionId } from "@/lib/data/purchases";
 import { getStripe, isStripeConfigured } from "@/lib/stripe/client";
+import { getPostCheckoutFulfillmentPath } from "@/lib/store/post-checkout";
+import { resolveCheckoutPaymentDetails } from "@/lib/store/payment-details";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -31,7 +34,7 @@ export async function POST(request: Request) {
 
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ["line_items.data.price", "payment_intent"],
+      expand: ["line_items.data.price", "payment_intent", "payment_intent.payment_method", "payment_intent.latest_charge"],
     });
 
     if (session.metadata?.checkout_type !== "store") {
@@ -48,6 +51,7 @@ export async function POST(request: Request) {
 
     const { fulfillStoreCheckout } = await import("@/lib/store/fulfillment");
     const { getStoreProductBySlug } = await import("@/lib/data/store");
+    const paymentDetails = await resolveCheckoutPaymentDetails(session);
 
     const productSlug = session.metadata?.product_slug;
     const product = productSlug ? await getStoreProductBySlug(productSlug) : null;
@@ -64,15 +68,32 @@ export async function POST(request: Request) {
       productSlug: productSlug ?? undefined,
       priceId: priceId ?? undefined,
       stripeSessionId: session.id,
-      stripePaymentIntent:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : session.payment_intent?.id ?? null,
+      stripePaymentIntent: paymentDetails.stripePaymentIntentId,
+      stripeCustomerId: paymentDetails.stripeCustomerId,
       amountPaid: session.amount_total ?? 0,
       currency: session.currency ?? "usd",
+      paymentMethod: paymentDetails.paymentMethod,
+      receiptNumber: paymentDetails.receiptNumber,
+      invoiceNumber: paymentDetails.invoiceNumber,
     });
 
-    return NextResponse.json({ synced: true, alreadyProcessed: result.alreadyProcessed });
+    const purchase =
+      (await getPurchaseBySessionId(session.id, userId)) ??
+      (result.referenceId
+        ? await import("@/lib/data/purchases").then(({ getPurchaseByReferenceId }) =>
+            getPurchaseByReferenceId(result.referenceId!, userId),
+          )
+        : null);
+
+    return NextResponse.json({
+      synced: true,
+      alreadyProcessed: result.alreadyProcessed,
+      referenceId: purchase?.reference_id ?? result.referenceId ?? null,
+      productSlug: purchase?.product_slug ?? productSlug ?? null,
+      fulfillmentPath: getPostCheckoutFulfillmentPath(
+        purchase?.product_slug ?? productSlug ?? "",
+      ),
+    });
   } catch (error) {
     console.error("[stripe sync-store]", error);
     return NextResponse.json({ error: "Could not sync store purchase." }, { status: 500 });

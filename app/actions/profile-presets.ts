@@ -55,8 +55,9 @@ async function captureAndFreezePreset(
   scopeId: string,
   rawData?: Awaited<ReturnType<typeof captureProfilePresetSnapshot>>,
 ) {
+  const supabase = await createClient();
   const snapshot = rawData ?? (await captureProfilePresetSnapshot(userId, { styleOnly: true }));
-  const frozen = await freezePresetAssets(userId, scopeId, snapshot);
+  const frozen = await freezePresetAssets(userId, scopeId, snapshot, { supabase });
   const freezeError = freezeFailureMessage(frozen.failedAssets);
   if (freezeError) {
     return { error: freezeError } as const;
@@ -205,7 +206,7 @@ export async function duplicateProfilePresetAction(
   }
 
   const copyPresetId = randomUUID();
-  const frozen = await freezePresetAssets(userId, copyPresetId, preset.preset_data);
+  const frozen = await freezePresetAssets(userId, copyPresetId, preset.preset_data, { supabase });
   const freezeError = freezeFailureMessage(frozen.failedAssets);
   if (freezeError) return { error: freezeError };
 
@@ -330,7 +331,7 @@ export async function importProfilePresetAction(
   if (nameError) return { error: nameError };
 
   const importPresetId = randomUUID();
-  const frozen = await freezePresetAssets(userId, importPresetId, parsed.data);
+  const frozen = await freezePresetAssets(userId, importPresetId, parsed.data, { supabase });
   const freezeError = freezeFailureMessage(frozen.failedAssets);
   if (freezeError) return { error: freezeError };
 

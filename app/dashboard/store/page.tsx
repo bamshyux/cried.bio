@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { StorePageClient } from "@/components/store/store-page-client";
 import { getOwnedStoreProductSlugs } from "@/lib/data/store";
 import { getActiveStoreCatalog } from "@/lib/store/catalog";
+import { listPendingBadgeCredits } from "@/lib/store/badge-credits";
 import { fetchStorePriceDisplays } from "@/lib/stripe/store-prices";
 import { getStripeCheckoutConfigStatus, getStripeConfigError } from "@/lib/stripe/config";
 import { createClient } from "@/lib/supabase/server";
@@ -15,10 +16,11 @@ export default async function DashboardStorePage() {
   const userId = data.claims.sub as string;
   const stripeStatus = getStripeCheckoutConfigStatus();
 
-  const [products, prices, ownedSlugs] = await Promise.all([
+  const [products, prices, ownedSlugs, pendingCredits] = await Promise.all([
     Promise.resolve(getActiveStoreCatalog()),
     fetchStorePriceDisplays(),
     getOwnedStoreProductSlugs(userId),
+    listPendingBadgeCredits(userId),
   ]);
 
   return (
@@ -27,6 +29,7 @@ export default async function DashboardStorePage() {
         products={products}
         prices={prices}
         ownedSlugs={[...ownedSlugs]}
+        pendingCredits={pendingCredits}
         stripeConfigured={stripeStatus.configured}
         stripeConfigError={getStripeConfigError(stripeStatus)}
       />

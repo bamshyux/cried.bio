@@ -27,6 +27,7 @@ const ADMIN_LINKS = [
   { href: "/dashboard/admin/analytics", label: "Analytics" },
   { href: "/dashboard/admin/landing", label: "Landing Page" },
   { href: "/dashboard/admin/audit", label: "Audit Logs" },
+  { href: "/dashboard/admin/transactions", label: "Transactions", ownerOnly: true },
   { href: "/dashboard/admin/owner", label: "Owner Tools", ownerOnly: true },
 ];
 

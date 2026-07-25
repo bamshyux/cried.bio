@@ -10,6 +10,11 @@ type StorageRef = {
   path: string;
 };
 
+type CopyStorageResult = {
+  ok: boolean;
+  missing?: boolean;
+};
+
 export function parseSupabaseStorageUrl(url: string): StorageRef | null {
   try {
     const pathname = new URL(url.split("?")[0]).pathname;
@@ -39,6 +44,16 @@ function presetAssetPrefix(ownerUserId: string, scopeId: string): string {
 
 function isAlreadyScoped(ownerUserId: string, scopeId: string, sourcePath: string): boolean {
   return sourcePath.startsWith(presetAssetPrefix(ownerUserId, scopeId));
+}
+
+function isMissingObjectError(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("not found") ||
+    normalized.includes("does not exist") ||
+    normalized.includes("object not found") ||
+    normalized.includes("no such file")
+  );
 }
 
 /** True when a cried.bio storage URL still points at a live profile slot instead of a preset copy. */
@@ -83,24 +98,67 @@ export function collectPresetAssetUrls(data: ProfilePresetData): string[] {
   return urls;
 }
 
-async function resolveStorageClient(): Promise<SupabaseClient> {
+async function resolveStorageClient(userClient?: SupabaseClient): Promise<SupabaseClient> {
   const admin = createAdminClient();
   if (admin) return admin;
+  if (userClient) return userClient;
   return createClient();
 }
 
-async function copyStorageObject(
+async function copyViaServiceRoleRest(
   bucket: string,
   sourcePath: string,
   destPath: string,
 ): Promise<boolean> {
-  const supabase = await resolveStorageClient();
-  const { data, error } = await supabase.storage.from(bucket).download(sourcePath);
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const serviceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
+    process.env.SUPABASE_SECRET_KEY?.trim();
+
+  if (!baseUrl || !serviceKey) return false;
+
+  const response = await fetch(`${baseUrl}/storage/v1/object/copy`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${serviceKey}`,
+      apikey: serviceKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      bucketId: bucket,
+      sourceKey: sourcePath,
+      destinationKey: destPath,
+    }),
+  });
+
+  return response.ok;
+}
+
+async function copyStorageObject(
+  supabase: SupabaseClient,
+  bucket: string,
+  sourcePath: string,
+  destPath: string,
+): Promise<CopyStorageResult> {
+  await supabase.storage.from(bucket).remove([destPath]);
+
+  const { error: copyError } = await supabase.storage.from(bucket).copy(sourcePath, destPath);
+  if (!copyError) return { ok: true };
+
+  if (isMissingObjectError(copyError.message)) {
+    return { ok: false, missing: true };
+  }
+
+  if (await copyViaServiceRoleRest(bucket, sourcePath, destPath)) {
+    return { ok: true };
+  }
+
+  const { data, error: downloadError } = await supabase.storage.from(bucket).download(sourcePath);
 
   let payload: Blob | ArrayBuffer;
   let contentType: string | undefined;
 
-  if (!error && data) {
+  if (!downloadError && data) {
     payload = data;
     contentType = data.type || undefined;
   } else {
@@ -108,7 +166,10 @@ async function copyStorageObject(
       data: { publicUrl },
     } = supabase.storage.from(bucket).getPublicUrl(sourcePath);
     const response = await fetch(publicUrl, { cache: "no-store" });
-    if (!response.ok) return false;
+    if (!response.ok) {
+      if (response.status === 404) return { ok: false, missing: true };
+      return { ok: false };
+    }
     payload = await response.arrayBuffer();
     contentType = response.headers.get("content-type")?.split(";")[0]?.trim();
   }
@@ -118,10 +179,29 @@ async function copyStorageObject(
     contentType,
   });
 
-  return !uploadError;
+  if (uploadError) {
+    if (isMissingObjectError(uploadError.message)) {
+      return { ok: false, missing: true };
+    }
+    return { ok: false };
+  }
+
+  return { ok: true };
+}
+
+function publicUrlForPath(
+  supabase: SupabaseClient,
+  bucket: string,
+  path: string,
+): string {
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(bucket).getPublicUrl(path);
+  return `${publicUrl}?v=${Date.now()}`;
 }
 
 async function freezeAssetUrl(
+  supabase: SupabaseClient,
   ownerUserId: string,
   scopeId: string,
   url: string | null | undefined,
@@ -136,11 +216,7 @@ async function freezeAssetUrl(
 
   const { bucket, path: sourcePath } = parsed;
   if (isAlreadyScoped(ownerUserId, scopeId, sourcePath)) {
-    const supabase = await resolveStorageClient();
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(bucket).getPublicUrl(sourcePath);
-    return { url: `${publicUrl}?v=${Date.now()}`, failed: false };
+    return { url: publicUrlForPath(supabase, bucket, sourcePath), failed: false };
   }
 
   if (!isMutableUserAssetUrl(ownerUserId, trimmed)) {
@@ -149,16 +225,17 @@ async function freezeAssetUrl(
 
   const ext = extensionFromPath(sourcePath) || ".bin";
   const destPath = `${presetAssetPrefix(ownerUserId, scopeId)}${fileBase}${ext}`;
-  const copied = await copyStorageObject(bucket, sourcePath, destPath);
-  if (!copied) {
+  const copied = await copyStorageObject(supabase, bucket, sourcePath, destPath);
+
+  if (copied.missing) {
+    return { url: null, failed: false };
+  }
+
+  if (!copied.ok) {
     return { url: trimmed, failed: true };
   }
 
-  const supabase = await resolveStorageClient();
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from(bucket).getPublicUrl(destPath);
-  return { url: `${publicUrl}?v=${Date.now()}`, failed: false };
+  return { url: publicUrlForPath(supabase, bucket, destPath), failed: false };
 }
 
 export type FreezePresetAssetsResult = {
@@ -166,17 +243,29 @@ export type FreezePresetAssetsResult = {
   failedAssets: string[];
 };
 
+export type FreezePresetAssetsOptions = {
+  supabase?: SupabaseClient;
+};
+
 /** Copy live profile media into preset-scoped storage so presets stay frozen. */
 export async function freezePresetAssets(
   ownerUserId: string,
   scopeId: string,
   data: ProfilePresetData,
+  options?: FreezePresetAssetsOptions,
 ): Promise<FreezePresetAssetsResult> {
+  const supabase = await resolveStorageClient(options?.supabase);
   const failedAssets: string[] = [];
   const settings = { ...data.settings };
 
   const freezeSetting = async (key: string, value: unknown, fileBase: string) => {
-    const result = await freezeAssetUrl(ownerUserId, scopeId, value as string | null, fileBase);
+    const result = await freezeAssetUrl(
+      supabase,
+      ownerUserId,
+      scopeId,
+      value as string | null,
+      fileBase,
+    );
     if (result.failed) failedAssets.push(key);
     return result.url;
   };
@@ -213,15 +302,33 @@ export async function freezePresetAssets(
     "favicon",
   );
 
-  const avatarResult = await freezeAssetUrl(ownerUserId, scopeId, data.profile.avatar_url, "avatar");
+  const avatarResult = await freezeAssetUrl(
+    supabase,
+    ownerUserId,
+    scopeId,
+    data.profile.avatar_url,
+    "avatar",
+  );
   if (avatarResult.failed) failedAssets.push("avatar_url");
-  const bannerResult = await freezeAssetUrl(ownerUserId, scopeId, data.profile.banner_url, "banner");
+  const bannerResult = await freezeAssetUrl(
+    supabase,
+    ownerUserId,
+    scopeId,
+    data.profile.banner_url,
+    "banner",
+  );
   if (bannerResult.failed) failedAssets.push("banner_url");
 
   const links = await Promise.all(
     data.links.map(async (link, index) => {
       if (!isMutableUserAssetUrl(ownerUserId, link.icon)) return link;
-      const result = await freezeAssetUrl(ownerUserId, scopeId, link.icon, `link-icon-${index}`);
+      const result = await freezeAssetUrl(
+        supabase,
+        ownerUserId,
+        scopeId,
+        link.icon,
+        `link-icon-${index}`,
+      );
       if (result.failed) failedAssets.push(`links[${index}].icon`);
       return { ...link, icon: result.url ?? link.icon };
     }),
@@ -229,7 +336,9 @@ export async function freezePresetAssets(
 
   const featuredBlocks = await Promise.all(
     data.featuredBlocks.map(async (block, index) => {
+      if (!isMutableUserAssetUrl(ownerUserId, block.thumbnail_url)) return block;
       const result = await freezeAssetUrl(
+        supabase,
         ownerUserId,
         scopeId,
         block.thumbnail_url,

@@ -22,8 +22,10 @@ export type StoreProduct = {
 export type Purchase = {
   id: string;
   user_id: string;
+  reference_id: string;
   stripe_checkout_session_id: string;
   stripe_payment_intent: string | null;
+  stripe_customer_id: string | null;
   stripe_product_id: string | null;
   price_id: string;
   product_slug: string;
@@ -32,6 +34,9 @@ export type Purchase = {
   currency: string;
   status: string;
   fulfillment_key: string;
+  payment_method: string | null;
+  receipt_number: string | null;
+  invoice_number: string | null;
   created_at: string;
 };
 

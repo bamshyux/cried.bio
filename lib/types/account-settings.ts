@@ -64,4 +64,4 @@ export type AccountSettingsFormState = {
   recoveryCodes?: string[];
 };
 
-export type SettingsCategory = "account" | "security" | "contact" | "privacy" | "danger";
+export type SettingsCategory = "account" | "security" | "contact" | "privacy" | "billing" | "danger";

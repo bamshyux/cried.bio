@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { ProfileStoreEntitlements, Purchase, StoreProduct, StorePurchase } from "@/lib/types/store";
+import { getStoreCatalogEntry } from "@/lib/store/catalog";
+import type { ProfileStoreEntitlements, StoreProduct, StorePurchase } from "@/lib/types/store";
 
 async function db() {
   return createAdminClient() ?? (await createClient());
@@ -89,16 +90,7 @@ export async function getProfileStoreEntitlements(
   return data as ProfileStoreEntitlements;
 }
 
-export async function listPurchasesForUser(userId: string): Promise<Purchase[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("purchases")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-
-  return (data ?? []) as Purchase[];
-}
+export { listPurchasesForUser } from "@/lib/data/purchases";
 
 export async function listStorePurchasesForProfile(profileId: string): Promise<StorePurchase[]> {
   const supabase = await db();

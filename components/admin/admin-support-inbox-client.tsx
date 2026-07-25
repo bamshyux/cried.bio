@@ -59,11 +59,13 @@ export function AdminSupportInboxClient({
   analytics,
   staffProfiles,
   staffUserId,
+  isOwner = false,
 }: {
   initialConversations: SupportConversation[];
   analytics: SupportAnalytics;
   staffProfiles: SupportProfileSummary[];
   staffUserId: string;
+  isOwner?: boolean;
 }) {
   const safeAnalytics = analytics ?? EMPTY_ANALYTICS;
   const safeConversations = Array.isArray(initialConversations) ? initialConversations : [];
@@ -76,6 +78,7 @@ export function AdminSupportInboxClient({
         analytics={safeAnalytics}
         staffProfiles={safeStaff}
         staffUserId={staffUserId}
+        isOwner={isOwner}
       />
     </SupportInboxErrorBoundary>
   );
