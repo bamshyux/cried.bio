@@ -8,7 +8,7 @@ import type { StorePriceDisplay } from "@/lib/stripe/store-prices";
 import {
   getRouteForCreditType,
   type StoreBadgeCredit,
-} from "@/lib/store/badge-credits";
+} from "@/lib/store/badge-credits-shared";
 import {
   type StoreCatalogEntry,
 } from "@/lib/store/catalog";

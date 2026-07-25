@@ -11,7 +11,7 @@ import {
   inputClassName,
   labelClassName,
 } from "@/components/dashboard/form-fields";
-import type { StoreBadgeCredit } from "@/lib/store/badge-credits";
+import type { StoreBadgeCredit } from "@/lib/store/badge-credits-shared";
 import type { BadgeFormState } from "@/lib/types/badge";
 import { readJsonResponse } from "@/lib/stripe/client-fetch";
 
@@ -114,7 +114,7 @@ export function BadgeCreationClient({
 
       {completed ? (
         <div className={`${cardClassName} space-y-4`}>
-          <FormFeedback state={state} />
+          <FormFeedback error={state.error} success={state.success} />
           <div className="flex flex-wrap gap-3">
             <Link href="/dashboard/badges" className={buttonPrimaryClassName}>
               View your badges
@@ -130,7 +130,7 @@ export function BadgeCreationClient({
       ) : (
         <form action={formAction} className={`${cardClassName} space-y-5`}>
           <input type="hidden" name="route" value={route} />
-          <FormFeedback state={state} />
+          <FormFeedback error={state.error} success={state.success} />
 
           <div>
             <label htmlFor="badge-name" className={labelClassName}>

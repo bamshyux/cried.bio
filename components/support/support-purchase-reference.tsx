@@ -5,7 +5,7 @@ import Link from "next/link";
 import { lookupPurchaseByReferenceAction } from "@/app/actions/purchases";
 import { PurchaseReceiptCard } from "@/components/billing/purchase-ui";
 import { cardClassName } from "@/components/dashboard/form-fields";
-import { PURCHASE_REFERENCE_PATTERN } from "@/lib/store/reference-id";
+import { PURCHASE_REFERENCE_PATTERN } from "@/lib/purchases/reference";
 import type { Purchase } from "@/lib/types/store";
 
 function ReferenceLink({

@@ -2,7 +2,7 @@
 
 import { requireAdminAccess } from "@/lib/auth/admin-access";
 import { getPurchaseByReferenceId } from "@/lib/data/purchases";
-import { formatPurchaseReferenceId } from "@/lib/store/reference-id";
+import { formatPurchaseReferenceId } from "@/lib/purchases/reference";
 import type { Purchase } from "@/lib/types/store";
 
 export async function lookupPurchaseByReferenceAction(

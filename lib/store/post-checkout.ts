@@ -1,4 +1,4 @@
-import { getBadgeCreationPathForProductSlug } from "@/lib/store/badge-credits";
+import { getBadgeCreationPathForProductSlug } from "@/lib/store/badge-credits-shared";
 
 /** Where the original checkout tab should land after purchase (product setup). */
 export function getPostCheckoutFulfillmentPath(productSlug: string): string {

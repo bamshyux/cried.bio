@@ -13,7 +13,7 @@ import {
   searchPurchases,
   type PurchaseStats,
   type PurchaseWithCustomer,
-} from "@/lib/data/purchases";
+} from "@/lib/purchases/display";
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (

@@ -6,7 +6,7 @@ import { buttonPrimaryClassName, cardClassName } from "@/components/dashboard/fo
 import {
   formatPurchaseAmount,
   formatPurchaseStatus,
-} from "@/lib/data/purchases";
+} from "@/lib/purchases/display";
 import type { Purchase } from "@/lib/types/store";
 
 export function CopyValueButton({ value, label }: { value: string; label?: string }) {

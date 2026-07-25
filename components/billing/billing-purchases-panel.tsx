@@ -11,7 +11,7 @@ import { cardClassName } from "@/components/dashboard/form-fields";
 import {
   formatPurchaseAmount,
   formatPurchaseStatus,
-} from "@/lib/data/purchases";
+} from "@/lib/purchases/display";
 import type { Purchase } from "@/lib/types/store";
 
 export function BillingPurchasesPanel({ purchases }: { purchases: Purchase[] }) {
