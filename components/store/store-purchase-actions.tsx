@@ -4,8 +4,8 @@ import { GiftIcon } from "@/components/icons/gift-icon";
 import { buttonPrimaryClassName } from "@/components/dashboard/form-fields";
 
 export function StorePurchaseActions({
-  buyLabel = "Buy for myself",
-  giftLabel = "Gift",
+  buyLabel = "Buy",
+  giftTooltip = "Buy as a gift",
   loading,
   disabled,
   giftable,
@@ -13,7 +13,7 @@ export function StorePurchaseActions({
   onGift,
 }: {
   buyLabel?: string;
-  giftLabel?: string;
+  giftTooltip?: string;
   loading?: boolean;
   disabled?: boolean;
   giftable?: boolean;
@@ -43,16 +43,21 @@ export function StorePurchaseActions({
       >
         {loading ? "Redirecting…" : buyLabel}
       </button>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={onGift}
-        className="bf-store-actions__gift"
-        aria-label="Gift to someone"
-      >
-        <GiftIcon size={16} variant="minimal" className="shrink-0 opacity-80" />
-        <span>{giftLabel}</span>
-      </button>
+
+      <span className="bf-store-actions__gift-wrap">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={onGift}
+          className="bf-store-actions__gift"
+          aria-label={giftTooltip}
+        >
+          <GiftIcon size={17} variant="minimal" />
+        </button>
+        <span className="bf-store-actions__gift-tip" role="tooltip">
+          {giftTooltip}
+        </span>
+      </span>
     </div>
   );
 }
