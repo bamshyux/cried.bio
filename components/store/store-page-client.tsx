@@ -83,7 +83,7 @@ function StoreProductCard({
           ))}
         </ul>
 
-        <div className="mt-auto border-t border-white/[0.06] pt-5">
+        <div className="mt-auto pt-6">
           <p className="mb-4 text-2xl font-bold tracking-tight text-white">
             {price?.formatted ?? "—"}
             {product.category === "support" ? (
