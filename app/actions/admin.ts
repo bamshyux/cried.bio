@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { isFrozenViewCountProfile } from "@/lib/analytics/frozen-view-count";
 import { syncPremiumBadge } from "@/lib/premium/badge-sync";
 import { revokePremiumAccess } from "@/lib/premium/sync";
 import { logAdminAudit, logUserTimelineEvent } from "@/lib/admin/audit";
 import { requireAdminAccess } from "@/lib/auth/admin-access";
+import { normalizeUsername } from "@/lib/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { AdminFormState, AnnouncementType } from "@/lib/types/admin";
@@ -555,4 +557,85 @@ export async function toggleLandingTestimonialAction(id: string, isActive: boole
   revalidatePath("/dashboard/admin/landing");
   revalidatePath("/");
   return { success: "Testimonial updated." };
+}
+
+export async function giveViewsAction(
+  _prev: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
+  const gate = await guard("owner");
+  if ("error" in gate) return { error: gate.error };
+
+  const usernameRaw = String(formData.get("username") ?? "").trim();
+  const uidRaw = String(formData.get("uid") ?? "").trim();
+  const amountRaw = String(formData.get("amount") ?? "").trim();
+
+  if (!usernameRaw && !uidRaw) {
+    return { error: "Enter a username or UID." };
+  }
+
+  const amount = Number(amountRaw);
+  if (!Number.isSafeInteger(amount) || amount < 1) {
+    return { error: "Amount must be a positive whole number." };
+  }
+  if (amount > 10_000_000) {
+    return { error: "Amount cannot exceed 10,000,000." };
+  }
+
+  const supabase = await db();
+  let query = supabase
+    .from("profiles")
+    .select("id, username, uid, view_count, view_count_frozen");
+
+  if (usernameRaw) {
+    query = query.eq("username", normalizeUsername(usernameRaw));
+  } else {
+    const uid = Number(uidRaw);
+    if (!Number.isSafeInteger(uid) || uid < 1) {
+      return { error: "UID must be a positive whole number." };
+    }
+    query = query.eq("uid", uid);
+  }
+
+  const { data: profile, error: lookupError } = await query.maybeSingle();
+  if (lookupError) return { error: lookupError.message };
+  if (!profile?.username) return { error: "Profile not found." };
+
+  const current = Number(profile.view_count) || 0;
+  const next = current + amount;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ view_count: next })
+    .eq("id", profile.id);
+
+  if (error) return { error: error.message };
+
+  await logAdminAudit({
+    actorId: gate.access.userId,
+    actorEmail: gate.access.email,
+    targetUserId: profile.id,
+    action: "views_granted",
+    details: {
+      username: profile.username,
+      uid: profile.uid,
+      amount,
+      previous: current,
+      next,
+    },
+  });
+
+  revalidatePath("/dashboard/admin/owner");
+  revalidatePath(`/${profile.username}`);
+  revalidatePath("/explore");
+  revalidatePath("/");
+
+  const handle = `@${profile.username}`;
+  const frozenNote = isFrozenViewCountProfile(profile)
+    ? " Note: this profile has a frozen public view count, so the displayed total may not change."
+    : "";
+
+  return {
+    success: `Added ${amount.toLocaleString()} views to ${handle} (${current.toLocaleString()} → ${next.toLocaleString()}).${frozenNote}`,
+  };
 }

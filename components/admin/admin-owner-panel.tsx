@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import {
   addReservedUsernameAction,
   adminForceLogoutAllAction,
+  giveViewsAction,
   removeReservedUsernameAction,
   updatePlatformSettingsAction,
 } from "@/app/actions/admin";
@@ -34,6 +35,7 @@ export function AdminOwnerPanel({
   const [settingsState, settingsAction, settingsPending] = useActionState(updatePlatformSettingsAction, initial);
   const [reservedState, reservedAction, reservedPending] = useActionState(addReservedUsernameAction, initial);
   const [logoutState, logoutAction, logoutPending] = useActionState(adminForceLogoutAllAction, initial);
+  const [viewgiverState, viewgiverAction, viewgiverPending] = useActionState(giveViewsAction, initial);
 
   return (
     <>
@@ -71,6 +73,53 @@ export function AdminOwnerPanel({
             {logoutPending ? "Processing..." : "Force logout all users"}
           </button>
           <FormFeedback error={logoutState.error} success={logoutState.success} />
+        </form>
+      </AdminSection>
+
+      <AdminSection title="Viewgiver">
+        <p className="mb-4 text-sm text-neutral-400">
+          Add views to a profile. This increases their current count — real profile visits will keep adding on top.
+        </p>
+        <form action={viewgiverAction} className="grid gap-4 md:grid-cols-3">
+          <div>
+            <label className={labelClassName}>Username</label>
+            <input
+              name="username"
+              placeholder="joshua"
+              className={inputClassName}
+              autoComplete="off"
+            />
+          </div>
+          <div>
+            <label className={labelClassName}>UID</label>
+            <input
+              name="uid"
+              type="number"
+              min={1}
+              step={1}
+              placeholder="Optional if username set"
+              className={inputClassName}
+              autoComplete="off"
+            />
+          </div>
+          <div>
+            <label className={labelClassName}>Views to add</label>
+            <input
+              name="amount"
+              type="number"
+              min={1}
+              step={1}
+              required
+              placeholder="100"
+              className={inputClassName}
+            />
+          </div>
+          <div className="md:col-span-3 flex flex-wrap items-center gap-2">
+            <FormFeedback error={viewgiverState.error} success={viewgiverState.success} />
+            <button type="submit" disabled={viewgiverPending} className={buttonPrimaryClassName}>
+              {viewgiverPending ? "Adding..." : "Give views"}
+            </button>
+          </div>
         </form>
       </AdminSection>
 
