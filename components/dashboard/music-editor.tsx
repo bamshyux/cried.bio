@@ -193,8 +193,8 @@ export function MusicEditor({
                     <p className="truncate text-sm text-white">{track.title || "Untitled"}</p>
                     <audio src={track.url} controls className="mt-2 w-full accent-[#fafafa]" />
                   </div>
-                  {canPlaylist && track.id !== "legacy" ? (
-                    <div className="flex gap-2">
+                  <div className="flex gap-2">
+                    {canPlaylist && track.id !== "legacy" ? (
                       <button
                         type="button"
                         disabled={playlistPending}
@@ -208,12 +208,26 @@ export function MusicEditor({
                       >
                         Set default
                       </button>
+                    ) : null}
+                    {track.id === "legacy" ? (
+                      <RemoveMediaButton
+                        label="Remove"
+                        disabled={isRemoving || uploadPending}
+                        onClick={handleRemoveLegacy}
+                      />
+                    ) : (
                       <button
                         type="button"
-                        disabled={playlistPending}
+                        disabled={playlistPending || isRemoving}
                         onClick={() =>
                           startPlaylist(async () => {
-                            await removeMusicTrackAction(track.id, pageId);
+                            const result = await removeMusicTrackAction(track.id, pageId);
+                            if (result.error) {
+                              setUploadError(result.error);
+                              return;
+                            }
+                            setUploadError(undefined);
+                            setUploadSuccess(result.success);
                             router.refresh();
                           })
                         }
@@ -221,14 +235,8 @@ export function MusicEditor({
                       >
                         Remove
                       </button>
-                    </div>
-                  ) : track.id === "legacy" ? (
-                    <RemoveMediaButton
-                      label="Remove"
-                      disabled={isRemoving || uploadPending}
-                      onClick={handleRemoveLegacy}
-                    />
-                  ) : null}
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
