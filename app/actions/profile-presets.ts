@@ -7,6 +7,10 @@ import {
   resolvePresetThumbnailUrl,
 } from "@/lib/profile-presets/snapshot";
 import {
+  parseImportedPresetJson,
+  resolveImportedPresetName,
+} from "@/lib/profile-presets/import";
+import {
   getProfilePresetById,
   setActivePresetId,
 } from "@/lib/data/profile-presets";
@@ -225,16 +229,86 @@ export async function exportProfilePresetAction(
   const preset = await getProfilePresetById(presetId, userId);
   if (!preset) return { error: "Preset not found." };
 
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", userId)
+    .maybeSingle();
+
   const slug = preset.name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 40);
 
+  const exportPayload = {
+    exportedFrom: "cried.bio",
+    exportedAt: new Date().toISOString(),
+    name: preset.name,
+    createdBy: profile?.username ?? null,
+    version: "1.0",
+    preset: preset.preset_data,
+  };
+
   return {
-    json: JSON.stringify(preset.preset_data, null, 2),
+    json: JSON.stringify(exportPayload, null, 2),
     filename: `${slug || "profile-preset"}.json`,
   };
+}
+
+export async function importProfilePresetAction(
+  json: string,
+  preferredName?: string,
+): Promise<ProfilePresetFormState> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "You must be logged in." };
+
+  const parsed = parseImportedPresetJson(json, preferredName?.trim());
+  if (!parsed) {
+    return { error: "This preset file is invalid or unsupported." };
+  }
+
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("profile_presets")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  if ((count ?? 0) >= MAX_PROFILE_PRESETS) {
+    return { error: `Maximum ${MAX_PROFILE_PRESETS} presets allowed.` };
+  }
+
+  const { data: existingPresets } = await supabase
+    .from("profile_presets")
+    .select("name")
+    .eq("user_id", userId);
+
+  const presetName = resolveImportedPresetName(
+    preferredName?.trim() || parsed.meta.name,
+    (existingPresets ?? []).map((row) => String(row.name ?? "")),
+  );
+
+  const nameError = await rejectIfModerated(presetName, "theme_name", userId);
+  if (nameError) return { error: nameError };
+
+  const thumbnailUrl = resolvePresetThumbnailUrl(parsed.data);
+
+  const { data, error } = await supabase
+    .from("profile_presets")
+    .insert({
+      user_id: userId,
+      name: presetName,
+      thumbnail_url: thumbnailUrl,
+      preset_data: parsed.data,
+    })
+    .select("id")
+    .single();
+
+  if (error) return { error: error.message };
+
+  await revalidateAll(userId);
+  return { success: `"${presetName}" imported.`, presetId: data.id };
 }
 
 export async function updateProfilePresetSnapshotAction(

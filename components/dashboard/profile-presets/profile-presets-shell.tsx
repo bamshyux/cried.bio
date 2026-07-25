@@ -2,20 +2,36 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { saveCurrentProfilePresetAction } from "@/app/actions/profile-presets";
+import { ImportPresetModal } from "@/components/dashboard/profile-presets/import-preset-modal";
 import { PresetCard } from "@/components/dashboard/profile-presets/preset-card";
 import {
+  buttonSecondaryClassName,
   cardClassName,
   FormFeedback,
   PageHeader,
 } from "@/components/dashboard/form-fields";
 import { IconPresets } from "@/components/icons/dashboard-icons";
 import { useUnsavedChangesOptional } from "@/components/dashboard/unsaved-changes";
+import {
+  parseImportedPresetJson,
+  presetNameFromFilename,
+  resolveImportedPresetName,
+  type ImportedPresetMeta,
+} from "@/lib/profile-presets/import";
 import type { CommunityThemeListing } from "@/lib/types/community-theme";
 import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfilePreset } from "@/lib/types/profile-preset";
 import { MAX_PROFILE_PRESETS } from "@/lib/types/profile-preset";
+import type { ProfilePresetData } from "@/lib/types/profile-preset";
+
+const INVALID_PRESET_FILE_ERROR = "This preset file is invalid or unsupported.";
+
+type ImportDraft = {
+  data: ProfilePresetData;
+  meta: ImportedPresetMeta;
+};
 
 export function ProfilePresetsShell({
   presets: initialPresets,
@@ -38,8 +54,11 @@ export function ProfilePresetsShell({
 }) {
   const router = useRouter();
   const unsaved = useUnsavedChangesOptional();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeId, setActiveId] = useState(activePresetId);
   const [feedback, setFeedback] = useState<{ error?: string; success?: string }>({});
+  const [importDraft, setImportDraft] = useState<ImportDraft | null>(null);
+  const [dragActive, setDragActive] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -89,8 +108,97 @@ export function ProfilePresetsShell({
     });
   }
 
+  const processImportFile = useCallback(
+    (file: File) => {
+      setFeedback({});
+
+      if (initialPresets.length >= MAX_PROFILE_PRESETS) {
+        setFeedback({ error: `Maximum ${MAX_PROFILE_PRESETS} presets allowed.` });
+        return;
+      }
+
+      if (!file.name.toLowerCase().endsWith(".json")) {
+        setFeedback({ error: INVALID_PRESET_FILE_ERROR });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = typeof reader.result === "string" ? reader.result : "";
+        const fallbackName = presetNameFromFilename(file.name);
+        const parsed = parseImportedPresetJson(text, fallbackName);
+
+        if (!parsed) {
+          setFeedback({ error: INVALID_PRESET_FILE_ERROR });
+          return;
+        }
+
+        const resolvedName = resolveImportedPresetName(
+          parsed.meta.name,
+          initialPresets.map((preset) => preset.name),
+        );
+        setImportDraft({
+          data: parsed.data,
+          meta: { ...parsed.meta, name: resolvedName },
+        });
+      };
+      reader.onerror = () => {
+        setFeedback({ error: INVALID_PRESET_FILE_ERROR });
+      };
+      reader.readAsText(file);
+    },
+    [initialPresets],
+  );
+
+  function handleImportInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    processImportFile(file);
+  }
+
+  const handleDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(true);
+  }, []);
+
+  const handleDragLeave = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+    setDragActive(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setDragActive(false);
+
+      const file = event.dataTransfer.files?.[0];
+      if (!file) return;
+      processImportFile(file);
+    },
+    [processImportFile],
+  );
+
   return (
-    <div className="space-y-8">
+    <div
+      className={`space-y-8 ${dragActive ? "relative" : ""}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {dragActive ? (
+        <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-black/55 backdrop-blur-[1px]">
+          <div className="rounded-2xl border border-dashed border-white/25 bg-[#111]/90 px-8 py-6 text-center">
+            <p className="text-sm font-medium text-white">Drop preset JSON to import</p>
+            <p className="mt-1 text-xs text-neutral-500">.json files exported from cried.bio</p>
+          </div>
+        </div>
+      ) : null}
+
       <PageHeader
         title="My Presets"
         description="Save complete profile styles — layout, colors, links, widgets, music, and more — then switch between them instantly."
@@ -111,30 +219,52 @@ export function ProfilePresetsShell({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
+          <div className="space-y-3 border-t border-white/[0.06] pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-neutral-600">
+                {initialPresets.length}/{MAX_PROFILE_PRESETS} presets saved
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={isPending || initialPresets.length >= MAX_PROFILE_PRESETS}
+                  onClick={handleSaveCurrentProfile}
+                  className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.06] px-4 py-2 text-sm font-medium text-white transition hover:border-white/[0.16] hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    aria-hidden
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  {isPending ? "Saving..." : "Save preset"}
+                </button>
+                <button
+                  type="button"
+                  disabled={isPending || initialPresets.length >= MAX_PROFILE_PRESETS}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`${buttonSecondaryClassName} inline-flex shrink-0 items-center gap-2 disabled:cursor-not-allowed disabled:opacity-40`}
+                >
+                  Import JSON
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json,application/json"
+                  className="hidden"
+                  onChange={handleImportInputChange}
+                />
+              </div>
+            </div>
             <p className="text-xs text-neutral-600">
-              {initialPresets.length}/{MAX_PROFILE_PRESETS} presets saved
+              Import a preset exported from cried.bio (.json)
             </p>
-            <button
-              type="button"
-              disabled={isPending || initialPresets.length >= MAX_PROFILE_PRESETS}
-              onClick={handleSaveCurrentProfile}
-              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.06] px-4 py-2 text-sm font-medium text-white transition hover:border-white/[0.16] hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                aria-hidden
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              {isPending ? "Saving..." : "Save preset"}
-            </button>
           </div>
         </div>
 
@@ -180,6 +310,18 @@ export function ProfilePresetsShell({
           ))}
         </div>
       )}
+
+      {importDraft ? (
+        <ImportPresetModal
+          presetData={importDraft.data}
+          meta={importDraft.meta}
+          onClose={() => setImportDraft(null)}
+          onImported={() => {
+            setFeedback({ success: `"${importDraft.meta.name}" imported.` });
+            refresh();
+          }}
+        />
+      ) : null}
     </div>
   );
 }
