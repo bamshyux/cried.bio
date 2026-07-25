@@ -8,6 +8,7 @@ import {
   SupportWidgetUnreadPoller,
 } from "@/components/support/support-widget";
 import { SupportReplyToast } from "@/components/support/support-reply-toast";
+import { GiftNotificationPoller, GiftReceivedToast } from "@/components/gifts/gift-received-toast";
 import type { SupportReplyAlert } from "@/lib/support/notifications";
 import { isPublicProfilePath } from "@/lib/profile";
 import { isBadgeCreationPath } from "@/lib/store/badge-creation-route";
@@ -62,7 +63,9 @@ export function FloatingSiteDock({ userId }: { userId: string | null }) {
   const [open, setOpen] = useState(false);
   const [unreadTotal, setUnreadTotal] = useState(0);
   const [replyAlert, setReplyAlert] = useState<SupportReplyAlert | null>(null);
+  const [giftAlert, setGiftAlert] = useState<{ id: string; title: string; body: string } | null>(null);
   const dismissTimerRef = useRef<number | null>(null);
+  const giftDismissTimerRef = useRef<number | null>(null);
 
   const handleStaffReply = useCallback((alert: SupportReplyAlert) => {
     setReplyAlert(alert);
@@ -70,9 +73,16 @@ export function FloatingSiteDock({ userId }: { userId: string | null }) {
     dismissTimerRef.current = window.setTimeout(() => setReplyAlert(null), 12_000);
   }, []);
 
+  const handleGiftReceived = useCallback((alert: { id: string; title: string; body: string }) => {
+    setGiftAlert(alert);
+    if (giftDismissTimerRef.current) window.clearTimeout(giftDismissTimerRef.current);
+    giftDismissTimerRef.current = window.setTimeout(() => setGiftAlert(null), 12_000);
+  }, []);
+
   useEffect(
     () => () => {
       if (dismissTimerRef.current) window.clearTimeout(dismissTimerRef.current);
+      if (giftDismissTimerRef.current) window.clearTimeout(giftDismissTimerRef.current);
     },
     [],
   );
@@ -83,7 +93,15 @@ export function FloatingSiteDock({ userId }: { userId: string | null }) {
 
   return (
     <div className="bf-site-dock">
-      {!open && replyAlert ? (
+      {!open && giftAlert ? (
+        <GiftReceivedToast
+          title={giftAlert.title}
+          body={giftAlert.body || undefined}
+          onDismiss={() => setGiftAlert(null)}
+        />
+      ) : null}
+
+      {!open && !giftAlert && replyAlert ? (
         <SupportReplyToast
           subject={replyAlert.subject}
           preview={replyAlert.preview}
@@ -94,6 +112,8 @@ export function FloatingSiteDock({ userId }: { userId: string | null }) {
           onDismiss={() => setReplyAlert(null)}
         />
       ) : null}
+
+      <GiftNotificationPoller userId={userId} onGift={handleGiftReceived} />
 
       {open ? (
         <SupportWidgetBody

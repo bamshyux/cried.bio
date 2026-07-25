@@ -27,9 +27,11 @@ import {
 } from "@/components/dashboard/form-fields";
 import { MfaSettings } from "./mfa-settings";
 import { BillingPurchasesPanel } from "@/components/billing/billing-purchases-panel";
+import { GiftsSettingsPanel } from "@/components/dashboard/settings/gifts-settings-panel";
 import { SettingRow, SettingsNav, SettingsSection } from "./settings-ui";
 import type { AccountSettingsData, AccountSettingsFormState, SettingsCategory } from "@/lib/types/account-settings";
 import type { Purchase } from "@/lib/types/store";
+import type { GiftWithProfiles } from "@/lib/types/gift";
 import {
   formatUsernameChangeAvailableDate,
   USERNAME_CHANGE_COOLDOWN_DAYS,
@@ -50,10 +52,14 @@ function formatWhen(iso: string) {
 export function AccountSettingsShell({
   data,
   purchases,
+  receivedGifts,
+  sentGifts,
   initialTab,
 }: {
   data: AccountSettingsData;
   purchases: Purchase[];
+  receivedGifts: GiftWithProfiles[];
+  sentGifts: GiftWithProfiles[];
   initialTab?: string | null;
 }) {
   const router = useRouter();
@@ -61,6 +67,7 @@ export function AccountSettingsShell({
   const tabParam = searchParams.get("tab") ?? initialTab ?? "account";
   const normalizedTab: SettingsCategory =
     tabParam === "billing" ||
+    tabParam === "gifts" ||
     tabParam === "security" ||
     tabParam === "contact" ||
     tabParam === "privacy" ||
@@ -447,6 +454,12 @@ export function AccountSettingsShell({
                 <BillingPurchasesPanel purchases={purchases} />
               </div>
             </SettingsSection>
+          ) : null}
+
+          {category === "gifts" ? (
+            <div className="p-1">
+              <GiftsSettingsPanel received={receivedGifts} sent={sentGifts} />
+            </div>
           ) : null}
 
           {category === "danger" ? (

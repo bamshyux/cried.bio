@@ -4,6 +4,10 @@ export type PurchaseWithCustomer = Purchase & {
   username: string | null;
   email: string | null;
   display_name: string | null;
+  is_gift?: boolean;
+  sender_username?: string | null;
+  recipient_username?: string | null;
+  gift_message?: string | null;
 };
 
 export type PurchaseStats = {

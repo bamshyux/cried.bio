@@ -20,6 +20,8 @@ export type StoreCatalogEntry = {
   sortOrder: number;
   /** Repeat purchases allowed (support tiers). */
   allowRepeatPurchase?: boolean;
+  /** Allow gifting to another user. Support donations must stay false. */
+  giftable?: boolean;
 };
 
 export const STORE_CATALOG: StoreCatalogEntry[] = [
@@ -40,6 +42,7 @@ export const STORE_CATALOG: StoreCatalogEntry[] = [
     category: "badges",
     sortOrder: 10,
     allowRepeatPurchase: true,
+    giftable: true,
   },
   {
     slug: "verified-badge",
@@ -58,6 +61,7 @@ export const STORE_CATALOG: StoreCatalogEntry[] = [
     badgeLabel: "Popular",
     category: "badges",
     sortOrder: 20,
+    giftable: true,
   },
   {
     slug: "custom-badges-3",
@@ -76,6 +80,7 @@ export const STORE_CATALOG: StoreCatalogEntry[] = [
     category: "badges",
     sortOrder: 30,
     allowRepeatPurchase: true,
+    giftable: true,
   },
   {
     slug: "animated-badge",
@@ -95,6 +100,7 @@ export const STORE_CATALOG: StoreCatalogEntry[] = [
     category: "badges",
     sortOrder: 40,
     allowRepeatPurchase: true,
+    giftable: true,
   },
   {
     slug: "support-1",

@@ -90,7 +90,7 @@ function PricingCard({
               : buttonPrimaryClassName
           }`}
         >
-          {loading ? "Redirecting…" : "Upgrade"}
+          {loading ? "Redirecting…" : "Buy for myself"}
         </button>
         {onGift ? (
           <button
@@ -99,7 +99,7 @@ function PricingCard({
             onClick={onGift}
             className="rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:border-white/[0.16] hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Gift
+            Gift to someone
           </button>
         ) : null}
       </div>
@@ -391,7 +391,32 @@ export function PremiumPageClient({
               giftDisabled={!stripeConfigured}
             />
           </div>
-        ) : null}
+        ) : (
+          <div className={`${cardClassName} border border-white/[0.07] p-5`}>
+            <p className="text-sm font-medium text-white">Gift Premium Lite</p>
+            <p className="mt-1 text-sm text-neutral-500">
+              Send Premium Lite to another creator on cried.bio.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={!stripeConfigured}
+                onClick={() => setGiftPlan("monthly")}
+                className={buttonPrimaryClassName}
+              >
+                Gift monthly
+              </button>
+              <button
+                type="button"
+                disabled={!stripeConfigured}
+                onClick={() => setGiftPlan("lifetime")}
+                className="rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-2.5 text-sm font-semibold text-white transition hover:border-white/[0.16] hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Gift lifetime
+              </button>
+            </div>
+          </div>
+        )}
 
         <PremiumComparisonSection />
       </div>

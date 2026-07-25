@@ -155,11 +155,26 @@ export async function listAllPurchasesAdmin(limit = 200): Promise<PurchaseWithCu
   const purchases = (data ?? []).map((row) => mapPurchaseRow(row as Record<string, unknown>));
   if (purchases.length === 0) return [];
 
-  const userIds = [...new Set(purchases.map((purchase) => purchase.user_id))];
+  const purchaseIds = purchases.map((purchase) => purchase.id);
+  const { data: giftRows } = await supabase
+    .from("gifts")
+    .select("purchase_id, sender_user_id, recipient_user_id, gift_message, reference_id")
+    .in("purchase_id", purchaseIds);
+
+  const giftByPurchase = new Map(
+    (giftRows ?? []).map((row) => [String(row.purchase_id), row as Record<string, unknown>]),
+  );
+
+  const profileIds = [
+    ...new Set(purchases.map((purchase) => purchase.user_id)),
+    ...new Set(
+      (giftRows ?? []).flatMap((row) => [String(row.sender_user_id), String(row.recipient_user_id)]),
+    ),
+  ];
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, username, display_name")
-    .in("id", userIds);
+    .in("id", profileIds);
 
   const profileMap = new Map(
     (profiles ?? []).map((profile) => [String(profile.id), profile as Record<string, unknown>]),
@@ -168,16 +183,25 @@ export async function listAllPurchasesAdmin(limit = 200): Promise<PurchaseWithCu
   const enriched: PurchaseWithCustomer[] = [];
   for (const purchase of purchases) {
     const profile = profileMap.get(purchase.user_id);
+    const gift = giftByPurchase.get(purchase.id);
     let email: string | null = null;
     if (createAdminClient()) {
       const { getUserEmailById } = await import("@/lib/supabase/admin");
       email = await getUserEmailById(purchase.user_id);
     }
+
+    const senderProfile = gift ? profileMap.get(String(gift.sender_user_id)) : null;
+    const recipientProfile = gift ? profileMap.get(String(gift.recipient_user_id)) : null;
+
     enriched.push({
       ...purchase,
       username: profile ? String(profile.username ?? "") || null : null,
       display_name: profile ? String(profile.display_name ?? "") || null : null,
       email,
+      is_gift: Boolean(gift),
+      sender_username: senderProfile ? String(senderProfile.username ?? "") || null : null,
+      recipient_username: recipientProfile ? String(recipientProfile.username ?? "") || null : null,
+      gift_message: gift ? String(gift.gift_message ?? "") || null : null,
     });
   }
 

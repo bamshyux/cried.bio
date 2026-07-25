@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import type Stripe from "stripe";
 import { getOwnedStoreProductSlugs } from "@/lib/data/store";
+import { validateGiftRecipient } from "@/lib/gifts/validation";
 import { getSiteUrl } from "@/lib/site";
 import { getStoreCatalogEntry } from "@/lib/store/catalog";
 import { getCheckoutCompleteSuccessUrl } from "@/lib/store/post-checkout";
 import { getStripe, getStripeConfigErrorMessage, isStripeConfigured } from "@/lib/stripe/client";
 import { createClient } from "@/lib/supabase/server";
+import type Stripe from "stripe";
 
 export const runtime = "nodejs";
 
@@ -56,7 +57,11 @@ export async function POST(request: Request) {
     }
 
     const buyerId = data.claims.sub as string;
-    let body: { productSlug?: string } = {};
+    let body: {
+      productSlug?: string;
+      recipientUsername?: string;
+      giftMessage?: string;
+    } = {};
 
     try {
       body = (await request.json()) as typeof body;
@@ -74,7 +79,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Product not available." }, { status: 404 });
     }
 
-    if (!catalogEntry.allowRepeatPurchase) {
+    const { data: buyerProfile } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", buyerId)
+      .maybeSingle();
+
+    const isGift = Boolean(body.recipientUsername?.trim());
+    let recipientProfileId = buyerId;
+
+    if (isGift) {
+      if (catalogEntry.giftable === false || catalogEntry.category === "support") {
+        return NextResponse.json({ error: "This product cannot be gifted." }, { status: 400 });
+      }
+
+      const validation = await validateGiftRecipient({
+        recipientUsername: body.recipientUsername!,
+        buyerUserId: buyerId,
+        buyerUsername: buyerProfile?.username ?? null,
+        target: { kind: "store", productSlug },
+      });
+
+      if (!validation.ok) {
+        return NextResponse.json({ error: validation.error }, { status: 400 });
+      }
+
+      recipientProfileId = validation.recipientId;
+    } else if (!catalogEntry.allowRepeatPurchase) {
       const owned = await getOwnedStoreProductSlugs(buyerId);
       if (owned.has(productSlug)) {
         return NextResponse.json({ error: "You already own this item." }, { status: 400 });
@@ -101,18 +132,21 @@ export async function POST(request: Request) {
       metadata: {
         checkout_type: "store",
         cried_user_id: buyerId,
-        recipient_profile_id: buyerId,
+        recipient_profile_id: recipientProfileId,
         product_slug: catalogEntry.slug,
         price_id: catalogEntry.stripePriceId,
         stripe_product_id: catalogEntry.stripeProductId,
-        is_gift: "false",
+        is_gift: isGift ? "true" : "false",
+        gift_message: body.giftMessage?.trim() ?? "",
       },
       payment_intent_data: {
         metadata: {
           checkout_type: "store",
           cried_user_id: buyerId,
+          recipient_profile_id: recipientProfileId,
           product_slug: catalogEntry.slug,
           price_id: catalogEntry.stripePriceId,
+          is_gift: isGift ? "true" : "false",
         },
       },
     } satisfies Stripe.Checkout.SessionCreateParams);

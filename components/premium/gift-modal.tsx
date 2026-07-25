@@ -1,9 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { cardClassName, buttonPrimaryClassName, inputClassName, labelClassName } from "@/components/dashboard/form-fields";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  buttonPrimaryClassName,
+  cardClassName,
+  inputClassName,
+  labelClassName,
+} from "@/components/dashboard/form-fields";
 import { readJsonResponse } from "@/lib/stripe/client-fetch";
 import type { GiftCheckoutTarget } from "@/lib/types/store";
+
+type UsernameSuggestion = {
+  username: string;
+  display_name: string | null;
+};
 
 export function GiftModal({
   open,
@@ -24,13 +34,115 @@ export function GiftModal({
 }) {
   const [recipientUsername, setRecipientUsername] = useState("");
   const [giftMessage, setGiftMessage] = useState("");
-  const [reservedUsername, setReservedUsername] = useState("");
   const [loading, setLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<UsernameSuggestion[]>([]);
+  const [validationError, setValidationError] = useState<string>();
+  const [validatedUsername, setValidatedUsername] = useState<string>();
+  const searchTimerRef = useRef<number | null>(null);
+  const validateTimerRef = useRef<number | null>(null);
+
+  const resetState = useCallback(() => {
+    setRecipientUsername("");
+    setGiftMessage("");
+    setSuggestions([]);
+    setValidationError(undefined);
+    setValidatedUsername(undefined);
+  }, []);
+
+  useEffect(() => {
+    if (!open) resetState();
+  }, [open, resetState]);
+
+  useEffect(
+    () => () => {
+      if (searchTimerRef.current) window.clearTimeout(searchTimerRef.current);
+      if (validateTimerRef.current) window.clearTimeout(validateTimerRef.current);
+    },
+    [],
+  );
+
+  const runValidation = useCallback(
+    async (username: string): Promise<{ ok: boolean; error?: string; recipientUsername?: string }> => {
+      const trimmed = username.trim();
+      if (!trimmed) {
+        setValidationError(undefined);
+        setValidatedUsername(undefined);
+        return { ok: false, error: "Enter a recipient username." };
+      }
+
+      if (buyerUsername && trimmed.toLowerCase() === buyerUsername.toLowerCase()) {
+        setValidationError("You cannot gift an item to yourself.");
+        setValidatedUsername(undefined);
+        return { ok: false, error: "You cannot gift an item to yourself." };
+      }
+
+      try {
+        const res = await fetch("/api/gifts/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipientUsername: trimmed, target }),
+        });
+        const data = await readJsonResponse<{ ok?: boolean; error?: string; recipientUsername?: string }>(res);
+        if (!res.ok || !data.ok) {
+          const message = data.error ?? "Recipient is not eligible.";
+          setValidationError(message);
+          setValidatedUsername(undefined);
+          return { ok: false, error: message };
+        }
+        const normalized = data.recipientUsername ?? trimmed.toLowerCase();
+        setValidationError(undefined);
+        setValidatedUsername(normalized);
+        return { ok: true, recipientUsername: normalized };
+      } catch {
+        const message = "Could not validate recipient.";
+        setValidationError(message);
+        setValidatedUsername(undefined);
+        return { ok: false, error: message };
+      }
+    },
+    [buyerUsername, target],
+  );
+
+  const handleRecipientChange = (value: string) => {
+    setRecipientUsername(value);
+    setValidatedUsername(undefined);
+    setValidationError(undefined);
+
+    if (searchTimerRef.current) window.clearTimeout(searchTimerRef.current);
+    if (validateTimerRef.current) window.clearTimeout(validateTimerRef.current);
+
+    const trimmed = value.trim();
+    if (trimmed.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    searchTimerRef.current = window.setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(trimmed)}`);
+        const data = await readJsonResponse<{ users?: UsernameSuggestion[] }>(res);
+        setSuggestions(data.users ?? []);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 250);
+
+    validateTimerRef.current = window.setTimeout(() => {
+      void runValidation(trimmed);
+    }, 450);
+  };
+
+  const selectSuggestion = (username: string) => {
+    setRecipientUsername(username);
+    setSuggestions([]);
+    void runValidation(username);
+  };
 
   if (!open) return null;
-
-  const needsReservedUsername =
-    target.kind === "store" && target.productSlug === "username-reservation";
 
   const continueGift = async () => {
     const recipient = recipientUsername.trim().toLowerCase();
@@ -38,12 +150,10 @@ export function GiftModal({
       onError("Enter a recipient username.");
       return;
     }
-    if (buyerUsername && recipient === buyerUsername.toLowerCase()) {
-      onError("You cannot gift an item to yourself. Use Purchase instead.");
-      return;
-    }
-    if (needsReservedUsername && !reservedUsername.trim()) {
-      onError("Enter the username to reserve.");
+
+    let validation = await runValidation(recipient);
+    if (!validation.ok) {
+      onError(validation.error ?? "Enter a valid recipient username.");
       return;
     }
 
@@ -56,7 +166,6 @@ export function GiftModal({
               productSlug: target.productSlug,
               recipientUsername: recipient,
               giftMessage: giftMessage.trim() || undefined,
-              reservedUsername: reservedUsername.trim() || undefined,
             }
           : {
               plan: target.plan,
@@ -81,6 +190,8 @@ export function GiftModal({
       setLoading(false);
     }
   };
+
+  const canContinue = Boolean(validatedUsername) && !validationError && !loading;
 
   return (
     <div
@@ -109,33 +220,45 @@ export function GiftModal({
         </div>
 
         <div className="space-y-4">
-          <div>
+          <div className="relative">
             <label className={labelClassName} htmlFor="gift-recipient">
               Recipient username
             </label>
             <input
               id="gift-recipient"
               value={recipientUsername}
-              onChange={(e) => setRecipientUsername(e.target.value)}
-              placeholder="username"
+              onChange={(e) => handleRecipientChange(e.target.value)}
+              placeholder="Search username…"
+              autoComplete="off"
               className={inputClassName}
             />
+            {searchLoading ? (
+              <p className="mt-1 text-xs text-neutral-500">Searching…</p>
+            ) : null}
+            {validationError ? (
+              <p className="mt-1 text-xs text-red-400">{validationError}</p>
+            ) : validatedUsername ? (
+              <p className="mt-1 text-xs text-emerald-400">@{validatedUsername} can receive this gift.</p>
+            ) : null}
+            {suggestions.length > 0 ? (
+              <ul className="absolute z-10 mt-1 max-h-40 w-full overflow-auto rounded-xl border border-white/[0.08] bg-[#111] py-1 shadow-xl">
+                {suggestions.map((user) => (
+                  <li key={user.username}>
+                    <button
+                      type="button"
+                      onClick={() => selectSuggestion(user.username)}
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-neutral-200 hover:bg-white/[0.06]"
+                    >
+                      <span>@{user.username}</span>
+                      {user.display_name ? (
+                        <span className="text-xs text-neutral-500">{user.display_name}</span>
+                      ) : null}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
-
-          {needsReservedUsername ? (
-            <div>
-              <label className={labelClassName} htmlFor="gift-reserved-username">
-                Username to reserve
-              </label>
-              <input
-                id="gift-reserved-username"
-                value={reservedUsername}
-                onChange={(e) => setReservedUsername(e.target.value)}
-                placeholder="reserved-name"
-                className={inputClassName}
-              />
-            </div>
-          ) : null}
 
           <div>
             <label className={labelClassName} htmlFor="gift-message">
@@ -146,7 +269,7 @@ export function GiftModal({
               value={giftMessage}
               onChange={(e) => setGiftMessage(e.target.value)}
               rows={3}
-              placeholder="Enjoy this upgrade!"
+              placeholder="Hope you enjoy cried.bio ❤️"
               className={inputClassName}
             />
           </div>
@@ -158,6 +281,9 @@ export function GiftModal({
               <span className="text-neutral-200">@{recipientUsername.trim() || "…"}</span>.
             </p>
             <p className="mt-1">Total: {priceLabel}</p>
+            {giftMessage.trim() ? (
+              <p className="mt-2 text-xs italic text-neutral-500">&ldquo;{giftMessage.trim()}&rdquo;</p>
+            ) : null}
             <p className="mt-2 text-xs text-neutral-500">
               Successful gifts award you the exclusive 🎁 Gifter badge.
             </p>
@@ -165,11 +291,20 @@ export function GiftModal({
         </div>
 
         <div className="mt-6 flex gap-3">
-          <button type="button" onClick={onClose} className="flex-1 rounded-xl border border-white/[0.1] px-4 py-2.5 text-sm font-semibold text-neutral-300 hover:bg-white/[0.04]">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-white/[0.1] px-4 py-2.5 text-sm font-semibold text-neutral-300 hover:bg-white/[0.04]"
+          >
             Cancel
           </button>
-          <button type="button" disabled={loading} onClick={() => void continueGift()} className={`${buttonPrimaryClassName} flex-1`}>
-            {loading ? "Redirecting…" : "Continue"}
+          <button
+            type="button"
+            disabled={!canContinue}
+            onClick={() => void continueGift()}
+            className={`${buttonPrimaryClassName} flex-1`}
+          >
+            {loading ? "Redirecting…" : "Continue to Checkout"}
           </button>
         </div>
       </div>

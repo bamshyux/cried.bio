@@ -72,8 +72,19 @@ export async function ensureBadgeCreditsForPurchaseSession(stripeSessionId: stri
 
   if (!purchase?.id) return;
 
+  let recipientId = String(purchase.user_id);
+  const { data: storePurchase } = await admin
+    .from("store_purchases")
+    .select("recipient_profile_id")
+    .eq("stripe_session_id", stripeSessionId)
+    .maybeSingle();
+
+  if (storePurchase?.recipient_profile_id) {
+    recipientId = String(storePurchase.recipient_profile_id);
+  }
+
   await grantBadgeCreditForPurchase({
-    userId: String(purchase.user_id),
+    userId: recipientId,
     purchaseId: String(purchase.id),
     fulfillmentKey: String(purchase.fulfillment_key),
   });

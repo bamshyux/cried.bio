@@ -5,6 +5,7 @@ export type NotificationType =
   | "badge_earned"
   | "guestbook"
   | "milestone"
+  | "gift_received"
   | "support_reply"
   | "support_closed"
   | "support_reopened"

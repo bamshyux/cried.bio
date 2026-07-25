@@ -250,6 +250,20 @@ export async function fulfillStoreCheckout(input: {
     fulfilled_at: new Date().toISOString(),
   });
 
+  if (input.isGift && input.buyerProfileId !== recipientId) {
+    const { completeGiftFulfillment } = await import("@/lib/gifts/fulfillment");
+    await completeGiftFulfillment({
+      senderUserId: input.buyerProfileId,
+      recipientUserId: recipientId,
+      purchaseId,
+      referenceId,
+      productId: input.product?.id ?? null,
+      productSlug,
+      productName,
+      giftMessage: input.giftMessage,
+    });
+  }
+
   return { alreadyProcessed: false, referenceId };
 }
 

@@ -118,6 +118,12 @@ export async function fulfillPremiumCheckoutSession(
       : session.subscription.id
     : null;
 
+  const isGift = Boolean(
+    session.metadata?.is_gift === "true" &&
+      session.metadata?.recipient_profile_id &&
+      session.metadata.recipient_profile_id !== buyerId,
+  );
+
   await grantPremiumAccess({
     userId: recipientId,
     stripeCustomerId: String(session.customer ?? ""),
@@ -128,15 +134,51 @@ export async function fulfillPremiumCheckoutSession(
     lifetime: isLifetime,
     status: "active",
     currentPeriodEnd,
+    extendMonthlyIfActive: isGift && !isLifetime,
   });
 
-  if (
-    session.metadata?.is_gift === "true" &&
-    session.metadata?.recipient_profile_id &&
-    session.metadata.recipient_profile_id !== buyerId
-  ) {
-    const { syncGifterBadge } = await import("@/lib/store/fulfillment");
-    await syncGifterBadge(buyerId);
+  if (isGift) {
+    const { completeGiftFulfillment } = await import("@/lib/gifts/fulfillment");
+    const { generateUniquePurchaseReferenceId } = await import("@/lib/store/reference-id");
+
+    const productSlug = isLifetime ? "premium-lite-lifetime" : "premium-lite-monthly";
+    const productName = isLifetime ? "Premium Lite (Lifetime)" : "Premium Lite";
+
+    let purchaseId: string | null = null;
+    let referenceId: string | null = null;
+
+    try {
+      referenceId = await generateUniquePurchaseReferenceId();
+      const { fulfillPremiumGiftPurchase } = await import("@/lib/gifts/premium-purchase");
+      purchaseId = await fulfillPremiumGiftPurchase({
+        buyerId,
+        referenceId,
+        stripeSessionId: session.id,
+        stripePaymentIntent:
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : session.payment_intent?.id ?? null,
+        stripeCustomerId: String(session.customer ?? ""),
+        priceId: priceId || session.metadata?.price_id || "",
+        productSlug,
+        productName,
+        amountPaid: session.amount_total ?? 0,
+        currency: session.currency ?? "usd",
+        fulfillmentKey: isLifetime ? "premium_lifetime" : "premium_monthly",
+      });
+    } catch (err) {
+      console.error("[premium gift purchase]", err);
+    }
+
+    await completeGiftFulfillment({
+      senderUserId: buyerId,
+      recipientUserId: recipientId,
+      purchaseId,
+      referenceId: referenceId ?? undefined,
+      productSlug,
+      productName,
+      giftMessage: session.metadata?.gift_message,
+    });
   }
 
   return { ok: true, userId: recipientId };

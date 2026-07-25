@@ -93,6 +93,9 @@ export function OwnerTransactionsClient({
               <tr>
                 <th className="px-5 py-3 font-medium">Reference</th>
                 <th className="px-5 py-3 font-medium">Customer</th>
+                <th className="px-5 py-3 font-medium">Gift?</th>
+                <th className="px-5 py-3 font-medium">Sender</th>
+                <th className="px-5 py-3 font-medium">Recipient</th>
                 <th className="px-5 py-3 font-medium">Product</th>
                 <th className="px-5 py-3 font-medium">Amount</th>
                 <th className="px-5 py-3 font-medium">Status</th>
@@ -110,6 +113,13 @@ export function OwnerTransactionsClient({
                   <td className="px-5 py-4">
                     <div className="text-white">{purchase.username ? `@${purchase.username}` : "—"}</div>
                     <div className="text-xs text-neutral-500">{purchase.email ?? "—"}</div>
+                  </td>
+                  <td className="px-5 py-4 text-neutral-300">{purchase.is_gift ? "Yes" : "No"}</td>
+                  <td className="px-5 py-4 text-neutral-300">
+                    {purchase.sender_username ? `@${purchase.sender_username}` : "—"}
+                  </td>
+                  <td className="px-5 py-4 text-neutral-300">
+                    {purchase.recipient_username ? `@${purchase.recipient_username}` : "—"}
                   </td>
                   <td className="px-5 py-4 text-neutral-200">{purchase.product_name}</td>
                   <td className="px-5 py-4 text-white">
@@ -159,6 +169,28 @@ export function OwnerTransactionsClient({
                   <CopyValueButton value={selected.stripe_payment_intent} />
                 </div>
               </div>
+            ) : null}
+            {selected.is_gift ? (
+              <>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.14em] text-neutral-500">Gift message</p>
+                  <p className="mt-1 text-sm text-neutral-300">
+                    {selected.gift_message ? `"${selected.gift_message}"` : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.14em] text-neutral-500">Sender</p>
+                  <p className="mt-1 text-sm text-neutral-300">
+                    {selected.sender_username ? `@${selected.sender_username}` : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.14em] text-neutral-500">Recipient</p>
+                  <p className="mt-1 text-sm text-neutral-300">
+                    {selected.recipient_username ? `@${selected.recipient_username}` : "—"}
+                  </p>
+                </div>
+              </>
             ) : null}
             <button
               type="button"

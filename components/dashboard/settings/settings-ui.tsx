@@ -59,6 +59,7 @@ export function SettingsNav({
     { id: "contact", label: "Contact" },
     { id: "privacy", label: "Privacy" },
     { id: "billing", label: "Billing & Purchases" },
+    { id: "gifts", label: "Gifts" },
     { id: "danger", label: "Danger Zone" },
   ];
 

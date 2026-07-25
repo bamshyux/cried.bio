@@ -87,15 +87,20 @@ export async function POST(request: Request) {
     let recipientProfileId = userId;
 
     if (isPremiumGift) {
-      const { getProfileIdByUsername } = await import("@/lib/data/store");
-      const resolved = await getProfileIdByUsername(body.recipientUsername!.trim());
-      if (!resolved) {
-        return NextResponse.json({ error: "Recipient not found." }, { status: 404 });
+      const validation = await import("@/lib/gifts/validation").then(({ validateGiftRecipient }) =>
+        validateGiftRecipient({
+          recipientUsername: body.recipientUsername!,
+          buyerUserId: userId,
+          buyerUsername: profile?.username ?? null,
+          target: { kind: "premium", plan: isLifetime ? "lifetime" : "monthly" },
+        }),
+      );
+
+      if (!validation.ok) {
+        return NextResponse.json({ error: validation.error }, { status: 400 });
       }
-      if (profile?.username && body.recipientUsername!.trim().toLowerCase() === profile.username.toLowerCase()) {
-        return NextResponse.json({ error: "You cannot gift Premium to yourself." }, { status: 400 });
-      }
-      recipientProfileId = resolved;
+
+      recipientProfileId = validation.recipientId;
     }
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {

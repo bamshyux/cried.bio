@@ -25,6 +25,8 @@ export type GrantPremiumInput = {
   lifetime: boolean;
   status: SubscriptionStatus;
   currentPeriodEnd?: string | null;
+  /** When gifting monthly to an active monthly subscriber, extend instead of replace. */
+  extendMonthlyIfActive?: boolean;
 };
 
 export async function grantPremiumAccess(input: GrantPremiumInput): Promise<void> {
@@ -32,11 +34,44 @@ export async function grantPremiumAccess(input: GrantPremiumInput): Promise<void
   const tier = normalizePlanTier(input.planName);
   const now = new Date().toISOString();
 
+  let currentPeriodEnd = input.currentPeriodEnd ?? null;
+
+  if (input.extendMonthlyIfActive && !input.lifetime && input.billingType === "monthly") {
+    const { data: existingSub } = await supabase
+      .from("premium_subscriptions")
+      .select("lifetime, current_period_end, billing_type, status")
+      .eq("user_id", input.userId)
+      .maybeSingle();
+
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select("premium_expires_at, premium_tier")
+      .eq("id", input.userId)
+      .maybeSingle();
+
+    const hasActiveMonthly =
+      existingSub &&
+      !existingSub.lifetime &&
+      (existingSub.status === "active" || existingSub.status === "trialing");
+
+    if (hasActiveMonthly) {
+      const baseIso =
+        existingSub.current_period_end ??
+        profileRow?.premium_expires_at ??
+        input.currentPeriodEnd ??
+        now;
+      const baseDate = new Date(baseIso);
+      const extendFrom = baseDate.getTime() > Date.now() ? baseDate : new Date();
+      extendFrom.setMonth(extendFrom.getMonth() + 1);
+      currentPeriodEnd = extendFrom.toISOString();
+    }
+  }
+
   const { error: profileError } = await supabase
     .from("profiles")
     .update({
       premium_tier: tier === "free" ? "premium_lite" : tier,
-      premium_expires_at: input.lifetime ? null : (input.currentPeriodEnd ?? null),
+      premium_expires_at: input.lifetime ? null : currentPeriodEnd,
       stripe_customer_id: input.stripeCustomerId,
       updated_at: now,
     })
@@ -55,7 +90,7 @@ export async function grantPremiumAccess(input: GrantPremiumInput): Promise<void
     billing_type: input.billingType,
     status: input.status,
     lifetime: input.lifetime,
-    current_period_end: input.currentPeriodEnd ?? null,
+    current_period_end: currentPeriodEnd,
     updated_at: now,
   };
 

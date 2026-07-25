@@ -16,11 +16,12 @@ export default async function DashboardStorePage() {
   const userId = data.claims.sub as string;
   const stripeStatus = getStripeCheckoutConfigStatus();
 
-  const [products, prices, ownedSlugs, pendingCredits] = await Promise.all([
+  const [products, prices, ownedSlugs, pendingCredits, profile] = await Promise.all([
     Promise.resolve(getActiveStoreCatalog()),
     fetchStorePriceDisplays(),
     getOwnedStoreProductSlugs(userId),
     listPendingBadgeCredits(userId),
+    supabase.from("profiles").select("username").eq("id", userId).maybeSingle().then((r) => r.data),
   ]);
 
   return (
@@ -32,6 +33,7 @@ export default async function DashboardStorePage() {
         pendingCredits={pendingCredits}
         stripeConfigured={stripeStatus.configured}
         stripeConfigError={getStripeConfigError(stripeStatus)}
+        buyerUsername={profile?.username ?? null}
       />
     </Suspense>
   );

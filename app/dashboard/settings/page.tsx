@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AccountSettingsShell } from "@/components/dashboard/settings/account-settings-shell";
 import { getAccountSettingsData, touchUserSession } from "@/lib/data/account-settings";
+import { listReceivedGifts, listSentGifts } from "@/lib/data/gifts";
 import { listPurchasesForUser } from "@/lib/data/purchases";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,15 +22,19 @@ async function SettingsContent({
 
   await touchUserSession(userId, sessionId);
 
-  const [settingsData, purchases] = await Promise.all([
+  const [settingsData, purchases, receivedGifts, sentGifts] = await Promise.all([
     getAccountSettingsData(userId, email),
     listPurchasesForUser(userId),
+    listReceivedGifts(userId),
+    listSentGifts(userId),
   ]);
 
   return (
     <AccountSettingsShell
       data={settingsData}
       purchases={purchases}
+      receivedGifts={receivedGifts}
+      sentGifts={sentGifts}
       initialTab={params.tab ?? null}
     />
   );
