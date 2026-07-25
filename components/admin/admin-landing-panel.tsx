@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import {
   addLandingFeaturedProfileAction,
   addLandingTestimonialAction,
+  deleteLandingTestimonialAction,
   removeLandingFeaturedProfileAction,
 } from "@/app/actions/admin";
 import {
@@ -143,6 +144,7 @@ export function AdminLandingPanel({
                 <th className="px-4 py-3">Author</th>
                 <th className="px-4 py-3">Quote</th>
                 <th className="px-4 py-3">Active</th>
+                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.06]">
@@ -151,6 +153,13 @@ export function AdminLandingPanel({
                   <td className="px-4 py-3 text-white">{item.author_name}</td>
                   <td className="max-w-md truncate px-4 py-3 text-neutral-400">{item.quote}</td>
                   <td className="px-4 py-3 text-neutral-400">{item.is_active !== false ? "Yes" : "No"}</td>
+                  <td className="px-4 py-3">
+                    <form action={deleteLandingTestimonialAction.bind(null, item.id)}>
+                      <button type="submit" className="text-sm text-red-400 hover:text-red-300">
+                        Remove
+                      </button>
+                    </form>
+                  </td>
                 </tr>
               ))}
             </tbody>
