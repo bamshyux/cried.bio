@@ -17,6 +17,7 @@ import {
 } from "@/components/dashboard/form-fields";
 import { PremiumComparisonSection } from "@/components/premium/premium-comparison-section";
 import { GiftModal } from "@/components/premium/gift-modal";
+import { StorePurchaseActions } from "@/components/store/store-purchase-actions";
 
 function formatRenewalDate(iso: string | null): string {
   if (!iso) return "—";
@@ -79,29 +80,20 @@ function PricingCard({
       <p className="mt-2 text-[1.75rem] font-bold tracking-tight text-white">{price}</p>
       <p className="mt-0.5 text-sm text-neutral-500">{period}</p>
 
-      <div className="mt-5 flex flex-wrap gap-2">
-        <button
-          type="button"
+      <div className="mt-5">
+        <StorePurchaseActions
+          loading={loading}
           disabled={disabled}
-          onClick={onSelect}
-          className={`flex-1 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] disabled:cursor-not-allowed disabled:opacity-50 ${
+          giftDisabled={giftDisabled}
+          giftable={Boolean(onGift)}
+          onBuy={onSelect}
+          onGift={onGift ?? (() => {})}
+          buyClassName={
             highlight
-              ? "bg-[rgba(201,184,150,0.12)] text-[#ebe3cf] ring-1 ring-[rgba(201,184,150,0.28)] hover:bg-[rgba(201,184,150,0.18)]"
-              : buttonPrimaryClassName
-          }`}
-        >
-          {loading ? "Redirecting…" : "Buy for myself"}
-        </button>
-        {onGift ? (
-          <button
-            type="button"
-            disabled={giftDisabled}
-            onClick={onGift}
-            className="rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:border-white/[0.16] hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Gift to someone
-          </button>
-        ) : null}
+              ? "rounded-[10px] bg-[rgba(201,184,150,0.12)] px-5 py-2 text-sm font-semibold text-[#ebe3cf] ring-1 ring-[rgba(201,184,150,0.28)] transition-all duration-200 hover:bg-[rgba(201,184,150,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
+              : undefined
+          }
+        />
       </div>
     </div>
   );

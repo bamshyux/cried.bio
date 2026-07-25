@@ -6,27 +6,34 @@ import { buttonPrimaryClassName } from "@/components/dashboard/form-fields";
 export function StorePurchaseActions({
   buyLabel = "Buy",
   giftTooltip = "Buy as a gift",
+  buyClassName,
   loading,
   disabled,
+  giftDisabled,
   giftable,
   onBuy,
   onGift,
 }: {
   buyLabel?: string;
   giftTooltip?: string;
+  buyClassName?: string;
   loading?: boolean;
   disabled?: boolean;
+  giftDisabled?: boolean;
   giftable?: boolean;
   onBuy: () => void;
   onGift: () => void;
 }) {
+  const buyButtonClass = buyClassName ?? buttonPrimaryClassName;
+  const giftIsDisabled = giftDisabled ?? disabled;
+
   if (!giftable) {
     return (
       <button
         type="button"
         disabled={disabled || loading}
         onClick={onBuy}
-        className={`${buttonPrimaryClassName} inline-flex w-full items-center justify-center`}
+        className={`${buyButtonClass} inline-flex w-full items-center justify-center`}
       >
         {loading ? "Redirecting…" : buyLabel}
       </button>
@@ -39,7 +46,7 @@ export function StorePurchaseActions({
         type="button"
         disabled={disabled || loading}
         onClick={onBuy}
-        className={`${buttonPrimaryClassName} bf-store-actions__buy`}
+        className={`${buyButtonClass} bf-store-actions__buy`}
       >
         {loading ? "Redirecting…" : buyLabel}
       </button>
@@ -47,7 +54,7 @@ export function StorePurchaseActions({
       <span className="bf-store-actions__gift-wrap">
         <button
           type="button"
-          disabled={disabled}
+          disabled={giftIsDisabled}
           onClick={onGift}
           className="bf-store-actions__gift"
           aria-label={giftTooltip}
