@@ -16,7 +16,7 @@ export function GiftReceivedToast({
     <div className="bf-gift-toast" role="status" aria-live="polite">
       <div className="bf-gift-toast__main">
         <span className="bf-gift-toast__icon" aria-hidden>
-          <GiftIcon size={22} />
+          <GiftIcon size={18} variant="minimal" />
         </span>
         <div className="min-w-0">
           <span className="bf-gift-toast__title">{title}</span>

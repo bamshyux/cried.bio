@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { GiftButtonIcon } from "@/components/icons/gift-icon";
+import { StorePurchaseActions } from "@/components/store/store-purchase-actions";
 import { GiftModal } from "@/components/premium/gift-modal";
 import { buttonPrimaryClassName, cardClassName } from "@/components/dashboard/form-fields";
 import type { StorePriceDisplay } from "@/lib/stripe/store-prices";
@@ -83,7 +83,7 @@ function StoreProductCard({
           ))}
         </ul>
 
-        <div className="mt-auto pt-6">
+        <div className="mt-auto border-t border-white/[0.06] pt-5">
           <p className="mb-4 text-2xl font-bold tracking-tight text-white">
             {price?.formatted ?? "—"}
             {product.category === "support" ? (
@@ -105,28 +105,13 @@ function StoreProductCard({
               Owned
             </span>
           ) : (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={!stripeConfigured || loading}
-                onClick={() => void buy()}
-                className={`${buttonPrimaryClassName} flex-1`}
-              >
-                {loading ? "Redirecting…" : "Buy for myself"}
-              </button>
-              {giftable ? (
-                <button
-                  type="button"
-                  disabled={!stripeConfigured}
-                  onClick={() => setGiftOpen(true)}
-                  className="bf-gift-btn group flex h-[42px] min-w-[50px] shrink-0 items-center justify-center rounded-[10px] border border-violet-500/25 bg-violet-500/[0.08] px-3 transition hover:border-violet-400/40 hover:bg-violet-500/[0.14] disabled:cursor-not-allowed disabled:opacity-50"
-                  title="Gift to someone"
-                  aria-label="Gift to someone"
-                >
-                  <GiftButtonIcon />
-                </button>
-              ) : null}
-            </div>
+            <StorePurchaseActions
+              loading={loading}
+              disabled={!stripeConfigured}
+              giftable={giftable}
+              onBuy={() => void buy()}
+              onGift={() => setGiftOpen(true)}
+            />
           )}
         </div>
       </article>

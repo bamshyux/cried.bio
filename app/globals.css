@@ -4712,18 +4712,75 @@ body,
   color: #fff;
 }
 
+.bf-store-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.bf-store-actions__buy {
+  flex: 1 1 73%;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 0.875rem;
+}
+
+.bf-store-actions__gift {
+  flex: 1 1 27%;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.bf-store-actions__gift:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+.bf-store-actions__gift:active:not(:disabled) {
+  transform: translateY(0);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.bf-store-actions__gift:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .bf-gift-toast {
   display: flex;
   width: min(100vw - 1.5rem, 24rem);
   align-items: stretch;
   overflow: hidden;
   border-radius: 1rem;
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.16) 0%, rgba(10, 10, 12, 0.98) 55%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(12, 12, 12, 0.96);
   box-shadow:
     0 20px 50px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(251, 191, 36, 0.12) inset,
-    0 0 40px rgba(251, 191, 36, 0.15);
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
   animation: bf-support-panel-in 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -4736,20 +4793,6 @@ body,
   padding: 0.875rem 0.75rem 0.875rem 0.875rem;
 }
 
-.bf-gift-btn-icon {
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
-  transition: transform 0.18s ease, filter 0.18s ease;
-}
-
-.bf-gift-btn:hover .bf-gift-btn-icon {
-  transform: scale(1.06);
-  filter: drop-shadow(0 2px 8px rgba(139, 92, 246, 0.45));
-}
-
-.bf-gift-btn:active .bf-gift-btn-icon {
-  transform: scale(0.98);
-}
-
 .bf-gift-toast__icon {
   display: flex;
   height: 2.25rem;
@@ -4758,9 +4801,9 @@ body,
   align-items: center;
   justify-content: center;
   border-radius: 0.75rem;
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  background: rgba(251, 191, 36, 0.12);
-  font-size: 1.125rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .bf-gift-toast__title {
