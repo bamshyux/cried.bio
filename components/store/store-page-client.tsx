@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { GiftButtonIcon } from "@/components/icons/gift-icon";
 import { GiftModal } from "@/components/premium/gift-modal";
 import { buttonPrimaryClassName, cardClassName } from "@/components/dashboard/form-fields";
 import type { StorePriceDisplay } from "@/lib/stripe/store-prices";
@@ -118,10 +119,11 @@ function StoreProductCard({
                   type="button"
                   disabled={!stripeConfigured}
                   onClick={() => setGiftOpen(true)}
-                  className="rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-2.5 text-sm font-semibold text-white transition hover:border-white/[0.16] hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="bf-gift-btn group rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/[0.08] to-fuchsia-500/[0.08] px-3.5 py-2.5 transition hover:border-amber-400/35 hover:from-amber-500/[0.14] hover:to-fuchsia-500/[0.14] hover:shadow-[0_0_20px_rgba(251,191,36,0.12)] disabled:cursor-not-allowed disabled:opacity-50"
                   title="Gift to someone"
+                  aria-label="Gift to someone"
                 >
-                  🎁
+                  <GiftButtonIcon />
                 </button>
               ) : null}
             </div>

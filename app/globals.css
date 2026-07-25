@@ -4736,6 +4736,16 @@ body,
   padding: 0.875rem 0.75rem 0.875rem 0.875rem;
 }
 
+.bf-gift-btn-icon {
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.25));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.bf-gift-btn:hover .bf-gift-btn-icon {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 10px rgba(244, 114, 182, 0.35));
+}
+
 .bf-gift-toast__icon {
   display: flex;
   height: 2.25rem;
