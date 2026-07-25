@@ -76,7 +76,23 @@ export async function getPurchaseByReferenceId(
   if (userId) query = query.eq("user_id", userId);
 
   const { data } = await query.maybeSingle();
-  return data ? mapPurchaseRow(data as Record<string, unknown>) : null;
+  if (data) return mapPurchaseRow(data as Record<string, unknown>);
+
+  if (!userId) return null;
+
+  const legacyClient = await db();
+  const { data: legacyRows } = await legacyClient
+    .from("store_purchases")
+    .select("*")
+    .or(`buyer_profile_id.eq.${userId},recipient_profile_id.eq.${userId}`)
+    .order("created_at", { ascending: false });
+
+  for (const row of legacyRows ?? []) {
+    const mapped = mapLegacyStorePurchase(row as Record<string, unknown>);
+    if (mapped.reference_id === normalized) return mapped;
+  }
+
+  return null;
 }
 
 export async function getPurchaseBySessionId(

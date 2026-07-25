@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { generateAiSupportReply, CRIED_AI_GREETING } from "@/lib/support/ai-assistant";
 import { detectSupportCategory } from "@/lib/support/knowledge-base";
+import { getPurchaseByReferenceId } from "@/lib/data/purchases";
+import { formatPurchaseReferenceId, getSharedPurchaseReferenceId } from "@/lib/purchases/reference";
 import { buildTopicGreeting, getTopicByLabel } from "@/lib/support/topics";
 import { createNotification } from "@/lib/data/notifications";
 import { listPlatformAdminUserIds } from "@/lib/data/support";
@@ -121,6 +123,78 @@ export async function sendSupportAiMessageAction(
     role: "user",
     body: trimmed,
   });
+
+  const sharedReferenceId = getSharedPurchaseReferenceId(trimmed);
+  if (sharedReferenceId) {
+    const normalizedReferenceId = formatPurchaseReferenceId(sharedReferenceId);
+    const purchase = await getPurchaseByReferenceId(normalizedReferenceId, user.userId);
+
+    if (!purchase) {
+      const invalidReply = `I couldn't find purchase **${normalizedReferenceId}** on your account. Please double-check the Reference ID in **Dashboard → Settings → Billing & Purchases** (/dashboard/settings?tab=billing) and try again.
+
+If you're sure it's correct, tap **Talk to staff** below and our team can help.`;
+
+      await supabase.from("support_ai_messages").insert({
+        session_id: sessionId,
+        role: "assistant",
+        body: invalidReply,
+      });
+
+      const history = await loadAiMessages(sessionId);
+      await supabase
+        .from("support_ai_sessions")
+        .update({
+          category: "billing",
+          message_count: history.length,
+          updated_at: now,
+        })
+        .eq("id", sessionId);
+
+      return {
+        success: "Reply sent.",
+        aiReply: invalidReply,
+        shouldEscalate: true,
+        sessionId,
+      };
+    }
+
+    const verifiedReply = `Got it — I found your **${purchase.product_name}** purchase (**${normalizedReferenceId}**). I'm connecting you with our support team now so they can help you directly.`;
+
+    await supabase.from("support_ai_messages").insert({
+      session_id: sessionId,
+      role: "assistant",
+      body: verifiedReply,
+    });
+
+    const history = await loadAiMessages(sessionId);
+    await supabase
+      .from("support_ai_sessions")
+      .update({
+        category: "billing",
+        message_count: history.length,
+        updated_at: now,
+      })
+      .eq("id", sessionId);
+
+    const escalation = await escalateSessionToTicket(sessionId, user, `Purchase ${normalizedReferenceId}`);
+    if (escalation.error) {
+      return {
+        success: "Reply sent.",
+        aiReply: verifiedReply,
+        shouldEscalate: true,
+        error: escalation.error,
+        sessionId,
+      };
+    }
+
+    return {
+      success: escalation.success,
+      aiReply: verifiedReply,
+      conversationId: escalation.conversationId,
+      messageId: escalation.messageId,
+      sessionId,
+    };
+  }
 
   const history = await loadAiMessages(sessionId);
   const result = await generateAiSupportReply({ userMessage: trimmed, history });
