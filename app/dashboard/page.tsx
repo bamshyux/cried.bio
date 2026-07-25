@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { syncMilestoneBadges } from "@/app/actions/badges";
+import { DashboardStaffSupportNotice } from "@/components/dashboard/dashboard-staff-support-notice";
 import { DashboardSearchHint } from "@/components/dashboard/dashboard-search";
 import {
   IconAnalytics,
@@ -9,10 +10,12 @@ import {
   IconProfile,
 } from "@/components/icons/dashboard-icons";
 import { DASHBOARD_SECTIONS } from "@/lib/dashboard/navigation";
+import { getAdminAccess } from "@/lib/auth/admin-access";
 import { getTotalAnalytics } from "@/lib/data/analytics";
 import { getLinksByProfileId } from "@/lib/data/links";
 import { getProfileByUserId } from "@/lib/data/profiles";
 import { getSettingsByProfileId } from "@/lib/data/settings";
+import { getAdminSupportInboxSummary } from "@/lib/data/support";
 import { formatProfileUid } from "@/lib/profile";
 import { formatPublicProfileDisplay } from "@/lib/profile/public-profile-url";
 import { createClient } from "@/lib/supabase/server";
@@ -33,6 +36,14 @@ export default async function DashboardOverviewPage() {
 
   await syncMilestoneBadges(userId);
 
+  const adminAccess = await getAdminAccess();
+  const supportSummary = adminAccess
+    ? await getAdminSupportInboxSummary(adminAccess.userId).catch(() => ({
+        unreadTotal: 0,
+        waitingOnStaff: 0,
+      }))
+    : null;
+
   const profile = await getProfileByUserId(userId);
   const links = await getLinksByProfileId(userId);
   const settings = await getSettingsByProfileId(userId);
@@ -52,6 +63,13 @@ export default async function DashboardOverviewPage() {
 
   return (
     <div className="space-y-12">
+      {adminAccess && supportSummary ? (
+        <DashboardStaffSupportNotice
+          initialUnread={supportSummary.unreadTotal}
+          initialWaitingOnStaff={supportSummary.waitingOnStaff}
+        />
+      ) : null}
+
       <div className="bf-dash-hero relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111] p-8 sm:p-10">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_0%_0%,rgba(255,255,255,0.06),transparent_55%)]" />
         <div className="relative space-y-6">

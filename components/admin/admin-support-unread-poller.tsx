@@ -14,8 +14,9 @@ function notifyStaffIfNeeded(nextUnread: number, previousUnread: number) {
   });
 }
 
-export function useAdminSupportUnread(initialUnread = 0) {
+export function useAdminSupportUnread(initialUnread = 0, initialWaitingOnStaff = 0) {
   const [unreadTotal, setUnreadTotal] = useState(initialUnread);
+  const [waitingOnStaff, setWaitingOnStaff] = useState(initialWaitingOnStaff);
   const previousUnreadRef = useRef(initialUnread);
 
   const refresh = useCallback(async () => {
@@ -25,6 +26,7 @@ export function useAdminSupportUnread(initialUnread = 0) {
       notifyStaffIfNeeded(result.unreadTotal, previousUnreadRef.current);
       previousUnreadRef.current = result.unreadTotal;
       setUnreadTotal(result.unreadTotal);
+      setWaitingOnStaff(result.waitingOnStaff);
       return result;
     } catch (error) {
       console.error("[admin/support] unread poll failed:", error);
@@ -34,7 +36,8 @@ export function useAdminSupportUnread(initialUnread = 0) {
   useEffect(() => {
     previousUnreadRef.current = initialUnread;
     setUnreadTotal(initialUnread);
-  }, [initialUnread]);
+    setWaitingOnStaff(initialWaitingOnStaff);
+  }, [initialUnread, initialWaitingOnStaff]);
 
   useEffect(() => {
     void refresh();
@@ -50,7 +53,7 @@ export function useAdminSupportUnread(initialUnread = 0) {
     void Notification.requestPermission();
   }, [initialUnread]);
 
-  return { unreadTotal, refresh };
+  return { unreadTotal, waitingOnStaff, refresh };
 }
 
 export function AdminSupportUnreadBadge({ count }: { count: number }) {

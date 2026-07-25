@@ -361,6 +361,17 @@ export async function getAdminSupportUnreadTotal(staffUserId: string): Promise<n
   return conversations.reduce((sum, c) => sum + (c.unread_count ?? 0), 0);
 }
 
+export async function getAdminSupportInboxSummary(staffUserId: string): Promise<{
+  unreadTotal: number;
+  waitingOnStaff: number;
+}> {
+  const conversations = await listAdminSupportConversations(staffUserId);
+  return {
+    unreadTotal: conversations.reduce((sum, c) => sum + (c.unread_count ?? 0), 0),
+    waitingOnStaff: conversations.filter((c) => c.status === "waiting_on_staff").length,
+  };
+}
+
 export async function listPlatformAdminUserIds(): Promise<string[]> {
   const supabase = await db();
   const { data } = await supabase
