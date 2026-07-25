@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { updateCardLayoutAction } from "@/app/actions/settings";
 import { CARD_LAYOUT_MIN_HEIGHT, clampCardLayout, getCardLayoutStyle, getPublicCardLayoutStyle } from "@/lib/settings";
 import type { ProfileEmbed } from "@/lib/types/embed";
@@ -68,17 +69,17 @@ function ProfileEditModeBar({
   onReset: () => void;
 }) {
   return (
-    <div className="pointer-events-auto flex flex-wrap items-center justify-start gap-2">
+    <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-2">
       <button
         type="button"
         onClick={onToggle}
-        className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors ${
+        className={`rounded-full border px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors sm:px-4 ${
           active
             ? "border-[var(--bf-accent)]/50 bg-[var(--bf-accent)]/15 text-white"
-            : "border-white/15 bg-black/60 text-neutral-300 backdrop-blur-md hover:border-white/25 hover:text-white"
+            : "border-white/15 bg-black/70 text-neutral-300 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-md hover:border-white/25 hover:text-white"
         }`}
       >
-        {active ? "Exit edit mode" : "Edit profile mode"}
+        {active ? "Exit edit mode" : "Edit layout"}
       </button>
       {active && (
         <>
@@ -86,7 +87,7 @@ function ProfileEditModeBar({
             type="button"
             onClick={onSave}
             disabled={!dirty || saving}
-            className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-emerald-300 transition-colors hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wider text-emerald-300 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-md transition-colors hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-40 sm:px-4"
           >
             {saving ? "Saving..." : "Save layout"}
           </button>
@@ -94,13 +95,63 @@ function ProfileEditModeBar({
             type="button"
             onClick={onReset}
             disabled={saving}
-            className="rounded-full border border-white/10 bg-black/50 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-neutral-400 transition-colors hover:text-neutral-200 disabled:opacity-40"
+            className="rounded-full border border-white/10 bg-black/70 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-400 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-md transition-colors hover:text-neutral-200 disabled:opacity-40 sm:px-4"
           >
             Reset
           </button>
         </>
       )}
     </div>
+  );
+}
+
+function ProfileEditModeDock({
+  editMode,
+  dirty,
+  saving,
+  status,
+  onToggle,
+  onSave,
+  onReset,
+}: {
+  editMode: boolean;
+  dirty: boolean;
+  saving: boolean;
+  status: string | null;
+  onToggle: () => void;
+  onSave: () => void;
+  onReset: () => void;
+}) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="pointer-events-none fixed top-4 right-4 z-[60] flex max-w-[min(100vw-2rem,22rem)] flex-col items-end gap-2 sm:top-5 sm:right-5">
+      {editMode ? (
+        <p className="rounded-full border border-white/10 bg-black/70 px-3 py-1.5 text-[10px] leading-snug text-neutral-400 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-md">
+          Drag to move · edges to resize
+        </p>
+      ) : null}
+      <ProfileEditModeBar
+        active={editMode}
+        dirty={dirty}
+        saving={saving}
+        onToggle={onToggle}
+        onSave={onSave}
+        onReset={onReset}
+      />
+      {status ? (
+        <p className="rounded-full border border-white/10 bg-black/70 px-3 py-1 text-[10px] text-neutral-300 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-md">
+          {status}
+        </p>
+      ) : null}
+    </div>,
+    document.body,
   );
 }
 
@@ -124,8 +175,13 @@ export function ProfileCardLayoutEditor({
   const [savedLayout, setSavedLayout] = useState<CardLayoutState>(() => layoutFromSettings(settings));
   const [saving, startSave] = useTransition();
   const [status, setStatus] = useState<string | null>(null);
+  const [portalReady, setPortalReady] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   useEffect(() => {
     const next = layoutFromSettings(settings);
@@ -321,32 +377,24 @@ export function ProfileCardLayoutEditor({
 
   return (
     <>
-      <div className="pointer-events-none fixed bottom-5 left-5 z-30 flex max-w-[min(100vw-2.5rem,18rem)] flex-col items-start gap-2 sm:bottom-6 sm:left-6">
-        {editMode ? (
-          <p className="rounded-full bg-black/55 px-3 py-1.5 text-[10px] leading-snug text-neutral-400 backdrop-blur-sm">
-            Drag to move · edges to resize
-          </p>
-        ) : null}
-        <ProfileEditModeBar
-          active={editMode}
-          dirty={dirty}
-          saving={saving}
-          onToggle={handleToggle}
-          onSave={handleSave}
-          onReset={handleReset}
-        />
-        {status ? (
-          <p className="rounded-full bg-black/70 px-3 py-1 text-[10px] text-neutral-300 backdrop-blur-sm">
-            {status}
-          </p>
-        ) : null}
-      </div>
+      <ProfileEditModeDock
+        editMode={editMode}
+        dirty={dirty}
+        saving={saving}
+        status={status}
+        onToggle={handleToggle}
+        onSave={handleSave}
+        onReset={handleReset}
+      />
 
-      {editMode && (
-        <div className="pointer-events-none fixed right-3 top-20 z-40 sm:right-6 sm:top-24">
-          <ProfileEditWidgetsPanel settings={settings} embeds={embeds} username={username} />
-        </div>
-      )}
+      {editMode && portalReady
+        ? createPortal(
+            <div className="pointer-events-none fixed right-3 top-[4.75rem] z-[55] sm:right-6 sm:top-24">
+              <ProfileEditWidgetsPanel settings={settings} embeds={embeds} username={username} />
+            </div>,
+            document.body,
+          )
+        : null}
 
       <div
         ref={containerRef}
