@@ -21,18 +21,12 @@ import {
   playSoundsForConversationMessages,
   resetSupportMessageSoundTracker,
 } from "@/lib/support/message-sounds";
-import type { SupportConversation, SupportMessage } from "@/lib/types/support";
+import type { SupportAiMessage, SupportConversation, SupportMessage } from "@/lib/types/support";
 import {
   SUPPORT_STATUS_EMOJI,
   SUPPORT_STATUS_LABELS,
 } from "@/lib/types/support";
-
-const SUPPORT_TOPICS = [
-  { icon: "🐛", label: "Report a bug" },
-  { icon: "💳", label: "Billing & premium" },
-  { icon: "🔐", label: "Account access" },
-  { icon: "✨", label: "Profile help" },
-];
+import { SUPPORT_WIDGET_TOPICS } from "@/lib/support/topics";
 
 function SupportPanelHeader({ onClose }: { onClose: () => void }) {
   return (
@@ -173,10 +167,12 @@ export function SupportWidgetBody({
   onUnreadChange: (count: number) => void;
 }) {
   const [view, setView] = useState<"home" | "ai" | "new" | "chat">("home");
+  const [aiTopic, setAiTopic] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [conversations, setConversations] = useState<SupportConversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<SupportConversation | null>(null);
   const [messages, setMessages] = useState<SupportMessage[]>([]);
+  const [aiTranscript, setAiTranscript] = useState<SupportAiMessage[]>([]);
   const [subject, setSubject] = useState("");
   const [initialMessage, setInitialMessage] = useState("");
   const [newTicketFile, setNewTicketFile] = useState<File | null>(null);
@@ -234,6 +230,7 @@ export function SupportWidgetBody({
 
     setActiveConversation(result.conversation);
     setMessages(result.messages);
+    setAiTranscript("aiMessages" in result ? (result.aiMessages ?? []) : []);
     setView("chat");
   }, []);
 
@@ -331,6 +328,7 @@ export function SupportWidgetBody({
     setView("home");
     setActiveConversation(null);
     setMessages([]);
+    setAiTranscript([]);
     setNewTicketFile(null);
     resetSupportMessageSoundTracker(backgroundSoundTrackerRef.current);
     setError(null);
@@ -362,8 +360,10 @@ export function SupportWidgetBody({
         </div>
       ) : view === "ai" ? (
         <SupportAiChat
+          topicLabel={aiTopic}
           onBack={resetToHome}
           onTicketCreated={async (conversationId) => {
+            setAiTopic(null);
             await loadInbox();
             await loadConversation(conversationId);
           }}
@@ -378,6 +378,7 @@ export function SupportWidgetBody({
             onBack={resetToHome}
             typingLabel={typingLabel}
             onRefresh={refreshActiveConversation}
+            aiTranscript={aiTranscript}
             onDeleted={() => {
               resetToHome();
               void loadInbox();
@@ -474,11 +475,14 @@ export function SupportWidgetBody({
                 : " Need a human? AI will connect you to staff."}
             </p>
             <div className="bf-support-topics">
-              {SUPPORT_TOPICS.map((topic) => (
+              {SUPPORT_WIDGET_TOPICS.map((topic) => (
                 <button
                   key={topic.label}
                   type="button"
-                  onClick={() => setView("ai")}
+                  onClick={() => {
+                    setAiTopic(topic.label);
+                    setView("ai");
+                  }}
                   className="bf-support-topic"
                 >
                   <span aria-hidden>{topic.icon}</span>
@@ -488,7 +492,14 @@ export function SupportWidgetBody({
             </div>
           </div>
 
-          <button type="button" onClick={() => setView("ai")} className="bf-support-cta">
+          <button
+            type="button"
+            onClick={() => {
+              setAiTopic(null);
+              setView("ai");
+            }}
+            className="bf-support-cta"
+          >
             <span className="bf-support-cta__icon" aria-hidden>
               <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7v1h1a2 2 0 0 1 0 4h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a2 2 0 0 1 0-4h1v-1a7 7 0 0 1 7-7h1V5.73A2 2 0 0 1 12 2Z" />

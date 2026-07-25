@@ -23,25 +23,25 @@ function AiAvatar() {
 }
 
 function renderMarkdownLite(text: string) {
-  return text
-    .split("\n")
-    .map((line, i) => {
-      const html = line
-        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-        .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-violet-300 underline">$1</a>');
-      return (
-        <span key={i}>
-          {i > 0 ? <br /> : null}
-          <span dangerouslySetInnerHTML={{ __html: html }} />
-        </span>
-      );
-    });
+  return text.split("\n").map((line, i) => {
+    const html = line
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-violet-300 underline">$1</a>');
+    return (
+      <span key={i}>
+        {i > 0 ? <br /> : null}
+        <span dangerouslySetInnerHTML={{ __html: html }} />
+      </span>
+    );
+  });
 }
 
 export function SupportAiChat({
+  topicLabel,
   onBack,
   onTicketCreated,
 }: {
+  topicLabel?: string | null;
   onBack: () => void;
   onTicketCreated: (conversationId: string) => void;
 }) {
@@ -54,10 +54,12 @@ export function SupportAiChat({
   const [isPending, startTransition] = useTransition();
   const [booting, setBooting] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const topicRef = useRef(topicLabel);
 
   useEffect(() => {
+    topicRef.current = topicLabel;
     startTransition(async () => {
-      const result = await startSupportAiSessionAction();
+      const result = await startSupportAiSessionAction(topicRef.current ?? undefined);
       if (result.error) {
         setError(result.error);
         setBooting(false);
@@ -77,7 +79,7 @@ export function SupportAiChat({
       }
       setBooting(false);
     });
-  }, []);
+  }, [topicLabel]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -131,6 +133,7 @@ export function SupportAiChat({
     startTransition(async () => {
       await resolveSupportAiSessionAction(sessionId);
       setResolved(true);
+      setShouldEscalate(false);
       setMessages((prev) => [
         ...prev,
         {
@@ -148,7 +151,7 @@ export function SupportAiChat({
     if (!sessionId) return;
     startTransition(async () => {
       setError(null);
-      const result = await escalateSupportAiToTicketAction(sessionId);
+      const result = await escalateSupportAiToTicketAction(sessionId, topicLabel ?? undefined);
       if (result.error) {
         setError(result.error);
         return;
@@ -167,7 +170,9 @@ export function SupportAiChat({
           <AiAvatar />
           <div>
             <p className="text-sm font-medium text-white">cried AI</p>
-            <p className="text-xs text-violet-300/80">Support assistant · Usually instant</p>
+            <p className="text-xs text-violet-300/80">
+              {topicLabel ? `${topicLabel} · ` : ""}Support assistant · Usually instant
+            </p>
           </div>
         </div>
       </div>
@@ -206,19 +211,19 @@ export function SupportAiChat({
         )}
       </div>
 
-      {error ? <p className="px-4 text-xs text-red-400">{error}</p> : null}
+      {error ? <p className="px-4 pb-2 text-xs text-red-400">{error}</p> : null}
 
       {shouldEscalate && !resolved ? (
         <div className="border-t border-violet-500/20 bg-violet-500/[0.08] px-4 py-3">
           <p className="mb-2 text-xs leading-relaxed text-violet-100/90">
             {SUPPORT_AI_ESCALATION_PROMPT}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2">
             <button
               type="button"
               disabled={isPending}
               onClick={createTicket}
-              className="bf-support-cta flex-1"
+              className="bf-support-ai-composer__escalate flex-1"
             >
               Create ticket
             </button>
@@ -226,7 +231,7 @@ export function SupportAiChat({
               type="button"
               disabled={isPending}
               onClick={markResolved}
-              className="rounded-lg border border-white/[0.1] px-3 py-2 text-xs text-neutral-300"
+              className="bf-support-ai-composer__secondary shrink-0"
             >
               I&apos;m all set
             </button>
@@ -234,31 +239,25 @@ export function SupportAiChat({
         </div>
       ) : resolved ? (
         <div className="border-t border-white/[0.06] px-4 py-3">
-          <button type="button" onClick={onBack} className="bf-support-cta w-full">
+          <button type="button" onClick={onBack} className="bf-support-ai-composer__escalate w-full">
             Back to support home
           </button>
         </div>
       ) : (
-        <div className="border-t border-white/[0.06] p-3">
-          {!shouldEscalate ? (
-            <div className="mb-2 flex gap-2">
-              <button
-                type="button"
-                onClick={markResolved}
-                className="rounded-lg border border-white/[0.08] px-2.5 py-1 text-[11px] text-neutral-400 hover:text-white"
-              >
-                ✓ Issue solved
-              </button>
-              <button
-                type="button"
-                onClick={() => setShouldEscalate(true)}
-                className="rounded-lg border border-white/[0.08] px-2.5 py-1 text-[11px] text-neutral-400 hover:text-white"
-              >
-                Talk to staff
-              </button>
-            </div>
-          ) : null}
-          <div className="flex gap-2">
+        <div className="bf-support-ai-composer">
+          <div className="bf-support-ai-composer__quick">
+            <button type="button" onClick={markResolved} className="bf-support-ai-composer__chip">
+              ✓ Issue solved
+            </button>
+            <button
+              type="button"
+              onClick={() => setShouldEscalate(true)}
+              className="bf-support-ai-composer__chip"
+            >
+              Talk to staff
+            </button>
+          </div>
+          <div className="bf-support-ai-composer__row">
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -270,13 +269,13 @@ export function SupportAiChat({
               }}
               placeholder="Ask cried AI anything…"
               disabled={booting || resolved}
-              className="bf-support-field__input min-w-0 flex-1"
+              className="bf-support-ai-composer__input"
             />
             <button
               type="button"
               disabled={isPending || !draft.trim() || booting || resolved}
               onClick={sendMessage}
-              className="bf-support-cta w-auto shrink-0 px-4"
+              className="bf-support-ai-composer__send"
             >
               Send
             </button>

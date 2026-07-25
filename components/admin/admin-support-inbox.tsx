@@ -387,25 +387,6 @@ export function AdminSupportInbox({
                   </button>
                 </div>
 
-                {aiMessages.length > 0 ? (
-                  <div className="max-h-48 overflow-y-auto border-b border-violet-500/20 bg-violet-500/[0.04] px-4 py-3">
-                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-300/80">
-                      cried AI conversation
-                    </p>
-                    <div className="space-y-2">
-                      {aiMessages.map((msg) => (
-                        <div key={msg.id} className="text-xs leading-relaxed text-neutral-300">
-                          <span className="font-medium text-violet-200/90">
-                            {msg.role === "user" ? "Customer" : msg.role === "assistant" ? "cried AI" : "System"}:
-                          </span>{" "}
-                          {msg.body.slice(0, 280)}
-                          {msg.body.length > 280 ? "…" : ""}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-
                 <div className="min-h-0 flex-1">
                   <SupportChatThread
                     conversation={activeConversation}
@@ -414,6 +395,7 @@ export function AdminSupportInbox({
                     isStaff
                     typingLabel={typingLabel}
                     quickReplies
+                    aiTranscript={aiMessages}
                     onRefresh={refreshActiveConversation}
                     onDeleted={handleTicketDeleted}
                   />

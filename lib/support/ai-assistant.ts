@@ -5,11 +5,8 @@ import {
   searchKnowledgeBase,
   type KnowledgeEntry,
 } from "@/lib/support/knowledge-base";
-import {
-  SUPPORT_AI_ESCALATION_PROMPT,
-  type SupportAiMessage,
-  type SupportCategory,
-} from "@/lib/types/support";
+import { buildTopicGreeting, getTopicByLabel } from "@/lib/support/topics";
+import type { SupportAiMessage, SupportCategory } from "@/lib/types/support";
 
 export type AiAssistantInput = {
   userMessage: string;
@@ -28,10 +25,20 @@ const RESOLVED_PATTERNS =
   /\b(thanks?|thank you|that helped|solved|fixed|all good|got it|perfect|great|no more questions|issue resolved|works now)\b/i;
 
 const ESCALATE_PATTERNS =
-  /\b(speak to (a )?human|real person|staff|support team|create (a )?ticket|escalate|refund|charged twice|hacked|banned wrongly|account locked|lawyer|legal)\b/i;
+  /\b(speak to (a )?human|real person|talk to staff|support team|create (a )?ticket|escalate|refund|charged twice|hacked|banned wrongly|account locked|lawyer|legal)\b/i;
 
 const UNCERTAIN_PATTERNS =
-  /\b(still not|doesn't work|didn't work|same issue|not fixed|help me|urgent|asap|frustrated)\b/i;
+  /\b(still not|doesn't work|didn't work|same issue|not fixed|urgent|asap|frustrated|keeps happening)\b/i;
+
+const GREETING_PATTERNS =
+  /^(hi|hey|hello|yo|sup|hiya|howdy|good (morning|afternoon|evening)|what'?s up)[!.?\s]*$/i;
+
+const VAGUE_HELP_PATTERNS =
+  /^(help|i need help|need help|can you help|please help)[!.?\s]*$/i;
+
+function countUserTurns(history: SupportAiMessage[]): number {
+  return history.filter((m) => m.role === "user").length;
+}
 
 function buildKnowledgeReply(entries: KnowledgeEntry[]): string {
   if (entries.length === 0) {
@@ -116,9 +123,9 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
   const { userMessage, history } = input;
   const trimmed = userMessage.trim();
   const category = detectSupportCategory(trimmed);
-  const userTurns = history.filter((m) => m.role === "user").length + 1;
+  const userTurns = countUserTurns(history);
 
-  if (RESOLVED_PATTERNS.test(trimmed) && userTurns > 1) {
+  if (RESOLVED_PATTERNS.test(trimmed) && userTurns >= 1) {
     return {
       reply: "Glad I could help! 🎉 If anything else comes up, I'm here — or you can always reach our team through support. Have a great day!",
       shouldEscalate: false,
@@ -130,11 +137,24 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
 
   if (ESCALATE_PATTERNS.test(trimmed)) {
     return {
-      reply: SUPPORT_AI_ESCALATION_PROMPT,
+      reply: "No problem — I can connect you with our support team and include this whole conversation so you don't have to repeat yourself.",
       shouldEscalate: true,
       resolved: false,
       category,
       confidence: 0,
+    };
+  }
+
+  if (GREETING_PATTERNS.test(trimmed) || VAGUE_HELP_PATTERNS.test(trimmed)) {
+    return {
+      reply:
+        userTurns <= 1
+          ? "Hey! 👋 What can I help you with on cried.bio? Tell me what's going on — billing, your profile, a bug, Premium, presets, or anything else."
+          : "I'm still here — could you share a bit more detail about the issue? That'll help me give you a useful answer.",
+      shouldEscalate: false,
+      resolved: false,
+      category,
+      confidence: 0.5,
     };
   }
 
@@ -145,13 +165,15 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
   const openAiReply = await callOpenAi(trimmed, history, knowledgeContext);
   const reply = openAiReply ?? buildKnowledgeReply(matches);
 
-  const lowConfidenceEscalate = confidence < 0.35 && userTurns >= 2;
-  const repeatedIssue = UNCERTAIN_PATTERNS.test(trimmed) && userTurns >= 3;
+  // Only suggest escalation after several back-and-forths with no progress
+  const lowConfidenceEscalate = confidence < 0.25 && userTurns >= 4;
+  const repeatedIssue = UNCERTAIN_PATTERNS.test(trimmed) && userTurns >= 4;
   const shouldEscalate = lowConfidenceEscalate || repeatedIssue;
 
   if (shouldEscalate) {
     return {
-      reply: `${reply}\n\n---\n\n${SUPPORT_AI_ESCALATION_PROMPT}`,
+      reply:
+        "I've tried my best, but this might need a human on our team. You can tap **Talk to staff** below whenever you're ready — I'll attach this whole chat so they have full context.",
       shouldEscalate: true,
       resolved: false,
       category,
@@ -170,10 +192,6 @@ export async function generateAiSupportReply(input: AiAssistantInput): Promise<A
 
 export const CRIED_AI_GREETING = `Hey! I'm **cried AI** — cried.bio's support assistant. 🤖
 
-I can help with:
-• Premium & billing questions
-• Profile customization, presets & layouts
-• Badges, widgets, music & backgrounds
-• Troubleshooting common issues
+I can help with Premium & billing, profile customization, presets, layouts, badges, widgets, music, and troubleshooting.
 
-What's going on?`;
+What can I help you with today?`;

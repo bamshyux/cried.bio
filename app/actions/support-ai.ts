@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { generateAiSupportReply, CRIED_AI_GREETING } from "@/lib/support/ai-assistant";
-import { formatAiTranscriptForTicket } from "@/lib/support/transcript";
+import { detectSupportCategory } from "@/lib/support/knowledge-base";
+import { buildTopicGreeting, getTopicByLabel } from "@/lib/support/topics";
 import { createNotification } from "@/lib/data/notifications";
 import { listPlatformAdminUserIds } from "@/lib/data/support";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -44,18 +45,34 @@ async function loadAiMessages(sessionId: string): Promise<SupportAiMessage[]> {
   return (data ?? []) as SupportAiMessage[];
 }
 
-export async function startSupportAiSessionAction(): Promise<
-  SupportActionState & { session?: SupportAiSession; greeting?: string }
-> {
+function detectSupportCategoryFromMessages(messages: SupportAiMessage[]): SupportCategory {
+  const userText = messages
+    .filter((m) => m.role === "user")
+    .map((m) => m.body)
+    .join(" ");
+  return detectSupportCategory(userText || "other");
+}
+
+export async function startSupportAiSessionAction(
+  topicLabel?: string,
+): Promise<SupportActionState & { session?: SupportAiSession; greeting?: string }> {
   const user = await requireUser();
   if ("error" in user) return user;
+
+  const topic = getTopicByLabel(topicLabel);
+  const greeting = topic ? buildTopicGreeting(topic) : CRIED_AI_GREETING;
 
   const supabase = await db();
   const now = new Date().toISOString();
 
   const { data: session, error } = await supabase
     .from("support_ai_sessions")
-    .insert({ user_id: user.userId, status: "active", updated_at: now })
+    .insert({
+      user_id: user.userId,
+      status: "active",
+      category: topic?.category ?? null,
+      updated_at: now,
+    })
     .select("*")
     .single();
 
@@ -64,14 +81,14 @@ export async function startSupportAiSessionAction(): Promise<
   await supabase.from("support_ai_messages").insert({
     session_id: session.id,
     role: "assistant",
-    body: CRIED_AI_GREETING,
+    body: greeting,
   });
 
   return {
     success: "AI session started.",
     sessionId: session.id,
     session: session as SupportAiSession,
-    greeting: CRIED_AI_GREETING,
+    greeting,
   };
 }
 
@@ -114,7 +131,7 @@ export async function sendSupportAiMessageAction(
     body: result.reply,
   });
 
-  const messageCount = history.length + 2;
+  const messageCount = history.length + 1;
   await supabase
     .from("support_ai_sessions")
     .update({
@@ -168,12 +185,14 @@ export async function escalateSupportAiToTicketAction(
   }
 
   const aiMessages = await loadAiMessages(sessionId);
-  const category = (session.category as SupportCategory) ?? "other";
+  const topic = getTopicByLabel(subject);
+  const category =
+    (session.category as SupportCategory) ?? topic?.category ?? detectSupportCategoryFromMessages(aiMessages);
   const ticketSubject =
+    topic?.label ||
     subject?.trim() ||
     (category !== "other" ? `${category.replace(/_/g, " ")} support request` : "Support request");
 
-  const transcriptBlock = formatAiTranscriptForTicket(aiMessages);
   const now = new Date().toISOString();
   const statusHistory: SupportStatusHistoryEntry[] = [
     { status: "ai_assisting", changed_at: session.created_at, note: "AI session started" },
@@ -201,9 +220,8 @@ export async function escalateSupportAiToTicketAction(
     return { error: convError?.message ?? "Could not create ticket." };
   }
 
-  const initialBody = transcriptBlock
-    ? `${transcriptBlock}\n\n---\n\n*Ticket created from cried AI conversation. A staff member will follow up shortly.*`
-    : "Ticket escalated from cried AI. A staff member will follow up shortly.";
+  const initialBody =
+    "Ticket opened and sent to our support team. They'll see your full cried AI conversation and follow up here shortly.";
 
   const { data: message } = await supabase
     .from("support_messages")

@@ -10,6 +10,10 @@ import {
   uploadSupportAttachmentAction,
 } from "@/app/actions/support";
 import { SupportAvatar } from "@/components/support/support-avatar";
+import {
+  isLegacyAiTranscriptMessage,
+  SupportAiTranscriptPanel,
+} from "@/components/support/support-ai-transcript-panel";
 import { broadcastSupportTyping } from "@/hooks/use-support-realtime";
 import {
   createSupportMessageSoundTracker,
@@ -23,7 +27,7 @@ import {
   isSupportMessageMine,
   supportDisplayName,
 } from "@/lib/support/format";
-import type { SupportConversation, SupportMessage } from "@/lib/types/support";
+import type { SupportAiMessage, SupportConversation, SupportMessage } from "@/lib/types/support";
 import {
   getSupportStatusDisplay,
   SUPPORT_QUICK_REPLIES,
@@ -41,6 +45,7 @@ export function SupportChatThread({
   onDeleted,
   typingLabel = null,
   quickReplies = false,
+  aiTranscript = [],
 }: {
   conversation: SupportConversation;
   messages: SupportMessage[];
@@ -51,6 +56,7 @@ export function SupportChatThread({
   onDeleted?: () => void;
   typingLabel?: string | null;
   quickReplies?: boolean;
+  aiTranscript?: SupportAiMessage[];
 }) {
   const [draft, setDraft] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -249,7 +255,14 @@ export function SupportChatThread({
       ) : null}
 
       <div ref={scrollRef} className="bf-support-chat-scroll min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4">
+        {aiTranscript.length > 0 ? (
+          <SupportAiTranscriptPanel messages={aiTranscript} />
+        ) : null}
+
         {groupedMessages.map((message, index) => {
+          if (aiTranscript.length > 0 && isLegacyAiTranscriptMessage(message.body)) {
+            return null;
+          }
           const previous = groupedMessages[index - 1];
           const showDate =
             !previous || !isSameSupportDay(previous.created_at, message.created_at);

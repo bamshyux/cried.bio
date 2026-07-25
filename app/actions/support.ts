@@ -895,7 +895,11 @@ export async function fetchSupportConversationAction(input: {
     })),
   );
 
-  return { conversation, messages: messagesWithUrls };
+  const aiMessages = conversation.ai_session_id
+    ? await getSupportAiMessages(conversation.ai_session_id)
+    : [];
+
+  return { conversation, messages: messagesWithUrls, aiMessages };
 }
 
 export async function fetchUserSupportInboxAction(
