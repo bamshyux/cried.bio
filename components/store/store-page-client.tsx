@@ -119,7 +119,7 @@ function StoreProductCard({
                   type="button"
                   disabled={!stripeConfigured}
                   onClick={() => setGiftOpen(true)}
-                  className="bf-gift-btn group rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/[0.08] to-fuchsia-500/[0.08] px-3.5 py-2.5 transition hover:border-amber-400/35 hover:from-amber-500/[0.14] hover:to-fuchsia-500/[0.14] hover:shadow-[0_0_20px_rgba(251,191,36,0.12)] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="bf-gift-btn group flex h-[42px] min-w-[50px] shrink-0 items-center justify-center rounded-[10px] border border-violet-500/25 bg-violet-500/[0.08] px-3 transition hover:border-violet-400/40 hover:bg-violet-500/[0.14] disabled:cursor-not-allowed disabled:opacity-50"
                   title="Gift to someone"
                   aria-label="Gift to someone"
                 >

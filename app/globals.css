@@ -4737,13 +4737,17 @@ body,
 }
 
 .bf-gift-btn-icon {
-  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.25));
-  transition: transform 0.2s ease, filter 0.2s ease;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+  transition: transform 0.18s ease, filter 0.18s ease;
 }
 
 .bf-gift-btn:hover .bf-gift-btn-icon {
-  transform: scale(1.08);
-  filter: drop-shadow(0 0 10px rgba(244, 114, 182, 0.35));
+  transform: scale(1.06);
+  filter: drop-shadow(0 2px 8px rgba(139, 92, 246, 0.45));
+}
+
+.bf-gift-btn:active .bf-gift-btn-icon {
+  transform: scale(0.98);
 }
 
 .bf-gift-toast__icon {
