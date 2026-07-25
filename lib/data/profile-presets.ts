@@ -1,8 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { arePresetSnapshotsEqual } from "@/lib/profile-presets/compare";
-import { captureProfilePresetSnapshot } from "@/lib/profile-presets/snapshot";
+import {
+  freezePresetAssets,
+  presetUsesMutableAssets,
+} from "@/lib/profile-presets/asset-snapshot";
+import { captureProfilePresetSnapshot, parsePresetData, resolvePresetThumbnailUrl } from "@/lib/profile-presets/snapshot";
 import type { ProfilePreset, ProfilePresetData } from "@/lib/types/profile-preset";
-import { parsePresetData } from "@/lib/profile-presets/snapshot";
 
 function normalizePreset(row: Record<string, unknown>): ProfilePreset | null {
   const presetData = parsePresetData(row.preset_data);
@@ -19,6 +22,34 @@ function normalizePreset(row: Record<string, unknown>): ProfilePreset | null {
   };
 }
 
+async function repairPresetAssetsIfNeeded(preset: ProfilePreset): Promise<ProfilePreset> {
+  if (!presetUsesMutableAssets(preset.user_id, preset.id, preset.preset_data)) {
+    return preset;
+  }
+
+  const frozen = await freezePresetAssets(preset.user_id, preset.id, preset.preset_data);
+  if (frozen.failedAssets.length > 0) {
+    return preset;
+  }
+
+  const supabase = await createClient();
+  const thumbnailUrl = resolvePresetThumbnailUrl(frozen.data);
+  await supabase
+    .from("profile_presets")
+    .update({
+      preset_data: frozen.data,
+      thumbnail_url: thumbnailUrl,
+    })
+    .eq("id", preset.id)
+    .eq("user_id", preset.user_id);
+
+  return {
+    ...preset,
+    preset_data: frozen.data,
+    thumbnail_url: thumbnailUrl,
+  };
+}
+
 export async function getProfilePresetsByUserId(userId: string): Promise<ProfilePreset[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -28,7 +59,11 @@ export async function getProfilePresetsByUserId(userId: string): Promise<Profile
     .order("updated_at", { ascending: false });
 
   if (error || !data) return [];
-  return data.map((row) => normalizePreset(row as Record<string, unknown>)).filter(Boolean) as ProfilePreset[];
+  const presets = data
+    .map((row) => normalizePreset(row as Record<string, unknown>))
+    .filter(Boolean) as ProfilePreset[];
+
+  return Promise.all(presets.map((preset) => repairPresetAssetsIfNeeded(preset)));
 }
 
 export async function getProfilePresetById(
@@ -41,7 +76,9 @@ export async function getProfilePresetById(
 
   const { data, error } = await query.maybeSingle();
   if (error || !data) return null;
-  return normalizePreset(data as Record<string, unknown>);
+  const preset = normalizePreset(data as Record<string, unknown>);
+  if (!preset) return null;
+  return repairPresetAssetsIfNeeded(preset);
 }
 
 export async function getActivePresetId(userId: string): Promise<string | null> {

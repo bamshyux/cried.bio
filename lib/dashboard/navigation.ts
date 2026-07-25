@@ -252,7 +252,7 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
         Icon: IconPremium,
       },
       {
-        href: "/dashboard/premium/store",
+        href: "/dashboard/store",
         label: "Store",
         description: "One-time upgrades and cosmetics",
         keywords: ["store", "shop", "cosmetics", "badge", "gift"],
@@ -337,7 +337,7 @@ export function isNavActive(pathname: string, href: string): boolean {
     return [
       "/dashboard/premium",
       "/dashboard/premium/plans",
-      "/dashboard/premium/store",
+      "/dashboard/store",
       "/dashboard/pages",
       "/dashboard/profile-pages",
       "/dashboard/preset-schedules",

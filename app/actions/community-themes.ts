@@ -222,11 +222,11 @@ export async function publishCommunityProfilePresetAction(input: {
   };
 
   if (shouldRefreshSnapshot && presetData) {
-    payload.published_preset_data = await freezePresetAssets(
-      userId,
-      `community-${listingId}`,
-      presetData,
-    );
+    const frozen = await freezePresetAssets(userId, `community-${listingId}`, presetData);
+    if (frozen.failedAssets.length > 0) {
+      return { error: "Could not publish preset media securely. Please try again." };
+    }
+    payload.published_preset_data = frozen.data;
   }
 
   if (existing?.id) {
@@ -490,6 +490,9 @@ async function installCommunityProfilePresetListing(
 
   const installedPresetId = randomUUID();
   const frozenSnapshot = await freezePresetAssets(userId, installedPresetId, snapshot);
+  if (frozenSnapshot.failedAssets.length > 0) {
+    return { error: "Could not copy preset media securely. Please try again." };
+  }
 
   const { data: installedPreset, error: insertError } = await client
     .from("profile_presets")
@@ -497,8 +500,9 @@ async function installCommunityProfilePresetListing(
       id: installedPresetId,
       user_id: userId,
       name: copyName,
-      thumbnail_url: listing.preview_image_url ?? resolvePresetThumbnailUrl(frozenSnapshot) ?? null,
-      preset_data: frozenSnapshot,
+      thumbnail_url:
+        listing.preview_image_url ?? resolvePresetThumbnailUrl(frozenSnapshot.data) ?? null,
+      preset_data: frozenSnapshot.data,
     })
     .select("id")
     .single();
@@ -516,7 +520,7 @@ async function installCommunityProfilePresetListing(
   if (installError) return { error: installError.message };
 
   if (applyAfter) {
-    const applyResult = await applyProfilePresetSnapshot(userId, frozenSnapshot, {
+    const applyResult = await applyProfilePresetSnapshot(userId, frozenSnapshot.data, {
       preservePersonalContent: true,
     });
     if (applyResult.error) {

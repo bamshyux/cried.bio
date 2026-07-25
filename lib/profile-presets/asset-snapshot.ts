@@ -1,5 +1,7 @@
 import type { ProfilePresetData } from "@/lib/types/profile-preset";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const STORAGE_PUBLIC_MARKER = "/storage/v1/object/public/";
 
@@ -39,12 +41,60 @@ function isAlreadyScoped(ownerUserId: string, scopeId: string, sourcePath: strin
   return sourcePath.startsWith(presetAssetPrefix(ownerUserId, scopeId));
 }
 
+/** True when a cried.bio storage URL still points at a live profile slot instead of a preset copy. */
+export function isMutableUserAssetUrl(ownerUserId: string, url: string | null | undefined): boolean {
+  if (!url?.trim()) return false;
+  const parsed = parseSupabaseStorageUrl(url);
+  if (!parsed) return false;
+  if (!parsed.path.startsWith(`${ownerUserId}/`)) return false;
+  return !parsed.path.includes("/presets/");
+}
+
+export function presetUsesMutableAssets(
+  ownerUserId: string,
+  scopeId: string,
+  data: ProfilePresetData,
+): boolean {
+  for (const url of collectPresetAssetUrls(data)) {
+    if (isMutableUserAssetUrl(ownerUserId, url)) return true;
+  }
+  return false;
+}
+
+export function collectPresetAssetUrls(data: ProfilePresetData): string[] {
+  const urls: string[] = [];
+  const push = (value: unknown) => {
+    if (typeof value === "string" && value.trim()) urls.push(value.trim());
+  };
+
+  push(data.profile.avatar_url);
+  push(data.profile.banner_url);
+  push(data.settings.background_image_url);
+  push(data.settings.background_video_url);
+  push(data.settings.enter_gate_background_image_url);
+  push(data.settings.enter_gate_background_video_url);
+  push(data.settings.music_url);
+  push(data.settings.cursor_image_url);
+  push(data.settings.profile_favicon_url);
+
+  for (const link of data.links) push(link.icon);
+  for (const block of data.featuredBlocks) push(block.thumbnail_url);
+
+  return urls;
+}
+
+async function resolveStorageClient(): Promise<SupabaseClient> {
+  const admin = createAdminClient();
+  if (admin) return admin;
+  return createClient();
+}
+
 async function copyStorageObject(
   bucket: string,
   sourcePath: string,
   destPath: string,
 ): Promise<boolean> {
-  const supabase = await createClient();
+  const supabase = await resolveStorageClient();
   const { data, error } = await supabase.storage.from(bucket).download(sourcePath);
 
   let payload: Blob | ArrayBuffer;
@@ -76,123 +126,147 @@ async function freezeAssetUrl(
   scopeId: string,
   url: string | null | undefined,
   fileBase: string,
-): Promise<string | null> {
-  if (typeof url !== "string") return null;
+): Promise<{ url: string | null; failed: boolean }> {
+  if (typeof url !== "string") return { url: null, failed: false };
   const trimmed = url.trim();
-  if (!trimmed) return null;
+  if (!trimmed) return { url: null, failed: false };
 
   const parsed = parseSupabaseStorageUrl(trimmed);
-  if (!parsed) return trimmed;
+  if (!parsed) return { url: trimmed, failed: false };
 
   const { bucket, path: sourcePath } = parsed;
   if (isAlreadyScoped(ownerUserId, scopeId, sourcePath)) {
+    const supabase = await resolveStorageClient();
     const {
       data: { publicUrl },
-    } = (await createClient()).storage.from(bucket).getPublicUrl(sourcePath);
-    return `${publicUrl}?v=${Date.now()}`;
+    } = supabase.storage.from(bucket).getPublicUrl(sourcePath);
+    return { url: `${publicUrl}?v=${Date.now()}`, failed: false };
+  }
+
+  if (!isMutableUserAssetUrl(ownerUserId, trimmed)) {
+    return { url: trimmed, failed: false };
   }
 
   const ext = extensionFromPath(sourcePath) || ".bin";
   const destPath = `${presetAssetPrefix(ownerUserId, scopeId)}${fileBase}${ext}`;
   const copied = await copyStorageObject(bucket, sourcePath, destPath);
-  if (!copied) return trimmed;
+  if (!copied) {
+    return { url: trimmed, failed: true };
+  }
 
-  const supabase = await createClient();
+  const supabase = await resolveStorageClient();
   const {
     data: { publicUrl },
   } = supabase.storage.from(bucket).getPublicUrl(destPath);
-  return `${publicUrl}?v=${Date.now()}`;
+  return { url: `${publicUrl}?v=${Date.now()}`, failed: false };
 }
+
+export type FreezePresetAssetsResult = {
+  data: ProfilePresetData;
+  failedAssets: string[];
+};
 
 /** Copy live profile media into preset-scoped storage so presets stay frozen. */
 export async function freezePresetAssets(
   ownerUserId: string,
   scopeId: string,
   data: ProfilePresetData,
-): Promise<ProfilePresetData> {
+): Promise<FreezePresetAssetsResult> {
+  const failedAssets: string[] = [];
   const settings = { ...data.settings };
 
-  const [
-    avatar_url,
-    banner_url,
-    background_image_url,
-    background_video_url,
-    enter_gate_background_image_url,
-    enter_gate_background_video_url,
-    music_url,
-    cursor_image_url,
-    profile_favicon_url,
-  ] = await Promise.all([
-    freezeAssetUrl(ownerUserId, scopeId, data.profile.avatar_url, "avatar"),
-    freezeAssetUrl(ownerUserId, scopeId, data.profile.banner_url, "banner"),
-    freezeAssetUrl(ownerUserId, scopeId, settings.background_image_url as string | null, "background"),
-    freezeAssetUrl(ownerUserId, scopeId, settings.background_video_url as string | null, "background-video"),
-    freezeAssetUrl(
-      ownerUserId,
-      scopeId,
-      settings.enter_gate_background_image_url as string | null,
-      "enter-gate",
-    ),
-    freezeAssetUrl(
-      ownerUserId,
-      scopeId,
-      settings.enter_gate_background_video_url as string | null,
-      "enter-gate-video",
-    ),
-    freezeAssetUrl(ownerUserId, scopeId, settings.music_url as string | null, "music"),
-    freezeAssetUrl(ownerUserId, scopeId, settings.cursor_image_url as string | null, "cursor"),
-    freezeAssetUrl(ownerUserId, scopeId, settings.profile_favicon_url as string | null, "favicon"),
-  ]);
+  const freezeSetting = async (key: string, value: unknown, fileBase: string) => {
+    const result = await freezeAssetUrl(ownerUserId, scopeId, value as string | null, fileBase);
+    if (result.failed) failedAssets.push(key);
+    return result.url;
+  };
 
-  settings.background_image_url = background_image_url;
-  settings.background_video_url = background_video_url;
-  settings.enter_gate_background_image_url = enter_gate_background_image_url;
-  settings.enter_gate_background_video_url = enter_gate_background_video_url;
-  settings.music_url = music_url;
-  settings.cursor_image_url = cursor_image_url;
-  settings.profile_favicon_url = profile_favicon_url;
+  settings.background_image_url = await freezeSetting(
+    "background_image_url",
+    settings.background_image_url,
+    "background",
+  );
+  settings.background_video_url = await freezeSetting(
+    "background_video_url",
+    settings.background_video_url,
+    "background-video",
+  );
+  settings.enter_gate_background_image_url = await freezeSetting(
+    "enter_gate_background_image_url",
+    settings.enter_gate_background_image_url,
+    "enter-gate",
+  );
+  settings.enter_gate_background_video_url = await freezeSetting(
+    "enter_gate_background_video_url",
+    settings.enter_gate_background_video_url,
+    "enter-gate-video",
+  );
+  settings.music_url = await freezeSetting("music_url", settings.music_url, "music");
+  settings.cursor_image_url = await freezeSetting(
+    "cursor_image_url",
+    settings.cursor_image_url,
+    "cursor",
+  );
+  settings.profile_favicon_url = await freezeSetting(
+    "profile_favicon_url",
+    settings.profile_favicon_url,
+    "favicon",
+  );
+
+  const avatarResult = await freezeAssetUrl(ownerUserId, scopeId, data.profile.avatar_url, "avatar");
+  if (avatarResult.failed) failedAssets.push("avatar_url");
+  const bannerResult = await freezeAssetUrl(ownerUserId, scopeId, data.profile.banner_url, "banner");
+  if (bannerResult.failed) failedAssets.push("banner_url");
 
   const links = await Promise.all(
-    data.links.map(async (link, index) => ({
-      ...link,
-      icon: (await freezeAssetUrl(ownerUserId, scopeId, link.icon, `link-icon-${index}`)) ?? link.icon,
-    })),
+    data.links.map(async (link, index) => {
+      if (!isMutableUserAssetUrl(ownerUserId, link.icon)) return link;
+      const result = await freezeAssetUrl(ownerUserId, scopeId, link.icon, `link-icon-${index}`);
+      if (result.failed) failedAssets.push(`links[${index}].icon`);
+      return { ...link, icon: result.url ?? link.icon };
+    }),
   );
 
   const featuredBlocks = await Promise.all(
-    data.featuredBlocks.map(async (block, index) => ({
-      ...block,
-      thumbnail_url: await freezeAssetUrl(
+    data.featuredBlocks.map(async (block, index) => {
+      const result = await freezeAssetUrl(
         ownerUserId,
         scopeId,
         block.thumbnail_url,
         `featured-${index}`,
-      ),
-    })),
+      );
+      if (result.failed) failedAssets.push(`featuredBlocks[${index}].thumbnail_url`);
+      return { ...block, thumbnail_url: result.url };
+    }),
   );
 
   return {
-    ...data,
-    profile: {
-      ...data.profile,
-      avatar_url,
-      banner_url,
+    data: {
+      ...data,
+      profile: {
+        ...data.profile,
+        avatar_url: avatarResult.url,
+        banner_url: bannerResult.url,
+      },
+      settings,
+      links,
+      featuredBlocks,
     },
-    settings,
-    links,
-    featuredBlocks,
+    failedAssets,
   };
 }
 
 export async function deletePresetAssetScope(ownerUserId: string, scopeId: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await resolveStorageClient();
   const prefix = `${ownerUserId}/presets/${scopeId}`;
 
   for (const bucket of ["backgrounds", "music", "profiles"] as const) {
     const { data: files } = await supabase.storage.from(bucket).list(prefix);
     if (!files?.length) continue;
 
-    const paths = files.map((file) => `${prefix}/${file.name}`);
+    const paths = files
+      .filter((file) => file.name && !file.id?.endsWith("/"))
+      .map((file) => `${prefix}/${file.name}`);
     if (paths.length > 0) {
       await supabase.storage.from(bucket).remove(paths);
     }

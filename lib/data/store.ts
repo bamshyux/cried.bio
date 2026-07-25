@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { ProfileStoreEntitlements, StoreProduct, StorePurchase } from "@/lib/types/store";
+import type { ProfileStoreEntitlements, Purchase, StoreProduct, StorePurchase } from "@/lib/types/store";
 
 async function db() {
   return createAdminClient() ?? (await createClient());
@@ -16,6 +16,7 @@ function mapProduct(row: Record<string, unknown>): StoreProduct {
     features: Array.isArray(features) ? features.map(String) : [],
     icon: String(row.icon ?? "✦"),
     price_cents: Number(row.price_cents) || 0,
+    stripe_product_id: (row.stripe_product_id as string | null) ?? null,
     stripe_price_id: (row.stripe_price_id as string | null) ?? null,
     badge_label: (row.badge_label as StoreProduct["badge_label"]) ?? null,
     status: row.status as StoreProduct["status"],
@@ -49,13 +50,29 @@ export async function getStoreProductBySlug(slug: string): Promise<StoreProduct 
 
 export async function getOwnedStoreProductSlugs(profileId: string): Promise<Set<string>> {
   const supabase = await db();
-  const { data } = await supabase
+  const slugs = new Set<string>();
+
+  const { data: purchases } = await supabase
+    .from("purchases")
+    .select("product_slug")
+    .eq("user_id", profileId)
+    .eq("status", "completed");
+
+  for (const row of purchases ?? []) {
+    slugs.add(String(row.product_slug));
+  }
+
+  const { data: legacy } = await supabase
     .from("store_purchases")
     .select("product_slug")
     .eq("recipient_profile_id", profileId)
     .not("fulfilled_at", "is", null);
 
-  return new Set((data ?? []).map((row) => row.product_slug as string));
+  for (const row of legacy ?? []) {
+    slugs.add(String(row.product_slug));
+  }
+
+  return slugs;
 }
 
 export async function getProfileStoreEntitlements(
@@ -70,6 +87,17 @@ export async function getProfileStoreEntitlements(
 
   if (!data) return null;
   return data as ProfileStoreEntitlements;
+}
+
+export async function listPurchasesForUser(userId: string): Promise<Purchase[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("purchases")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  return (data ?? []) as Purchase[];
 }
 
 export async function listStorePurchasesForProfile(profileId: string): Promise<StorePurchase[]> {

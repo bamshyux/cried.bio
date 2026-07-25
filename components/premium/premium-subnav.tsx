@@ -6,7 +6,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 
 const LINKS = [
   { href: "/dashboard/premium/plans", label: "Plans" },
-  { href: "/dashboard/premium/store", label: "Store" },
+  { href: "/dashboard/store", label: "Store" },
 ];
 
 export function PremiumSubnav() {

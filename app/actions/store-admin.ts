@@ -19,7 +19,7 @@ async function db() {
 }
 
 function revalidateStore() {
-  revalidatePath("/dashboard/premium/store");
+  revalidatePath("/dashboard/store");
   revalidatePath("/dashboard/admin/store");
 }
 

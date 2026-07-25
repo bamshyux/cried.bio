@@ -8,6 +8,7 @@ export type StoreProduct = {
   features: string[];
   icon: string;
   price_cents: number;
+  stripe_product_id: string | null;
   stripe_price_id: string | null;
   badge_label: "Popular" | "New" | null;
   status: StoreProductStatus;
@@ -16,6 +17,22 @@ export type StoreProduct = {
   sort_order: number;
   fulfillment_key: string;
   badge_slug: string | null;
+};
+
+export type Purchase = {
+  id: string;
+  user_id: string;
+  stripe_checkout_session_id: string;
+  stripe_payment_intent: string | null;
+  stripe_product_id: string | null;
+  price_id: string;
+  product_slug: string;
+  product_name: string;
+  amount_paid: number;
+  currency: string;
+  status: string;
+  fulfillment_key: string;
+  created_at: string;
 };
 
 export type StorePurchase = {

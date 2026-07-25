@@ -400,7 +400,9 @@ export function SupportWidgetBody({
             <p className="bf-support-nudge__title">Try cried AI first</p>
             <p className="bf-support-nudge__text">
               For immediate assistance with Premium, billing, profile settings, presets, and other common
-              questions, <strong className="text-violet-200">cried AI</strong> can usually help right away.
+              questions,{" "}
+              <strong className="text-violet-200">cried AI</strong>{" "}
+              can usually help right away.{" "}
               If your issue needs our team, you can still open a ticket — we&apos;ll follow up as soon as we can.
             </p>
           </div>
@@ -529,7 +531,9 @@ export function SupportWidgetBody({
           <div className="bf-support-hero">
             <p className="bf-support-hero__title">How can we help?</p>
             <p className="bf-support-hero__text">
-              Start with <strong className="text-violet-200">cried AI</strong> for instant answers about Premium, billing, presets, and more.
+              Start with{" "}
+              <strong className="text-violet-200">cried AI</strong>{" "}
+              for instant answers about Premium, billing, presets, and more.
               {openTicketCount > 0
                 ? ` You have ${openTicketCount} open ticket${openTicketCount === 1 ? "" : "s"}.`
                 : " Need a human? AI will connect you to staff."}

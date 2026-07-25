@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { getStoreProductBySlug, getProfileIdByUsername } from "@/lib/data/store";
+import { getOwnedStoreProductSlugs } from "@/lib/data/store";
 import { getSiteUrl } from "@/lib/site";
+import { getStoreCatalogEntry } from "@/lib/store/catalog";
 import { getStripe, getStripeConfigErrorMessage, isStripeConfigured } from "@/lib/stripe/client";
 import { createClient } from "@/lib/supabase/server";
 
@@ -54,12 +55,7 @@ export async function POST(request: Request) {
     }
 
     const buyerId = data.claims.sub as string;
-    let body: {
-      productSlug?: string;
-      recipientUsername?: string;
-      giftMessage?: string;
-      reservedUsername?: string;
-    } = {};
+    let body: { productSlug?: string } = {};
 
     try {
       body = (await request.json()) as typeof body;
@@ -72,29 +68,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Product is required." }, { status: 400 });
     }
 
-    const product = await getStoreProductBySlug(productSlug);
-    if (!product || product.status !== "active") {
+    const catalogEntry = getStoreCatalogEntry(productSlug);
+    if (!catalogEntry) {
       return NextResponse.json({ error: "Product not available." }, { status: 404 });
     }
 
-    const recipientUsername = body.recipientUsername?.trim().toLowerCase();
-    const isGift = Boolean(recipientUsername);
-    let recipientId = buyerId;
-
-    if (isGift) {
-      if (!product.is_giftable) {
-        return NextResponse.json({ error: "This product cannot be gifted." }, { status: 400 });
+    if (!catalogEntry.allowRepeatPurchase) {
+      const owned = await getOwnedStoreProductSlugs(buyerId);
+      if (owned.has(productSlug)) {
+        return NextResponse.json({ error: "You already own this item." }, { status: 400 });
       }
-      const resolved = await getProfileIdByUsername(recipientUsername!);
-      if (!resolved) {
-        return NextResponse.json({ error: "Recipient not found." }, { status: 404 });
-      }
-      recipientId = resolved;
-    }
-
-    const reservedUsername = body.reservedUsername?.trim().toLowerCase();
-    if (product.slug === "username-reservation" && !reservedUsername) {
-      return NextResponse.json({ error: "Enter the username to reserve." }, { status: 400 });
     }
 
     const stripe = getStripe();
@@ -106,46 +89,31 @@ export async function POST(request: Request) {
       data.claims.email as string | undefined,
     );
 
-    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = product.stripe_price_id
-      ? { price: product.stripe_price_id, quantity: 1 }
-      : {
-          price_data: {
-            currency: "usd",
-            unit_amount: product.price_cents,
-            product_data: {
-              name: product.name,
-              description: product.description.slice(0, 200),
-            },
-          },
-          quantity: 1,
-        };
-
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       client_reference_id: buyerId,
       mode: "payment",
-      line_items: [lineItem],
-      success_url: `${siteUrl}/dashboard/premium/store?checkout=success`,
-      cancel_url: `${siteUrl}/dashboard/premium/store?checkout=canceled`,
+      line_items: [{ price: catalogEntry.stripePriceId, quantity: 1 }],
+      success_url: `${siteUrl}/dashboard/store?success=true&product=${encodeURIComponent(productSlug)}`,
+      cancel_url: `${siteUrl}/dashboard/store?cancelled=true`,
       metadata: {
         checkout_type: "store",
         cried_user_id: buyerId,
-        recipient_profile_id: recipientId,
-        product_slug: product.slug,
-        product_id: product.id,
-        is_gift: isGift ? "true" : "false",
-        gift_message: body.giftMessage?.trim() ?? "",
-        reserved_username: reservedUsername ?? "",
+        recipient_profile_id: buyerId,
+        product_slug: catalogEntry.slug,
+        price_id: catalogEntry.stripePriceId,
+        stripe_product_id: catalogEntry.stripeProductId,
+        is_gift: "false",
       },
       payment_intent_data: {
         metadata: {
           checkout_type: "store",
           cried_user_id: buyerId,
-          recipient_profile_id: recipientId,
-          product_slug: product.slug,
+          product_slug: catalogEntry.slug,
+          price_id: catalogEntry.stripePriceId,
         },
       },
-    });
+    } satisfies Stripe.Checkout.SessionCreateParams);
 
     if (!session.url) {
       return NextResponse.json({ error: "Stripe did not return a checkout URL." }, { status: 502 });

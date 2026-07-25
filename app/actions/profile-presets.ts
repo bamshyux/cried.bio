@@ -45,6 +45,28 @@ async function revalidateAll(userId: string) {
   await revalidateUserProfile(userId, REVALIDATE_PATHS);
 }
 
+function freezeFailureMessage(failedAssets: string[]): string | null {
+  if (failedAssets.length === 0) return null;
+  return "Could not save preset media securely. Please try again in a moment.";
+}
+
+async function captureAndFreezePreset(
+  userId: string,
+  scopeId: string,
+  rawData?: Awaited<ReturnType<typeof captureProfilePresetSnapshot>>,
+) {
+  const snapshot = rawData ?? (await captureProfilePresetSnapshot(userId, { styleOnly: true }));
+  const frozen = await freezePresetAssets(userId, scopeId, snapshot);
+  const freezeError = freezeFailureMessage(frozen.failedAssets);
+  if (freezeError) {
+    return { error: freezeError } as const;
+  }
+  return {
+    presetData: frozen.data,
+    thumbnailUrl: resolvePresetThumbnailUrl(frozen.data),
+  } as const;
+}
+
 export async function saveCurrentProfilePresetAction(name: string): Promise<ProfilePresetFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "You must be logged in." };
@@ -66,9 +88,8 @@ export async function saveCurrentProfilePresetAction(name: string): Promise<Prof
   }
 
   const presetId = randomUUID();
-  const rawPresetData = await captureProfilePresetSnapshot(userId, { styleOnly: true });
-  const presetData = await freezePresetAssets(userId, presetId, rawPresetData);
-  const thumbnailUrl = resolvePresetThumbnailUrl(presetData);
+  const frozen = await captureAndFreezePreset(userId, presetId);
+  if ("error" in frozen) return { error: frozen.error };
 
   const { data, error } = await supabase
     .from("profile_presets")
@@ -76,8 +97,8 @@ export async function saveCurrentProfilePresetAction(name: string): Promise<Prof
       id: presetId,
       user_id: userId,
       name: presetName,
-      thumbnail_url: thumbnailUrl,
-      preset_data: presetData,
+      thumbnail_url: frozen.thumbnailUrl,
+      preset_data: frozen.presetData,
     })
     .select("id")
     .single();
@@ -105,18 +126,14 @@ export async function quickSaveActivePresetAction(): Promise<ProfilePresetFormSt
     return { error: "No active preset. Save a preset from Profile Presets first." };
   }
 
-  const presetData = await freezePresetAssets(
-    userId,
-    activePresetId,
-    await captureProfilePresetSnapshot(userId, { styleOnly: true }),
-  );
-  const thumbnailUrl = resolvePresetThumbnailUrl(presetData);
+  const frozen = await captureAndFreezePreset(userId, activePresetId);
+  if ("error" in frozen) return { error: frozen.error };
 
   const { error } = await supabase
     .from("profile_presets")
     .update({
-      preset_data: presetData,
-      thumbnail_url: thumbnailUrl,
+      preset_data: frozen.presetData,
+      thumbnail_url: frozen.thumbnailUrl,
     })
     .eq("id", activePresetId)
     .eq("user_id", userId);
@@ -188,7 +205,10 @@ export async function duplicateProfilePresetAction(
   }
 
   const copyPresetId = randomUUID();
-  const presetData = await freezePresetAssets(userId, copyPresetId, preset.preset_data);
+  const frozen = await freezePresetAssets(userId, copyPresetId, preset.preset_data);
+  const freezeError = freezeFailureMessage(frozen.failedAssets);
+  if (freezeError) return { error: freezeError };
+
   const copyName = `${preset.name} (copy)`.slice(0, 60);
   const { data, error } = await supabase
     .from("profile_presets")
@@ -196,8 +216,8 @@ export async function duplicateProfilePresetAction(
       id: copyPresetId,
       user_id: userId,
       name: copyName,
-      thumbnail_url: preset.thumbnail_url,
-      preset_data: presetData,
+      thumbnail_url: resolvePresetThumbnailUrl(frozen.data) ?? preset.thumbnail_url,
+      preset_data: frozen.data,
     })
     .select("id")
     .single();
@@ -310,8 +330,9 @@ export async function importProfilePresetAction(
   if (nameError) return { error: nameError };
 
   const importPresetId = randomUUID();
-  const presetData = await freezePresetAssets(userId, importPresetId, parsed.data);
-  const thumbnailUrl = resolvePresetThumbnailUrl(presetData);
+  const frozen = await freezePresetAssets(userId, importPresetId, parsed.data);
+  const freezeError = freezeFailureMessage(frozen.failedAssets);
+  if (freezeError) return { error: freezeError };
 
   const { data, error } = await supabase
     .from("profile_presets")
@@ -319,8 +340,8 @@ export async function importProfilePresetAction(
       id: importPresetId,
       user_id: userId,
       name: presetName,
-      thumbnail_url: thumbnailUrl,
-      preset_data: presetData,
+      thumbnail_url: resolvePresetThumbnailUrl(frozen.data),
+      preset_data: frozen.data,
     })
     .select("id")
     .single();
@@ -340,19 +361,15 @@ export async function updateProfilePresetSnapshotAction(
   const preset = await getProfilePresetById(presetId, userId);
   if (!preset) return { error: "Preset not found." };
 
-  const presetData = await freezePresetAssets(
-    userId,
-    presetId,
-    await captureProfilePresetSnapshot(userId, { styleOnly: true }),
-  );
-  const thumbnailUrl = resolvePresetThumbnailUrl(presetData);
+  const frozen = await captureAndFreezePreset(userId, presetId);
+  if ("error" in frozen) return { error: frozen.error };
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("profile_presets")
     .update({
-      preset_data: presetData,
-      thumbnail_url: thumbnailUrl,
+      preset_data: frozen.presetData,
+      thumbnail_url: frozen.thumbnailUrl,
     })
     .eq("id", presetId)
     .eq("user_id", userId);

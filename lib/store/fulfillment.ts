@@ -1,5 +1,10 @@
 import { syncPremiumBadge } from "@/lib/premium/badge-sync";
 import { getUserEntitlements } from "@/lib/premium/entitlements";
+import {
+  getStoreCatalogEntry,
+  getStoreCatalogEntryByPriceId,
+  type StoreCatalogEntry,
+} from "@/lib/store/catalog";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { StoreProduct } from "@/lib/types/store";
 
@@ -30,55 +35,169 @@ async function grantBadge(profileId: string, slug: string, source: string) {
   }
 }
 
-async function upsertEntitlements(
-  profileId: string,
-  patch: Partial<{
-    extra_profile_pages: number;
-    custom_badge_slots: number;
-    can_create_custom_badge: boolean;
-    theme_pack_unlocked: boolean;
-    supporter_pack_active: boolean;
-    profile_boost_expires_at: string | null;
-  }>,
-) {
+export async function purchaseAlreadyProcessed(stripeSessionId: string): Promise<boolean> {
   const supabase = await adminDb();
-  const { data: existing } = await supabase
-    .from("profile_store_entitlements")
-    .select("*")
-    .eq("profile_id", profileId)
+  const { data } = await supabase
+    .from("purchases")
+    .select("id")
+    .eq("stripe_checkout_session_id", stripeSessionId)
     .maybeSingle();
+  return Boolean(data?.id);
+}
 
-  if (!existing) {
-    await supabase.from("profile_store_entitlements").insert({
-      profile_id: profileId,
-      ...patch,
-    });
-    return;
+function resolveCatalogEntry(input: {
+  product?: StoreProduct | null;
+  productSlug?: string | null;
+  priceId?: string | null;
+}): StoreCatalogEntry | null {
+  if (input.productSlug) {
+    return getStoreCatalogEntry(input.productSlug);
+  }
+  if (input.priceId) {
+    return getStoreCatalogEntryByPriceId(input.priceId);
+  }
+  if (input.product?.slug) {
+    return getStoreCatalogEntry(input.product.slug);
+  }
+  return null;
+}
+
+async function recordPurchase(input: {
+  userId: string;
+  stripeSessionId: string;
+  stripePaymentIntent: string | null;
+  stripeProductId: string | null;
+  priceId: string;
+  productSlug: string;
+  productName: string;
+  amountPaid: number;
+  currency: string;
+  fulfillmentKey: string;
+}) {
+  const supabase = await adminDb();
+  const { error } = await supabase.from("purchases").insert({
+    user_id: input.userId,
+    stripe_checkout_session_id: input.stripeSessionId,
+    stripe_payment_intent: input.stripePaymentIntent,
+    stripe_product_id: input.stripeProductId,
+    price_id: input.priceId,
+    product_slug: input.productSlug,
+    product_name: input.productName,
+    amount_paid: input.amountPaid,
+    currency: input.currency,
+    status: "completed",
+    fulfillment_key: input.fulfillmentKey,
+  });
+
+  if (error && !error.message.includes("duplicate") && error.code !== "23505") {
+    throw new Error(error.message);
+  }
+}
+
+async function applyPurchaseRewards(
+  recipientId: string,
+  catalog: StoreCatalogEntry,
+): Promise<void> {
+  switch (catalog.fulfillmentAction) {
+    case "grant_verified_badge":
+      await grantBadge(recipientId, "verified", "store");
+      {
+        const entitlements = await getUserEntitlements(recipientId);
+        if (!entitlements.is_active || entitlements.plan_tier === "free") {
+          await syncPremiumBadge(recipientId, true);
+        }
+      }
+      break;
+    case "grant_donor_badge":
+      await grantBadge(recipientId, "donor", "store");
+      break;
+    case "contact_support":
+      break;
+    default:
+      break;
+  }
+}
+
+export async function fulfillStoreCheckout(input: {
+  buyerProfileId: string;
+  recipientProfileId: string;
+  product?: StoreProduct | null;
+  productSlug?: string | null;
+  priceId?: string | null;
+  stripeSessionId: string;
+  stripePaymentIntent?: string | null;
+  amountPaid: number;
+  currency: string;
+  isGift?: boolean;
+  giftMessage?: string | null;
+  reservedUsername?: string | null;
+}): Promise<{ alreadyProcessed: boolean }> {
+  if (await purchaseAlreadyProcessed(input.stripeSessionId)) {
+    return { alreadyProcessed: true };
   }
 
-  const merged = {
-    extra_profile_pages:
-      patch.extra_profile_pages !== undefined
-        ? Number(existing.extra_profile_pages) + patch.extra_profile_pages
-        : existing.extra_profile_pages,
-    custom_badge_slots:
-      patch.custom_badge_slots !== undefined
-        ? Number(existing.custom_badge_slots) + patch.custom_badge_slots
-        : existing.custom_badge_slots,
-    can_create_custom_badge: patch.can_create_custom_badge ?? existing.can_create_custom_badge,
-    theme_pack_unlocked: patch.theme_pack_unlocked ?? existing.theme_pack_unlocked,
-    supporter_pack_active: patch.supporter_pack_active ?? existing.supporter_pack_active,
-    profile_boost_expires_at: patch.profile_boost_expires_at ?? existing.profile_boost_expires_at,
-    updated_at: new Date().toISOString(),
-  };
+  const catalog = resolveCatalogEntry({
+    product: input.product,
+    productSlug: input.productSlug,
+    priceId: input.priceId,
+  });
 
-  await supabase.from("profile_store_entitlements").update(merged).eq("profile_id", profileId);
+  if (!catalog && !input.product) {
+    throw new Error("Unknown store product.");
+  }
+
+  const recipientId = input.recipientProfileId;
+  const productSlug = catalog?.slug ?? input.product!.slug;
+  const productName = catalog?.name ?? input.product!.name;
+  const fulfillmentKey = catalog?.fulfillmentKey ?? input.product!.fulfillment_key;
+  const stripeProductId =
+    catalog?.stripeProductId ?? input.product?.stripe_product_id ?? input.product?.stripe_product_id ?? null;
+  const priceId = input.priceId ?? catalog?.stripePriceId ?? input.product?.stripe_price_id ?? "";
+
+  await recordPurchase({
+    userId: input.buyerProfileId,
+    stripeSessionId: input.stripeSessionId,
+    stripePaymentIntent: input.stripePaymentIntent ?? null,
+    stripeProductId,
+    priceId,
+    productSlug,
+    productName,
+    amountPaid: input.amountPaid,
+    currency: input.currency,
+    fulfillmentKey,
+  });
+
+  if (catalog) {
+    await applyPurchaseRewards(recipientId, catalog);
+  } else if (input.product) {
+    if (input.product.fulfillment_key === "verified_badge") {
+      await grantBadge(recipientId, "verified", "store");
+      const entitlements = await getUserEntitlements(recipientId);
+      if (!entitlements.is_active || entitlements.plan_tier === "free") {
+        await syncPremiumBadge(recipientId, true);
+      }
+    } else if (input.product.fulfillment_key === "support_donation") {
+      await grantBadge(recipientId, "donor", "store");
+    }
+  }
+
+  const supabase = await adminDb();
+  await supabase.from("store_purchases").insert({
+    buyer_profile_id: input.buyerProfileId,
+    recipient_profile_id: recipientId,
+    product_id: input.product?.id ?? null,
+    product_slug: productSlug,
+    stripe_session_id: input.stripeSessionId,
+    amount_cents: input.amountPaid,
+    is_gift: Boolean(input.isGift),
+    gift_message: input.giftMessage?.trim() || null,
+    fulfilled_at: new Date().toISOString(),
+  });
+
+  return { alreadyProcessed: false };
 }
 
-export async function syncGifterBadge(profileId: string): Promise<void> {
-  await grantBadge(profileId, "gifter", "store_gift");
-}
-
+/** @deprecated Use fulfillStoreCheckout */
 export async function fulfillStoreProduct(input: {
   buyerProfileId: string;
   recipientProfileId: string;
@@ -89,84 +208,21 @@ export async function fulfillStoreProduct(input: {
   giftMessage?: string | null;
   reservedUsername?: string | null;
 }): Promise<void> {
-  const supabase = await adminDb();
+  await fulfillStoreCheckout({
+    buyerProfileId: input.buyerProfileId,
+    recipientProfileId: input.recipientProfileId,
+    product: input.product,
+    productSlug: input.product.slug,
+    priceId: input.product.stripe_price_id ?? undefined,
+    stripeSessionId: input.stripeSessionId,
+    amountPaid: input.amountCents,
+    currency: "usd",
+    isGift: input.isGift,
+    giftMessage: input.giftMessage,
+    reservedUsername: input.reservedUsername,
+  });
+}
 
-  const { data: purchase } = await supabase
-    .from("store_purchases")
-    .insert({
-      buyer_profile_id: input.buyerProfileId,
-      recipient_profile_id: input.recipientProfileId,
-      product_id: input.product.id,
-      product_slug: input.product.slug,
-      stripe_session_id: input.stripeSessionId,
-      amount_cents: input.amountCents,
-      is_gift: input.isGift,
-      gift_message: input.giftMessage?.trim() || null,
-    })
-    .select("id")
-    .single();
-
-  const recipientId = input.recipientProfileId;
-  const key = input.product.fulfillment_key;
-
-  switch (key) {
-    case "custom_badge":
-      await upsertEntitlements(recipientId, { can_create_custom_badge: true, custom_badge_slots: 1 });
-      break;
-    case "verified_badge":
-      await grantBadge(recipientId, "verified", "store");
-      {
-        const entitlements = await getUserEntitlements(recipientId);
-        if (!entitlements.is_active || entitlements.plan_tier === "free") {
-          await syncPremiumBadge(recipientId, true);
-        }
-      }
-      break;
-    case "username_reservation": {
-      const username = input.reservedUsername?.trim().toLowerCase();
-      if (username) {
-        await supabase.from("reserved_usernames").upsert({
-          username,
-          reason: "purchased reservation",
-          created_by: recipientId,
-        });
-      }
-      break;
-    }
-    case "profile_boost":
-      await upsertEntitlements(recipientId, {
-        profile_boost_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      });
-      break;
-    case "extra_profile_page":
-      await upsertEntitlements(recipientId, { extra_profile_pages: 1 });
-      break;
-    case "custom_badge_slot":
-      await upsertEntitlements(recipientId, { custom_badge_slots: 1 });
-      break;
-    case "theme_pack":
-      await upsertEntitlements(recipientId, { theme_pack_unlocked: true });
-      break;
-    case "supporter_pack":
-      await upsertEntitlements(recipientId, { supporter_pack_active: true });
-      await grantBadge(recipientId, "supporter", "store");
-      break;
-    default:
-      break;
-  }
-
-  if (input.product.badge_slug && key !== "verified_badge" && key !== "supporter_pack") {
-    await grantBadge(recipientId, input.product.badge_slug, "store");
-  }
-
-  if (input.isGift && input.buyerProfileId !== input.recipientProfileId) {
-    await syncGifterBadge(input.buyerProfileId);
-  }
-
-  if (purchase?.id) {
-    await supabase
-      .from("store_purchases")
-      .update({ fulfilled_at: new Date().toISOString() })
-      .eq("id", purchase.id);
-  }
+export async function syncGifterBadge(profileId: string): Promise<void> {
+  await grantBadge(profileId, "gifter", "store_gift");
 }

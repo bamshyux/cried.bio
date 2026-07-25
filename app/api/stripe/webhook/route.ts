@@ -20,21 +20,37 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   if (!buyerId) return;
 
   if (checkoutType === "store") {
+    if (session.payment_status && session.payment_status !== "paid") {
+      return;
+    }
+
     const productSlug = session.metadata?.product_slug;
     const recipientId = session.metadata?.recipient_profile_id ?? buyerId;
-    if (!productSlug) return;
+    const priceId =
+      session.metadata?.price_id ??
+      (typeof session.line_items?.data?.[0]?.price === "object"
+        ? session.line_items?.data?.[0]?.price?.id
+        : null);
+
+    if (!productSlug && !priceId) return;
 
     const { getStoreProductBySlug } = await import("@/lib/data/store");
-    const { fulfillStoreProduct } = await import("@/lib/store/fulfillment");
-    const product = await getStoreProductBySlug(productSlug);
-    if (!product) return;
+    const { fulfillStoreCheckout } = await import("@/lib/store/fulfillment");
+    const product = productSlug ? await getStoreProductBySlug(productSlug) : null;
 
-    await fulfillStoreProduct({
+    await fulfillStoreCheckout({
       buyerProfileId: buyerId,
       recipientProfileId: recipientId,
       product,
+      productSlug: productSlug ?? undefined,
+      priceId: priceId ?? undefined,
       stripeSessionId: session.id,
-      amountCents: session.amount_total ?? product.price_cents,
+      stripePaymentIntent:
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : session.payment_intent?.id ?? null,
+      amountPaid: session.amount_total ?? 0,
+      currency: session.currency ?? "usd",
       isGift: session.metadata?.is_gift === "true",
       giftMessage: session.metadata?.gift_message,
       reservedUsername: session.metadata?.reserved_username,
