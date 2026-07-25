@@ -1,6 +1,11 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { revalidateUserProfile, getAuthenticatedUserId } from "@/lib/actions/auth";
+import {
+  deletePresetAssetScope,
+  freezePresetAssets,
+} from "@/lib/profile-presets/asset-snapshot";
 import {
   applyProfilePresetSnapshot,
   captureProfilePresetSnapshot,
@@ -60,12 +65,15 @@ export async function saveCurrentProfilePresetAction(name: string): Promise<Prof
     return { error: `Maximum ${MAX_PROFILE_PRESETS} presets allowed.` };
   }
 
-  const presetData = await captureProfilePresetSnapshot(userId, { styleOnly: true });
+  const presetId = randomUUID();
+  const rawPresetData = await captureProfilePresetSnapshot(userId, { styleOnly: true });
+  const presetData = await freezePresetAssets(userId, presetId, rawPresetData);
   const thumbnailUrl = resolvePresetThumbnailUrl(presetData);
 
   const { data, error } = await supabase
     .from("profile_presets")
     .insert({
+      id: presetId,
       user_id: userId,
       name: presetName,
       thumbnail_url: thumbnailUrl,
@@ -97,7 +105,11 @@ export async function quickSaveActivePresetAction(): Promise<ProfilePresetFormSt
     return { error: "No active preset. Save a preset from Profile Presets first." };
   }
 
-  const presetData = await captureProfilePresetSnapshot(userId, { styleOnly: true });
+  const presetData = await freezePresetAssets(
+    userId,
+    activePresetId,
+    await captureProfilePresetSnapshot(userId, { styleOnly: true }),
+  );
   const thumbnailUrl = resolvePresetThumbnailUrl(presetData);
 
   const { error } = await supabase
@@ -175,14 +187,17 @@ export async function duplicateProfilePresetAction(
     return { error: `Maximum ${MAX_PROFILE_PRESETS} presets allowed.` };
   }
 
+  const copyPresetId = randomUUID();
+  const presetData = await freezePresetAssets(userId, copyPresetId, preset.preset_data);
   const copyName = `${preset.name} (copy)`.slice(0, 60);
   const { data, error } = await supabase
     .from("profile_presets")
     .insert({
+      id: copyPresetId,
       user_id: userId,
       name: copyName,
       thumbnail_url: preset.thumbnail_url,
-      preset_data: preset.preset_data,
+      preset_data: presetData,
     })
     .select("id")
     .single();
@@ -215,6 +230,8 @@ export async function deleteProfilePresetAction(presetId: string): Promise<Profi
     .eq("user_id", userId);
 
   if (error) return { error: error.message };
+
+  await deletePresetAssetScope(userId, presetId);
 
   await revalidateAll(userId);
   return { success: "Preset deleted." };
@@ -292,15 +309,18 @@ export async function importProfilePresetAction(
   const nameError = await rejectIfModerated(presetName, "theme_name", userId);
   if (nameError) return { error: nameError };
 
-  const thumbnailUrl = resolvePresetThumbnailUrl(parsed.data);
+  const importPresetId = randomUUID();
+  const presetData = await freezePresetAssets(userId, importPresetId, parsed.data);
+  const thumbnailUrl = resolvePresetThumbnailUrl(presetData);
 
   const { data, error } = await supabase
     .from("profile_presets")
     .insert({
+      id: importPresetId,
       user_id: userId,
       name: presetName,
       thumbnail_url: thumbnailUrl,
-      preset_data: parsed.data,
+      preset_data: presetData,
     })
     .select("id")
     .single();
@@ -320,7 +340,11 @@ export async function updateProfilePresetSnapshotAction(
   const preset = await getProfilePresetById(presetId, userId);
   if (!preset) return { error: "Preset not found." };
 
-  const presetData = await captureProfilePresetSnapshot(userId, { styleOnly: true });
+  const presetData = await freezePresetAssets(
+    userId,
+    presetId,
+    await captureProfilePresetSnapshot(userId, { styleOnly: true }),
+  );
   const thumbnailUrl = resolvePresetThumbnailUrl(presetData);
 
   const supabase = await createClient();

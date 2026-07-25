@@ -1,6 +1,8 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { applyCustomThemeAction } from "@/app/actions/custom-themes";
+import { freezePresetAssets } from "@/lib/profile-presets/asset-snapshot";
 import { applyProfilePresetSnapshot, captureProfilePresetSnapshot } from "@/lib/profile-presets/snapshot";
 import { setActivePresetId } from "@/lib/data/profile-presets";
 import { revalidateUserProfile, getAuthenticatedUserId } from "@/lib/actions/auth";
@@ -195,6 +197,7 @@ export async function publishCommunityProfilePresetAction(input: {
       storedSnapshot ?? (await captureProfilePresetSnapshot(userId, { styleOnly: true }));
   }
 
+  const listingId = existing?.id ?? randomUUID();
   const visibility = input.visibility === "open_source" ? "public" : input.visibility;
   const thumbnail =
     input.previewImageUrl?.trim() ||
@@ -219,10 +222,12 @@ export async function publishCommunityProfilePresetAction(input: {
   };
 
   if (shouldRefreshSnapshot && presetData) {
-    payload.published_preset_data = presetData;
+    payload.published_preset_data = await freezePresetAssets(
+      userId,
+      `community-${listingId}`,
+      presetData,
+    );
   }
-
-  let listingId: string;
 
   if (existing?.id) {
     let { error } = await supabase
@@ -239,11 +244,10 @@ export async function publishCommunityProfilePresetAction(input: {
         .eq("author_id", userId));
     }
     if (error) return { error: error.message };
-    listingId = existing.id;
   } else {
     let { data, error } = await supabase
       .from("community_theme_listings")
-      .insert(payload)
+      .insert({ ...payload, id: listingId })
       .select("id")
       .single();
     if (error && isMissingPublishedPresetSnapshotColumn(error)) {
@@ -256,7 +260,6 @@ export async function publishCommunityProfilePresetAction(input: {
     }
     if (error) return { error: error.message };
     if (!data) return { error: "Failed to publish preset." };
-    listingId = data.id;
   }
 
   await revalidateCommunity(userId);
@@ -485,13 +488,17 @@ async function installCommunityProfilePresetListing(
   const nameError = await rejectIfModerated(copyName, "theme_name", userId);
   if (nameError) return { error: nameError };
 
+  const installedPresetId = randomUUID();
+  const frozenSnapshot = await freezePresetAssets(userId, installedPresetId, snapshot);
+
   const { data: installedPreset, error: insertError } = await client
     .from("profile_presets")
     .insert({
+      id: installedPresetId,
       user_id: userId,
       name: copyName,
-      thumbnail_url: listing.preview_image_url ?? resolvePresetThumbnailUrl(snapshot) ?? null,
-      preset_data: snapshot,
+      thumbnail_url: listing.preview_image_url ?? resolvePresetThumbnailUrl(frozenSnapshot) ?? null,
+      preset_data: frozenSnapshot,
     })
     .select("id")
     .single();
@@ -509,7 +516,7 @@ async function installCommunityProfilePresetListing(
   if (installError) return { error: installError.message };
 
   if (applyAfter) {
-    const applyResult = await applyProfilePresetSnapshot(userId, snapshot, {
+    const applyResult = await applyProfilePresetSnapshot(userId, frozenSnapshot, {
       preservePersonalContent: true,
     });
     if (applyResult.error) {
