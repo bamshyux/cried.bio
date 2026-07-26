@@ -19,6 +19,10 @@ import {
   parseCardBorderTargets,
 } from "@/lib/card-border-effects/resolve";
 import { clampCursorImageSize } from "@/lib/profile/custom-cursor";
+import {
+  normalizeBackgroundMediaFields,
+  normalizeEnterGateMediaFields,
+} from "@/lib/uploads/background-media";
 
 export const DEFAULT_SETTINGS: Omit<
   ProfileSettings,
@@ -545,8 +549,9 @@ export function mergeSettings(
       ? "glow"
       : undefined;
 
-  return {
-    profile_id: profileId,
+  return normalizeEnterGateMediaFields(
+    normalizeBackgroundMediaFields({
+      profile_id: profileId,
     layout: row?.layout ?? DEFAULT_SETTINGS.layout,
     accent_color: row?.accent_color ?? DEFAULT_SETTINGS.accent_color,
     text_color: row?.text_color ?? DEFAULT_SETTINGS.text_color,
@@ -722,7 +727,8 @@ export function mergeSettings(
     active_preset_id: row?.active_preset_id ?? null,
     created_at: row?.created_at ?? now,
     updated_at: row?.updated_at ?? now,
-  };
+    }),
+  );
 }
 
 export function getProfileAlignClass(alignment: ContentAlignment = "left") {

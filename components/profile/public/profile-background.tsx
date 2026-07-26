@@ -1,5 +1,6 @@
 "use client";
 
+import { resolveProfileBackgroundMedia } from "@/lib/uploads/background-media";
 import type { ProfileSettings } from "@/lib/types/settings";
 
 export function ProfileBackground({
@@ -20,15 +21,24 @@ export function ProfileBackground({
   };
 
   const overlayOpacity = settings.overlay_opacity / 100;
+  const backgroundMedia = resolveProfileBackgroundMedia(settings);
 
   let bg: React.ReactNode;
 
-  if (settings.background_type === "video" && settings.background_video_url) {
+  if (backgroundMedia.kind === "video" && backgroundMedia.url) {
     bg = (
-      <video src={settings.background_video_url} autoPlay muted loop playsInline className="h-full w-full object-cover" />
+      <video
+        src={backgroundMedia.url}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        className="h-full w-full object-cover"
+      />
     );
-  } else if (settings.background_type === "image" && settings.background_image_url) {
-    bg = <img src={settings.background_image_url} alt="" className="h-full w-full object-cover" />;
+  } else if (backgroundMedia.kind === "image" && backgroundMedia.url) {
+    bg = <img src={backgroundMedia.url} alt="" className="h-full w-full object-cover" />;
   } else if (settings.background_type === "animated_gradient") {
     bg = <div className="h-full w-full" style={gradientStyle} />;
   } else if (settings.background_type === "solid") {

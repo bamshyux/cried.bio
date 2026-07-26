@@ -20,6 +20,7 @@ import {
   saveBackgroundMediaAction,
 } from "@/app/actions/settings";
 import { uploadBackgroundToStorage } from "@/lib/uploads/background-client";
+import { isBackgroundVideoFile, resolveProfileBackgroundMedia } from "@/lib/uploads/background-media";
 import { MAX_BACKGROUND_UPLOAD_LABEL } from "@/lib/uploads/limits";
 import { BACKGROUND_TYPE_OPTIONS, PARTICLE_OPTIONS } from "@/lib/settings";
 import type { BackgroundType, ParticleEffect, ProfileSettings } from "@/lib/types/settings";
@@ -94,8 +95,13 @@ export function BackgroundEditor({
     };
   }, [imagePreview, videoPreview]);
 
-  const displayImageUrl = imagePreview ?? settings.background_image_url ?? null;
-  const displayVideoUrl = videoPreview ?? settings.background_video_url ?? null;
+  const storedBackground = resolveProfileBackgroundMedia(settings);
+  const displayImageUrl =
+    imagePreview ??
+    (storedBackground.kind === "image" ? storedBackground.url : null);
+  const displayVideoUrl =
+    videoPreview ??
+    (storedBackground.kind === "video" ? storedBackground.url : null);
   const hasBackgroundMedia = !!displayImageUrl || !!displayVideoUrl;
 
   const handleSave = (event: React.FormEvent) => {
@@ -110,7 +116,7 @@ export function BackgroundEditor({
     setUploadError(undefined);
     setUploadSuccess(undefined);
 
-    const isVideo = file.type === "video/mp4";
+    const isVideo = isBackgroundVideoFile(file);
     if (isVideo) {
       setVideoPreview(URL.createObjectURL(file));
       setImagePreview(null);
@@ -277,8 +283,11 @@ export function BackgroundEditor({
                 <video
                   src={displayVideoUrl}
                   className="max-h-32 w-full rounded-lg border border-white/[0.06] object-cover"
+                  autoPlay
                   muted
+                  loop
                   playsInline
+                  preload="auto"
                 />
               )}
               <RemoveMediaButton

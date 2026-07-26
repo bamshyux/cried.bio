@@ -12,6 +12,12 @@ import {
 import { clampCursorImageSize } from "@/lib/profile/custom-cursor";
 import { isValidProfileFaviconStorageUrl } from "@/lib/profile/favicon";
 import { backgroundUploadSizeError, MAX_BACKGROUND_UPLOAD_BYTES } from "@/lib/uploads/limits";
+import {
+  backgroundStorageExtension,
+  backgroundUploadContentType,
+  resolveBackgroundMediaTypeFromUrl,
+  resolveBackgroundUploadKind,
+} from "@/lib/uploads/background-media";
 import { formatSchemaError } from "@/lib/db/schema";
 import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
 import { markProfileAppearanceChanged } from "@/lib/data/profile-presets";
@@ -650,13 +656,14 @@ async function uploadFile(
   file: File,
   bucket: "backgrounds" | "music",
   filename: string,
+  contentType?: string,
 ) {
   const supabase = await createClient();
   const path = `${userId}/${filename}`;
 
   const { error } = await supabase.storage
     .from(bucket)
-    .upload(path, file, { upsert: true, contentType: file.type });
+    .upload(path, file, { upsert: true, contentType: contentType ?? (file.type || "application/octet-stream") });
 
   if (error) throw new Error(error.message);
 
@@ -695,8 +702,10 @@ export async function saveBackgroundMediaAction(
   const ensure = await ensureSettingsRow(userId, pageId);
   if (ensure.error) return { error: ensure.error };
 
+  const resolvedType = resolveBackgroundMediaTypeFromUrl(mediaUrl, mediaType);
+
   const update =
-    mediaType === "video"
+    resolvedType === "video"
       ? { background_type: "video" as const, background_video_url: mediaUrl, background_image_url: null }
       : { background_type: "image" as const, background_image_url: mediaUrl, background_video_url: null };
 
@@ -705,7 +714,7 @@ export async function saveBackgroundMediaAction(
 
   await revalidateProfile(userId, pageId);
   return {
-    success: mediaType === "video" ? "Video background uploaded." : "Image background uploaded.",
+    success: resolvedType === "video" ? "Video background uploaded." : "Image background uploaded.",
   };
 }
 
@@ -746,18 +755,17 @@ export async function uploadBackgroundAction(
 
   await ensureSettingsRow(userId);
 
-  const isVideo = file.type === "video/mp4";
-  const isImage = file.type.startsWith("image/");
-
-  if (!isVideo && !isImage) {
+  const kind = resolveBackgroundUploadKind(file);
+  if (!kind) {
     return { error: "Upload a JPEG, PNG, WebP, GIF, or MP4 file." };
   }
 
   try {
-    const ext = isVideo ? "mp4" : file.type.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
+    const ext = backgroundStorageExtension(kind, file);
+    const contentType = backgroundUploadContentType(file, kind);
     await deleteStoragePrefix(userId, "backgrounds", "background.");
-    const url = await uploadFile(userId, file, "backgrounds", `background.${ext}`);
-    return saveBackgroundMediaAction(url, isVideo ? "video" : "image");
+    const url = await uploadFile(userId, file, "backgrounds", `background.${ext}`, contentType);
+    return saveBackgroundMediaAction(url, kind === "video" ? "video" : "image");
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Upload failed." };
   }
@@ -805,8 +813,10 @@ export async function saveEnterGateMediaAction(
 
   await ensureSettingsRow(userId);
 
+  const resolvedType = resolveBackgroundMediaTypeFromUrl(mediaUrl, mediaType);
+
   const update =
-    mediaType === "video"
+    resolvedType === "video"
       ? {
           enter_gate_background_type: "video" as const,
           enter_gate_background_video_url: mediaUrl,
@@ -823,7 +833,7 @@ export async function saveEnterGateMediaAction(
 
   await revalidateProfile(userId);
   return {
-    success: mediaType === "video" ? "Enter gate video uploaded." : "Enter gate image uploaded.",
+    success: resolvedType === "video" ? "Enter gate video uploaded." : "Enter gate image uploaded.",
   };
 }
 

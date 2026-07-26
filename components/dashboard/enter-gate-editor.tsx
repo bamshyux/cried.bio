@@ -24,6 +24,7 @@ import {
 } from "@/lib/enter-gate";
 import { PARTICLE_OPTIONS, FONT_OPTIONS } from "@/lib/settings";
 import { uploadEnterGateBackgroundToStorage } from "@/lib/uploads/enter-gate-client";
+import { isBackgroundVideoFile } from "@/lib/uploads/background-media";
 import { MAX_BACKGROUND_UPLOAD_LABEL } from "@/lib/uploads/limits";
 import type { ParticleEffect, ProfileSettings } from "@/lib/types/settings";
 import type { Profile } from "@/lib/types/profile";
@@ -156,7 +157,7 @@ export function EnterGateEditor({
     setUploadError(undefined);
     setUploadSuccess(undefined);
 
-    const isVideo = file.type === "video/mp4";
+    const isVideo = isBackgroundVideoFile(file);
     if (isVideo) {
       setVideoPreview(URL.createObjectURL(file));
       setImagePreview(null);
