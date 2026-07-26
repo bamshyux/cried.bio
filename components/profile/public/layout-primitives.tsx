@@ -268,8 +268,15 @@ export function Username({
   const showUid = profile.uid != null;
 
   return (
-    <div className="bf-profile-username-wrap inline-flex max-w-full flex-col items-start gap-1.5">
-      {showUid ? <ProfileUidBadge uid={profile.uid!} accentColor={settings.accent_color} /> : null}
+    <div
+      className={`bf-profile-username-wrap relative inline-flex max-w-full flex-col items-start ${showUid ? "group cursor-help" : ""}`}
+      tabIndex={showUid ? 0 : undefined}
+    >
+      {showUid ? (
+        <div className="bf-profile-uid-hover pointer-events-none absolute bottom-full left-1/2 z-[9999] mb-2">
+          <ProfileUidBadge uid={profile.uid!} accentColor={settings.accent_color} />
+        </div>
+      ) : null}
       <h1 className={headingClass} style={headingStyle}>
         {usesClipText ? (
           <span className={`inline-block ${effectClass}`}>

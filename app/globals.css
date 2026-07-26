@@ -1873,6 +1873,20 @@ body,
   align-items: center;
 }
 
+.bf-profile-uid-hover {
+  opacity: 0;
+  transform: translate(-50%, 6px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.bf-profile-username-wrap:hover .bf-profile-uid-hover,
+.bf-profile-username-wrap:focus-within .bf-profile-uid-hover {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
 .bf-profile-uid {
   display: inline-flex;
   line-height: 1;
