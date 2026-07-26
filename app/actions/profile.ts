@@ -1,6 +1,5 @@
 "use server";
 
-import { sendNewAccountDiscordAlert } from "@/lib/discord/signup-webhook";
 import { rejectIfModerated } from "@/lib/moderation/validate";
 import { createClient } from "@/lib/supabase/server";
 import { getUsernameChangeBlockReason } from "@/lib/username-cooldown";
@@ -191,18 +190,20 @@ export async function updateProfileAction(
     return { error: error.message };
   }
 
-  const hadUsername = Boolean(existingProfile?.username?.trim());
-  if (!hadUsername) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    void sendNewAccountDiscordAlert({
-      email: user?.email ?? "Unknown",
-      username,
-      displayName,
-      userId,
-    });
-  }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { queueAuditLogForUser } = await import("@/lib/discord/audit-webhook");
+  queueAuditLogForUser({
+    action: existingProfile ? "Profile Updated" : "Profile Created",
+    userId,
+    email: user?.email,
+    username,
+    displayName,
+    description: existingProfile
+      ? `Updated profile for @${username}.`
+      : `Created profile for @${username}.`,
+  });
 
   revalidatePath("/dashboard");
   revalidatePath(`/${username}`);

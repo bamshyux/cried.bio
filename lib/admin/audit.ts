@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { adminAuditToDiscordInput, queueAuditLog } from "@/lib/discord/audit-webhook";
 
 export async function logAdminAudit(input: {
   actorId: string;
@@ -19,11 +20,12 @@ export async function logAdminAudit(input: {
   const admin = createAdminClient();
   if (admin) {
     await admin.from("admin_audit_logs").insert(row);
-    return;
+  } else {
+    const supabase = await createClient();
+    await supabase.from("admin_audit_logs").insert(row);
   }
 
-  const supabase = await createClient();
-  await supabase.from("admin_audit_logs").insert(row);
+  queueAuditLog(adminAuditToDiscordInput(input));
 }
 
 export async function logUserTimelineEvent(input: {

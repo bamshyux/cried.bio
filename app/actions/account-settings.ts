@@ -88,6 +88,15 @@ export async function updateUsernameAction(
 
   if (error) return { error: error.message };
 
+  const { queueAuditLogForUser } = await import("@/lib/discord/audit-webhook");
+  queueAuditLogForUser({
+    action: "Username Updated",
+    userId: auth.userId,
+    email: auth.email,
+    username,
+    description: `Changed username to @${username}.`,
+  });
+
   revalidatePath("/dashboard/settings");
   revalidatePath("/dashboard/profile");
   if (existing?.username) revalidatePath(`/${existing.username}`);
@@ -125,6 +134,14 @@ export async function updateEmailAction(
     };
   }
 
+  const { queueAuditLogForUser } = await import("@/lib/discord/audit-webhook");
+  queueAuditLogForUser({
+    action: "Email Change Requested",
+    userId: auth.userId,
+    email: auth.email,
+    description: `Requested email change to ${email}.`,
+  });
+
   return { success: "Confirmation sent to your new email address." };
 }
 
@@ -144,6 +161,14 @@ export async function changePasswordAction(
 
   const { error } = await auth.supabase.auth.updateUser({ password });
   if (error) return { error: error.message };
+
+  const { queueAuditLogForUser } = await import("@/lib/discord/audit-webhook");
+  queueAuditLogForUser({
+    action: "Password Changed",
+    userId: auth.userId,
+    email: auth.email,
+    description: "Account password was updated.",
+  });
 
   return { success: "Password updated." };
 }
@@ -256,6 +281,14 @@ export async function storeMfaRecoveryCodesAction(): Promise<AccountSettingsForm
 
   if (insertError) return { error: insertError.message };
 
+  const { queueAuditLogForUser } = await import("@/lib/discord/audit-webhook");
+  queueAuditLogForUser({
+    action: "MFA Recovery Codes Generated",
+    userId: auth.userId,
+    email: auth.email,
+    description: "Generated new two-factor recovery codes.",
+  });
+
   revalidatePath("/dashboard/settings");
   return { success: "Recovery codes generated.", recoveryCodes: codes };
 }
@@ -273,6 +306,14 @@ export async function signOutAllDevicesAction(): Promise<AccountSettingsFormStat
     .update({ revoked_at: new Date().toISOString() })
     .eq("user_id", auth.userId)
     .is("revoked_at", null);
+
+  const { queueAuditLogForUser } = await import("@/lib/discord/audit-webhook");
+  queueAuditLogForUser({
+    action: "Signed Out All Devices",
+    userId: auth.userId,
+    email: auth.email,
+    description: "Signed out of all active sessions.",
+  });
 
   await auth.supabase.auth.signOut({ scope: "global" });
   redirect("/login");
@@ -307,6 +348,14 @@ export async function resetProfileAction(
   const { error } = await auth.supabase.rpc("reset_own_profile");
   if (error) return { error: error.message };
 
+  const { queueAuditLogForUser } = await import("@/lib/discord/audit-webhook");
+  queueAuditLogForUser({
+    action: "Profile Reset",
+    userId: auth.userId,
+    email: auth.email,
+    description: "Reset profile appearance and settings to defaults.",
+  });
+
   revalidatePath("/dashboard", "layout");
   return { success: "Profile reset to defaults." };
 }
@@ -326,6 +375,22 @@ export async function deleteAccountAction(
   });
 
   if (error) return { error: error.message };
+
+  const { data: profile } = await auth.supabase
+    .from("profiles")
+    .select("username, display_name")
+    .eq("id", auth.userId)
+    .maybeSingle();
+
+  const { queueAuditLogForUser } = await import("@/lib/discord/audit-webhook");
+  queueAuditLogForUser({
+    action: "Account Deleted",
+    userId: auth.userId,
+    email: auth.email,
+    username: profile?.username,
+    displayName: profile?.display_name,
+    description: `Deleted account @${confirm}.`,
+  });
 
   await auth.supabase.auth.signOut();
   redirect("/");

@@ -177,6 +177,19 @@ export async function createSupportConversationAction(
     previewBody,
     customerProfile ?? undefined,
   );
+
+  const { queueAuditLogForUser } = await import("@/lib/discord/audit-webhook");
+  const { formatSupportReferenceId } = await import("@/lib/support/reference-id");
+  queueAuditLogForUser({
+    action: "Support Ticket Created",
+    userId: user.userId,
+    email: user.email,
+    username: customerProfile?.username,
+    displayName: customerProfile?.display_name,
+    referenceId: formatSupportReferenceId(conversation.id),
+    description: `Opened support ticket: ${trimmedSubject}.`,
+  });
+
   revalidateSupport();
 
   return {
@@ -376,6 +389,15 @@ export async function closeSupportConversationAction(
     "@/lib/discord/support-webhook"
   );
   queueSupportDiscordWebhook(() => notifySupportTicketClosed(conversationId, userId));
+
+  const { queueAuditLogForUser } = await import("@/lib/discord/audit-webhook");
+  const { formatSupportReferenceId } = await import("@/lib/support/reference-id");
+  queueAuditLogForUser({
+    action: "Support Ticket Closed",
+    userId,
+    referenceId: formatSupportReferenceId(conversationId),
+    description: `${isStaff ? "Staff" : "Customer"} closed support ticket: ${conversation.subject}.`,
+  });
 
   revalidateSupport();
   return { success: "Conversation closed." };

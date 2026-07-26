@@ -182,6 +182,11 @@ async function writeModerationAudit(input: {
     target_id: input.targetId ?? null,
     details: input.details ?? null,
   });
+
+  const { moderationAuditToDiscordInput, queueAuditLog } = await import(
+    "@/lib/discord/audit-webhook"
+  );
+  queueAuditLog(moderationAuditToDiscordInput(input));
 }
 
 export async function addModerationWord(input: {
