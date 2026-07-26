@@ -83,7 +83,12 @@ export async function GET(
   const format = new URL(request.url).searchParams.get("format");
 
   if (format === "md" || format === "markdown") {
-    const markdown = transcriptToMarkdown(transcript);
+    const markdown = transcriptToMarkdown(transcript, {
+      customer: conversation.customer,
+      staff: conversation.assignee,
+      openedAt: row.created_at,
+      closedAt: row.closed_at,
+    });
     return new NextResponse(markdown, {
       headers: {
         "Content-Type": "text/markdown; charset=utf-8",
