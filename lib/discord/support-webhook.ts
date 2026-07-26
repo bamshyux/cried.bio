@@ -18,6 +18,7 @@ type DiscordEmbedField = { name: string; value: string; inline?: boolean };
 type DiscordEmbed = {
   title: string;
   color: number;
+  description?: string;
   fields: DiscordEmbedField[];
   footer: { text: string };
   timestamp: string;
