@@ -970,6 +970,7 @@ export function PublicProfileClient({
               <ProfileCardLayoutEditor
                 settings={settings}
                 isOwner={isOwner}
+                isPreview={isPresetPreview}
                 parallaxEnabled={settings.profile_parallax}
                 embeds={embeds}
                 username={profile.username ?? ""}

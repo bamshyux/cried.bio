@@ -158,6 +158,7 @@ function ProfileEditModeDock({
 export function ProfileCardLayoutEditor({
   settings,
   isOwner,
+  isPreview = false,
   parallaxEnabled,
   embeds = [],
   username = "",
@@ -165,6 +166,7 @@ export function ProfileCardLayoutEditor({
 }: {
   settings: ProfileSettings;
   isOwner: boolean;
+  isPreview?: boolean;
   parallaxEnabled?: boolean;
   embeds?: ProfileEmbed[];
   username?: string;
@@ -357,7 +359,7 @@ export function ProfileCardLayoutEditor({
     ...(clipOverflow ? { height: layout.maxHeight, overflow: "hidden" as const } : { overflow: "visible" as const }),
   };
 
-  if (!isOwner) {
+  if (!isOwner || isPreview) {
     const viewClipOverflow = settings.card_max_height > 0 && !parallaxEnabled;
     const viewStyle = {
       ...getPublicCardLayoutStyle(settings),
