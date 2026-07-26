@@ -24,6 +24,7 @@ import { ProfilePageNav } from "./profile-page-nav";
 import { ProfileSiteChrome } from "./profile-site-chrome";
 import { CursorEffectCanvas, CustomProfileCursor } from "./profile-effects";
 import { ProfileTabBranding } from "./profile-tab-branding";
+import { ExternalLinkConfirmProvider } from "./external-link-confirm";
 
 export function PublicContentPageClient({
   username,
@@ -78,7 +79,8 @@ export function PublicContentPageClient({
     ) : null;
 
   return (
-    <>
+    <ExternalLinkConfirmProvider>
+      <>
       <ProfileTabBranding
         username={username}
         displayName={pageTitle}
@@ -153,6 +155,7 @@ export function PublicContentPageClient({
       {settings.music_url || musicTracks.length > 0 ? (
         <MusicPlayer settings={settings} tracks={musicTracks} />
       ) : null}
-    </>
+      </>
+    </ExternalLinkConfirmProvider>
   );
 }

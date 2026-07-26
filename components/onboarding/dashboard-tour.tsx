@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { completeDashboardTourAction } from "@/app/actions/onboarding";
@@ -23,6 +23,82 @@ type SpotlightRect = {
 
 const TOOLTIP_WIDTH = 400;
 const VIEWPORT_PAD = 16;
+const TOOLTIP_GAP = 16;
+const SCROLL_SETTLE_MS = 480;
+
+function tooltipRect(top: number, left: number, height: number) {
+  return { top, left, width: TOOLTIP_WIDTH, height };
+}
+
+function overlapsSpotlight(
+  tooltip: { top: number; left: number; width: number; height: number },
+  spotlight: SpotlightRect,
+  gap = TOOLTIP_GAP,
+): boolean {
+  return !(
+    tooltip.left + tooltip.width + gap <= spotlight.left ||
+    spotlight.left + spotlight.width + gap <= tooltip.left ||
+    tooltip.top + tooltip.height + gap <= spotlight.top ||
+    spotlight.top + spotlight.height + gap <= tooltip.top
+  );
+}
+
+function spotlightAfterScroll(spotlight: SpotlightRect, scrollDelta: number): SpotlightRect {
+  return {
+    ...spotlight,
+    top: spotlight.top - scrollDelta,
+  };
+}
+
+function alignedTooltipLeft(spotlight: SpotlightRect, viewportWidth: number): number {
+  return clampTooltipLeft(
+    spotlight.left + Math.max(0, (spotlight.width - TOOLTIP_WIDTH) / 2),
+    viewportWidth,
+  );
+}
+
+function resolveTooltipPosition(
+  spotlight: SpotlightRect,
+  viewport: { width: number; height: number },
+  tooltipHeight: number,
+): { top: number; left: number } {
+  const gap = TOOLTIP_GAP;
+  const alignedLeft = alignedTooltipLeft(spotlight, viewport.width);
+
+  const candidates = [
+    { top: spotlight.top + spotlight.height + gap, left: alignedLeft },
+    { top: spotlight.top - tooltipHeight - gap, left: alignedLeft },
+    {
+      top: clampTooltipTop(spotlight.top, viewport.height, tooltipHeight),
+      left: spotlight.left + spotlight.width + gap,
+    },
+    {
+      top: clampTooltipTop(spotlight.top, viewport.height, tooltipHeight),
+      left: spotlight.left - TOOLTIP_WIDTH - gap,
+    },
+    { top: viewport.height - tooltipHeight - VIEWPORT_PAD, left: viewport.width - TOOLTIP_WIDTH - VIEWPORT_PAD },
+    { top: viewport.height - tooltipHeight - VIEWPORT_PAD, left: VIEWPORT_PAD },
+    { top: VIEWPORT_PAD, left: viewport.width - TOOLTIP_WIDTH - VIEWPORT_PAD },
+    { top: VIEWPORT_PAD, left: VIEWPORT_PAD },
+  ];
+
+  for (const candidate of candidates) {
+    const top = clampTooltipTop(candidate.top, viewport.height, tooltipHeight);
+    const left = clampTooltipLeft(candidate.left, viewport.width);
+    const tooltip = tooltipRect(top, left, tooltipHeight);
+
+    if (overlapsSpotlight(tooltip, spotlight, gap)) continue;
+    if (top < VIEWPORT_PAD - 1 || top + tooltipHeight > viewport.height - VIEWPORT_PAD + 1) continue;
+    if (left < VIEWPORT_PAD - 1 || left + TOOLTIP_WIDTH > viewport.width - VIEWPORT_PAD + 1) continue;
+
+    return { top, left };
+  }
+
+  return {
+    top: clampTooltipTop(spotlight.top + spotlight.height + gap, viewport.height, tooltipHeight),
+    left: alignedLeft,
+  };
+}
 
 function getTooltipMaxHeight(viewportHeight: number): number {
   return Math.min(viewportHeight * 0.78, 640);
@@ -42,10 +118,7 @@ function clampTooltipLeft(left: number, viewportWidth: number): number {
   );
 }
 
-function getSpotlightRect(target: string): SpotlightRect | null {
-  const element = document.querySelector<HTMLElement>(`[data-tour="${target}"]`);
-  if (!element) return null;
-
+function getSpotlightRectFromElement(element: HTMLElement): SpotlightRect | null {
   const rect = element.getBoundingClientRect();
   if (rect.width === 0 || rect.height === 0) return null;
 
@@ -58,60 +131,157 @@ function getSpotlightRect(target: string): SpotlightRect | null {
   };
 }
 
+function getSpotlightRect(target: string): SpotlightRect | null {
+  const element = document.querySelector<HTMLElement>(`[data-tour="${target}"]`);
+  if (!element) return null;
+  return getSpotlightRectFromElement(element);
+}
+
+function computeTourScrollDelta(
+  spotlight: SpotlightRect,
+  viewport: { width: number; height: number },
+  tooltipHeight: number,
+): number {
+  const gap = TOOLTIP_GAP;
+  const current = resolveTooltipPosition(spotlight, viewport, tooltipHeight);
+  if (!overlapsSpotlight(tooltipRect(current.top, current.left, tooltipHeight), spotlight, gap)) {
+    return 0;
+  }
+
+  const scrollDown = Math.max(
+    0,
+    spotlight.top + spotlight.height + gap + tooltipHeight - (viewport.height - VIEWPORT_PAD),
+  );
+  const afterDown = spotlightAfterScroll(spotlight, scrollDown);
+  const belowPos = resolveTooltipPosition(afterDown, viewport, tooltipHeight);
+  if (!overlapsSpotlight(tooltipRect(belowPos.top, belowPos.left, tooltipHeight), afterDown, gap)) {
+    return scrollDown;
+  }
+
+  const scrollUp = Math.min(0, VIEWPORT_PAD - (spotlight.top - tooltipHeight - gap));
+  const afterUp = spotlightAfterScroll(spotlight, scrollUp);
+  const abovePos = resolveTooltipPosition(afterUp, viewport, tooltipHeight);
+  if (!overlapsSpotlight(tooltipRect(abovePos.top, abovePos.left, tooltipHeight), afterUp, gap)) {
+    return scrollUp;
+  }
+
+  return scrollDown > 0 ? scrollDown : scrollUp;
+}
+
+function waitForScrollSettle(): Promise<void> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+
+    window.addEventListener("scrollend", finish, { once: true });
+    window.setTimeout(finish, SCROLL_SETTLE_MS);
+  });
+}
+
+async function scrollTargetIntoTourView(
+  target: string,
+  viewport: { width: number; height: number },
+  tooltipHeight: number,
+  behavior: ScrollBehavior = "smooth",
+): Promise<void> {
+  const element = document.querySelector<HTMLElement>(`[data-tour="${target}"]`);
+  if (!element) return;
+
+  const spotlight = getSpotlightRectFromElement(element);
+  if (!spotlight) return;
+
+  const scrollDelta = computeTourScrollDelta(spotlight, viewport, tooltipHeight);
+
+  if (Math.abs(scrollDelta) < 2) return;
+
+  window.scrollBy({ top: scrollDelta, behavior });
+  if (behavior === "smooth") {
+    await waitForScrollSettle();
+  }
+}
+
+async function scrollForTourStep(
+  step: (typeof DASHBOARD_TOUR_STEPS)[number],
+  viewport: { width: number; height: number },
+  tooltipHeight: number,
+): Promise<void> {
+  if (step.target) {
+    await scrollTargetIntoTourView(step.target, viewport, tooltipHeight, "smooth");
+    return;
+  }
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  await waitForScrollSettle();
+}
+
+function lockBackgroundScroll(): () => void {
+  const html = document.documentElement;
+  const body = document.body;
+  const previousHtmlOverflow = html.style.overflow;
+  const previousBodyOverflow = body.style.overflow;
+
+  html.style.overflow = "hidden";
+  body.style.overflow = "hidden";
+
+  const preventBackgroundScroll = (event: Event) => {
+    const target = event.target;
+    if (!(target instanceof Node)) {
+      event.preventDefault();
+      return;
+    }
+
+    const tooltip = document.querySelector<HTMLElement>('[aria-label="Dashboard tour"]');
+    if (tooltip?.contains(target)) return;
+
+    event.preventDefault();
+  };
+
+  document.addEventListener("wheel", preventBackgroundScroll, { passive: false, capture: true });
+  document.addEventListener("touchmove", preventBackgroundScroll, { passive: false, capture: true });
+
+  const preventKeyboardScroll = (event: KeyboardEvent) => {
+    const keys = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "]);
+    if (!keys.has(event.key)) return;
+
+    const target = event.target;
+    if (target instanceof HTMLElement) {
+      const tooltip = document.querySelector<HTMLElement>('[aria-label="Dashboard tour"]');
+      if (tooltip?.contains(target)) return;
+      if (target.isContentEditable) return;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") return;
+    }
+
+    event.preventDefault();
+  };
+
+  document.addEventListener("keydown", preventKeyboardScroll, { capture: true });
+
+  return () => {
+    html.style.overflow = previousHtmlOverflow;
+    body.style.overflow = previousBodyOverflow;
+    document.removeEventListener("wheel", preventBackgroundScroll, true);
+    document.removeEventListener("touchmove", preventBackgroundScroll, true);
+    document.removeEventListener("keydown", preventKeyboardScroll, true);
+  };
+}
+
 function getTooltipPosition(
   spotlight: SpotlightRect | null,
   viewport: { width: number; height: number },
-  maxTooltipHeight: number,
+  tooltipHeight: number,
 ): { top: number; left: number } {
-  const dockBottom = (): { top: number; left: number } => ({
-    top: clampTooltipTop(viewport.height - maxTooltipHeight - VIEWPORT_PAD, viewport.height, maxTooltipHeight),
-    left: clampTooltipLeft(viewport.width / 2 - TOOLTIP_WIDTH / 2, viewport.width),
-  });
-
   if (!spotlight) {
     return {
-      top: clampTooltipTop(viewport.height / 2 - maxTooltipHeight / 2, viewport.height, maxTooltipHeight),
+      top: clampTooltipTop(viewport.height / 2 - tooltipHeight / 2, viewport.height, tooltipHeight),
       left: clampTooltipLeft(viewport.width / 2 - TOOLTIP_WIDTH / 2, viewport.width),
     };
   }
 
-  if (spotlight.height > viewport.height * 0.42) {
-    return {
-      top: clampTooltipTop(viewport.height - maxTooltipHeight - VIEWPORT_PAD, viewport.height, maxTooltipHeight),
-      left: clampTooltipLeft(
-        Math.min(spotlight.left, viewport.width - TOOLTIP_WIDTH - VIEWPORT_PAD),
-        viewport.width,
-      ),
-    };
-  }
-
-  const sidebarTarget = spotlight.left < 320;
-  const spaceBelow = viewport.height - (spotlight.top + spotlight.height);
-  const spaceAbove = spotlight.top;
-  const spaceRight = viewport.width - (spotlight.left + spotlight.width);
-
-  if (sidebarTarget && spaceRight >= TOOLTIP_WIDTH + 24) {
-    return {
-      top: clampTooltipTop(spotlight.top, viewport.height, maxTooltipHeight),
-      left: clampTooltipLeft(spotlight.left + spotlight.width + 20, viewport.width),
-    };
-  }
-
-  if (spaceBelow >= maxTooltipHeight + 24) {
-    return {
-      top: clampTooltipTop(spotlight.top + spotlight.height + 16, viewport.height, maxTooltipHeight),
-      left: clampTooltipLeft(spotlight.left, viewport.width),
-    };
-  }
-
-  if (spaceAbove >= maxTooltipHeight + 24) {
-    return {
-      top: clampTooltipTop(spotlight.top - maxTooltipHeight - 16, viewport.height, maxTooltipHeight),
-      left: clampTooltipLeft(spotlight.left, viewport.width),
-    };
-  }
-
-  return dockBottom();
+  return resolveTooltipPosition(spotlight, viewport, tooltipHeight);
 }
 
 function TourOverlay({ spotlight }: { spotlight: SpotlightRect }) {
@@ -171,6 +341,9 @@ export function DashboardTour({
   const [viewport, setViewport] = useState({ width: 0, height: 0 });
   const [tourError, setTourError] = useState<string>();
   const [navReady, setNavReady] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const fineTunedStepRef = useRef<number | null>(null);
+  const [tooltipMeasuredHeight, setTooltipMeasuredHeight] = useState<number | null>(null);
 
   const step = DASHBOARD_TOUR_STEPS[stepIndex];
   const isLastStep = stepIndex === DASHBOARD_TOUR_STEPS.length - 1;
@@ -208,6 +381,23 @@ export function DashboardTour({
   }, [active, router]);
 
   useEffect(() => {
+    setTooltipMeasuredHeight(null);
+  }, [stepIndex]);
+
+  useLayoutEffect(() => {
+    if (!visible || !tooltipRef.current) return;
+    const height = tooltipRef.current.getBoundingClientRect().height;
+    if (height > 0) {
+      setTooltipMeasuredHeight(height);
+    }
+  }, [visible, stepIndex, step, spotlight, tourError]);
+
+  useEffect(() => {
+    if (!visible) return;
+    return lockBackgroundScroll();
+  }, [visible]);
+
+  useEffect(() => {
     if (!visible || !step) return;
 
     const onPath = tourPathMatches(pathname, step.href);
@@ -219,36 +409,40 @@ export function DashboardTour({
   }, [visible, step, pathname, router]);
 
   useEffect(() => {
-    if (!visible || !mounted || !step || !navReady) return;
+    if (!visible || !mounted || !step || !navReady || viewport.width === 0 || viewport.height === 0) return;
 
     let cancelled = false;
     let attempts = 0;
+    fineTunedStepRef.current = null;
 
-    const tryFocusTarget = () => {
+    const focusTarget = async () => {
       if (cancelled) return;
 
       if (!step.target) {
-        setSpotlight(null);
+        await scrollForTourStep(step, viewport, tooltipMaxHeight);
+        if (!cancelled) setSpotlight(null);
         return;
       }
 
       const element = document.querySelector<HTMLElement>(`[data-tour="${step.target}"]`);
       if (element) {
-        element.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
-        setSpotlight(getSpotlightRect(step.target));
+        await scrollForTourStep(step, viewport, tooltipMaxHeight);
+        if (!cancelled) setSpotlight(getSpotlightRect(step.target));
         return;
       }
 
       if (attempts < 40) {
         attempts += 1;
-        window.setTimeout(tryFocusTarget, 100);
+        window.setTimeout(() => {
+          void focusTarget();
+        }, 100);
         return;
       }
 
       setSpotlight(null);
     };
 
-    tryFocusTarget();
+    void focusTarget();
 
     const handleLayoutChange = () => updateSpotlight();
     window.addEventListener("resize", handleLayoutChange);
@@ -259,7 +453,28 @@ export function DashboardTour({
       window.removeEventListener("resize", handleLayoutChange);
       window.removeEventListener("scroll", handleLayoutChange, true);
     };
-  }, [visible, mounted, stepIndex, step, navReady, updateSpotlight]);
+  }, [visible, mounted, stepIndex, step, navReady, updateSpotlight, viewport, tooltipMaxHeight]);
+
+  useEffect(() => {
+    if (!visible || !step?.target || !spotlight || viewport.height === 0) return;
+    if (fineTunedStepRef.current === stepIndex) return;
+
+    const tooltipHeight = tooltipMeasuredHeight ?? tooltipMaxHeight;
+    const scrollDelta = computeTourScrollDelta(spotlight, viewport, tooltipHeight);
+
+    if (Math.abs(scrollDelta) <= 4) {
+      fineTunedStepRef.current = stepIndex;
+      return;
+    }
+
+    if (tooltipMeasuredHeight == null) return;
+
+    fineTunedStepRef.current = stepIndex;
+
+    void scrollTargetIntoTourView(step.target, viewport, tooltipHeight, "auto").then(() => {
+      updateSpotlight();
+    });
+  }, [visible, step?.target, spotlight, stepIndex, viewport, tooltipMaxHeight, tooltipMeasuredHeight, updateSpotlight]);
 
   const finishTour = () => {
     startTransition(async () => {
@@ -290,17 +505,19 @@ export function DashboardTour({
 
   if (!mounted || !visible || !step || viewport.width === 0) return null;
 
-  const tooltipPosition = getTooltipPosition(spotlight, viewport, tooltipMaxHeight);
+  const tooltipHeightForLayout = tooltipMeasuredHeight ?? tooltipMaxHeight;
+  const tooltipPosition = getTooltipPosition(spotlight, viewport, tooltipHeightForLayout);
   const progress = ((stepIndex + 1) / DASHBOARD_TOUR_STEPS.length) * 100;
 
   const tourOverlay = (
-    <div className="fixed inset-0 z-[110] overflow-hidden">
+    <div className="fixed inset-0 z-[110] touch-none overflow-hidden overscroll-none">
       {spotlight ? <TourOverlay spotlight={spotlight} /> : (
         <div className="absolute inset-0 bg-black/78" aria-hidden />
       )}
 
       <div
-        className={`${cardClassName} fixed z-[111] flex w-[min(100vw-2rem,25rem)] flex-col border border-white/[0.1] shadow-2xl`}
+        ref={tooltipRef}
+        className={`${cardClassName} fixed z-[111] flex w-[min(100vw-2rem,25rem)] touch-auto flex-col border border-white/[0.1] shadow-2xl`}
         style={{
           top: tooltipPosition.top,
           left: tooltipPosition.left,

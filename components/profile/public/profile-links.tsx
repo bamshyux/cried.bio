@@ -13,7 +13,7 @@ import type { ProfileSettings } from "@/lib/types/settings";
 import { LinkIcon } from "@/components/icons/social-icons";
 import { CardBorderEffect } from "@/components/profile/card-border-effect";
 import { cardBorderEffectStripsDefaultBorder } from "@/lib/card-border-effects/resolve";
-import { trackLinkClick } from "./analytics-tracker";
+import { useProfileLinkClick } from "./external-link-confirm";
 
 export function ProfileLinkButton({
   link,
@@ -26,6 +26,7 @@ export function ProfileLinkButton({
   profileId: string;
   featured?: boolean;
 }) {
+  const handleLinkClick = useProfileLinkClick(profileId);
   const { animClass, hoverClass, animStyle } = buildLinkAnimationProps(link, settings);
   const iconSize = settings.links_icon_size;
   const stripLinkBorder = cardBorderEffectStripsDefaultBorder(settings, "links");
@@ -39,7 +40,7 @@ export function ProfileLinkButton({
         href={link.url}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={() => trackLinkClick(profileId, link.id)}
+        onClick={(event) => handleLinkClick(event, link)}
         className={`profile-link group flex items-center justify-between px-4 py-3 transition-colors ${animClass} ${hoverClass} ${
           showBorder ? "border" : ""
         } ${featured ? "border-[var(--bf-accent,#fafafa)]/30" : ""}`}
@@ -110,6 +111,7 @@ export function SocialIconRow({
 }) {
   if (links.length === 0) return null;
 
+  const handleLinkClick = useProfileLinkClick(profileId);
   const iconSize = settings.links_icon_size;
   const boxSize = getLinksIconBoxSize(iconSize);
   const spacing = getLinksSpacingClass(settings.links_spacing);
@@ -128,7 +130,7 @@ export function SocialIconRow({
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => trackLinkClick(profileId, link.id)}
+            onClick={(event) => handleLinkClick(event, link)}
             title={link.title}
             className={`profile-link flex items-center justify-center rounded-lg border transition-colors ${boxAppearance.className} ${iconAnimClass}`}
             style={{
@@ -158,6 +160,7 @@ export function SocialIconOnlyRow({
 }) {
   if (links.length === 0) return null;
 
+  const handleLinkClick = useProfileLinkClick(profileId);
   const iconSize = settings.links_icon_size;
   const spacing = getLinksSpacingClass(settings.links_spacing);
 
@@ -178,7 +181,7 @@ export function SocialIconOnlyRow({
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => trackLinkClick(profileId, link.id)}
+            onClick={(event) => handleLinkClick(event, link)}
             aria-label={link.title}
             className={`flex items-center justify-center opacity-80 ${hoverClass} ${iconAnimClass}`}
             style={animation === "glow" ? undefined : animStyle}

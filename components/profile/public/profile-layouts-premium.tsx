@@ -208,51 +208,62 @@ function CassetteLayout(props: LayoutProps) {
 
   return (
     <div className="w-full overflow-hidden border-2 border-[#2a2a2a] bg-[#121212] shadow-[inset_0_2px_0_rgba(255,255,255,0.04)]" style={{ borderRadius: settings.border_radius }}>
-      <div className="border-b border-[#2a2a2a] bg-[#0c0c0c] px-5 py-3">
-        <div className="flex items-center justify-between gap-3">
+      <div className="border-b border-[#2a2a2a] bg-[#0c0c0c] px-6 py-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[0.35em] text-[#f97316]/90">Compact Cassette</p>
-            <p className="mt-0.5 font-mono text-sm font-semibold uppercase tracking-wide text-neutral-200">{label}</p>
+            <p className="mt-1 font-mono text-base font-semibold uppercase tracking-wide text-neutral-200">{label}</p>
           </div>
-          <div className="flex gap-1">
-            <span className="h-2 w-2 rounded-full bg-[#ef4444]/80" />
-            <span className="h-2 w-2 rounded-full bg-[#eab308]/80" />
+          <div className="flex gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#ef4444]/80" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#eab308]/80" />
           </div>
         </div>
       </div>
 
-      <div className="relative mx-5 mt-4 overflow-hidden rounded-lg border border-[#333] bg-[#1a1a1a] p-3 shadow-inner">
-        <div className="absolute left-2 top-2 h-1.5 w-1.5 rounded-full bg-[#444] shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]" />
-        <div className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#444] shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]" />
-        <div className="bf-layout-cassette-window relative flex items-center justify-between gap-4 rounded-md border border-[#2f2f2f] bg-[#0a0a0a] px-4 py-3">
-          <div className="bf-layout-cassette-reel relative h-12 w-12 shrink-0 rounded-full border-2 border-[#555] bg-[#151515] shadow-inner">
-            <div className="absolute inset-2 rounded-full border border-[#333]" />
-            <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#666]" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-mono text-xs uppercase tracking-wider text-[#f97316]">{displayName}</p>
-            <div className="mt-2 flex h-6 items-end gap-0.5">
-              {Array.from({ length: 10 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="bf-layout-cassette-vu w-1 rounded-sm bg-[#f97316]/80"
-                  style={{ height: `${8 + (index % 4) * 4}px`, animationDelay: `${index * 0.07}s` }}
-                />
-              ))}
+      <div className="px-6 py-6">
+        <div className="relative overflow-hidden rounded-xl border border-[#333] bg-[#1a1a1a] p-4 shadow-inner">
+          <div className="absolute left-3 top-3 h-2 w-2 rounded-full bg-[#444] shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]" />
+          <div className="absolute right-3 top-3 h-2 w-2 rounded-full bg-[#444] shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]" />
+          <div className="bf-layout-cassette-window relative flex items-center justify-between gap-5 rounded-lg border border-[#2f2f2f] bg-[#0a0a0a] px-5 py-5">
+            <div className="bf-layout-cassette-reel relative h-14 w-14 shrink-0 rounded-full border-2 border-[#555] bg-[#151515] shadow-inner sm:h-16 sm:w-16">
+              <div className="absolute inset-2.5 rounded-full border border-[#333]" />
+              <div className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#666]" />
+            </div>
+            <div className="min-w-0 flex-1 text-center">
+              <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-neutral-500">Now playing</p>
+              <p className="mt-1 truncate font-mono text-sm font-semibold uppercase tracking-wider text-[#f97316]">{displayName}</p>
+              <div className="mx-auto mt-3 flex h-8 max-w-[140px] items-end justify-center gap-1">
+                {Array.from({ length: 12 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="bf-layout-cassette-vu w-1 rounded-sm bg-[#f97316]/80"
+                    style={{ height: `${10 + (index % 4) * 5}px`, animationDelay: `${index * 0.07}s` }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="bf-layout-cassette-reel relative h-14 w-14 shrink-0 rounded-full border-2 border-[#555] bg-[#151515] shadow-inner sm:h-16 sm:w-16 [animation-direction:reverse]">
+              <div className="absolute inset-2.5 rounded-full border border-[#333]" />
+              <div className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#666]" />
             </div>
           </div>
-          <div className="bf-layout-cassette-reel relative h-12 w-12 shrink-0 rounded-full border-2 border-[#555] bg-[#151515] shadow-inner [animation-direction:reverse]">
-            <div className="absolute inset-2 rounded-full border border-[#333]" />
-            <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#666]" />
-          </div>
         </div>
-        <div className="mt-3 flex items-center gap-3 border-t border-dashed border-[#333] pt-3">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-14 w-14 shrink-0 ring-1 ring-[#444]" />
-          <HeaderIdentity {...props} className="min-w-0 flex-1" />
+
+        <div className="mt-8 flex flex-col items-center gap-6 text-center sm:flex-row sm:items-start sm:gap-8 sm:text-left">
+          <ProfileAvatar
+            profile={profile}
+            displayName={displayName}
+            accentColor={settings.accent_color}
+            className="h-20 w-20 shrink-0 ring-2 ring-[#444] sm:h-24 sm:w-24"
+          />
+          <div className="flex min-w-0 w-full flex-1 flex-col items-center sm:items-start">
+            <HeaderIdentity {...props} className="mx-auto flex-wrap items-center gap-x-2 gap-y-1.5 sm:mx-0" />
+          </div>
         </div>
       </div>
 
-      <div className="p-5 pt-4">
+      <div className="border-t border-[#2a2a2a] px-6 pb-8 pt-6">
         <ProfileMainContent {...props} />
       </div>
     </div>

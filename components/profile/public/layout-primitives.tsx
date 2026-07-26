@@ -1,14 +1,13 @@
 "use client";
 
-import { useCallback, useRef, useState, type CSSProperties } from "react";
-import { createPortal } from "react-dom";
+import { useState, type CSSProperties } from "react";
 import {
   buildCardStyle,
   getUsernameEffectClass,
   stripUsernameTextColorClasses,
   usernameEffectUsesClipText,
 } from "@/lib/settings";
-import { formatProfileUid } from "@/lib/profile";
+import { getProfileUidTier } from "@/lib/profile";
 import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfileLink } from "@/lib/types/link";
 import type { Profile } from "@/lib/types/profile";
@@ -184,17 +183,25 @@ export function ProfileAvatar({
   );
 }
 
-function computeHoverTooltipPlacement(rect: DOMRect, estimatedHeight = 36) {
-  const gap = 8;
-  const padding = 12;
-  const centerX = rect.left + rect.width / 2;
-  const above = rect.top - estimatedHeight - gap > padding;
+function ProfileUidBadge({ uid, accentColor }: { uid: number; accentColor: string }) {
+  const tier = getProfileUidTier(uid);
 
-  return {
-    left: Math.min(Math.max(centerX, padding + 60), window.innerWidth - padding - 60),
-    top: above ? rect.top - gap : rect.bottom + gap,
-    above,
-  };
+  return (
+    <span
+      className={`bf-profile-uid bf-profile-uid--${tier}`}
+      style={{ ["--uid-accent" as string]: accentColor }}
+      title={`Account ${uid.toLocaleString("en-US")}`}
+    >
+      <span className="bf-profile-uid__chip">
+        <span className="bf-profile-uid__label">UID</span>
+        <span className="bf-profile-uid__sep" aria-hidden />
+        <span className="bf-profile-uid__value">
+          <span className="bf-profile-uid__hash">#</span>
+          {uid.toLocaleString("en-US")}
+        </span>
+      </span>
+    </span>
+  );
 }
 
 export function Username({
@@ -258,67 +265,25 @@ export function Username({
       ? { ...glowStyle, ...sanitizedStyle }
       : undefined;
 
-  const anchorRef = useRef<HTMLDivElement>(null);
-  const [hovered, setHovered] = useState(false);
-  const [placement, setPlacement] = useState<ReturnType<typeof computeHoverTooltipPlacement> | null>(null);
   const showUid = profile.uid != null;
 
-  const updatePlacement = useCallback(() => {
-    const rect = anchorRef.current?.getBoundingClientRect();
-    if (rect) setPlacement(computeHoverTooltipPlacement(rect));
-  }, []);
-
-  const handleEnter = () => {
-    updatePlacement();
-    setHovered(true);
-  };
-
-  const handleLeave = () => {
-    setHovered(false);
-    setPlacement(null);
-  };
-
   return (
-    <>
-      <div
-        ref={anchorRef}
-        tabIndex={showUid ? 0 : undefined}
-        onMouseEnter={showUid ? handleEnter : undefined}
-        onMouseLeave={showUid ? handleLeave : undefined}
-        onFocus={showUid ? handleEnter : undefined}
-        onBlur={showUid ? handleLeave : undefined}
-        className={`relative inline-block ${showUid ? "cursor-help" : ""} ${hovered ? "z-[9999]" : ""}`}
-      >
-        <h1 className={headingClass} style={headingStyle}>
-          {usesClipText ? (
-            <span className={`inline-block ${effectClass}`}>
-              {name}
-              {suffix}
-            </span>
-          ) : (
-            <>
-              {name}
-              {suffix}
-            </>
-          )}
-        </h1>
-      </div>
-      {showUid && hovered && placement &&
-        createPortal(
-          <div
-            role="tooltip"
-            className="pointer-events-none fixed z-[10000] w-max rounded-lg border border-white/10 bg-[#141414] px-3 py-1.5 text-xs font-medium text-neutral-300 shadow-xl"
-            style={{
-              left: placement.left,
-              top: placement.top,
-              transform: placement.above ? "translate(-50%, -100%)" : "translate(-50%, 0)",
-            }}
-          >
-            {formatProfileUid(profile.uid!)}
-          </div>,
-          document.body,
+    <div className="bf-profile-username-wrap inline-flex max-w-full flex-col items-start gap-1.5">
+      {showUid ? <ProfileUidBadge uid={profile.uid!} accentColor={settings.accent_color} /> : null}
+      <h1 className={headingClass} style={headingStyle}>
+        {usesClipText ? (
+          <span className={`inline-block ${effectClass}`}>
+            {name}
+            {suffix}
+          </span>
+        ) : (
+          <>
+            {name}
+            {suffix}
+          </>
         )}
-    </>
+      </h1>
+    </div>
   );
 }
 

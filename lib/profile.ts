@@ -90,3 +90,12 @@ export function isContentPagePath(pathname: string) {
 export function formatProfileUid(uid: number) {
   return `UID #${uid.toLocaleString("en-US")}`;
 }
+
+export type ProfileUidTier = "founder" | "og" | "early" | "default";
+
+export function getProfileUidTier(uid: number): ProfileUidTier {
+  if (uid === 1) return "founder";
+  if (uid <= 50) return "og";
+  if (uid <= 500) return "early";
+  return "default";
+}

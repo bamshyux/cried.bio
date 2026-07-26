@@ -599,23 +599,27 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
 
   cassette: (
     <div className={`${BASE} bf-layout-preview-animated border-[#333] bg-[#121212]`}>
-      <div className="border-b border-[#333] px-2 py-1">
+      <div className="border-b border-[#333] px-2 py-1.5">
         <Line w="w-8" h="h-1" className="bg-[#f97316]/50" />
+        <Line w="w-6" h="h-0.5" className="mt-0.5 opacity-60" />
       </div>
-      <div className="mx-2 mt-1 rounded border border-[#333] bg-[#0a0a0a] p-1.5">
-        <div className="flex items-center justify-between gap-1">
-          <div className="bf-layout-cassette-reel h-3 w-3 rounded-full border border-white/20" />
-          <div className="flex flex-1 items-end gap-0.5 px-1">
-            {[0, 1, 2, 3].map((index) => (
+      <div className="mx-2 mt-2 rounded border border-[#333] bg-[#1a1a1a] p-1.5">
+        <div className="flex items-center justify-between gap-1 rounded border border-[#2f2f2f] bg-[#0a0a0a] px-2 py-2">
+          <div className="bf-layout-cassette-reel h-3.5 w-3.5 rounded-full border border-white/20" />
+          <div className="flex flex-1 items-end justify-center gap-0.5 px-1">
+            {[0, 1, 2, 3, 4].map((index) => (
               <div key={index} className="bf-layout-cassette-vu h-2 w-0.5 rounded-sm bg-[#f97316]/70" style={{ animationDelay: `${index * 0.08}s` }} />
             ))}
           </div>
-          <div className="bf-layout-cassette-reel h-3 w-3 rounded-full border border-white/20 [animation-direction:reverse]" />
+          <div className="bf-layout-cassette-reel h-3.5 w-3.5 rounded-full border border-white/20 [animation-direction:reverse]" />
         </div>
       </div>
-      <div className="flex gap-1 p-2">
-        <Avatar className="h-4 w-4" />
-        <Line w="w-8" className="mt-1" />
+      <div className="mt-2 flex flex-col items-center gap-1 px-2 pb-2 sm:flex-row sm:items-start sm:gap-1.5">
+        <Avatar className="h-5 w-5 shrink-0" />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <Line w="w-10" />
+          <Line w="w-6" h="h-0.5" className="opacity-50" />
+        </div>
       </div>
     </div>
   ),

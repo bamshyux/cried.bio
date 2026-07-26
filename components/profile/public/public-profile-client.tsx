@@ -49,6 +49,7 @@ import { ProfileThemeScope } from "./profile-theme-scope";
 import { EXTENDED_LAYOUTS } from "./profile-layouts-extra";
 import { getPageEntranceClassName, PAGE_ENTRANCE_CLASS_NAMES } from "@/lib/page-entrance";
 import { PREMIUM_LAYOUTS } from "./profile-layouts-premium";
+import { ExternalLinkConfirmProvider } from "./external-link-confirm";
 
 function ClassicLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
@@ -926,7 +927,8 @@ export function PublicProfileClient({
   };
 
   return (
-    <>
+    <ExternalLinkConfirmProvider>
+      <>
       {!isPresetPreview ? (
         <ProfileTabBranding
           username={profile.username ?? ""}
@@ -1013,6 +1015,7 @@ export function PublicProfileClient({
           exiting={gateExiting}
         />
       ) : null}
-    </>
+      </>
+    </ExternalLinkConfirmProvider>
   );
 }

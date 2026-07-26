@@ -17,16 +17,16 @@ export default async function DashboardLinksPage() {
   ]);
 
   return (
-    <div data-tour="tour-links">
+    <>
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Links</h1>
         <p className="mt-2 text-zinc-400">
           Unlimited custom links with icons, colors, animations, and drag-and-drop reorder.
         </p>
       </div>
-      <div className={cardClassName}>
+      <div className={cardClassName} data-tour="tour-links">
         <LinksEditor links={links} settings={settings} />
       </div>
-    </div>
+    </>
   );
 }

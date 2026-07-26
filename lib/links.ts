@@ -15,6 +15,22 @@ export function isCustomLinkIcon(icon: string) {
   return icon.startsWith("http://") || icon.startsWith("https://");
 }
 
+export function isCustomProfileLink(link: { icon: string }) {
+  if (isCustomLinkIcon(link.icon)) return true;
+  const key = normalizeLinkIconKey(link.icon);
+  return key === "link" || key === "custom";
+}
+
+export function formatLinkConfirmDisplay(url: string) {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace(/^www\./, "");
+    return { hostname, full: parsed.href };
+  } catch {
+    return { hostname: url, full: url };
+  }
+}
+
 export function normalizeLinkIconKey(icon: string) {
   if (isCustomLinkIcon(icon)) return icon;
   return icon.toLowerCase().trim();
