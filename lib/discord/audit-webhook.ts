@@ -372,21 +372,11 @@ export function queueAuditLog(input: AuditLogInput) {
   });
 }
 
-/** Queue an audit log and auto-enrich actor fields from a user ID. */
+/** Queue an audit log and auto-enrich missing actor fields from a user ID. */
 export function queueAuditLogForUser(
-  input: Omit<AuditLogInput, "username" | "displayName" | "email" | "ipAddress" | "country"> & {
-    userId: string;
-    email?: string | null;
-    username?: string | null;
-    displayName?: string | null;
-  },
+  input: AuditLogInput & { userId: string; action: string; description: string },
 ) {
-  queueAuditLog({
-    ...input,
-    email: input.email ?? undefined,
-    username: input.username ?? undefined,
-    displayName: input.displayName ?? undefined,
-  });
+  queueAuditLog(input);
 }
 
 export async function sendAuditLog(input: AuditLogInput): Promise<void> {
