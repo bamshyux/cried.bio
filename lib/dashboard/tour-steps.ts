@@ -79,7 +79,7 @@ export const DASHBOARD_TOUR_STEPS: DashboardTourStep[] = [
     title: "Profile — your public identity",
     description: "This is what people see first: your username, display name, bio, and location.",
     bullets: [
-      "Username sets your URL — cried.bio/yourname (changeable once every 30 days).",
+      "Username sets your URL — cried.bio/yourname (changeable once every 7 days).",
       "Display name is the big title on your page; it can include spaces and emoji.",
       "Bio supports styled text — configure colors and effects under Appearance later.",
       "Location appears next to your view count when filled in.",

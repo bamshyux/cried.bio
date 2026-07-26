@@ -87,6 +87,29 @@ export async function publishOnboardingProfileAction(input: {
   const profileResult = await updateProfileAction({}, formData);
   if (profileResult.error) return { error: profileResult.error };
 
+  const normalizedUsername = normalizeUsername(input.username);
+  const { queueNewAccountDiscordWebhook } = await import("@/lib/discord/signup-webhook");
+  const { queueAuditLogForUser } = await import("@/lib/discord/audit-webhook");
+  const { resolveCountry } = await import("@/lib/analytics/geo");
+  const { headers } = await import("next/headers");
+
+  let ipCountry: string | null = null;
+  try {
+    ipCountry = await resolveCountry(await headers());
+  } catch {
+    /* geo lookup is best-effort */
+  }
+
+  queueNewAccountDiscordWebhook(userId, { ipCountry });
+  queueAuditLogForUser({
+    action: "Account Created",
+    userId,
+    username: normalizedUsername,
+    displayName: input.displayName.trim(),
+    country: ipCountry,
+    description: `Finished onboarding and published profile as @${normalizedUsername}.`,
+  });
+
   await ensureAccountPreferences(userId);
   const supabase = await createClient();
   const now = new Date().toISOString();

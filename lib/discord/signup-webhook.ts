@@ -260,6 +260,10 @@ export async function notifyNewAccountCreated(
 
   if (profile?.discord_created_webhook_sent_at) return;
 
+  if (!profile?.username?.trim() || !profile.display_name?.trim()) {
+    return;
+  }
+
   const authUser = authResult.data.user;
   if (!authUser) {
     console.error("[discord] created-account webhook: auth user not found:", userId);
@@ -273,10 +277,8 @@ export async function notifyNewAccountCreated(
     null;
 
   const siteUrl = getSiteUrl();
-  const username = profile?.username?.trim()
-    ? `@${profile.username.trim()}`
-    : "Not set yet";
-  const displayName = profile?.display_name?.trim() || "Not set";
+  const username = `@${profile.username.trim()}`;
+  const displayName = profile.display_name.trim();
 
   const embed = buildNewAccountEmbed({
     username,

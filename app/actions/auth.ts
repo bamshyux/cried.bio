@@ -26,28 +26,6 @@ export type AuthActionState = {
   success?: string;
 };
 
-async function notifyAccountCreatedWebhook(userId: string) {
-  const { queueNewAccountDiscordWebhook } = await import("@/lib/discord/signup-webhook");
-  const { queueAuditLogForUser } = await import("@/lib/discord/audit-webhook");
-  const { resolveCountry } = await import("@/lib/analytics/geo");
-  const { headers } = await import("next/headers");
-
-  let ipCountry: string | null = null;
-  try {
-    ipCountry = await resolveCountry(await headers());
-  } catch {
-    /* geo lookup is best-effort */
-  }
-
-  queueNewAccountDiscordWebhook(userId, { ipCountry });
-  queueAuditLogForUser({
-    action: "Account Created",
-    userId,
-    country: ipCountry,
-    description: "A new cried.bio account was created.",
-  });
-}
-
 async function finishNewSignup(userId: string, email: string) {
   await syncSignupBadges(userId);
   const profile = await getProfileByUserId(userId);
@@ -83,10 +61,6 @@ async function signUpWithAdmin(email: string, password: string): Promise<AuthAct
       return { error: "An account with this email already exists. Try logging in." };
     }
     return { error: createError.message };
-  }
-
-  if (created.user?.id) {
-    void notifyAccountCreatedWebhook(created.user.id);
   }
 
   const delivery = await deliverSignupConfirmationEmail(email);
@@ -161,10 +135,6 @@ async function signUpWithPublicClient(email: string, password: string): Promise<
       return { error: "email_delivery_failed" };
     }
     return { error: error.message };
-  }
-
-  if (data.user?.id) {
-    void notifyAccountCreatedWebhook(data.user.id);
   }
 
   if (data.session && data.user) {
