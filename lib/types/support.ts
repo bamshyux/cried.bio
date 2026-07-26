@@ -57,6 +57,7 @@ export type SupportConversation = {
   closed_at?: string | null;
   first_staff_response_at?: string | null;
   status_history?: SupportStatusHistoryEntry[];
+  discord_webhook_message_id?: string | null;
   customer?: SupportProfileSummary | null;
   assignee?: SupportProfileSummary | null;
   unread_count?: number;

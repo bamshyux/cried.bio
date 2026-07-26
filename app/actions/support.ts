@@ -107,16 +107,10 @@ async function notifyAdminsNewTicket(
       ),
   );
 
-  const { sendSupportTicketDiscordAlert } = await import("@/lib/discord/support-webhook");
-  await sendSupportTicketDiscordAlert({
-    conversationId,
-    subject,
-    messagePreview,
-    customerEmail,
-    customerId,
-    customerUsername: customerProfile?.username,
-    customerDisplayName: customerProfile?.display_name,
-  });
+  const { notifySupportTicketCreated, queueSupportDiscordWebhook } = await import(
+    "@/lib/discord/support-webhook"
+  );
+  queueSupportDiscordWebhook(() => notifySupportTicketCreated(conversationId));
 }
 
 export async function createSupportConversationAction(
@@ -292,6 +286,11 @@ export async function sendSupportMessageAction(input: {
         details: { conversationId: input.conversationId },
       });
     }
+
+    const { updateSupportTicketDiscordEmbed, queueSupportDiscordWebhook } = await import(
+      "@/lib/discord/support-webhook"
+    );
+    queueSupportDiscordWebhook(() => updateSupportTicketDiscordEmbed(input.conversationId));
   } else if (conversation.assigned_to) {
     await createNotification({
       userId: conversation.assigned_to,
@@ -372,6 +371,11 @@ export async function closeSupportConversationAction(
       data: { conversationId },
     });
   }
+
+  const { notifySupportTicketClosed, queueSupportDiscordWebhook } = await import(
+    "@/lib/discord/support-webhook"
+  );
+  queueSupportDiscordWebhook(() => notifySupportTicketClosed(conversationId, userId));
 
   revalidateSupport();
   return { success: "Conversation closed." };
@@ -587,6 +591,11 @@ export async function assignSupportConversationAction(
     details: { conversationId, assigneeId: targetId },
   });
 
+  const { updateSupportTicketDiscordEmbed, queueSupportDiscordWebhook } = await import(
+    "@/lib/discord/support-webhook"
+  );
+  queueSupportDiscordWebhook(() => updateSupportTicketDiscordEmbed(conversationId));
+
   revalidateSupport();
   return { success: "Conversation assigned." };
 }
@@ -682,6 +691,19 @@ export async function updateSupportStatusAction(
     .eq("id", conversationId);
 
   if (error) return { error: error.message };
+
+  if (status === "closed") {
+    const { notifySupportTicketClosed, queueSupportDiscordWebhook } = await import(
+      "@/lib/discord/support-webhook"
+    );
+    queueSupportDiscordWebhook(() => notifySupportTicketClosed(conversationId, access.userId));
+  } else {
+    const { updateSupportTicketDiscordEmbed, queueSupportDiscordWebhook } = await import(
+      "@/lib/discord/support-webhook"
+    );
+    queueSupportDiscordWebhook(() => updateSupportTicketDiscordEmbed(conversationId));
+  }
+
   revalidateSupport();
   return { success: "Status updated." };
 }

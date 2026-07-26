@@ -352,14 +352,10 @@ async function escalateSessionToTicket(
       ),
   );
 
-  const { sendSupportTicketDiscordAlert } = await import("@/lib/discord/support-webhook");
-  await sendSupportTicketDiscordAlert({
-    conversationId: conversation.id,
-    subject: `[AI Escalated] ${ticketSubject}`,
-    messagePreview: initialBody.slice(0, 160),
-    customerEmail: user.email,
-    customerId: user.userId,
-  });
+  const { notifySupportTicketCreated, queueSupportDiscordWebhook } = await import(
+    "@/lib/discord/support-webhook"
+  );
+  queueSupportDiscordWebhook(() => notifySupportTicketCreated(conversation.id));
 
   revalidateSupport();
   return {
