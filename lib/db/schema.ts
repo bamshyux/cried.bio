@@ -342,5 +342,8 @@ export function formatSchemaError(errorMessage: string): string {
   if (isSchemaCacheError(errorMessage)) {
     return `Database schema is out of date. ${SCHEMA_MIGRATION_HINT}`;
   }
+  if (errorMessage.includes("profile_settings_layout_check")) {
+    return "This layout is not enabled in the database yet. Run supabase/v99_premium_animated_layouts.sql in the Supabase SQL Editor, then save again.";
+  }
   return errorMessage;
 }

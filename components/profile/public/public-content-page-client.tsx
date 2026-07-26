@@ -1,6 +1,11 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { getFontCss, getGoogleFontsUrl } from "@/lib/settings";
+import {
+  getPageEntranceClassName,
+  PAGE_ENTRANCE_CLASS_NAMES,
+} from "@/lib/page-entrance";
 import type { MusicTrack } from "@/lib/data/music-tracks";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
 import type { ProfileEmbed } from "@/lib/types/embed";
@@ -49,6 +54,17 @@ export function PublicContentPageClient({
     (settings.background_type === "particles" || settings.particle_effect) &&
     settings.particle_effect;
   const pageTitle = page.label || page.slug;
+  const pageRevealRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const entranceClass = getPageEntranceClassName(settings.page_entrance_animation);
+    const node = pageRevealRef.current;
+    if (!node || !entranceClass) return;
+
+    node.classList.remove(...PAGE_ENTRANCE_CLASS_NAMES);
+    void node.offsetWidth;
+    node.classList.add(entranceClass);
+  }, [settings.page_entrance_animation]);
 
   const siteNav =
     navPages.length > 0 ? (
@@ -99,7 +115,7 @@ export function PublicContentPageClient({
           centerContent={false}
           mainClassName="!items-start !justify-center !py-24 sm:!py-28"
         >
-          <div className="mx-auto w-full max-w-2xl">
+          <div ref={pageRevealRef} className="mx-auto w-full max-w-2xl overflow-visible">
             <CardBorderEffect
               settings={settings}
               target="main"

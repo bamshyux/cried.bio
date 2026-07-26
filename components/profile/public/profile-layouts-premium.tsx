@@ -36,26 +36,47 @@ function MonarchLayout(props: LayoutProps) {
   const { profile, settings } = props;
   const displayName = getDisplayName(profile);
   const accent = settings.accent_color;
+  const year = new Date(profile.created_at).getFullYear();
 
   return (
-    <div className="relative w-full overflow-hidden border border-[#d4af37]/35 shadow-[0_0_40px_rgba(212,175,55,0.12)]" style={buildCardStyle(settings)}>
-      <div className="bf-layout-monarch-shimmer absolute inset-x-0 top-0 h-1" />
+    <div
+      className="bf-layout-monarch relative w-full overflow-hidden border border-[#c9a84c]/45 shadow-[0_0_60px_rgba(201,168,76,0.14),inset_0_1px_0_rgba(255,236,179,0.12)]"
+      style={buildCardStyle(settings)}
+    >
+      <div className="bf-layout-monarch-shimmer pointer-events-none absolute inset-x-0 top-0 h-[2px]" />
+      <div className="bf-layout-monarch-corner pointer-events-none absolute left-3 top-3 h-8 w-8 border-l-2 border-t-2 border-[#e8d5a3]/50" />
+      <div className="bf-layout-monarch-corner pointer-events-none absolute right-3 top-3 h-8 w-8 border-r-2 border-t-2 border-[#e8d5a3]/50" />
+      <div className="bf-layout-monarch-corner pointer-events-none absolute bottom-3 left-3 h-8 w-8 border-b-2 border-l-2 border-[#e8d5a3]/35" />
+      <div className="bf-layout-monarch-corner pointer-events-none absolute bottom-3 right-3 h-8 w-8 border-b-2 border-r-2 border-[#e8d5a3]/35" />
+
       <div
-        className="relative border-b border-[#d4af37]/25 px-6 py-5 text-center"
-        style={{ background: `linear-gradient(180deg, ${accent}22, rgba(212,175,55,0.08) 40%, transparent)` }}
+        className="relative overflow-hidden px-6 pb-2 pt-8 text-center"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.22), transparent 70%), linear-gradient(180deg, rgba(201,168,76,0.1), transparent 55%)",
+        }}
       >
-        <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full border border-[#d4af37]/40 bg-[#d4af37]/10 text-sm">
+        <div className="bf-layout-monarch-sparkles pointer-events-none absolute inset-0" aria-hidden />
+        <div className="relative mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full border border-[#e8d5a3]/50 bg-gradient-to-b from-[#c9a84c]/25 to-[#8b6914]/10 text-lg shadow-[0_0_24px_rgba(201,168,76,0.35)]">
           ♛
         </div>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.45em] text-[#d4af37]">Monarch</p>
-        <p className="mt-1 text-xs text-neutral-500">Est. {new Date(profile.created_at).getFullYear()}</p>
+        <p className="font-serif text-[11px] font-semibold uppercase tracking-[0.55em] text-[#e8d5a3]">Royal Profile</p>
+        <p className="mt-1 text-[10px] tracking-[0.35em] text-neutral-500">Member since {year}</p>
+        <div className="mx-auto mt-4 h-px w-24 bg-gradient-to-r from-transparent via-[#c9a84c]/70 to-transparent" />
       </div>
-      <div className="relative px-6 py-8 text-center">
-        <div className="bf-profile-avatar-row mb-5 flex justify-center">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="h-24 w-24 ring-2 ring-[#d4af37]/50 shadow-[0_0_24px_rgba(212,175,55,0.25)]" />
+
+      <div className="relative px-6 pb-8 pt-2 text-center">
+        <div className="bf-profile-avatar-row relative mb-6 flex justify-center">
+          <div
+            className="pointer-events-none absolute inset-0 mx-auto h-28 w-28 rounded-full opacity-80 blur-xl"
+            style={{ background: `radial-gradient(circle, ${accent}55, transparent 70%)` }}
+          />
+          <div className="relative rounded-full p-[3px] shadow-[0_0_32px_rgba(201,168,76,0.35)]" style={{ background: "linear-gradient(135deg, #f5e6b8, #c9a84c, #8b6914, #f5e6b8)" }}>
+            <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="h-24 w-24 ring-2 ring-[#090909]/80" />
+          </div>
         </div>
         <HeaderIdentity {...props} className="justify-center" />
-        <div className="bf-profile-block mx-auto mt-4 max-w-md">
+        <div className="bf-profile-block mx-auto mt-5 max-w-md border-t border-[#c9a84c]/15 pt-5">
           <ProfileMainContent {...props} />
         </div>
       </div>
@@ -186,19 +207,52 @@ function CassetteLayout(props: LayoutProps) {
   const label = resolveLayoutLabel(settings) || "Side A";
 
   return (
-    <div className="w-full overflow-hidden border border-white/10 bg-[#141414]" style={{ borderRadius: settings.border_radius }}>
-      <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">{label}</span>
-        <div className="flex gap-2">
-          <div className="bf-layout-cassette-reel h-7 w-7 rounded-full border-2 border-white/25 bg-[#0a0a0a] shadow-inner" />
-          <div className="bf-layout-cassette-reel h-7 w-7 rounded-full border-2 border-white/25 bg-[#0a0a0a] shadow-inner [animation-direction:reverse]" />
+    <div className="w-full overflow-hidden border-2 border-[#2a2a2a] bg-[#121212] shadow-[inset_0_2px_0_rgba(255,255,255,0.04)]" style={{ borderRadius: settings.border_radius }}>
+      <div className="border-b border-[#2a2a2a] bg-[#0c0c0c] px-5 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-[0.35em] text-[#f97316]/90">Compact Cassette</p>
+            <p className="mt-0.5 font-mono text-sm font-semibold uppercase tracking-wide text-neutral-200">{label}</p>
+          </div>
+          <div className="flex gap-1">
+            <span className="h-2 w-2 rounded-full bg-[#ef4444]/80" />
+            <span className="h-2 w-2 rounded-full bg-[#eab308]/80" />
+          </div>
         </div>
       </div>
-      <div className="p-5">
-        <div className="flex gap-4 bf-profile-avatar-row">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16" />
-          <HeaderIdentity {...props} />
+
+      <div className="relative mx-5 mt-4 overflow-hidden rounded-lg border border-[#333] bg-[#1a1a1a] p-3 shadow-inner">
+        <div className="absolute left-2 top-2 h-1.5 w-1.5 rounded-full bg-[#444] shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]" />
+        <div className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#444] shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]" />
+        <div className="bf-layout-cassette-window relative flex items-center justify-between gap-4 rounded-md border border-[#2f2f2f] bg-[#0a0a0a] px-4 py-3">
+          <div className="bf-layout-cassette-reel relative h-12 w-12 shrink-0 rounded-full border-2 border-[#555] bg-[#151515] shadow-inner">
+            <div className="absolute inset-2 rounded-full border border-[#333]" />
+            <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#666]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-mono text-xs uppercase tracking-wider text-[#f97316]">{displayName}</p>
+            <div className="mt-2 flex h-6 items-end gap-0.5">
+              {Array.from({ length: 10 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="bf-layout-cassette-vu w-1 rounded-sm bg-[#f97316]/80"
+                  style={{ height: `${8 + (index % 4) * 4}px`, animationDelay: `${index * 0.07}s` }}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="bf-layout-cassette-reel relative h-12 w-12 shrink-0 rounded-full border-2 border-[#555] bg-[#151515] shadow-inner [animation-direction:reverse]">
+            <div className="absolute inset-2 rounded-full border border-[#333]" />
+            <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#666]" />
+          </div>
         </div>
+        <div className="mt-3 flex items-center gap-3 border-t border-dashed border-[#333] pt-3">
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-14 w-14 shrink-0 ring-1 ring-[#444]" />
+          <HeaderIdentity {...props} className="min-w-0 flex-1" />
+        </div>
+      </div>
+
+      <div className="p-5 pt-4">
         <ProfileMainContent {...props} />
       </div>
     </div>
@@ -296,14 +350,27 @@ function GraffitiLayout(props: LayoutProps) {
 
   return (
     <div className="w-full overflow-hidden" style={buildCardStyle(settings)}>
-      <div className="relative px-6 py-8" style={{ background: `linear-gradient(180deg, ${settings.accent_color}44, transparent)` }}>
-        <div className="absolute bottom-0 left-4 h-16 w-1 rotate-12 rounded-full bg-[#f472b6]/80 blur-[1px]" />
-        <div className="absolute bottom-2 right-8 h-20 w-2 -rotate-6 rounded-full bg-[#22d3ee]/70 blur-[1px]" />
-        <Username name={displayName} settings={settings} profile={profile} className="relative text-4xl font-black uppercase italic text-white" />
-        <ProfileHandle profile={profile} className="relative mt-1" />
-        <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
+      <div
+        className="relative overflow-visible px-5 py-6 sm:px-6"
+        style={{ background: `linear-gradient(135deg, ${settings.accent_color}55 0%, transparent 55%), linear-gradient(180deg, rgba(0,0,0,0.15), transparent)` }}
+      >
+        <div className="pointer-events-none absolute -left-1 bottom-3 h-20 w-3 rotate-12 rounded-full bg-[#f472b6]/75 blur-[0.5px]" />
+        <div className="pointer-events-none absolute bottom-1 right-4 h-24 w-2.5 -rotate-6 rounded-full bg-[#22d3ee]/70 blur-[0.5px]" />
+        <div className="pointer-events-none absolute right-12 top-4 h-3 w-10 rotate-[8deg] rounded-sm bg-[#fde047]/80" />
+        <div className="relative min-w-0">
+          <div className="bf-profile-name-row flex-wrap items-center gap-x-2 gap-y-1">
+            <Username
+              name={displayName}
+              settings={settings}
+              profile={profile}
+              className="max-w-full break-words text-3xl font-black uppercase italic leading-tight text-white sm:text-4xl"
+            />
+            <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
+          </div>
+          <ProfileHandle profile={profile} className="relative mt-2" />
+        </div>
       </div>
-      <div className="px-6 pb-8">
+      <div className="px-5 pb-8 sm:px-6">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent {...props} />
       </div>
@@ -317,19 +384,37 @@ function MonolithLayout(props: LayoutProps) {
   const accent = settings.accent_color;
 
   return (
-    <div className="relative mx-auto w-full max-w-sm py-4" style={buildCardStyle(settings)}>
-      <div
-        className="bf-layout-monolith-glow pointer-events-none absolute inset-y-8 left-1/2 w-px -translate-x-1/2"
-        style={{ background: `linear-gradient(180deg, transparent, ${accent}, transparent)` }}
-      />
+    <div
+      className="relative mx-auto w-full max-w-sm overflow-hidden border border-white/[0.08] shadow-[0_24px_80px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.06)]"
+      style={{
+        ...buildCardStyle(settings),
+        background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))",
+      }}
+    >
+      <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
       <div className="relative px-6 py-10 text-center">
-        <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.55em] text-neutral-500">Monolith</p>
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="mx-auto h-28 w-28 ring-2 ring-white/10" />
-        <HeaderIdentity {...props} className="mt-5 justify-center" />
-        <div className="bf-profile-block mt-6">
+        <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.55em] text-neutral-500">Monolith</p>
+        <div className="relative mx-auto mb-6 flex justify-center">
+          <div
+            className="pointer-events-none absolute bottom-0 h-3 w-20 rounded-full blur-md"
+            style={{ background: `${accent}44` }}
+          />
+          <div
+            className="relative rounded-2xl px-6 py-5 shadow-[0_0_40px_rgba(255,255,255,0.04)]"
+            style={{
+              background: `linear-gradient(180deg, ${accent}18, rgba(255,255,255,0.02))`,
+              border: `1px solid ${accent}33`,
+            }}
+          >
+            <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="mx-auto h-28 w-28 ring-2 ring-white/10" />
+          </div>
+        </div>
+        <HeaderIdentity {...props} className="justify-center" />
+        <div className="bf-profile-block mt-6 border-t border-white/[0.06] pt-6">
           <ProfileMainContent {...props} />
         </div>
       </div>
+      <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
     </div>
   );
 }
@@ -358,30 +443,48 @@ function PrismstackLayout(props: LayoutProps) {
 }
 
 function DashboardLayout(props: LayoutProps) {
-  const { profile, settings, viewCount } = props;
+  const { profile, settings } = props;
   const displayName = getDisplayName(profile);
+  const accent = settings.accent_color;
+  const modules = ["Identity", "Links", "Media"];
 
   return (
-    <div className="w-full" style={buildCardStyle(settings)}>
-      <div className="grid grid-cols-3 gap-2 border-b border-white/10 p-4">
-        {[
-          { label: "Views", value: viewCount.toLocaleString() },
-          { label: "Links", value: String(props.links.length) },
-          { label: "Status", value: "Live" },
-        ].map((tile, index) => (
-          <div
-            key={tile.label}
-            className="bf-layout-dashboard-tile rounded-lg border border-white/10 bg-white/[0.04] px-2 py-2 text-center"
-            style={{ animationDelay: `${index * 0.35}s` }}
-          >
-            <p className="text-[9px] uppercase tracking-wider text-neutral-500">{tile.label}</p>
-            <p className="mt-1 text-sm font-semibold text-white">{tile.value}</p>
+    <div className="w-full overflow-hidden border border-white/[0.08]" style={buildCardStyle(settings)}>
+      <div className="bf-layout-studio-grid relative border-b border-white/[0.08] px-5 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.35em] text-neutral-500">Creative Studio</p>
+            <p className="mt-1 text-sm font-medium text-white">Profile workspace</p>
           </div>
-        ))}
+          <div className="flex gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#ef4444]/80" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#eab308]/80" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#22c55e]/80" />
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {modules.map((module, index) => (
+            <span
+              key={module}
+              className={`rounded-full border px-3 py-1 text-[10px] font-medium uppercase tracking-wider ${
+                index === 0
+                  ? "border-white/20 bg-white/[0.08] text-white"
+                  : "border-white/[0.08] bg-white/[0.03] text-neutral-500"
+              }`}
+              style={index === 0 ? { boxShadow: `0 0 18px ${accent}22` } : undefined}
+            >
+              {module}
+            </span>
+          ))}
+        </div>
+        <div className="bf-layout-studio-accent pointer-events-none absolute inset-x-0 bottom-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }} />
       </div>
       <div className="p-5">
         <div className="flex gap-4 bf-profile-avatar-row">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16" />
+          <div className="relative">
+            <div className="absolute -inset-1 rounded-2xl opacity-60 blur-md" style={{ background: `${accent}33` }} />
+            <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="relative h-16 w-16 ring-2 ring-white/10" />
+          </div>
           <HeaderIdentity {...props} />
         </div>
         <ProfileMainContent {...props} />
@@ -393,18 +496,29 @@ function DashboardLayout(props: LayoutProps) {
 function CommandLayout(props: LayoutProps) {
   const { profile, settings } = props;
   const displayName = getDisplayName(profile);
-  const label = resolveLayoutLabel(settings) || "OPS-ACTIVE";
+  const label = resolveLayoutLabel(settings) || "cried-ops";
 
   return (
-    <div className="w-full border border-[#22c55e]/25 bg-[#050805] font-mono" style={{ borderRadius: settings.border_radius }}>
-      <div className="flex items-center gap-2 border-b border-[#22c55e]/20 px-4 py-2 text-[10px] uppercase tracking-[0.25em] text-[#22c55e]">
-        <span className="h-2 w-2 rounded-full bg-[#22c55e] animate-pulse" />
-        {label}
+    <div className="bf-layout-command relative w-full overflow-hidden border border-[#22c55e]/30 bg-[#030a04] font-mono shadow-[0_0_40px_rgba(34,197,94,0.08)]" style={{ borderRadius: settings.border_radius }}>
+      <div className="bf-layout-command-scanline pointer-events-none absolute inset-x-0 h-16 bg-gradient-to-b from-[#22c55e]/10 via-transparent to-transparent opacity-50" />
+      <div className="relative flex items-center justify-between border-b border-[#22c55e]/20 bg-[#041208] px-4 py-2.5 text-[10px] uppercase tracking-[0.25em] text-[#22c55e]">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-[#22c55e] shadow-[0_0_10px_#22c55e]" />
+          <span>{label} // shell</span>
+        </div>
+        <span className="text-[#22c55e]/60">secure</span>
       </div>
-      <div className="p-5">
-        <div className="flex gap-4 bf-profile-avatar-row">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor="#22c55e" className="h-16 w-16" />
-          <HeaderIdentity {...props} />
+      <div className="relative space-y-1 border-b border-[#22c55e]/10 px-4 py-3 text-[11px] text-[#22c55e]/75">
+        <p><span className="text-[#22c55e]">$</span> profile.load --user {profile.username ?? "guest"}</p>
+        <p><span className="text-[#22c55e]">$</span> status.render --mode public<span className="bf-layout-command-cursor ml-0.5 inline-block h-3 w-1.5 bg-[#22c55e]" /></p>
+      </div>
+      <div className="relative p-5">
+        <div className="mb-4 rounded-lg border border-[#22c55e]/15 bg-[#041208]/80 p-3">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-[#22c55e]/60">[ operator ]</p>
+          <div className="mt-3 flex gap-4 bf-profile-avatar-row">
+            <ProfileAvatar profile={profile} displayName={displayName} accentColor="#22c55e" className="h-16 w-16 ring-1 ring-[#22c55e]/40" />
+            <HeaderIdentity {...props} />
+          </div>
         </div>
         <ProfileMainContent {...props} />
       </div>
@@ -633,15 +747,31 @@ function PhoenixLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="relative w-full overflow-hidden border border-[#f97316]/30" style={buildCardStyle(settings)}>
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center gap-3 pt-4">
-        <div className="bf-layout-phoenix-wing h-16 w-10 rounded-full bg-gradient-to-t from-[#ea580c] to-transparent opacity-70 [transform:rotate(-18deg)]" />
-        <div className="bf-layout-phoenix-wing h-16 w-10 rounded-full bg-gradient-to-t from-[#f97316] to-transparent opacity-70 [transform:rotate(18deg)] [animation-delay:0.4s]" />
+    <div className="relative w-full overflow-hidden border border-[#f97316]/30 shadow-[0_0_50px_rgba(249,115,22,0.12)]" style={buildCardStyle(settings)}>
+      <div
+        className="bf-layout-phoenix-aura pointer-events-none absolute left-1/2 top-0 h-48 w-48 -translate-x-1/2 rounded-full blur-3xl"
+        style={{ background: "radial-gradient(circle, rgba(249,115,22,0.45), rgba(234,88,12,0.15) 45%, transparent 70%)" }}
+      />
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center pt-2">
+        <div className="bf-layout-phoenix-wing-left h-24 w-16 -rotate-[28deg] rounded-[999px] bg-gradient-to-br from-[#ea580c] via-[#fb923c] to-transparent opacity-80 [transform-origin:bottom_center]" />
+        <div className="bf-layout-phoenix-wing-right h-24 w-16 rotate-[28deg] rounded-[999px] bg-gradient-to-bl from-[#f97316] via-[#fdba74] to-transparent opacity-80 [transform-origin:bottom_center]" />
       </div>
-      <div className="relative px-6 py-10 text-center">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor="#f97316" className="mx-auto h-24 w-24 ring-2 ring-[#fb923c]/40" />
-        <HeaderIdentity {...props} className="mt-4 justify-center" />
-        <div className="bf-profile-block mx-auto mt-4 max-w-md">
+      <div className="pointer-events-none absolute inset-x-0 top-16 flex justify-center gap-8">
+        {[12, 28, 44, 60, 76].map((left, index) => (
+          <span
+            key={left}
+            className="bf-layout-phoenix-ember absolute h-1.5 w-1.5 rounded-full bg-[#fde68a]"
+            style={{ left: `${left}%`, animationDelay: `${index * 0.35}s` }}
+          />
+        ))}
+      </div>
+      <div className="relative px-6 pb-10 pt-12 text-center">
+        <div className="relative mx-auto mb-5 flex justify-center">
+          <div className="absolute inset-0 mx-auto h-28 w-28 animate-pulse rounded-full bg-[#fb923c]/20 blur-xl" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor="#f97316" className="relative h-24 w-24 ring-2 ring-[#fb923c]/50 shadow-[0_0_30px_rgba(251,146,60,0.35)]" />
+        </div>
+        <HeaderIdentity {...props} className="justify-center" />
+        <div className="bf-profile-block mx-auto mt-5 max-w-md border-t border-[#f97316]/15 pt-5">
           <ProfileMainContent {...props} />
         </div>
       </div>
