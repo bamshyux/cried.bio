@@ -23,6 +23,8 @@ import {
 import { removeCursorImageAction, removeProfileFaviconAction, saveCursorImageAction, saveProfileFaviconAction } from "@/app/actions/settings";
 import { uploadCursorImageToStorage } from "@/lib/uploads/cursor-client";
 import { uploadProfileFaviconToStorage } from "@/lib/uploads/favicon-client";
+import { IMAGE_CROP_PRESETS } from "@/lib/uploads/image-crop";
+import { useImageCropPicker } from "@/hooks/use-image-crop-picker";
 import {
   CUSTOM_CURSOR_SIZE_DEFAULT,
   CUSTOM_CURSOR_SIZE_MAX,
@@ -31,7 +33,7 @@ import {
 import { CURSOR_EFFECT_OPTIONS, TAB_TITLE_ANIMATION_OPTIONS, USERNAME_EFFECT_OPTIONS } from "@/lib/settings";
 import type { CursorEffect, ProfileSettings, TabTitleAnimation, UsernameEffect } from "@/lib/types/settings";
 import type { Profile } from "@/lib/types/profile";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 const fileInputClassName =
@@ -127,7 +129,7 @@ export function EffectsEditor({
     });
   };
 
-  const handleCursorUpload = async (file: File | undefined) => {
+  const handleCursorUpload = useCallback(async (file: File | undefined) => {
     if (!file) return;
 
     setUploadPending(true);
@@ -154,24 +156,9 @@ export function EffectsEditor({
       setUploadPending(false);
       setFileInputKey((k) => k + 1);
     }
-  };
+  }, [pageId, router]);
 
-  const handleRemoveCursor = () => {
-    startRemove(async () => {
-      setUploadError(undefined);
-      setUploadSuccess(undefined);
-      const result = await removeCursorImageAction(pageId);
-      if (result.error) {
-        setUploadError(result.error);
-        return;
-      }
-      setCursorPreview(null);
-      setUploadSuccess(result.success ?? "Custom cursor removed.");
-      router.refresh();
-    });
-  };
-
-  const handleFaviconUpload = async (file: File | undefined) => {
+  const handleFaviconUpload = useCallback(async (file: File | undefined) => {
     if (!file) return;
 
     setFaviconUploadPending(true);
@@ -198,6 +185,31 @@ export function EffectsEditor({
       setFaviconUploadPending(false);
       setFaviconFileInputKey((k) => k + 1);
     }
+  }, [pageId, router]);
+
+  const cursorCrop = useImageCropPicker({
+    ...IMAGE_CROP_PRESETS.cursor,
+    onCropped: (file) => void handleCursorUpload(file),
+  });
+
+  const faviconCrop = useImageCropPicker({
+    ...IMAGE_CROP_PRESETS.favicon,
+    onCropped: (file) => void handleFaviconUpload(file),
+  });
+
+  const handleRemoveCursor = () => {
+    startRemove(async () => {
+      setUploadError(undefined);
+      setUploadSuccess(undefined);
+      const result = await removeCursorImageAction(pageId);
+      if (result.error) {
+        setUploadError(result.error);
+        return;
+      }
+      setCursorPreview(null);
+      setUploadSuccess(result.success ?? "Custom cursor removed.");
+      router.refresh();
+    });
   };
 
   const handleRemoveFavicon = () => {
@@ -255,7 +267,7 @@ export function EffectsEditor({
                   accept="image/png,image/jpeg,image/webp,image/gif,image/x-icon,.ico"
                   disabled={faviconUploadPending}
                   className={fileInputClassName}
-                  onChange={(event) => void handleFaviconUpload(event.target.files?.[0])}
+                  onChange={(event) => faviconCrop.open(event.target.files?.[0])}
                 />
                 <p className="mt-2 text-xs text-neutral-500">
                   {faviconUploadPending ? "Uploading..." : "ICO, PNG, JPEG, WebP, or GIF up to 512 KB."}
@@ -351,7 +363,7 @@ export function EffectsEditor({
                 accept="image/jpeg,image/png,image/webp,image/gif"
                 disabled={uploadPending}
                 className={fileInputClassName}
-                onChange={(event) => void handleCursorUpload(event.target.files?.[0])}
+                onChange={(event) => cursorCrop.open(event.target.files?.[0])}
               />
               <p className="mt-2 text-xs text-neutral-500">
                 {uploadPending ? "Uploading..." : "JPEG, PNG, WebP, or GIF up to 2 MB."}
@@ -395,6 +407,8 @@ export function EffectsEditor({
           </button>
         </form>
       </div>
+      {cursorCrop.dialog}
+      {faviconCrop.dialog}
     </>
   );
 }

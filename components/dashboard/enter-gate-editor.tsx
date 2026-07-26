@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ControlledSelect } from "@/components/dashboard/controlled-fields";
 import {
@@ -25,6 +25,8 @@ import {
 import { PARTICLE_OPTIONS, FONT_OPTIONS } from "@/lib/settings";
 import { uploadEnterGateBackgroundToStorage } from "@/lib/uploads/enter-gate-client";
 import { isBackgroundVideoFile } from "@/lib/uploads/background-media";
+import { IMAGE_CROP_PRESETS } from "@/lib/uploads/image-crop";
+import { useImageCropPicker } from "@/hooks/use-image-crop-picker";
 import { MAX_BACKGROUND_UPLOAD_LABEL } from "@/lib/uploads/limits";
 import type { ParticleEffect, ProfileSettings } from "@/lib/types/settings";
 import type { Profile } from "@/lib/types/profile";
@@ -150,7 +152,7 @@ export function EnterGateEditor({
     };
   }, [imagePreview, videoPreview]);
 
-  const handleUpload = async (file: File | undefined) => {
+  const handleUpload = useCallback(async (file: File | undefined) => {
     if (!file) return;
 
     setUploadPending(true);
@@ -188,6 +190,21 @@ export function EnterGateEditor({
       setUploadPending(false);
       setFileInputKey((key) => key + 1);
     }
+  }, [patchForm, router]);
+
+  const enterGateCrop = useImageCropPicker({
+    ...IMAGE_CROP_PRESETS.background,
+    title: "Crop enter gate background",
+    onCropped: (file) => void handleUpload(file),
+  });
+
+  const handleEnterGateFilePick = (file: File | undefined) => {
+    if (!file) return;
+    if (isBackgroundVideoFile(file)) {
+      void handleUpload(file);
+      return;
+    }
+    enterGateCrop.open(file);
   };
 
   const removeMedia = () => {
@@ -207,6 +224,7 @@ export function EnterGateEditor({
   };
 
   return (
+    <>
     <div className="rounded-xl border border-white/[0.06] bg-[#0c0c0c] p-4">
       <p className="mb-1 text-sm font-medium text-white">Click to enter</p>
       <p className="mb-4 text-xs leading-relaxed text-neutral-500">
@@ -354,7 +372,7 @@ export function EnterGateEditor({
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif,video/mp4"
                 disabled={uploadPending}
-                onChange={(e) => handleUpload(e.target.files?.[0])}
+                onChange={(e) => handleEnterGateFilePick(e.target.files?.[0])}
                 className={fileInputClassName}
               />
               <p className="text-xs text-neutral-600">JPEG, PNG, WebP, GIF, or MP4 — {MAX_BACKGROUND_UPLOAD_LABEL}</p>
@@ -566,5 +584,7 @@ export function EnterGateEditor({
         </section>
       </div>
     </div>
+    {enterGateCrop.dialog}
+    </>
   );
 }

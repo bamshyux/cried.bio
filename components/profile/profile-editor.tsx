@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   removeProfileImageAction,
@@ -12,6 +12,8 @@ import { getUsernameChangeCooldown, formatUsernameChangeAvailableDate, USERNAME_
 import type { Profile, ProfileFormState } from "@/lib/types/profile";
 import type { ProfileSettings } from "@/lib/types/settings";
 import { uploadProfileImageToStorage } from "@/lib/uploads/profile-client";
+import { IMAGE_CROP_PRESETS } from "@/lib/uploads/image-crop";
+import { useImageCropPicker } from "@/hooks/use-image-crop-picker";
 import {
   buttonPrimaryClassName,
   FormFeedback,
@@ -98,7 +100,7 @@ export function ProfileEditor({
     return () => window.removeEventListener(DASHBOARD_RESET_EVENT, handleReset);
   }, [profile?.bio]);
 
-  const handleImageUpload = async (type: "avatar" | "banner", file: File | undefined) => {
+  const handleImageUpload = useCallback(async (type: "avatar" | "banner", file: File | undefined) => {
     if (!file) return;
 
     const setUploading = type === "avatar" ? setAvatarUploading : setBannerUploading;
@@ -133,7 +135,17 @@ export function ProfileEditor({
       setUploading(false);
       bumpInputKey((key) => key + 1);
     }
-  };
+  }, [router]);
+
+  const avatarCrop = useImageCropPicker({
+    ...IMAGE_CROP_PRESETS.avatar,
+    onCropped: (file) => void handleImageUpload("avatar", file),
+  });
+
+  const bannerCrop = useImageCropPicker({
+    ...IMAGE_CROP_PRESETS.banner,
+    onCropped: (file) => void handleImageUpload("banner", file),
+  });
 
   const removeImage = (type: "avatar" | "banner") => {
     startRemove(async () => {
@@ -259,7 +271,7 @@ export function ProfileEditor({
             accept="image/jpeg,image/png,image/webp,image/gif"
             disabled={avatarUploading}
             onChange={(event) => {
-              void handleImageUpload("avatar", event.target.files?.[0]);
+              avatarCrop.open(event.target.files?.[0]);
             }}
             className={fileInputClassName}
           />
@@ -296,7 +308,7 @@ export function ProfileEditor({
             accept="image/jpeg,image/png,image/webp,image/gif"
             disabled={bannerUploading}
             onChange={(event) => {
-              void handleImageUpload("banner", event.target.files?.[0]);
+              bannerCrop.open(event.target.files?.[0]);
             }}
             className={fileInputClassName}
           />
@@ -317,6 +329,9 @@ export function ProfileEditor({
       {settings ? (
         <BioStyleEditor settings={settings} bioPreview={bioPreview} embedded />
       ) : null}
+
+      {avatarCrop.dialog}
+      {bannerCrop.dialog}
     </div>
   );
 }

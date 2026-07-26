@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useCallback, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   createLinkAction,
@@ -27,6 +27,8 @@ import { LINK_ANIMATION_OPTIONS, LINKS_BUTTON_STYLE_OPTIONS, LINKS_SPACING_OPTIO
 import { isCustomLinkIcon, LINKS_ICON_SIZE_MAX, LINKS_ICON_SIZE_MIN } from "@/lib/links";
 import { ProfileLinkButton, SocialIconOnlyRow, SocialIconRow } from "@/components/profile/public/profile-links";
 import { uploadLinkIconToStorage } from "@/lib/uploads/link-icon-client";
+import { IMAGE_CROP_PRESETS } from "@/lib/uploads/image-crop";
+import { useImageCropPicker } from "@/hooks/use-image-crop-picker";
 import { getPlatform, type SocialPlatformId } from "@/lib/social-platforms";
 import { useSettingsRefresh } from "@/components/dashboard/use-settings-refresh";
 import type { LinkFormState, ProfileLink } from "@/lib/types/link";
@@ -128,7 +130,7 @@ function CustomLinkIconField({
     onUploadingChange?.(uploadPending);
   }, [uploadPending, onUploadingChange]);
 
-  const handleUpload = async (file: File | undefined) => {
+  const handleUpload = useCallback(async (file: File | undefined) => {
     if (!file) return;
 
     setUploadPending(true);
@@ -143,7 +145,12 @@ function CustomLinkIconField({
       setUploadPending(false);
       setFileInputKey((key) => key + 1);
     }
-  };
+  }, [onIconChange]);
+
+  const linkIconCrop = useImageCropPicker({
+    ...IMAGE_CROP_PRESETS.linkIcon,
+    onCropped: (file) => void handleUpload(file),
+  });
 
   return (
     <div>
@@ -156,7 +163,7 @@ function CustomLinkIconField({
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
             disabled={uploadPending}
-            onChange={(e) => handleUpload(e.target.files?.[0])}
+            onChange={(e) => linkIconCrop.open(e.target.files?.[0])}
             className={fileInputClassName}
           />
           <p className="text-xs text-neutral-600">JPEG, PNG, WebP, or GIF — max 2 MB. Leave empty for the default link icon.</p>
@@ -173,6 +180,7 @@ function CustomLinkIconField({
           {uploadPending ? <p className="text-xs text-neutral-500">Uploading icon...</p> : null}
         </div>
       </div>
+      {linkIconCrop.dialog}
     </div>
   );
 }

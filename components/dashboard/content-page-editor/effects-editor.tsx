@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ControlledSelect } from "@/components/dashboard/controlled-fields";
 import {
@@ -25,6 +25,8 @@ import {
 } from "@/app/actions/settings";
 import { uploadCursorImageToStorage } from "@/lib/uploads/cursor-client";
 import { uploadProfileFaviconToStorage } from "@/lib/uploads/favicon-client";
+import { IMAGE_CROP_PRESETS } from "@/lib/uploads/image-crop";
+import { useImageCropPicker } from "@/hooks/use-image-crop-picker";
 import {
   CUSTOM_CURSOR_SIZE_DEFAULT,
   CUSTOM_CURSOR_SIZE_MAX,
@@ -117,7 +119,7 @@ export function ContentPageEffectsEditor({
     submit(formRef.current);
   };
 
-  const handleCursorUpload = async (file: File | undefined) => {
+  const handleCursorUpload = useCallback(async (file: File | undefined) => {
     if (!file) return;
 
     setUploadPending(true);
@@ -144,7 +146,7 @@ export function ContentPageEffectsEditor({
       setUploadPending(false);
       setFileInputKey((k) => k + 1);
     }
-  };
+  }, [pageId, router]);
 
   const handleRemoveCursor = () => {
     startRemove(async () => {
@@ -161,7 +163,7 @@ export function ContentPageEffectsEditor({
     });
   };
 
-  const handleFaviconUpload = async (file: File | undefined) => {
+  const handleFaviconUpload = useCallback(async (file: File | undefined) => {
     if (!file) return;
 
     setFaviconUploadPending(true);
@@ -188,7 +190,18 @@ export function ContentPageEffectsEditor({
       setFaviconUploadPending(false);
       setFaviconFileInputKey((k) => k + 1);
     }
-  };
+  }, [pageId, router]);
+
+  const cursorCrop = useImageCropPicker({
+    ...IMAGE_CROP_PRESETS.cursor,
+    onCropped: (file) => void handleCursorUpload(file),
+  });
+
+  const faviconCrop = useImageCropPicker({
+    ...IMAGE_CROP_PRESETS.favicon,
+    title: "Crop page favicon",
+    onCropped: (file) => void handleFaviconUpload(file),
+  });
 
   const handleRemoveFavicon = () => {
     startRemove(async () => {
@@ -244,7 +257,7 @@ export function ContentPageEffectsEditor({
                   accept="image/png,image/jpeg,image/webp,image/gif,image/x-icon,.ico"
                   disabled={faviconUploadPending}
                   className={fileInputClassName}
-                  onChange={(event) => void handleFaviconUpload(event.target.files?.[0])}
+                  onChange={(event) => faviconCrop.open(event.target.files?.[0])}
                 />
               </div>
               <FormFeedback error={faviconUploadError} success={faviconUploadSuccess} />
@@ -323,7 +336,7 @@ export function ContentPageEffectsEditor({
                 accept="image/jpeg,image/png,image/webp,image/gif"
                 disabled={uploadPending}
                 className={fileInputClassName}
-                onChange={(event) => void handleCursorUpload(event.target.files?.[0])}
+                onChange={(event) => cursorCrop.open(event.target.files?.[0])}
               />
             </div>
             <FormFeedback error={uploadError} success={uploadSuccess} />
@@ -350,6 +363,8 @@ export function ContentPageEffectsEditor({
           </button>
         </form>
       </div>
+      {cursorCrop.dialog}
+      {faviconCrop.dialog}
     </>
   );
 }

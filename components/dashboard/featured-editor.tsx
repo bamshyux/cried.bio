@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   createFeaturedBlockAction,
@@ -23,6 +23,8 @@ import {
   type FeaturedBlockType,
   type FeaturedFormState,
 } from "@/lib/types/featured";
+import { assignFileToInput, IMAGE_CROP_PRESETS } from "@/lib/uploads/image-crop";
+import { useImageCropPicker } from "@/hooks/use-image-crop-picker";
 
 const initial: FeaturedFormState = {};
 
@@ -33,6 +35,7 @@ export function FeaturedEditor({ blocks }: { blocks: FeaturedBlock[] }) {
   const [blockType, setBlockType] = useState<FeaturedBlockType>("link");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
   const [state, formAction, isPending] = useActionState(createFeaturedBlockAction, initial);
   useClearUnsavedOnSuccess(state, isPending);
   const [, startTransition] = useTransition();
@@ -62,7 +65,13 @@ export function FeaturedEditor({ blocks }: { blocks: FeaturedBlock[] }) {
       return;
     }
     setImagePreview(URL.createObjectURL(file));
+    assignFileToInput(imageFileInputRef.current, file);
   };
+
+  const featuredImageCrop = useImageCropPicker({
+    ...IMAGE_CROP_PRESETS.featured,
+    onCropped: (file) => handleImageChange(file),
+  });
 
   const isImageType = blockType === "image";
 
@@ -103,11 +112,12 @@ export function FeaturedEditor({ blocks }: { blocks: FeaturedBlock[] }) {
               <div>
                 <label htmlFor="image_file" className={labelClassName}>Upload image</label>
                 <input
+                  ref={imageFileInputRef}
                   id="image_file"
                   name="image_file"
                   type="file"
                   accept={IMAGE_ACCEPT}
-                  onChange={(e) => handleImageChange(e.target.files?.[0])}
+                  onChange={(e) => featuredImageCrop.open(e.target.files?.[0])}
                   className="block w-full text-sm text-neutral-500 file:mr-4 file:rounded-lg file:border-0 file:bg-[#fafafa] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#090909]"
                 />
                 <p className="mt-1.5 text-xs text-neutral-600">JPEG, PNG, WebP, or GIF · up to 5 MB</p>
@@ -208,6 +218,7 @@ export function FeaturedEditor({ blocks }: { blocks: FeaturedBlock[] }) {
           </div>
         ))}
       </div>
+      {featuredImageCrop.dialog}
     </>
   );
 }

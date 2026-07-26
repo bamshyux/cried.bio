@@ -21,10 +21,12 @@ import {
 } from "@/app/actions/settings";
 import { uploadBackgroundToStorage } from "@/lib/uploads/background-client";
 import { isBackgroundVideoFile, resolveProfileBackgroundMedia } from "@/lib/uploads/background-media";
+import { IMAGE_CROP_PRESETS } from "@/lib/uploads/image-crop";
+import { useImageCropPicker } from "@/hooks/use-image-crop-picker";
 import { MAX_BACKGROUND_UPLOAD_LABEL } from "@/lib/uploads/limits";
 import { BACKGROUND_TYPE_OPTIONS, PARTICLE_OPTIONS } from "@/lib/settings";
 import type { BackgroundType, ParticleEffect, ProfileSettings } from "@/lib/types/settings";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 const fileInputClassName =
@@ -109,7 +111,7 @@ export function BackgroundEditor({
     submit(formRef.current);
   };
 
-  const handleBackgroundUpload = async (file: File | undefined) => {
+  const handleBackgroundUpload = useCallback(async (file: File | undefined) => {
     if (!file) return;
 
     setUploadPending(true);
@@ -147,6 +149,20 @@ export function BackgroundEditor({
       setUploadPending(false);
       setFileInputKey((key) => key + 1);
     }
+  }, [pageId, patchForm, router]);
+
+  const backgroundCrop = useImageCropPicker({
+    ...IMAGE_CROP_PRESETS.background,
+    onCropped: (file) => void handleBackgroundUpload(file),
+  });
+
+  const handleBackgroundFilePick = (file: File | undefined) => {
+    if (!file) return;
+    if (isBackgroundVideoFile(file)) {
+      void handleBackgroundUpload(file);
+      return;
+    }
+    backgroundCrop.open(file);
   };
 
   const removeBackground = () => {
@@ -306,7 +322,7 @@ export function BackgroundEditor({
               accept="image/jpeg,image/png,image/webp,image/gif,video/mp4"
               disabled={uploadPending}
               onChange={(event) => {
-                void handleBackgroundUpload(event.target.files?.[0]);
+                handleBackgroundFilePick(event.target.files?.[0]);
               }}
               className={fileInputClassName}
             />
@@ -319,6 +335,7 @@ export function BackgroundEditor({
           </div>
         </div>
       </div>
+      {backgroundCrop.dialog}
     </>
   );
 }

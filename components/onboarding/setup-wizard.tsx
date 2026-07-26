@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { saveProfileImageAction } from "@/app/actions/profile";
 import {
   addOnboardingSocialLinkAction,
@@ -27,6 +27,8 @@ import type { Profile } from "@/lib/types/profile";
 import type { ProfileLink } from "@/lib/types/link";
 import type { ProfileLayout, ProfileSettings } from "@/lib/types/settings";
 import { uploadProfileImageToStorage } from "@/lib/uploads/profile-client";
+import { IMAGE_CROP_PRESETS } from "@/lib/uploads/image-crop";
+import { useImageCropPicker } from "@/hooks/use-image-crop-picker";
 
 const TOTAL_STEPS = 5;
 
@@ -151,7 +153,7 @@ export function SetupWizard({
     });
   };
 
-  const handleAvatarUpload = async (file: File | undefined) => {
+  const handleAvatarUpload = useCallback(async (file: File | undefined) => {
     if (!file) return;
     setAvatarUploading(true);
     setFeedback({});
@@ -177,7 +179,12 @@ export function SetupWizard({
       setAvatarUploading(false);
       setAvatarInputKey((key) => key + 1);
     }
-  };
+  }, [profile?.avatar_url, router]);
+
+  const avatarCrop = useImageCropPicker({
+    ...IMAGE_CROP_PRESETS.avatar,
+    onCropped: (file) => void handleAvatarUpload(file),
+  });
 
   const handleAddSocialLink = () => {
     if (!socialPlatform) return;
@@ -295,13 +302,14 @@ export function SetupWizard({
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
               disabled={avatarUploading}
-              onChange={(e) => handleAvatarUpload(e.target.files?.[0])}
+              onChange={(e) => avatarCrop.open(e.target.files?.[0])}
               className={fileInputClassName}
             />
             <p className="mt-2 text-xs text-neutral-600">JPEG, PNG, WebP, or GIF — max 5 MB.</p>
           </div>
         </div>
         <FormFeedback error={feedback.error} success={feedback.success} />
+        {avatarCrop.dialog}
         <div className="flex justify-between gap-3">
           <button type="button" onClick={goBack} className={buttonSecondaryClassName}>Back</button>
           <div className="flex gap-3">
