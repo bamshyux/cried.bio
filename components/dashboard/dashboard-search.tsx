@@ -141,7 +141,7 @@ export function DashboardSearch() {
     ) : null;
 
   return (
-    <>
+    <div data-tour="tour-overview-search" className="flex items-center">
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -170,7 +170,7 @@ export function DashboardSearch() {
       </button>
 
       {searchOverlay ? createPortal(searchOverlay, document.body) : null}
-    </>
+    </div>
   );
 }
 

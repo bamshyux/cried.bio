@@ -13,6 +13,7 @@ import {
   AdminSection,
   AdminTableWrap,
 } from "@/components/admin/admin-ui";
+import { OwnerPowersDeck } from "@/components/admin/owner-powers-deck";
 import {
   buttonPrimaryClassName,
   buttonSecondaryClassName,
@@ -21,16 +22,18 @@ import {
   labelClassName,
   ToggleField,
 } from "@/components/dashboard/form-fields";
-import { ANNOUNCEMENT_TYPE_OPTIONS, type AdminFormState, type PlatformSettings, type ReservedUsername } from "@/lib/types/admin";
+import { ANNOUNCEMENT_TYPE_OPTIONS, type AdminFormState, type PlatformSettings, type PlatformStats, type ReservedUsername } from "@/lib/types/admin";
 
 const initial: AdminFormState = {};
 
 export function AdminOwnerPanel({
   settings,
   reserved,
+  stats,
 }: {
   settings: PlatformSettings | null;
   reserved: ReservedUsername[];
+  stats: PlatformStats | null;
 }) {
   const [settingsState, settingsAction, settingsPending] = useActionState(updatePlatformSettingsAction, initial);
   const [reservedState, reservedAction, reservedPending] = useActionState(addReservedUsernameAction, initial);
@@ -43,6 +46,8 @@ export function AdminOwnerPanel({
         title="Owner Tools"
         description="Maintenance mode, global banner, reserved usernames, and platform controls."
       />
+
+      <OwnerPowersDeck stats={stats} />
 
       <AdminSection title="Platform controls">
         <form action={settingsAction} className="grid gap-4 md:grid-cols-2">

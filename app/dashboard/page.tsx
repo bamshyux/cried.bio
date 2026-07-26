@@ -106,9 +106,7 @@ export default async function DashboardOverviewPage() {
             ))}
           </div>
 
-          <div data-tour="tour-overview-search">
-            <DashboardSearchHint />
-          </div>
+          <DashboardSearchHint />
         </div>
       </div>
 
