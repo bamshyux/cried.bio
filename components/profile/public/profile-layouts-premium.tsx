@@ -38,17 +38,21 @@ function MonarchLayout(props: LayoutProps) {
   const accent = settings.accent_color;
 
   return (
-    <div className="w-full overflow-hidden border border-[#d4af37]/25" style={buildCardStyle(settings)}>
+    <div className="relative w-full overflow-hidden border border-[#d4af37]/35 shadow-[0_0_40px_rgba(212,175,55,0.12)]" style={buildCardStyle(settings)}>
+      <div className="bf-layout-monarch-shimmer absolute inset-x-0 top-0 h-1" />
       <div
-        className="border-b border-[#d4af37]/20 px-6 py-4 text-center"
-        style={{ background: `linear-gradient(180deg, ${accent}18, transparent)` }}
+        className="relative border-b border-[#d4af37]/25 px-6 py-5 text-center"
+        style={{ background: `linear-gradient(180deg, ${accent}22, rgba(212,175,55,0.08) 40%, transparent)` }}
       >
+        <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full border border-[#d4af37]/40 bg-[#d4af37]/10 text-sm">
+          ♛
+        </div>
         <p className="text-[10px] font-semibold uppercase tracking-[0.45em] text-[#d4af37]">Monarch</p>
         <p className="mt-1 text-xs text-neutral-500">Est. {new Date(profile.created_at).getFullYear()}</p>
       </div>
-      <div className="px-6 py-8 text-center">
+      <div className="relative px-6 py-8 text-center">
         <div className="bf-profile-avatar-row mb-5 flex justify-center">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="h-24 w-24 ring-2 ring-[#d4af37]/40" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="h-24 w-24 ring-2 ring-[#d4af37]/50 shadow-[0_0_24px_rgba(212,175,55,0.25)]" />
         </div>
         <HeaderIdentity {...props} className="justify-center" />
         <div className="bf-profile-block mx-auto mt-4 max-w-md">
@@ -65,17 +69,18 @@ function GlitchLayout(props: LayoutProps) {
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="relative w-full overflow-hidden" style={buildCardStyle(settings)}>
+    <div className="bf-layout-glitch-active relative w-full overflow-hidden border border-[#ff0080]/20" style={buildCardStyle(settings)}>
       <div
-        className="pointer-events-none absolute inset-0 opacity-20"
+        className="pointer-events-none absolute inset-0 opacity-25"
         style={{
-          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)",
+          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.04) 2px, rgba(255,255,255,0.04) 4px)",
         }}
       />
+      <div className="bf-layout-glitch-scanline pointer-events-none absolute inset-x-0 h-8 bg-gradient-to-b from-[#00dfd8]/20 via-white/10 to-transparent opacity-60" />
       <div className="relative px-6 py-8">
         <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-[#ff0080]">ERR://RENDER</p>
         <div className="bf-profile-avatar-row mt-4 flex items-end gap-4">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20 ring-2 ring-[#ff0080]/30" />
           <div className="relative min-w-0">
             <Username name={displayName} settings={settings} profile={profile} className="relative z-10 text-2xl font-black text-white" />
             <span className="absolute left-0.5 top-0.5 -z-0 truncate text-2xl font-black text-[#ff0080]/70" aria-hidden>{displayName}</span>
@@ -140,13 +145,13 @@ function ArcadeLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="w-full overflow-hidden border-4 border-[#6366f1]/40" style={{ ...buildCardStyle(settings), borderRadius: Math.min(settings.border_radius, 8) }}>
-      <div className="border-b-4 border-[#6366f1]/40 bg-[#6366f1]/15 px-4 py-2 text-center font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#c7d2fe]">
+    <div className="bf-layout-arcade-glow w-full overflow-hidden border-4 border-[#6366f1]/50 bg-[#0a0820]" style={{ ...buildCardStyle(settings), borderRadius: Math.min(settings.border_radius, 8) }}>
+      <div className="border-b-4 border-[#6366f1]/40 bg-[#6366f1]/20 px-4 py-2 text-center font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#c7d2fe]">
         Insert Coin · Player 1
       </div>
       <div className="p-5">
         <div className="flex gap-4 bf-profile-avatar-row">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16 rounded-md" rounded="rounded-md" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16 rounded-md shadow-[0_0_16px_rgba(99,102,241,0.45)]" rounded="rounded-md" />
           <HeaderIdentity {...props} />
         </div>
         <ProfileMainContent {...props} />
@@ -185,8 +190,8 @@ function CassetteLayout(props: LayoutProps) {
       <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
         <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">{label}</span>
         <div className="flex gap-2">
-          <div className="h-6 w-6 rounded-full border-2 border-white/20 bg-[#0a0a0a]" />
-          <div className="h-6 w-6 rounded-full border-2 border-white/20 bg-[#0a0a0a]" />
+          <div className="bf-layout-cassette-reel h-7 w-7 rounded-full border-2 border-white/25 bg-[#0a0a0a] shadow-inner" />
+          <div className="bf-layout-cassette-reel h-7 w-7 rounded-full border-2 border-white/25 bg-[#0a0a0a] shadow-inner [animation-direction:reverse]" />
         </div>
       </div>
       <div className="p-5">
@@ -206,15 +211,16 @@ function CrystalLayout(props: LayoutProps) {
   const accent = settings.accent_color;
 
   return (
-    <div className="w-full overflow-hidden" style={buildCardStyle(settings)}>
+    <div className="relative w-full overflow-hidden border border-white/10 shadow-[0_0_32px_rgba(147,197,253,0.12)]" style={buildCardStyle(settings)}>
       <div
-        className="px-6 py-10 text-center"
+        className="relative px-6 py-10 text-center"
         style={{
-          background: `linear-gradient(135deg, ${accent}33 0%, transparent 45%, ${settings.gradient_colors?.[1] ?? accent}22 100%)`,
+          background: `linear-gradient(135deg, ${accent}44 0%, transparent 45%, ${settings.gradient_colors?.[1] ?? accent}33 100%)`,
           clipPath: "polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%)",
         }}
       >
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="mx-auto h-24 w-24 ring-2 ring-white/20" />
+        <div className="bf-layout-crystal-shine" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="relative z-10 mx-auto h-24 w-24 ring-2 ring-white/30" />
       </div>
       <div className="px-6 pb-8 pt-2 text-center">
         <HeaderIdentity {...props} className="justify-center" />
@@ -231,15 +237,30 @@ function NebuladriftLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="relative w-full overflow-hidden" style={buildCardStyle(settings)}>
+    <div className="relative w-full overflow-hidden border border-[#6366f1]/20" style={buildCardStyle(settings)}>
       <div
-        className="absolute inset-x-0 top-0 h-40 opacity-60"
+        className="bf-layout-nebula-layer absolute inset-x-0 top-0 h-44"
         style={{
-          background: `radial-gradient(ellipse at 30% 20%, ${settings.accent_color}55, transparent 55%), radial-gradient(ellipse at 70% 40%, #a855f766, transparent 50%), radial-gradient(ellipse at 50% 80%, #6366f144, transparent 60%)`,
+          background: `radial-gradient(ellipse at 30% 20%, ${settings.accent_color}66, transparent 55%), radial-gradient(ellipse at 70% 40%, #a855f788, transparent 50%)`,
         }}
       />
+      <div
+        className="bf-layout-nebula-layer-delay absolute inset-x-0 top-0 h-44"
+        style={{
+          background: `radial-gradient(ellipse at 50% 80%, #6366f155, transparent 60%)`,
+        }}
+      />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-44 opacity-40">
+        {["12%", "28%", "44%", "61%", "78%", "90%"].map((left, index) => (
+          <span
+            key={left}
+            className="absolute h-1 w-1 rounded-full bg-white/80"
+            style={{ left, top: `${18 + (index % 3) * 22}%`, opacity: 0.35 + (index % 3) * 0.2 }}
+          />
+        ))}
+      </div>
       <div className="relative px-6 py-10 text-center">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="mx-auto h-24 w-24" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="mx-auto h-24 w-24 ring-2 ring-[#a855f7]/40 shadow-[0_0_24px_rgba(168,85,247,0.25)]" />
         <HeaderIdentity {...props} className="mt-4 justify-center" />
         <div className="bf-profile-block mx-auto mt-4 max-w-md">
           <ProfileMainContent {...props} />
@@ -293,11 +314,17 @@ function GraffitiLayout(props: LayoutProps) {
 function MonolithLayout(props: LayoutProps) {
   const { profile, settings } = props;
   const displayName = getDisplayName(profile);
+  const accent = settings.accent_color;
 
   return (
-    <div className="mx-auto w-full max-w-sm py-4" style={buildCardStyle(settings)}>
-      <div className="px-6 py-10 text-center">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="mx-auto h-28 w-28" />
+    <div className="relative mx-auto w-full max-w-sm py-4" style={buildCardStyle(settings)}>
+      <div
+        className="bf-layout-monolith-glow pointer-events-none absolute inset-y-8 left-1/2 w-px -translate-x-1/2"
+        style={{ background: `linear-gradient(180deg, transparent, ${accent}, transparent)` }}
+      />
+      <div className="relative px-6 py-10 text-center">
+        <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.55em] text-neutral-500">Monolith</p>
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="mx-auto h-28 w-28 ring-2 ring-white/10" />
         <HeaderIdentity {...props} className="mt-5 justify-center" />
         <div className="bf-profile-block mt-6">
           <ProfileMainContent {...props} />
@@ -314,7 +341,7 @@ function PrismstackLayout(props: LayoutProps) {
 
   return (
     <div className="w-full overflow-hidden" style={buildCardStyle(settings)}>
-      <div className="flex h-2">
+      <div className="bf-layout-prism-animate flex h-3 shadow-[0_4px_20px_rgba(255,255,255,0.08)]">
         {colors.map((color) => (
           <div key={color} className="flex-1" style={{ background: color }} />
         ))}
@@ -341,8 +368,12 @@ function DashboardLayout(props: LayoutProps) {
           { label: "Views", value: viewCount.toLocaleString() },
           { label: "Links", value: String(props.links.length) },
           { label: "Status", value: "Live" },
-        ].map((tile) => (
-          <div key={tile.label} className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-2 text-center">
+        ].map((tile, index) => (
+          <div
+            key={tile.label}
+            className="bf-layout-dashboard-tile rounded-lg border border-white/10 bg-white/[0.04] px-2 py-2 text-center"
+            style={{ animationDelay: `${index * 0.35}s` }}
+          >
             <p className="text-[9px] uppercase tracking-wider text-neutral-500">{tile.label}</p>
             <p className="mt-1 text-sm font-semibold text-white">{tile.value}</p>
           </div>
@@ -384,15 +415,24 @@ function CommandLayout(props: LayoutProps) {
 function BloomLayout(props: LayoutProps) {
   const { profile, settings } = props;
   const displayName = getDisplayName(profile);
+  const accent = settings.accent_color;
 
   return (
-    <div className="relative w-full overflow-hidden" style={buildCardStyle(settings)}>
-      <div
-        className="absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl"
-        style={{ background: `${settings.accent_color}33` }}
-      />
+    <div className="relative w-full overflow-hidden border border-[#f472b6]/20" style={buildCardStyle(settings)}>
+      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl" style={{ background: `${accent}44` }} />
+      {[
+        { className: "left-[12%] top-[18%] h-3 w-3", delay: "0s" },
+        { className: "right-[16%] top-[24%] h-2.5 w-2.5", delay: "1.2s" },
+        { className: "left-[20%] bottom-[22%] h-2 w-2", delay: "2.1s" },
+      ].map((petal) => (
+        <div
+          key={petal.className}
+          className={`bf-layout-bloom-petal pointer-events-none absolute rounded-full ${petal.className}`}
+          style={{ background: `${accent}88`, animationDelay: petal.delay }}
+        />
+      ))}
       <div className="relative px-6 py-10 text-center">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="mx-auto h-24 w-24" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="mx-auto h-24 w-24 ring-2 ring-[#f472b6]/30" />
         <HeaderIdentity {...props} className="mt-4 justify-center" />
         <div className="bf-profile-block mx-auto mt-4 max-w-md">
           <ProfileMainContent {...props} />
@@ -407,13 +447,14 @@ function StealthLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="w-full border border-[#14532d]/40 bg-[#030303] p-5" style={{ borderRadius: settings.border_radius }}>
-      <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.35em] text-[#4ade80]/80">
-        <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" />
+    <div className="relative w-full overflow-hidden border border-[#14532d]/40 bg-[#030303] p-5" style={{ borderRadius: settings.border_radius }}>
+      <div className="bf-layout-stealth-scan pointer-events-none absolute inset-x-0 h-10 bg-gradient-to-b from-transparent via-[#4ade80]/15 to-transparent" />
+      <div className="relative flex items-center gap-2 text-[10px] uppercase tracking-[0.35em] text-[#4ade80]/80">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80] animate-pulse" />
         Stealth mode
       </div>
-      <div className="mt-4 flex gap-4 bf-profile-avatar-row">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor="#4ade80" className="h-16 w-16 opacity-90" />
+      <div className="relative mt-4 flex gap-4 bf-profile-avatar-row">
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor="#4ade80" className="h-16 w-16 opacity-90 ring-1 ring-[#4ade80]/30" />
         <HeaderIdentity {...props} />
       </div>
       <ProfileMainContent {...props} />
@@ -472,19 +513,137 @@ function EmberforgeLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="w-full overflow-hidden border border-[#ea580c]/30" style={buildCardStyle(settings)}>
+    <div className="relative w-full overflow-hidden border border-[#ea580c]/35" style={buildCardStyle(settings)}>
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-28">
+        {[18, 34, 52, 68, 81].map((left, index) => (
+          <span
+            key={left}
+            className="bf-layout-ember-particle absolute bottom-0 h-2 w-2 rounded-full bg-[#fb923c]"
+            style={{ left: `${left}%`, animationDelay: `${index * 0.45}s` }}
+          />
+        ))}
+      </div>
       <div
-        className="border-b border-[#ea580c]/25 px-6 py-5"
-        style={{ background: "linear-gradient(180deg, rgba(234,88,12,0.18), transparent)" }}
+        className="relative border-b border-[#ea580c]/25 px-6 py-5"
+        style={{ background: "linear-gradient(180deg, rgba(234,88,12,0.24), transparent)" }}
       >
         <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-[#fb923c]">Forge Online</p>
         <div className="mt-3 flex gap-4 bf-profile-avatar-row">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor="#ea580c" className="h-20 w-20" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor="#ea580c" className="h-20 w-20 ring-2 ring-[#fb923c]/35 shadow-[0_0_20px_rgba(251,146,60,0.25)]" />
           <HeaderIdentity {...props} />
         </div>
       </div>
       <div className="p-6">
         <ProfileMainContent {...props} />
+      </div>
+    </div>
+  );
+}
+
+function MatrixLayout(props: LayoutProps) {
+  const { profile, settings } = props;
+  const displayName = getDisplayName(profile);
+
+  return (
+    <div className="relative w-full overflow-hidden border border-[#22c55e]/25 bg-[#020802] font-mono" style={{ borderRadius: settings.border_radius }}>
+      <div className="bf-layout-matrix-rain relative h-28 border-b border-[#22c55e]/20 px-6 py-4">
+        <p className="relative z-10 text-[10px] uppercase tracking-[0.35em] text-[#22c55e]">System Access</p>
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor="#22c55e" className="relative z-10 mt-3 h-16 w-16 ring-1 ring-[#22c55e]/40" />
+      </div>
+      <div className="p-5">
+        <HeaderIdentity {...props} />
+        <ProfileMainContent {...props} />
+      </div>
+    </div>
+  );
+}
+
+function LiquidLayout(props: LayoutProps) {
+  const { profile, settings } = props;
+  const displayName = getDisplayName(profile);
+  const accent = settings.accent_color;
+
+  return (
+    <div className="relative w-full overflow-hidden" style={buildCardStyle(settings)}>
+      <div
+        className="bf-layout-liquid-blob pointer-events-none absolute left-1/2 top-8 h-40 w-40 -translate-x-1/2 opacity-50 blur-2xl"
+        style={{ background: `radial-gradient(circle, ${accent}, ${settings.gradient_colors?.[1] ?? accent})` }}
+      />
+      <div className="relative px-6 py-10 text-center">
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="mx-auto h-24 w-24 ring-2 ring-white/15" />
+        <HeaderIdentity {...props} className="mt-4 justify-center" />
+        <div className="bf-profile-block mx-auto mt-4 max-w-md">
+          <ProfileMainContent {...props} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SupernovaLayout(props: LayoutProps) {
+  const { profile, settings } = props;
+  const displayName = getDisplayName(profile);
+  const accent = settings.accent_color;
+
+  return (
+    <div className="relative w-full overflow-hidden border border-white/10" style={buildCardStyle(settings)}>
+      <div
+        className="bf-layout-supernova-core pointer-events-none absolute left-1/2 top-10 h-36 w-36 -translate-x-1/2 rounded-full blur-2xl"
+        style={{ background: `radial-gradient(circle, ${accent}, transparent 70%)` }}
+      />
+      <div className="relative px-6 py-10 text-center">
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="mx-auto h-24 w-24 shadow-[0_0_30px_rgba(255,255,255,0.18)]" />
+        <HeaderIdentity {...props} className="mt-4 justify-center" />
+        <div className="bf-profile-block mx-auto mt-4 max-w-md">
+          <ProfileMainContent {...props} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TapewaveLayout(props: LayoutProps) {
+  const { profile, settings } = props;
+  const displayName = getDisplayName(profile);
+
+  return (
+    <div className="w-full overflow-hidden border border-[#38bdf8]/25 bg-[#071018]" style={{ borderRadius: settings.border_radius }}>
+      <div className="flex h-16 items-end gap-1 border-b border-[#38bdf8]/20 px-5 py-3">
+        {Array.from({ length: 12 }).map((_, index) => (
+          <div
+            key={index}
+            className="bf-layout-wave-bar w-1.5 rounded-full bg-[#38bdf8]/80"
+            style={{ height: `${18 + (index % 4) * 10}px`, animationDelay: `${index * 0.08}s` }}
+          />
+        ))}
+      </div>
+      <div className="p-5">
+        <div className="flex gap-4 bf-profile-avatar-row">
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor="#38bdf8" className="h-16 w-16" />
+          <HeaderIdentity {...props} />
+        </div>
+        <ProfileMainContent {...props} />
+      </div>
+    </div>
+  );
+}
+
+function PhoenixLayout(props: LayoutProps) {
+  const { profile, settings } = props;
+  const displayName = getDisplayName(profile);
+
+  return (
+    <div className="relative w-full overflow-hidden border border-[#f97316]/30" style={buildCardStyle(settings)}>
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center gap-3 pt-4">
+        <div className="bf-layout-phoenix-wing h-16 w-10 rounded-full bg-gradient-to-t from-[#ea580c] to-transparent opacity-70 [transform:rotate(-18deg)]" />
+        <div className="bf-layout-phoenix-wing h-16 w-10 rounded-full bg-gradient-to-t from-[#f97316] to-transparent opacity-70 [transform:rotate(18deg)] [animation-delay:0.4s]" />
+      </div>
+      <div className="relative px-6 py-10 text-center">
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor="#f97316" className="mx-auto h-24 w-24 ring-2 ring-[#fb923c]/40" />
+        <HeaderIdentity {...props} className="mt-4 justify-center" />
+        <div className="bf-profile-block mx-auto mt-4 max-w-md">
+          <ProfileMainContent {...props} />
+        </div>
       </div>
     </div>
   );
@@ -511,4 +670,9 @@ export const PREMIUM_LAYOUTS = {
   festival: FestivalLayout,
   manga: MangaLayout,
   emberforge: EmberforgeLayout,
+  matrix: MatrixLayout,
+  liquid: LiquidLayout,
+  supernova: SupernovaLayout,
+  tapewave: TapewaveLayout,
+  phoenix: PhoenixLayout,
 } as const;

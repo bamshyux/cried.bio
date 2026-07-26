@@ -172,7 +172,7 @@ export function MusicEditor({
         }
       />
 
-      <div className="space-y-6">
+      <div className="space-y-6" data-tour="tour-music">
         <div className={cardClassName}>
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="text-sm font-medium text-white">Tracks</h2>

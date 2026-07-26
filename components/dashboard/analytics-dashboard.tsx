@@ -131,7 +131,7 @@ export function AnalyticsDashboard({
         description="Profile views, link clicks, and visitor countries from the last 30 days."
       />
 
-      <div className="space-y-6">
+      <div className="space-y-6" data-tour="tour-analytics">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div className={cardClassName}>
             <p className="text-[11px] font-medium uppercase tracking-wider text-neutral-500">Unique visitors</p>

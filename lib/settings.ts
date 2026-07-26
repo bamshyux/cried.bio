@@ -13,6 +13,7 @@ import type {
   UsernameEffect,
 } from "@/lib/types/settings";
 import { BRAND } from "@/lib/design/tokens";
+import { resolvePageEntranceAnimation } from "@/lib/page-entrance";
 import { clampLinksIconSize } from "@/lib/links";
 import {
   cardBorderEffectStripsDefaultBorder,
@@ -68,7 +69,7 @@ export const DEFAULT_SETTINGS: Omit<
   bio_letter_spacing: "normal",
   username_effect: "none",
   hover_animations: true,
-  page_entrance: true,
+  page_entrance_animation: "pop-in" as const,
   link_animation: "none",
   show_view_count: true,
   show_join_date: true,
@@ -292,26 +293,31 @@ export const LAYOUT_OPTIONS: LayoutOption[] = [
   { value: "hologram", label: "Hologram", description: "Iridescent animated border frame", preview: "hologram" },
   { value: "spotify", label: "Spotify", description: "Artist page with large square avatar", preview: "spotify" },
   { value: "spotlight", label: "Spotlight", description: "Stage spotlight on dark background", preview: "spotlight" },
-  { value: "monarch", label: "Monarch", description: "Regal gold crown header with refined spacing", preview: "monarch", premiumOnly: true },
-  { value: "glitch", label: "Glitch", description: "Digital RGB split and scanline distortion", preview: "glitch", premiumOnly: true },
+  { value: "monarch", label: "Monarch", description: "Animated gold crown header with regal shimmer", preview: "monarch", premiumOnly: true },
+  { value: "glitch", label: "Glitch", description: "Live RGB split, flicker, and scrolling scanlines", preview: "glitch", premiumOnly: true },
   { value: "noir", label: "Noir", description: "Film noir letterbox with high-contrast type", preview: "noir", premiumOnly: true },
   { value: "runway", label: "Runway", description: "Fashion editorial stripe and bold masthead", preview: "runway", premiumOnly: true },
-  { value: "arcade", label: "Arcade", description: "Retro cabinet bezel with pixel chrome", preview: "arcade", premiumOnly: true },
+  { value: "arcade", label: "Arcade", description: "Neon cabinet bezel with pulsing glow", preview: "arcade", premiumOnly: true },
   { value: "passport", label: "Passport", description: "Travel document stamps and visa stripes", preview: "passport", premiumOnly: true },
-  { value: "cassette", label: "Cassette", description: "Mixtape reels and labeled spine strip", preview: "cassette", premiumOnly: true },
-  { value: "crystal", label: "Crystal", description: "Faceted gem header with prismatic shine", preview: "crystal", premiumOnly: true },
-  { value: "nebuladrift", label: "Nebula Drift", description: "Deep-space cloud band with star dust", preview: "nebuladrift", premiumOnly: true },
+  { value: "cassette", label: "Cassette", description: "Spinning tape reels and labeled spine strip", preview: "cassette", premiumOnly: true },
+  { value: "crystal", label: "Crystal", description: "Faceted gem header with animated prismatic shine", preview: "crystal", premiumOnly: true },
+  { value: "nebuladrift", label: "Nebula Drift", description: "Drifting deep-space clouds with star dust", preview: "nebuladrift", premiumOnly: true },
   { value: "samurai", label: "Samurai", description: "Crimson blade accent and vertical rhythm", preview: "samurai", premiumOnly: true },
   { value: "graffiti", label: "Graffiti", description: "Street-art drip header and spray texture", preview: "graffiti", premiumOnly: true },
-  { value: "monolith", label: "Monolith", description: "Tall narrow monument column layout", preview: "monolith", premiumOnly: true },
-  { value: "prismstack", label: "Prism Stack", description: "Stacked rainbow panels above content", preview: "prismstack", premiumOnly: true },
-  { value: "dashboard", label: "Dashboard", description: "Widget tiles and metric strip header", preview: "dashboard", premiumOnly: true },
+  { value: "monolith", label: "Monolith", description: "Monument column with glowing center pillar", preview: "monolith", premiumOnly: true },
+  { value: "prismstack", label: "Prism Stack", description: "Animated rainbow panels above content", preview: "prismstack", premiumOnly: true },
+  { value: "dashboard", label: "Dashboard", description: "Live-feel widget tiles with metric pulse", preview: "dashboard", premiumOnly: true },
   { value: "command", label: "Command", description: "Tactical ops console with status rail", preview: "command", premiumOnly: true },
-  { value: "bloom", label: "Bloom", description: "Soft floral gradient and petal glow", preview: "bloom", premiumOnly: true },
-  { value: "stealth", label: "Stealth", description: "Covert dark UI with night-vision accent", preview: "stealth", premiumOnly: true },
+  { value: "bloom", label: "Bloom", description: "Floating petals and soft floral glow", preview: "bloom", premiumOnly: true },
+  { value: "stealth", label: "Stealth", description: "Night-vision scan sweep and covert UI", preview: "stealth", premiumOnly: true },
   { value: "festival", label: "Festival", description: "Concert wristband notch and stage badge", preview: "festival", premiumOnly: true },
   { value: "manga", label: "Manga", description: "Ink panel borders and speech-bubble bio", preview: "manga", premiumOnly: true },
-  { value: "emberforge", label: "Ember Forge", description: "Industrial forge sparks and heat shimmer", preview: "emberforge", premiumOnly: true },
+  { value: "emberforge", label: "Ember Forge", description: "Rising sparks and heat shimmer header", preview: "emberforge", premiumOnly: true },
+  { value: "matrix", label: "Matrix", description: "Animated digital rain and terminal access header", preview: "matrix", premiumOnly: true },
+  { value: "liquid", label: "Liquid", description: "Morphing color blob frame behind your avatar", preview: "liquid", premiumOnly: true },
+  { value: "supernova", label: "Supernova", description: "Pulsing radial burst behind your profile", preview: "supernova", premiumOnly: true },
+  { value: "tapewave", label: "Tapewave", description: "Animated audio waveform VU meter strip", preview: "tapewave", premiumOnly: true },
+  { value: "phoenix", label: "Phoenix", description: "Flaming wings with breathing fire animation", preview: "phoenix", premiumOnly: true },
   { value: "custom", label: "Custom Theme", description: "Build your own layout with scoped CSS", preview: "custom" },
 ];
 
@@ -598,7 +604,7 @@ export function mergeSettings(
       (row?.bio_letter_spacing ?? DEFAULT_SETTINGS.bio_letter_spacing) as import("@/lib/types/settings").BioLetterSpacing,
     username_effect: parseUsernameEffect(row?.username_effect ?? legacyUsername, DEFAULT_SETTINGS.username_effect),
     hover_animations: row?.hover_animations ?? DEFAULT_SETTINGS.hover_animations,
-    page_entrance: row?.page_entrance ?? DEFAULT_SETTINGS.page_entrance,
+    page_entrance_animation: resolvePageEntranceAnimation(row, DEFAULT_SETTINGS.page_entrance_animation),
     link_animation: row?.link_animation ?? DEFAULT_SETTINGS.link_animation,
     show_view_count: row?.show_view_count ?? DEFAULT_SETTINGS.show_view_count,
     show_join_date: row?.show_join_date ?? DEFAULT_SETTINGS.show_join_date,
@@ -806,6 +812,8 @@ export { getLinkAnimationClass } from "@/lib/link-animation";
 
 export function getUsernameEffectClass(effect: UsernameEffect) {
   switch (effect) {
+    case "none":
+      return "bf-username-none";
     case "glow":
       return "bf-username-glow";
     case "neon":
@@ -837,8 +845,31 @@ export function getUsernameEffectClass(effect: UsernameEffect) {
     case "shadow":
       return "bf-username-shadow";
     default:
-      return "";
+      return "bf-username-none";
   }
+}
+
+export const USERNAME_CLIP_TEXT_EFFECTS = new Set<UsernameEffect>([
+  "rainbow",
+  "gradient",
+  "shimmer",
+  "chrome",
+  "fire",
+  "outline",
+]);
+
+export function usernameEffectUsesClipText(effect: UsernameEffect): boolean {
+  return USERNAME_CLIP_TEXT_EFFECTS.has(effect);
+}
+
+export function stripUsernameTextColorClasses(className: string): string {
+  return className
+    .replace(
+      /\btext-(?:inherit|current|transparent|white|black|neutral|gray|slate|zinc|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:-\d+)?\b/g,
+      "",
+    )
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function resolveProfileStatusColor(settings: ProfileSettings): string {

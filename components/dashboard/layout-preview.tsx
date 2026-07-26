@@ -525,8 +525,9 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   monarch: (
-    <div className={`${BASE} border-[#d4af37]/20`}>
-      <div className="border-b border-[#d4af37]/15 bg-[#d4af37]/10 py-1 text-center text-[8px] text-[#d4af37]">MONARCH</div>
+    <div className={`${BASE} bf-layout-preview-animated border-[#d4af37]/25`}>
+      <div className="bf-layout-monarch-shimmer absolute inset-x-0 top-0 h-0.5" />
+      <div className="border-b border-[#d4af37]/15 bg-[#d4af37]/10 py-1 text-center text-[8px] text-[#d4af37]">♛</div>
       <div className="flex flex-col items-center gap-1 p-2">
         <Avatar className="h-5 w-5 ring-1 ring-[#d4af37]/30" />
         <Line w="w-10" className="bg-white/15" />
@@ -535,8 +536,9 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   glitch: (
-    <div className={BASE}>
-      <div className="flex gap-2 p-2">
+    <div className={`${BASE} bf-layout-preview-animated bf-layout-glitch-active`}>
+      <div className="bf-layout-glitch-scanline absolute inset-x-0 h-2 opacity-70" />
+      <div className="relative flex gap-2 p-2">
         <Avatar className="h-5 w-5" />
         <div className="relative flex-1">
           <Line w="w-10" className="bg-white/20" />
@@ -569,7 +571,7 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   arcade: (
-    <div className={`${BASE} border-2 border-[#6366f1]/30`}>
+    <div className={`${BASE} bf-layout-preview-animated bf-layout-arcade-glow border-2 border-[#6366f1]/30`}>
       <div className="border-b border-[#6366f1]/20 bg-[#6366f1]/10 py-0.5 text-center text-[7px] text-[#c7d2fe]">P1</div>
       <div className="flex gap-1 p-2">
         <Avatar className="h-4 w-4 rounded-sm" />
@@ -592,12 +594,12 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   cassette: (
-    <div className={BASE}>
+    <div className={`${BASE} bf-layout-preview-animated`}>
       <div className="flex items-center justify-between border-b border-white/10 px-2 py-1">
         <Line w="w-6" h="h-1" />
         <div className="flex gap-1">
-          <div className="h-2 w-2 rounded-full border border-white/20" />
-          <div className="h-2 w-2 rounded-full border border-white/20" />
+          <div className="bf-layout-cassette-reel h-2 w-2 rounded-full border border-white/20" />
+          <div className="bf-layout-cassette-reel h-2 w-2 rounded-full border border-white/20 [animation-direction:reverse]" />
         </div>
       </div>
       <div className="flex gap-1 p-2">
@@ -608,8 +610,10 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   crystal: (
-    <div className={BASE}>
-      <div className="mx-2 mt-1 h-6 bg-gradient-to-b from-white/15 to-transparent" style={{ clipPath: "polygon(0 0,100% 0,100% 70%,50% 100%,0 70%)" }} />
+    <div className={`${BASE} bf-layout-preview-animated`}>
+      <div className="relative mx-2 mt-1 h-6 overflow-hidden bg-gradient-to-b from-white/15 to-transparent" style={{ clipPath: "polygon(0 0,100% 0,100% 70%,50% 100%,0 70%)" }}>
+        <div className="bf-layout-crystal-shine" />
+      </div>
       <div className="flex flex-col items-center gap-1 p-1">
         <Avatar className="h-4 w-4" />
         <Line w="w-8" />
@@ -618,8 +622,9 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   nebuladrift: (
-    <div className={`${BASE} bg-gradient-to-b from-[#6366f1]/20 via-[#a855f7]/10 to-transparent`}>
-      <div className="flex flex-col items-center justify-end gap-1 pb-2 pt-4">
+    <div className={`${BASE} bf-layout-preview-animated overflow-hidden`}>
+      <div className="bf-layout-nebula-layer absolute inset-0 bg-gradient-to-b from-[#6366f1]/25 via-[#a855f7]/15 to-transparent" />
+      <div className="relative flex h-full flex-col items-center justify-end gap-1 pb-2">
         <Avatar className="h-4 w-4" />
         <Line w="w-8" className="bg-white/15" />
       </div>
@@ -648,8 +653,9 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   monolith: (
-    <div className={`${BASE} mx-auto max-w-[70%]`}>
-      <div className="flex flex-col items-center gap-1 p-3">
+    <div className={`${BASE} bf-layout-preview-animated mx-auto max-w-[70%]`}>
+      <div className="bf-layout-monolith-glow absolute inset-y-2 left-1/2 w-px -translate-x-1/2 bg-white/20" />
+      <div className="relative flex flex-col items-center gap-1 p-3">
         <Avatar className="h-5 w-5" />
         <Line w="w-8" className="bg-white/15" />
         <Line w="w-full" />
@@ -658,8 +664,8 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   prismstack: (
-    <div className={BASE}>
-      <div className="flex h-1">
+    <div className={`${BASE} bf-layout-preview-animated`}>
+      <div className="bf-layout-prism-animate flex h-1.5">
         <div className="flex-1 bg-[#ef4444]/70" />
         <div className="flex-1 bg-[#22c55e]/70" />
         <div className="flex-1 bg-[#3b82f6]/70" />
@@ -673,11 +679,11 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   dashboard: (
-    <div className={BASE}>
+    <div className={`${BASE} bf-layout-preview-animated`}>
       <div className="grid grid-cols-3 gap-0.5 p-1">
-        <div className="rounded border border-white/10 p-1"><Line w="w-full" h="h-1" /></div>
-        <div className="rounded border border-white/10 p-1"><Line w="w-full" h="h-1" /></div>
-        <div className="rounded border border-white/10 p-1"><Line w="w-full" h="h-1" /></div>
+        <div className="bf-layout-dashboard-tile rounded border border-white/10 p-1"><Line w="w-full" h="h-1" /></div>
+        <div className="bf-layout-dashboard-tile rounded border border-white/10 p-1 [animation-delay:0.35s]"><Line w="w-full" h="h-1" /></div>
+        <div className="bf-layout-dashboard-tile rounded border border-white/10 p-1 [animation-delay:0.7s]"><Line w="w-full" h="h-1" /></div>
       </div>
       <div className="flex gap-1 px-2 pb-2">
         <Avatar className="h-4 w-4" />
@@ -700,7 +706,8 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   bloom: (
-    <div className={`${BASE} bg-gradient-to-br from-[#f472b6]/15 to-transparent`}>
+    <div className={`${BASE} bf-layout-preview-animated bg-gradient-to-br from-[#f472b6]/15 to-transparent`}>
+      <div className="bf-layout-bloom-petal absolute left-2 top-2 h-1.5 w-1.5 rounded-full bg-[#f472b6]/70" />
       <div className="flex flex-col items-center gap-1 p-3">
         <Avatar className="h-4 w-4" />
         <Line w="w-8" className="bg-white/15" />
@@ -709,8 +716,9 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   stealth: (
-    <div className={`${BASE} border-[#14532d]/30 bg-[#030303]`}>
-      <div className="flex items-center gap-1 px-2 pt-1">
+    <div className={`${BASE} bf-layout-preview-animated border-[#14532d]/30 bg-[#030303]`}>
+      <div className="bf-layout-stealth-scan absolute inset-x-0 h-3" />
+      <div className="relative flex items-center gap-1 px-2 pt-1">
         <div className="h-1 w-1 rounded-full bg-[#4ade80]" />
         <Line w="w-6" h="h-1" className="bg-[#4ade80]/30" />
       </div>
@@ -745,13 +753,77 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   emberforge: (
-    <div className={`${BASE} border-[#ea580c]/25`}>
-      <div className="border-b border-[#ea580c]/20 bg-[#ea580c]/10 px-2 py-1">
+    <div className={`${BASE} bf-layout-preview-animated border-[#ea580c]/25`}>
+      <div className="relative border-b border-[#ea580c]/20 bg-[#ea580c]/10 px-2 py-1">
+        <span className="bf-layout-ember-particle absolute bottom-0 left-3 h-1 w-1 rounded-full bg-[#fb923c]" />
         <Line w="w-8" h="h-1" className="bg-[#fb923c]/50" />
       </div>
       <div className="flex gap-1 p-2">
         <Avatar className="h-4 w-4" />
         <Line w="w-8" className="mt-1" />
+      </div>
+    </div>
+  ),
+
+  matrix: (
+    <div className={`${BASE} bf-layout-preview-animated border-[#22c55e]/25 bg-[#020802]`}>
+      <div className="bf-layout-matrix-rain h-7 border-b border-[#22c55e]/20 px-2 py-1">
+        <Line w="w-8" h="h-1" className="bg-[#22c55e]/50" />
+      </div>
+      <div className="flex gap-1 p-2">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" className="mt-1" />
+      </div>
+    </div>
+  ),
+
+  liquid: (
+    <div className={`${BASE} bf-layout-preview-animated overflow-hidden`}>
+      <div className="bf-layout-liquid-blob absolute left-1/2 top-2 h-8 w-8 -translate-x-1/2 bg-[#6366f1]/50 blur-md" />
+      <div className="relative flex flex-col items-center gap-1 p-3">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" />
+      </div>
+    </div>
+  ),
+
+  supernova: (
+    <div className={`${BASE} bf-layout-preview-animated overflow-hidden`}>
+      <div className="bf-layout-supernova-core absolute left-1/2 top-3 h-8 w-8 -translate-x-1/2 rounded-full bg-[#f97316]/40 blur-md" />
+      <div className="relative flex flex-col items-center gap-1 p-3">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" />
+      </div>
+    </div>
+  ),
+
+  tapewave: (
+    <div className={`${BASE} bf-layout-preview-animated border-[#38bdf8]/25 bg-[#071018]`}>
+      <div className="flex h-6 items-end gap-0.5 border-b border-[#38bdf8]/20 px-2 py-1">
+        {[0, 1, 2, 3, 4, 5].map((index) => (
+          <div
+            key={index}
+            className="bf-layout-wave-bar w-0.5 rounded-full bg-[#38bdf8]/80"
+            style={{ height: `${6 + (index % 3) * 4}px`, animationDelay: `${index * 0.08}s` }}
+          />
+        ))}
+      </div>
+      <div className="flex gap-1 p-2">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" className="mt-1" />
+      </div>
+    </div>
+  ),
+
+  phoenix: (
+    <div className={`${BASE} bf-layout-preview-animated border-[#f97316]/25 overflow-hidden`}>
+      <div className="absolute inset-x-0 top-1 flex justify-center gap-1">
+        <div className="bf-layout-phoenix-wing h-4 w-2 rounded-full bg-gradient-to-t from-[#ea580c] to-transparent [transform:rotate(-18deg)]" />
+        <div className="bf-layout-phoenix-wing h-4 w-2 rounded-full bg-gradient-to-t from-[#f97316] to-transparent [transform:rotate(18deg)] [animation-delay:0.4s]" />
+      </div>
+      <div className="relative flex flex-col items-center gap-1 p-3 pt-4">
+        <Avatar className="h-4 w-4" />
+        <Line w="w-8" />
       </div>
     </div>
   ),

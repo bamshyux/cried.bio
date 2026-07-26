@@ -44,7 +44,7 @@ export const REQUIRED_PROFILE_SETTINGS_COLUMNS = [
   "bio_letter_spacing",
   "username_effect",
   "hover_animations",
-  "page_entrance",
+  "page_entrance_animation",
   "link_animation",
   "show_view_count",
   "show_join_date",

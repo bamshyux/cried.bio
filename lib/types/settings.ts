@@ -65,6 +65,11 @@ export type ProfileLayout =
   | "festival"
   | "manga"
   | "emberforge"
+  | "matrix"
+  | "liquid"
+  | "supernova"
+  | "tapewave"
+  | "phoenix"
   | "custom";
 
 export type BackgroundType =
@@ -151,6 +156,20 @@ export type EnterGateBackgroundType = "solid" | "image" | "video" | "gradient" |
 export type EnterGateButtonStyle = "pill" | "outline" | "ghost" | "minimal" | "glow";
 
 export type EnterGateAnimation = "none" | "pulse" | "fade" | "bounce" | "glow";
+
+export type PageEntranceAnimation =
+  | "none"
+  | "pop-in"
+  | "unfold"
+  | "slide-up"
+  | "zoom-burst"
+  | "flip"
+  | "curtain"
+  | "drop"
+  | "spiral"
+  | "glide"
+  | "elastic"
+  | "spotlight";
 
 export type EnterGateTextAlign = "left" | "center" | "right";
 
@@ -273,7 +292,7 @@ export type ProfileSettings = {
   bio_letter_spacing: BioLetterSpacing;
   username_effect: UsernameEffect;
   hover_animations: boolean;
-  page_entrance: boolean;
+  page_entrance_animation: PageEntranceAnimation;
   link_animation: LinkAnimation;
   show_view_count: boolean;
   show_join_date: boolean;

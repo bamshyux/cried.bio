@@ -125,7 +125,7 @@ export function AccountSettingsShell({
   }
 
   return (
-    <div>
+    <div data-tour="tour-settings">
       <PageHeader
         title="Settings"
         description="Manage your account, security, billing, contact preferences, and privacy."

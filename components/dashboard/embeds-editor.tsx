@@ -86,7 +86,7 @@ export function EmbedsEditor({
   };
 
   return (
-    <>
+    <div data-tour="tour-embeds">
       <PageHeader
         title="Embeds"
         description="Add YouTube, Twitch, Spotify, Roblox, and more — then customize how each one looks on your profile."
@@ -170,6 +170,6 @@ export function EmbedsEditor({
       ) : (
         <p className="text-sm text-neutral-600">No embeds yet. Add one above to show it on your profile.</p>
       )}
-    </>
+    </div>
   );
 }

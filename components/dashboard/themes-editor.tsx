@@ -127,7 +127,7 @@ export function ThemesEditor({
   return (
     <>
       <PageHeader title="Layouts" description="Choose how your public profile is structured." />
-      <div className={cardClassName}>
+      <div className={cardClassName} data-tour="tour-layouts">
         <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-8">
           <div>
             <label className={labelClassName}>Standard layouts</label>
@@ -144,7 +144,7 @@ export function ThemesEditor({
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <label className={labelClassName}>Premium Lite layouts</label>
               <span className="rounded-full border border-[rgba(201,184,150,0.28)] bg-[rgba(201,184,150,0.08)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#d4c4a8]">
-                20 exclusive
+                {PREMIUM_LAYOUT_OPTIONS.length} exclusive
               </span>
             </div>
             <p className="mb-3 text-xs text-neutral-600">Extra profile structures unlocked with Premium Lite.</p>

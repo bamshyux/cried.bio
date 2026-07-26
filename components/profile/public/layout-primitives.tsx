@@ -2,7 +2,12 @@
 
 import { useCallback, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
-import { buildCardStyle, getUsernameEffectClass } from "@/lib/settings";
+import {
+  buildCardStyle,
+  getUsernameEffectClass,
+  stripUsernameTextColorClasses,
+  usernameEffectUsesClipText,
+} from "@/lib/settings";
 import { formatProfileUid } from "@/lib/profile";
 import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfileLink } from "@/lib/types/link";
@@ -207,15 +212,52 @@ export function Username({
   style?: CSSProperties;
   suffix?: string;
 }) {
-  const effectClass = getUsernameEffectClass(settings.username_effect);
-  const glowStyle: CSSProperties =
-    settings.username_effect === "glow" || settings.username_effect === "neon"
-      ? { textShadow: `0 0 24px ${settings.accent_color}` }
-      : settings.neon_glow
-        ? { textShadow: `0 0 20px ${settings.accent_color}80` }
-        : {};
-  const headingClass = className ?? `text-2xl font-semibold tracking-tight sm:text-3xl ${effectClass}`;
-  const headingStyle = { ...glowStyle, ...style };
+  const effect = settings.username_effect;
+  const effectClass = getUsernameEffectClass(effect);
+  const usesClipText = usernameEffectUsesClipText(effect);
+  const baseClass = className ?? "text-2xl font-semibold tracking-tight sm:text-3xl";
+
+  const glowStyle: CSSProperties = (() => {
+    if (effect === "none") {
+      return { textShadow: "none", filter: "none" };
+    }
+    if (effect === "shadow") {
+      return {
+        textShadow:
+          "-1px -1px 0 rgba(255,255,255,0.45), 1px 1px 0 rgba(0,0,0,0.95), 2px 2px 0 rgba(0,0,0,0.88), 3px 3px 0 rgba(0,0,0,0.8), 4px 4px 0 rgba(0,0,0,0.72), 5px 5px 0 rgba(0,0,0,0.64), 6px 6px 0 rgba(0,0,0,0.55), 8px 8px 0 rgba(0,0,0,0.42), 10px 12px 24px rgba(0,0,0,0.85)",
+      };
+    }
+    if (effect === "glow") {
+      return {
+        textShadow: `0 0 24px ${settings.accent_color}, 0 0 48px ${settings.accent_color}90`,
+      };
+    }
+    if (effect === "neon") {
+      return { textShadow: `0 0 24px ${settings.accent_color}` };
+    }
+    if (usesClipText) return {};
+    if (settings.neon_glow) {
+      return { textShadow: `0 0 20px ${settings.accent_color}80` };
+    }
+    return {};
+  })();
+
+  const sanitizedStyle: CSSProperties | undefined =
+    effect === "none"
+      ? style
+        ? { ...style, textShadow: undefined, filter: undefined }
+        : undefined
+      : style;
+
+  const headingClass = usesClipText
+    ? stripUsernameTextColorClasses(baseClass)
+    : `${baseClass} ${effectClass}`.trim();
+
+  const headingStyle =
+    glowStyle.textShadow || sanitizedStyle
+      ? { ...glowStyle, ...sanitizedStyle }
+      : undefined;
+
   const anchorRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
   const [placement, setPlacement] = useState<ReturnType<typeof computeHoverTooltipPlacement> | null>(null);
@@ -247,9 +289,18 @@ export function Username({
         onBlur={showUid ? handleLeave : undefined}
         className={`relative inline-block ${showUid ? "cursor-help" : ""} ${hovered ? "z-[9999]" : ""}`}
       >
-        <h1 className={headingClass} style={Object.keys(headingStyle).length ? headingStyle : undefined}>
-          {name}
-          {suffix}
+        <h1 className={headingClass} style={headingStyle}>
+          {usesClipText ? (
+            <span className={`inline-block ${effectClass}`}>
+              {name}
+              {suffix}
+            </span>
+          ) : (
+            <>
+              {name}
+              {suffix}
+            </>
+          )}
         </h1>
       </div>
       {showUid && hovered && placement &&

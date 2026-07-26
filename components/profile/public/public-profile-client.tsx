@@ -39,7 +39,6 @@ import {
   bannerTopRadius,
   buildCardStyle,
   getLayoutBadges,
-  getUsernameEffectClass,
   type LayoutProps,
 } from "./layout-primitives";
 import { CustomThemeLayout } from "./custom-theme-layout";
@@ -48,6 +47,7 @@ import { ProfilePageNav } from "./profile-page-nav";
 import { ProfileSiteChrome } from "./profile-site-chrome";
 import { ProfileThemeScope } from "./profile-theme-scope";
 import { EXTENDED_LAYOUTS } from "./profile-layouts-extra";
+import { getPageEntranceClassName, PAGE_ENTRANCE_CLASS_NAMES } from "@/lib/page-entrance";
 import { PREMIUM_LAYOUTS } from "./profile-layouts-premium";
 
 function ClassicLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
@@ -419,8 +419,7 @@ function MagazineLayout({ profile, links, settings, badges, viewCount, embeds, f
             name={displayName}
             settings={settings}
             profile={profile}
-            className={`text-4xl font-bold leading-none tracking-tight sm:text-5xl ${getUsernameEffectClass(settings.username_effect)}`}
-            style={settings.neon_glow ? { textShadow: `0 0 30px ${settings.accent_color}60` } : undefined}
+            className="text-4xl font-bold leading-none tracking-tight sm:text-5xl"
           />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
@@ -511,8 +510,7 @@ function HeroLayout({ profile, links, settings, badges, viewCount, embeds, featu
               name={displayName}
               settings={settings}
               profile={profile}
-              className={`text-3xl font-bold tracking-tight text-white sm:text-4xl ${getUsernameEffectClass(settings.username_effect)}`}
-              style={settings.neon_glow ? { textShadow: `0 0 30px ${settings.accent_color}80` } : undefined}
+              className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
             />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
@@ -716,7 +714,7 @@ function PosterLayout({ profile, links, settings, badges, viewCount, embeds, fea
               name={displayName}
               settings={settings}
               profile={profile}
-              className={`mt-2 text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-4xl ${getUsernameEffectClass(settings.username_effect)}`}
+              className="mt-2 text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-4xl"
             />
             <div className="relative z-10 mt-3 bf-profile-name-row overflow-visible">
               <ProfileHandle profile={profile} className="mb-0" />
@@ -860,14 +858,12 @@ export function PublicProfileClient({
   const skipEnterGate = isPresetPreview || !settings.enter_gate_enabled;
   const [entered, setEntered] = useState(skipEnterGate);
   const [gateExiting, setGateExiting] = useState(false);
-  const [revealedFromGate, setRevealedFromGate] = useState(false);
   const profileRevealRef = useRef<HTMLDivElement>(null);
   const playMusicRef = useRef<(() => void) | null>(null);
 
   const handleEnter = useCallback(() => {
     setGateExiting(true);
     setEntered(true);
-    setRevealedFromGate(true);
     if (settings.music_autoplay) {
       playMusicRef.current?.();
     }
@@ -880,14 +876,17 @@ export function PublicProfileClient({
   }, [gateExiting]);
 
   useEffect(() => {
-    if (!revealedFromGate) return;
-    const node = profileRevealRef.current;
-    if (!node) return;
+    if (!entered || isPresetPreview) return;
 
-    node.classList.remove("bf-profile-gate-reveal");
+    const animation = settings.page_entrance_animation;
+    const entranceClass = getPageEntranceClassName(animation);
+    const node = profileRevealRef.current;
+    if (!node || !entranceClass) return;
+
+    node.classList.remove(...PAGE_ENTRANCE_CLASS_NAMES);
     void node.offsetWidth;
-    node.classList.add("bf-profile-gate-reveal");
-  }, [revealedFromGate]);
+    node.classList.add(entranceClass);
+  }, [entered, isPresetPreview, settings.page_entrance_animation]);
 
   const fontCss = getFontCss(settings.font_family);
   const fontUrl = getGoogleFontsUrl(settings.font_family);
@@ -963,9 +962,7 @@ export function PublicProfileClient({
           <ProfileSiteChrome navPosition={settings.page_nav_position} siteNav={siteNav}>
             <div
               ref={profileRevealRef}
-              className={`mx-auto w-full max-w-2xl overflow-visible${
-                revealedFromGate && !isPresetPreview ? " bf-profile-gate-reveal" : ""
-              }`}
+              className="mx-auto w-full max-w-2xl overflow-visible"
             >
               <ProfileCardLayoutEditor
                 settings={settings}

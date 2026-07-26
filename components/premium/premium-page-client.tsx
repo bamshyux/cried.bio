@@ -262,7 +262,7 @@ export function PremiumPageClient({
   };
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-4xl" data-tour="tour-premium">
       {checkoutStatus === "success" ? (
         <div className="mb-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
           {syncingPremium

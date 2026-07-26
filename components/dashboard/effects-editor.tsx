@@ -31,7 +31,8 @@ import {
   CUSTOM_CURSOR_SIZE_MIN,
 } from "@/lib/profile/custom-cursor";
 import { CURSOR_EFFECT_OPTIONS, TAB_TITLE_ANIMATION_OPTIONS, USERNAME_EFFECT_OPTIONS } from "@/lib/settings";
-import type { CursorEffect, ProfileSettings, TabTitleAnimation, UsernameEffect } from "@/lib/types/settings";
+import { PAGE_ENTRANCE_ANIMATION_OPTIONS } from "@/lib/page-entrance";
+import type { CursorEffect, PageEntranceAnimation, ProfileSettings, TabTitleAnimation, UsernameEffect } from "@/lib/types/settings";
 import type { Profile } from "@/lib/types/profile";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -46,7 +47,7 @@ type EffectsFormState = EnterGateFormFields & {
   username_effect: UsernameEffect;
   typing_bio: boolean;
   hover_animations: boolean;
-  page_entrance: boolean;
+  page_entrance_animation: PageEntranceAnimation;
 };
 
 function readEffectsForm(settings: ProfileSettings): EffectsFormState {
@@ -58,7 +59,7 @@ function readEffectsForm(settings: ProfileSettings): EffectsFormState {
     username_effect: settings.username_effect,
     typing_bio: settings.typing_bio,
     hover_animations: settings.hover_animations,
-    page_entrance: settings.page_entrance,
+    page_entrance_animation: settings.page_entrance_animation,
   };
 }
 
@@ -229,8 +230,8 @@ export function EffectsEditor({
 
   return (
     <>
-      <PageHeader title="Effects" description="Cursor, browser tab branding, username, bio, page entrance, and click-to-enter screen." />
-      <div className={cardClassName}>
+      <PageHeader title="Effects" description="Cursor, browser tab branding, username, bio, page entrance animation, and click-to-enter screen." />
+      <div className={cardClassName} data-tour="tour-effects">
         <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-5">
           <div className="rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4">
             <p className="text-sm font-semibold text-white">Browser tab</p>
@@ -300,6 +301,24 @@ export function EffectsEditor({
               patchForm={patchForm}
             />
           ) : null}
+
+          <div className="rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4">
+            <ControlledSelect
+              label="Page entrance animation"
+              value={form.page_entrance_animation}
+              onChange={(value) =>
+                patchForm({ page_entrance_animation: value as PageEntranceAnimation })
+              }
+              options={PAGE_ENTRANCE_ANIMATION_OPTIONS.map((option) => ({
+                value: option.value,
+                label: option.label,
+              }))}
+            />
+            <p className="mt-2 text-xs text-neutral-500">
+              {PAGE_ENTRANCE_ANIMATION_OPTIONS.find((option) => option.value === form.page_entrance_animation)?.description ??
+                "Plays when visitors enter your profile after the click-to-enter screen."}
+            </p>
+          </div>
 
           <ControlledSelect
             label="Cursor effect"
@@ -392,12 +411,6 @@ export function EffectsEditor({
               label="Hover animations"
               checked={form.hover_animations}
               onCheckedChange={(hover_animations) => patchForm({ hover_animations })}
-            />
-            <ToggleField
-              name="page_entrance"
-              label="Page entrance"
-              checked={form.page_entrance}
-              onCheckedChange={(page_entrance) => patchForm({ page_entrance })}
             />
           </div>
 

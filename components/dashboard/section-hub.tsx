@@ -14,7 +14,7 @@ export function SectionHub({
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-500">{section.description}</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2" data-tour={`tour-hub-${section.id}`}>
         {section.items.map((item) => {
           const Icon = item.Icon ?? section.Icon;
           return (

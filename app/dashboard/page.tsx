@@ -70,7 +70,7 @@ export default async function DashboardOverviewPage() {
         />
       ) : null}
 
-      <div className="bf-dash-hero relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111] p-8 sm:p-10">
+      <div className="bf-dash-hero relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111] p-8 sm:p-10" data-tour="tour-overview-hero">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_0%_0%,rgba(255,255,255,0.06),transparent_55%)]" />
         <div className="relative space-y-6">
           <div>
@@ -106,11 +106,13 @@ export default async function DashboardOverviewPage() {
             ))}
           </div>
 
-          <DashboardSearchHint />
+          <div data-tour="tour-overview-search">
+            <DashboardSearchHint />
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" data-tour="tour-overview-stats">
         {statCards.map((stat) => (
           <div
             key={stat.label}

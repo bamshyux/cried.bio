@@ -171,7 +171,7 @@ export function ProfileEditor({
   return (
     <div className="space-y-6">
       <form onSubmit={handleProfileSave} data-dashboard-primary-form className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2" data-tour="tour-profile-identity">
         <div>
           <label htmlFor="username" className={labelClassName}>Username</label>
           <div className="flex items-center gap-2">
@@ -243,7 +243,7 @@ export function ProfileEditor({
         </p>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-2" data-tour="tour-profile-media">
         <div>
           <label htmlFor="avatar" className={labelClassName}>Avatar Image</label>
           {avatarDisplayUrl ? (

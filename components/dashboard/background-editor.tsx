@@ -192,7 +192,7 @@ export function BackgroundEditor({
         }
       />
       <div className="space-y-6">
-        <div className={cardClassName}>
+        <div className={cardClassName} data-tour="tour-background">
           <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-5">
             <ControlledSelect
               label="Background type"

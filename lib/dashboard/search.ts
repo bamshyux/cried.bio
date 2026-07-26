@@ -301,12 +301,12 @@ const DASHBOARD_FEATURE_ENTRIES: FeatureEntry[] = [
   },
   {
     href: "/dashboard/effects",
-    label: "Page Entrance",
-    description: "Fade and zoom animation when your profile loads",
+    label: "Page Entrance Animation",
+    description: "Choose how your profile animates in after visitors click to enter",
     section: "Appearance",
     sectionId: "appearance",
     iconId: "effects",
-    keywords: ["page entrance", "entrance animation", "fade in", "profile animation", "pop in"],
+    keywords: ["page entrance animation", "entrance animation", "fade in", "profile animation", "pop in", "unfold", "after enter gate"],
     priority: 68,
   },
   {

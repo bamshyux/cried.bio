@@ -17,7 +17,7 @@ export default async function DashboardLinksPage() {
   ]);
 
   return (
-    <div>
+    <div data-tour="tour-links">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Links</h1>
         <p className="mt-2 text-zinc-400">

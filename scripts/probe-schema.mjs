@@ -27,7 +27,7 @@ const REQUIRED = [
   "particle_effect", "overlay_opacity", "vignette", "noise_texture",
   "music_url", "music_title", "music_autoplay", "music_loop", "music_volume",
   "cursor_effect", "typing_bio", "username_effect", "hover_animations",
-  "page_entrance", "link_animation", "show_view_count", "show_join_date",
+  "page_entrance_animation", "link_animation", "show_view_count", "show_join_date",
   "profile_status", "featured_link_id", "created_at", "updated_at",
 ];
 

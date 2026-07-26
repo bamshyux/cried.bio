@@ -27,6 +27,7 @@ import type { CardBorderEffectPreset } from "@/lib/types/settings";
 import { parseCardBorderTargets, writeContentPageBorderTargets } from "@/lib/card-border-effects/resolve";
 import { CARD_BORDER_EFFECT_OPTIONS } from "@/lib/card-border-effects/presets";
 import { sanitizeCardBorderEffectSelection } from "@/lib/card-border-effects/premium";
+import { parsePageEntranceAnimation } from "@/lib/page-entrance";
 import { sanitizeProfileLayoutSelection } from "@/lib/premium/layout-settings";
 import type {
   BackgroundType,
@@ -363,7 +364,10 @@ function parseSectionUpdates(
         typing_bio: parseBool(formData.get("typing_bio")),
         username_effect: parseUsernameEffect(formData.get("username_effect"), existing.username_effect),
         hover_animations: parseBool(formData.get("hover_animations")),
-        page_entrance: parseBool(formData.get("page_entrance")),
+        page_entrance_animation: parsePageEntranceAnimation(
+          formData.get("page_entrance_animation"),
+          existing.page_entrance_animation,
+        ),
         tab_title_animation: parseTabTitleAnimation(
           formData.get("tab_title_animation"),
           existing.tab_title_animation,

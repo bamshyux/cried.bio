@@ -13,7 +13,6 @@ import {
   buildCardStyle,
   getDisplayName,
   getLayoutBadges,
-  getUsernameEffectClass,
   type LayoutProps,
 } from "./layout-primitives";
 
@@ -390,8 +389,12 @@ function CyberpunkLayout(props: LayoutProps) {
               name={displayName}
               settings={settings}
               profile={profile}
-              className={`mt-0.5 text-3xl font-black uppercase tracking-tight ${getUsernameEffectClass(settings.username_effect)}`}
-              style={{ color: settings.accent_color, textShadow: `0 0 20px ${settings.accent_color}80` }}
+              className="mt-0.5 text-3xl font-black uppercase tracking-tight"
+              style={
+                settings.username_effect === "none"
+                  ? { color: settings.accent_color }
+                  : undefined
+              }
             />
             <ProfileHandle profile={profile} className="font-mono" />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />

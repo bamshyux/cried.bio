@@ -106,7 +106,7 @@ export function WidgetsEditor({
       />
       <FormFeedback error={feedback.error} success={feedback.success} />
 
-      <div className={`${cardClassName} mb-6`}>
+      <div className={`${cardClassName} mb-6`} data-tour="tour-widgets">
         <div className="mb-4 flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#5865F2]/20 text-[#5865F2]">
             <SiDiscord size={22} />

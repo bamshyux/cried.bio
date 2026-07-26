@@ -33,7 +33,8 @@ import {
   CUSTOM_CURSOR_SIZE_MIN,
 } from "@/lib/profile/custom-cursor";
 import { CURSOR_EFFECT_OPTIONS, TAB_TITLE_ANIMATION_OPTIONS } from "@/lib/settings";
-import type { CursorEffect, ProfileSettings, TabTitleAnimation } from "@/lib/types/settings";
+import { PAGE_ENTRANCE_ANIMATION_OPTIONS } from "@/lib/page-entrance";
+import type { CursorEffect, PageEntranceAnimation, ProfileSettings, TabTitleAnimation } from "@/lib/types/settings";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
 
 const fileInputClassName =
@@ -44,7 +45,7 @@ type ContentPageEffectsFormState = {
   cursor_image_size: number;
   tab_title_animation: TabTitleAnimation;
   hover_animations: boolean;
-  page_entrance: boolean;
+  page_entrance_animation: PageEntranceAnimation;
 };
 
 function readContentPageEffectsForm(settings: ProfileSettings): ContentPageEffectsFormState {
@@ -53,7 +54,7 @@ function readContentPageEffectsForm(settings: ProfileSettings): ContentPageEffec
     cursor_image_size: settings.cursor_image_size,
     tab_title_animation: settings.tab_title_animation,
     hover_animations: settings.hover_animations,
-    page_entrance: settings.page_entrance,
+    page_entrance_animation: settings.page_entrance_animation,
   };
 }
 
@@ -227,6 +228,24 @@ export function ContentPageEffectsEditor({
       <div className={cardClassName}>
         <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-5">
           <div className="rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4">
+            <ControlledSelect
+              label="Page entrance animation"
+              value={form.page_entrance_animation}
+              onChange={(value) =>
+                patchForm({ page_entrance_animation: value as PageEntranceAnimation })
+              }
+              options={PAGE_ENTRANCE_ANIMATION_OPTIONS.map((option) => ({
+                value: option.value,
+                label: option.label,
+              }))}
+            />
+            <p className="mt-2 text-xs text-neutral-500">
+              {PAGE_ENTRANCE_ANIMATION_OPTIONS.find((option) => option.value === form.page_entrance_animation)?.description ??
+                "Plays when this content page loads."}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4">
             <p className="text-sm font-semibold text-white">Browser tab</p>
             <p className="mt-1 text-xs text-neutral-500">
               What visitors see in their tab when this page is open.
@@ -348,12 +367,6 @@ export function ContentPageEffectsEditor({
               label="Link hover animations"
               checked={form.hover_animations}
               onCheckedChange={(hover_animations) => patchForm({ hover_animations })}
-            />
-            <ToggleField
-              name="page_entrance"
-              label="Page entrance animation"
-              checked={form.page_entrance}
-              onCheckedChange={(page_entrance) => patchForm({ page_entrance })}
             />
           </div>
 

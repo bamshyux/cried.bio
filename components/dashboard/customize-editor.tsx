@@ -82,7 +82,7 @@ export function CustomizeEditor({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_340px]">
-        <div className={cardClassName}>
+        <div className={cardClassName} data-tour="tour-customize">
           <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-6">
           <div className="grid gap-5 sm:grid-cols-2">
             <ColorField

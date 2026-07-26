@@ -144,25 +144,25 @@ export async function getSuggestedExploreProfiles(
   }
 
   const following = await getFollowing(userId, 6);
+  const networkCandidateIds = new Set<string>();
   for (const person of following) {
     if (!person?.id || person.id === userId) continue;
     const network = await getFollowing(person.id, 4);
     for (const candidate of network) {
       if (!candidate?.id || candidate.id === userId) continue;
-      addSuggestion(
-        bucket,
-        mapExploreProfile({
-          id: candidate.id,
-          username: candidate.username,
-          display_name: candidate.display_name,
-          avatar_url: candidate.avatar_url,
-          bio: "",
-          view_count: 0,
-          created_at: null,
-          premium_tier: null,
-        }),
-        "network",
-      );
+      networkCandidateIds.add(candidate.id);
+    }
+  }
+
+  if (networkCandidateIds.size > 0) {
+    const { data: networkProfiles } = await supabase
+      .from("profiles")
+      .select("id, username, display_name, avatar_url, bio, view_count, created_at, premium_tier")
+      .in("id", [...networkCandidateIds])
+      .not("username", "is", null);
+
+    for (const row of networkProfiles ?? []) {
+      addSuggestion(bucket, mapExploreProfile(row), "network");
     }
   }
 
