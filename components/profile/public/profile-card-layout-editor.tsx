@@ -7,8 +7,7 @@ import { CARD_LAYOUT_MIN_HEIGHT, clampCardLayout, getCardLayoutStyle, getPublicC
 import type { ProfileEmbed } from "@/lib/types/embed";
 import type { ProfileSettings } from "@/lib/types/settings";
 import { ProfileEditWidgetsPanel } from "./profile-edit-widgets-panel";
-import { ProfileCardHeightScaler, measureProfileCardNaturalHeight } from "./profile-card-height-scaler";
-import { ProfileParallaxCard } from "./profile-parallax";
+import { measureProfileCardNaturalHeight } from "./profile-card-height-scaler";
 
 export type CardLayoutState = {
   offsetX: number;
@@ -370,15 +369,7 @@ export function ProfileCardLayoutEditor({
 
     return (
       <div className="mx-auto w-full overflow-visible" style={viewStyle}>
-        <ProfileCardHeightScaler
-          maxHeight={settings.card_max_height}
-          parallaxEnabled={parallaxEnabled}
-          blurActive={settings.profile_blur > 0}
-        >
-          <ProfileParallaxCard enabled={!!parallaxEnabled} blurActive={settings.profile_blur > 0}>
-            {children}
-          </ProfileParallaxCard>
-        </ProfileCardHeightScaler>
+        {children}
       </div>
     );
   }
@@ -479,15 +470,7 @@ export function ProfileCardLayoutEditor({
             />
           </>
         )}
-        <ProfileCardHeightScaler
-          maxHeight={layout.maxHeight}
-          parallaxEnabled={parallaxEnabled}
-          blurActive={settings.profile_blur > 0}
-        >
-          <ProfileParallaxCard enabled={!!parallaxEnabled && !editMode} blurActive={settings.profile_blur > 0}>
-            {children}
-          </ProfileParallaxCard>
-        </ProfileCardHeightScaler>
+        {children}
       </div>
     </>
   );

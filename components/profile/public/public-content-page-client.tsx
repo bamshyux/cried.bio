@@ -13,7 +13,7 @@ import type { FeaturedBlock } from "@/lib/types/featured";
 import type { ProfileLink } from "@/lib/types/link";
 import type { ProfileSettings } from "@/lib/types/settings";
 import { CardBorderEffect } from "@/components/profile/card-border-effect";
-import { ProfileLayoutCard } from "./layout-primitives";
+import { ProfileCardFrame } from "./layout-primitives";
 import { AnalyticsTracker } from "./analytics-tracker";
 import { ContentPageSections } from "./content-page-sections";
 import { MusicPlayer } from "./music-player";
@@ -124,7 +124,8 @@ export function PublicContentPageClient({
               borderRadius={settings.border_radius}
               className="w-full"
             >
-              <ProfileLayoutCard settings={settings} className="w-full px-6 py-8 sm:px-8 sm:py-10">
+              <ProfileCardFrame settings={settings}>
+              <div className="w-full px-6 py-8 sm:px-8 sm:py-10">
                 <div className="mb-6 flex items-center gap-3">
                   {page.icon ? (
                     <span className="text-2xl leading-none" aria-hidden>
@@ -146,7 +147,8 @@ export function PublicContentPageClient({
                   profileId={profileId}
                   hasPageText={Boolean(page.bio?.trim())}
                 />
-              </ProfileLayoutCard>
+              </div>
+              </ProfileCardFrame>
             </CardBorderEffect>
           </div>
         </ProfileSiteChrome>

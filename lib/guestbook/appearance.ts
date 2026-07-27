@@ -137,7 +137,7 @@ export function resolveGuestbookAppearance(settings: ProfileSettings): ResolvedG
   }
 
   return {
-    borderStyle: settings.guestbook_use_profile_card ? "none" : borderStyle,
+    borderStyle,
     spacing,
     shell,
     backdrop,

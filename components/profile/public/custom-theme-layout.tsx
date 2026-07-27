@@ -1,16 +1,7 @@
 "use client";
 
 import type { LayoutProps } from "./layout-primitives";
-import {
-  ProfileAvatar,
-  ProfileHandle,
-  ProfileLayoutCard,
-  ProfileMainContent,
-  ProfileMeta,
-  Username,
-  getDisplayName,
-  getLayoutBadges,
-} from "./layout-primitives";
+import { ProfileAvatar, ProfileHandle, ProfileMainContent, ProfileMeta, Username, getDisplayName, getLayoutBadges } from "./layout-primitives";
 import { BadgeRow } from "@/components/badges/badge-ui";
 
 /** Minimal layout shell for custom CSS themes — styling comes from user CSS only. */
@@ -39,10 +30,7 @@ export function CustomThemeLayout({
     : { background: `linear-gradient(135deg, ${settings.gradient_colors.join(", ")})` };
 
   return (
-    <ProfileLayoutCard
-      settings={settings}
-      className="profile-card w-full overflow-hidden"
-    >
+    <div className="profile-card w-full overflow-hidden">
       <div className="profile-banner h-28 sm:h-32" style={bannerStyle} />
       <div className="profile-body px-6 pb-6 pt-4">
         <div className="profile-header bf-profile-avatar-row mb-4 flex items-end gap-4">
@@ -83,6 +71,6 @@ export function CustomThemeLayout({
           discordPresence={discordPresence}
         />
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }

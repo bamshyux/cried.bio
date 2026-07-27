@@ -318,7 +318,7 @@ export function getDisplayName(profile: Profile) {
   return profile.display_name || profile.username || "User";
 }
 
-export function ProfileLayoutCard({
+export function ProfileCardFrame({
   settings,
   className = "",
   style,
@@ -334,9 +334,13 @@ export function ProfileLayoutCard({
   const { shell, backdrop } = buildCardStyles(settings);
   const mergedShell = { ...shell, ...style };
   const radius = mergedShell.borderRadius ?? settings.border_radius;
+  const hasBlur = settings.profile_blur > 0 || settings.glassmorphism;
 
   return (
-    <div className={`relative w-full overflow-hidden ${className}`.trim()} style={mergedShell}>
+    <div
+      className={`bf-profile-card-frame relative w-full ${hasBlur ? "overflow-visible" : "overflow-hidden"} ${className}`.trim()}
+      style={mergedShell}
+    >
       <div
         className="pointer-events-none absolute inset-0"
         style={{ ...backdrop, ...backdropStyle, borderRadius: radius }}
@@ -345,6 +349,11 @@ export function ProfileLayoutCard({
       <div className="relative z-[1]">{children}</div>
     </div>
   );
+}
+
+/** @deprecated Use ProfileCardFrame at the profile shell level instead of per-layout. */
+export function ProfileLayoutCard(props: Parameters<typeof ProfileCardFrame>[0]) {
+  return <ProfileCardFrame {...props} />;
 }
 
 export { buildCardStyle, buildCardStyles, getUsernameEffectClass };

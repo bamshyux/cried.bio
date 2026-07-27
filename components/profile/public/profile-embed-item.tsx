@@ -11,7 +11,6 @@ import {
   embedCardStyles,
   embedContentPadding,
   embedMutedTextStyle,
-  embedPlatformLabel,
   embedTextStyle,
   embedTitleClass,
   resolveEmbedTitle,
@@ -113,14 +112,9 @@ function EmbedTextBlock({
   return (
     <div className="min-w-0 flex-1">
       {config.show_title ? (
-        <>
-          <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-            {embedPlatformLabel(embed.embed_type)}
-          </p>
-          <p className={`truncate ${titleClass}`} style={textStyle}>
-            {title}
-          </p>
-        </>
+        <p className={`truncate ${titleClass}`} style={textStyle}>
+          {title}
+        </p>
       ) : null}
       {config.show_description && subtitle ? (
         <p

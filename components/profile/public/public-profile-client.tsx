@@ -38,9 +38,11 @@ import {
   Username,
   bannerTopRadius,
   getLayoutBadges,
-  ProfileLayoutCard,
+  ProfileCardFrame,
   type LayoutProps,
 } from "./layout-primitives";
+import { ProfileCardHeightScaler } from "./profile-card-height-scaler";
+import { ProfileParallaxCard } from "./profile-parallax";
 import { CustomThemeLayout } from "./custom-theme-layout";
 import { DiscordPresenceProvider } from "./discord-presence-context";
 import { ProfilePageNav } from "./profile-page-nav";
@@ -56,7 +58,7 @@ function ClassicLayout({ profile, links, settings, badges, viewCount, embeds, fe
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings}>
+    <div className="w-full">
       {profile.banner_url ? (
         <div className="h-36 overflow-hidden sm:h-44" style={bannerTopRadius(settings.border_radius)}>
           <img src={profile.banner_url} alt="" className="h-full w-full object-cover" />
@@ -78,7 +80,7 @@ function ClassicLayout({ profile, links, settings, badges, viewCount, embeds, fe
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -87,7 +89,7 @@ function ModernLayout({ profile, links, settings, badges, viewCount, embeds, fea
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings} className="px-6 py-10">
+    <div className="w-full px-6 py-10">
       <div className="bf-profile-avatar-row mb-4 flex">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-28 w-28" />
       </div>
@@ -100,7 +102,7 @@ function ModernLayout({ profile, links, settings, badges, viewCount, embeds, fea
       <div className="bf-profile-block max-w-md">
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -109,7 +111,7 @@ function GamingLayout({ profile, links, settings, badges, viewCount, embeds, fea
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings} style={{ borderRadius: Math.min(settings.border_radius, 6) }}>
+    <div className="w-full" style={{  borderRadius: Math.min(settings.border_radius, 6)  }}>
       <div className="border-b px-5 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ borderColor: `${settings.accent_color}30`, color: settings.accent_color }}>
         Player Profile
       </div>
@@ -127,7 +129,7 @@ function GamingLayout({ profile, links, settings, badges, viewCount, embeds, fea
       <div className="space-y-2 px-5 pb-5">
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -136,7 +138,7 @@ function PortfolioLayout({ profile, links, settings, badges, viewCount, embeds, 
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings} className="grid md:grid-cols-[180px_1fr]">
+    <div className="w-full grid md:grid-cols-[180px_1fr]">
       <div className="flex flex-col items-center border-b border-white/[0.06] p-6 md:border-b-0 md:border-r">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-28 w-28" />
       </div>
@@ -149,7 +151,7 @@ function PortfolioLayout({ profile, links, settings, badges, viewCount, embeds, 
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -158,7 +160,7 @@ function MinimalLayout({ profile, links, settings, badges, viewCount, embeds, fe
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings} className="py-6">
+    <div className="w-full py-6">
       <div className="relative z-10 mb-2 bf-profile-name-row overflow-visible">
         <Username name={displayName} settings={settings} profile={profile} />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
@@ -166,7 +168,7 @@ function MinimalLayout({ profile, links, settings, badges, viewCount, embeds, fe
       <ProfileHandle profile={profile} className="mb-3" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -175,7 +177,7 @@ function StackedLayout({ profile, links, settings, badges, viewCount, embeds, fe
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings} className="overflow-visible">
+    <div className="w-full overflow-visible">
       {profile.banner_url ? (
         <div className="h-32 overflow-hidden sm:h-40" style={bannerTopRadius(settings.border_radius)}>
           <img src={profile.banner_url} alt="" className="h-full w-full object-cover" />
@@ -200,7 +202,7 @@ function StackedLayout({ profile, links, settings, badges, viewCount, embeds, fe
           <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
         </div>
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -209,9 +211,8 @@ function SplitLayout({ profile, links, settings, badges, viewCount, embeds, feat
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard
-      settings={settings}
-      className="split-layout grid md:grid-cols-2"
+    <div
+      className="split-layout grid w-full md:grid-cols-2"
       style={
         {
           "--bf-card-radius": `${settings.border_radius}px`,
@@ -242,7 +243,7 @@ function SplitLayout({ profile, links, settings, badges, viewCount, embeds, feat
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -273,11 +274,7 @@ function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, f
   const title = profile.username ? `@${profile.username}` : "profile";
 
   return (
-    <ProfileLayoutCard
-      settings={settings}
-      className="overflow-visible font-mono text-sm"
-      style={{ borderRadius: Math.min(settings.border_radius, 8) }}
-    >
+    <div className="w-full overflow-visible font-mono text-sm" style={{  borderRadius: Math.min(settings.border_radius, 8)  }}>
       <div className="flex items-center gap-2 border-b border-white/[0.08] bg-[#0a0a0a] px-4 py-2.5">
         <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
         <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
@@ -323,7 +320,7 @@ function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, f
           />
         </TerminalSection>
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -332,7 +329,7 @@ function CompactLayout({ profile, links, settings, badges, viewCount, embeds, fe
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings} className="p-5">
+    <div className="w-full p-5">
         <div className="mb-4 bf-profile-avatar-row flex items-center gap-3">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-14 w-14 shrink-0" />
         <div className="min-w-0 flex-1">
@@ -345,7 +342,7 @@ function CompactLayout({ profile, links, settings, badges, viewCount, embeds, fe
       </div>
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
       <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -354,11 +351,7 @@ function CardLayout({ profile, links, settings, badges, viewCount, embeds, featu
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard
-      settings={settings}
-      className="mx-auto max-w-sm overflow-visible shadow-2xl"
-      style={{ borderRadius: Math.max(settings.border_radius, 20) }}
-    >
+    <div className="w-full mx-auto max-w-sm overflow-visible shadow-2xl" style={{  borderRadius: Math.max(settings.border_radius, 20)  }}>
       <div className="px-6 py-8">
         <div className="bf-profile-avatar-row mb-4 flex">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
@@ -371,7 +364,7 @@ function CardLayout({ profile, links, settings, badges, viewCount, embeds, featu
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -380,14 +373,13 @@ function NeonLayout({ profile, links, settings, badges, viewCount, embeds, featu
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard
-      settings={settings}
-      className="overflow-hidden p-[1px]"
+    <div
+      className="w-full overflow-hidden p-[1px]"
       style={{
+        borderRadius: settings.border_radius,
         background: `linear-gradient(135deg, ${settings.accent_color}, ${settings.accent_color}40, ${settings.accent_color})`,
         boxShadow: `0 0 40px ${settings.accent_color}30, 0 0 80px ${settings.accent_color}15`,
       }}
-      backdropStyle={{ backgroundColor: "transparent" }}
     >
       <div className="overflow-visible p-6" style={{ borderRadius: Math.max(settings.border_radius - 1, 0) }}>
         <div className="mb-4 bf-profile-avatar-row flex items-start gap-4">
@@ -403,7 +395,7 @@ function NeonLayout({ profile, links, settings, badges, viewCount, embeds, featu
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -412,7 +404,7 @@ function MagazineLayout({ profile, links, settings, badges, viewCount, embeds, f
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings} className="overflow-visible p-6 sm:p-8">
+    <div className="w-full overflow-visible p-6 sm:p-8">
       <div className="absolute right-6 top-6 sm:right-8 sm:top-8">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16 sm:h-20 sm:w-20" />
       </div>
@@ -433,7 +425,7 @@ function MagazineLayout({ profile, links, settings, badges, viewCount, embeds, f
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -442,7 +434,7 @@ function BentoLayout({ profile, links, settings, badges, viewCount, embeds, feat
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings} className="p-4 sm:p-5">
+    <div className="w-full p-4 sm:p-5">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4 sm:col-span-2">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16 shrink-0" />
@@ -469,7 +461,7 @@ function BentoLayout({ profile, links, settings, badges, viewCount, embeds, feat
           <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} hideBio />
         </div>
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -478,7 +470,7 @@ function SidebarLayout({ profile, links, settings, badges, viewCount, embeds, fe
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings} className="overflow-hidden md:flex">
+    <div className="w-full overflow-hidden md:flex">
       <aside className="flex shrink-0 flex-col items-center border-b border-white/[0.06] p-6 md:w-60 md:border-b-0 md:border-r">
         <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />
         <div className="mt-4 w-full text-center">
@@ -493,7 +485,7 @@ function SidebarLayout({ profile, links, settings, badges, viewCount, embeds, fe
       <main className="min-w-0 flex-1 p-6">
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </main>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -505,7 +497,7 @@ function HeroLayout({ profile, links, settings, badges, viewCount, embeds, featu
     : { background: `linear-gradient(135deg, ${settings.gradient_colors.join(", ")})` };
 
   return (
-    <ProfileLayoutCard settings={settings}>
+    <div className="w-full">
       <div className="relative h-44 sm:h-56" style={{ ...heroStyle, ...bannerTopRadius(settings.border_radius) }}>
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20" />
         <div className="relative flex h-full flex-col justify-end p-6 pb-14">
@@ -530,7 +522,7 @@ function HeroLayout({ profile, links, settings, badges, viewCount, embeds, featu
           <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
         </div>
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -568,7 +560,7 @@ function PolaroidLayout({ profile, links, settings, badges, viewCount, embeds, f
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings} className="px-6 py-10">
+    <div className="w-full px-6 py-10">
       <div className="bf-profile-row mb-6 flex flex-wrap items-end gap-6">
         <div className="bf-polaroid shrink-0 -rotate-2 transition-transform duration-300 hover:rotate-0">
           <div className="w-36 rounded-sm bg-white p-2 pb-10 shadow-[0_12px_40px_rgba(0,0,0,0.55)] sm:w-40">
@@ -586,7 +578,7 @@ function PolaroidLayout({ profile, links, settings, badges, viewCount, embeds, f
         </div>
       </div>
       <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -598,7 +590,7 @@ function CinematicLayout({ profile, links, settings, badges, viewCount, embeds, 
     : { background: `linear-gradient(90deg, ${settings.gradient_colors.join(", ")})` };
 
   return (
-    <ProfileLayoutCard settings={settings} className="overflow-hidden bg-black">
+    <div className="w-full overflow-hidden bg-black">
       <div className="h-2 bg-black sm:h-3" />
       <div className="relative aspect-[21/9] min-h-[120px] w-full" style={frameStyle}>
         <div className="absolute inset-0 bg-black/45" />
@@ -619,7 +611,7 @@ function CinematicLayout({ profile, links, settings, badges, viewCount, embeds, 
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -628,7 +620,7 @@ function ShowcaseLayout({ profile, links, settings, badges, viewCount, embeds, f
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings} className="px-6 py-12 text-center">
+    <div className="w-full px-6 py-12 text-center">
       <div className="bf-profile-avatar-row mb-6 flex justify-center">
         <div className="relative">
           <div
@@ -655,7 +647,7 @@ function ShowcaseLayout({ profile, links, settings, badges, viewCount, embeds, f
       <div className="bf-profile-block mx-auto mt-2 max-w-md">
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -664,7 +656,7 @@ function RetroLayout({ profile, links, settings, badges, viewCount, embeds, feat
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings} className="bf-retro-window overflow-hidden">
+    <div className="w-full bf-retro-window overflow-hidden">
       <div className="flex items-center justify-between bg-gradient-to-r from-[#000080] to-[#1084d0] px-2 py-1">
         <span className="truncate text-[11px] font-bold text-white">Profile.exe — {displayName}</span>
         <div className="flex shrink-0 gap-0.5">
@@ -691,7 +683,7 @@ function RetroLayout({ profile, links, settings, badges, viewCount, embeds, feat
           </div>
         </div>
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -700,7 +692,7 @@ function PosterLayout({ profile, links, settings, badges, viewCount, embeds, fea
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <ProfileLayoutCard settings={settings}>
+    <div className="w-full">
       <div className="flex min-h-[300px]">
         <div className="w-2 shrink-0 sm:w-3" style={{ background: settings.accent_color }} />
         <div className="flex min-w-0 flex-1 flex-col sm:flex-row">
@@ -731,36 +723,16 @@ function PosterLayout({ profile, links, settings, badges, viewCount, embeds, fea
       <div className="border-t border-white/[0.06] px-6 py-6">
         <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
 function GlassLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
-  const opacity = settings.profile_opacity / 100;
-  const blur = Math.max(0, settings.profile_blur);
 
   return (
-    <ProfileLayoutCard
-      settings={settings}
-      className="px-6 py-10"
-      backdropStyle={{
-        backgroundColor: `rgba(20, 20, 20, ${opacity * 0.55})`,
-        ...(blur > 0
-          ? {
-              backdropFilter: `blur(${blur}px) saturate(1.4)`,
-              WebkitBackdropFilter: `blur(${blur}px) saturate(1.4)`,
-            }
-          : {}),
-      }}
-      style={{
-        border: settings.hide_card_border ? "none" : "1px solid rgba(255,255,255,0.12)",
-        boxShadow: settings.hide_card_border
-          ? "none"
-          : "0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)",
-      }}
-    >
+    <div className="relative w-full px-6 py-10">
       <div
         className="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full opacity-40 blur-3xl"
         style={{ background: settings.accent_color }}
@@ -783,7 +755,7 @@ function GlassLayout({ profile, links, settings, badges, viewCount, embeds, feat
           <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
         </div>
       </div>
-    </ProfileLayoutCard>
+    </div>
   );
 }
 
@@ -986,14 +958,23 @@ export function PublicProfileClient({
                 <div className={getProfileAlignClass(settings.content_alignment)}>
                   <DiscordPresenceProvider presence={discordPresence ?? null}>
                     <ProfileThemeScope scopedCss={settings.layout === "custom" ? scopedCustomCss : null}>
-                      <CardBorderEffect
-                        settings={settings}
-                        target="main"
-                        borderRadius={settings.border_radius}
-                        className="w-full"
-                      >
-                        <Layout {...layoutProps} />
-                      </CardBorderEffect>
+                      <ProfileCardFrame settings={settings}>
+                        <ProfileCardHeightScaler
+                          maxHeight={settings.card_max_height}
+                          parallaxEnabled={settings.profile_parallax}
+                        >
+                          <ProfileParallaxCard enabled={settings.profile_parallax}>
+                            <CardBorderEffect
+                              settings={settings}
+                              target="main"
+                              borderRadius={settings.border_radius}
+                              className="w-full"
+                            >
+                              <Layout {...layoutProps} />
+                            </CardBorderEffect>
+                          </ProfileParallaxCard>
+                        </ProfileCardHeightScaler>
+                      </ProfileCardFrame>
                     </ProfileThemeScope>
                   </DiscordPresenceProvider>
                 </div>
