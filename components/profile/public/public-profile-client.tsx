@@ -919,7 +919,6 @@ export function PublicProfileClient({
         />
       ) : null}
       {entered && fontUrl ? <link rel="stylesheet" href={fontUrl} /> : null}
-      {entered ? <ProfileBackground settings={settings} /> : null}
       {entered && showParticles && settings.particle_effect ? (
         <ParticleCanvas effect={settings.particle_effect} />
       ) : null}
@@ -942,7 +941,11 @@ export function PublicProfileClient({
           {showPresetPreviewBanner && presetPreviewTitle ? (
             <PresetPreviewBanner title={presetPreviewTitle} />
           ) : null}
-          <ProfileSiteChrome navPosition={settings.page_nav_position} siteNav={siteNav}>
+          <ProfileSiteChrome
+            navPosition={settings.page_nav_position}
+            siteNav={siteNav}
+            backdrop={<ProfileBackground settings={settings} contained />}
+          >
             <div
               ref={profileRevealRef}
               className="mx-auto w-full max-w-2xl overflow-visible"

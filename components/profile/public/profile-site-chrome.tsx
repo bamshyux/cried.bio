@@ -27,12 +27,14 @@ export function ProfileSiteChrome({
   siteNav,
   mainClassName = "",
   centerContent = true,
+  backdrop,
   children,
 }: {
   navPosition: PageNavPosition;
   siteNav: ReactNode | null;
   mainClassName?: string;
   centerContent?: boolean;
+  backdrop?: ReactNode;
   children: ReactNode;
 }) {
   const showNav = siteNav && navPosition !== "hidden";
@@ -137,10 +139,11 @@ export function ProfileSiteChrome({
       {sideRail}
       {bottomBar}
       <div ref={shellRef} className="bf-profile-viewport-shell">
+        {backdrop}
         {topBar}
         <main
           ref={mainRef}
-          className={`bf-profile-viewport-main ${mainClass} ${edgePadding} ${mainClassName}`.trim()}
+          className={`relative z-[1] bf-profile-viewport-main ${mainClass} ${edgePadding} ${mainClassName}`.trim()}
         >
           <div ref={contentRef} className="bf-profile-viewport-content w-full">
             {children}

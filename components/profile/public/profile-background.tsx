@@ -53,7 +53,7 @@ export function ProfileBackground({
 
   return (
     <div
-      className={`${contained ? "absolute inset-0 h-full w-full" : "fixed inset-0 z-0"} ${settings.noise_texture ? "bf-noise" : ""} ${settings.vignette ? "bf-vignette" : ""}`}
+      className={`${contained ? "absolute inset-0 z-0 h-full w-full" : "fixed inset-0 z-0"} ${settings.noise_texture ? "bf-noise" : ""} ${settings.vignette ? "bf-vignette" : ""}`}
     >
       {bg}
       <div className="absolute inset-0" style={{ backgroundColor: `rgba(0,0,0,${overlayOpacity})` }} />

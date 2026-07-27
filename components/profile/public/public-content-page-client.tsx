@@ -88,7 +88,6 @@ export function PublicContentPageClient({
         tabTitleAnimation={settings.tab_title_animation}
       />
       {fontUrl ? <link rel="stylesheet" href={fontUrl} /> : null}
-      <ProfileBackground settings={settings} />
       {showParticles && settings.particle_effect ? (
         <ParticleCanvas effect={settings.particle_effect} />
       ) : null}
@@ -116,6 +115,7 @@ export function PublicContentPageClient({
           siteNav={siteNav}
           centerContent={false}
           mainClassName="!items-start !justify-center !py-24 sm:!py-28"
+          backdrop={<ProfileBackground settings={settings} contained />}
         >
           <div ref={pageRevealRef} className="mx-auto w-full max-w-2xl overflow-visible">
             <CardBorderEffect

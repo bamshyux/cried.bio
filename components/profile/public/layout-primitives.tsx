@@ -335,21 +335,17 @@ export function ProfileCardFrame({
   const mergedShell = { ...shell, ...style };
   const radius = mergedShell.borderRadius ?? settings.border_radius;
   const hasBlur = settings.profile_blur > 0;
-
-  const frameStyle: CSSProperties = {
-    ...mergedShell,
-    borderRadius: radius,
-    ...(hasBlur ? { ...backdrop, ...backdropStyle } : {}),
-  };
+  const hasTint =
+    settings.profile_opacity > 0 || settings.glassmorphism || settings.profile_blur > 0;
 
   return (
     <div
-      className={`bf-profile-card-frame relative w-full overflow-hidden ${hasBlur ? "bf-profile-card-frame--blur" : ""} ${className}`.trim()}
-      style={frameStyle}
+      className={`bf-profile-card-frame relative w-full overflow-visible ${hasBlur ? "bf-profile-card-frame--blur" : ""} ${className}`.trim()}
+      style={{ ...mergedShell, borderRadius: radius }}
     >
-      {!hasBlur ? (
+      {hasTint ? (
         <div
-          className="bf-profile-card-backdrop pointer-events-none absolute inset-0"
+          className="bf-profile-card-backdrop pointer-events-none absolute inset-0 z-0 overflow-hidden"
           style={{ ...backdrop, ...backdropStyle, borderRadius: radius }}
           aria-hidden
         />
