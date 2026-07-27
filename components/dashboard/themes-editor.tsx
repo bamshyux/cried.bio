@@ -11,6 +11,7 @@ import {
   labelClassName,
   PageHeader,
 } from "@/components/dashboard/form-fields";
+import { LayoutColorsPanel, readLayoutColorsForm } from "@/components/dashboard/layout-colors-panel";
 import { LayoutPreview } from "@/components/dashboard/layout-preview";
 import { PremiumLockBadge } from "@/components/premium/premium-locked";
 import { useUpgradeModal } from "@/components/premium/upgrade-modal";
@@ -23,18 +24,22 @@ import { isPremiumProfileLayout, sanitizeProfileLayoutSelection } from "@/lib/pr
 import type { CustomTheme } from "@/lib/types/custom-theme";
 import type { ProfileLayout, ProfileSettings } from "@/lib/types/settings";
 import Link from "next/link";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import type { UserEntitlements } from "@/lib/premium/types";
 
 type ThemesFormState = {
   layout: ProfileLayout;
   custom_theme_id: string;
+  layout_primary_color: string;
+  layout_secondary_color: string;
+  layout_tertiary_color: string;
 };
 
 function readThemesForm(settings: ProfileSettings, fallbackThemeId: string): ThemesFormState {
   return {
     layout: settings.layout,
     custom_theme_id: settings.custom_theme_id ?? fallbackThemeId,
+    ...readLayoutColorsForm(settings),
   };
 }
 
@@ -52,7 +57,7 @@ function LayoutGrid({
   const { openUpgrade } = useUpgradeModal();
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {options.map((layout) => {
         const locked = layout.premiumOnly && !canUsePremiumLayouts;
         const isActive = activeLayout === layout.value;
@@ -84,6 +89,23 @@ function LayoutGrid({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function SelectedLayoutSummary({ layout }: { layout: ProfileLayout }) {
+  const option = useMemo(
+    () => [...FREE_LAYOUT_OPTIONS, ...PREMIUM_LAYOUT_OPTIONS].find((entry) => entry.value === layout),
+    [layout],
+  );
+
+  if (!option) return null;
+
+  return (
+    <div className="rounded-xl border border-white/[0.08] bg-[#0f0f0f] p-4">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-500">Selected layout</p>
+      <p className="mt-2 text-base font-semibold text-white">{option.label}</p>
+      <p className="mt-1 text-xs leading-relaxed text-neutral-500">{option.description}</p>
     </div>
   );
 }
@@ -127,75 +149,90 @@ export function ThemesEditor({
   return (
     <>
       <PageHeader title="Layouts" description="Choose how your public profile is structured." />
-      <div className={cardClassName} data-tour="tour-layouts">
-        <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-8">
-          <div>
-            <label className={labelClassName}>Standard layouts</label>
-            <p className="mb-3 text-xs text-neutral-600">Included on every plan.</p>
-            <LayoutGrid
-              options={FREE_LAYOUT_OPTIONS}
-              activeLayout={form.layout}
-              canUsePremiumLayouts={canUsePremiumLayouts}
-              onSelect={(layout) => patchForm({ layout })}
-            />
-          </div>
 
-          <div>
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <label className={labelClassName}>Premium Lite layouts</label>
-              <span className="rounded-full border border-[rgba(201,184,150,0.28)] bg-[rgba(201,184,150,0.08)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#d4c4a8]">
-                {PREMIUM_LAYOUT_OPTIONS.length} exclusive
-              </span>
+      <div className="mb-6 lg:hidden">
+        <SelectedLayoutSummary layout={form.layout} />
+        <LayoutColorsPanel settings={settings} form={form} onPatch={patchForm} className="mt-4" />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className={cardClassName} data-tour="tour-layouts">
+          <form onSubmit={handleSave} data-dashboard-primary-form className="space-y-8">
+            <div>
+              <label className={labelClassName}>Standard layouts</label>
+              <p className="mb-3 text-xs text-neutral-600">Included on every plan.</p>
+              <LayoutGrid
+                options={FREE_LAYOUT_OPTIONS}
+                activeLayout={form.layout}
+                canUsePremiumLayouts={canUsePremiumLayouts}
+                onSelect={(layout) => patchForm({ layout })}
+              />
             </div>
-            <p className="mb-3 text-xs text-neutral-600">Extra profile structures unlocked with Premium Lite.</p>
-            <LayoutGrid
-              options={PREMIUM_LAYOUT_OPTIONS}
-              activeLayout={form.layout}
-              canUsePremiumLayouts={canUsePremiumLayouts}
-              onSelect={(layout) => patchForm({ layout })}
-            />
-            {!canUsePremiumLayouts && isPremiumProfileLayout(form.layout) ? (
-              <p className="mt-3 text-xs text-amber-200/80">
-                Your current premium layout will fall back to Classic on your public profile until you upgrade.
-              </p>
-            ) : null}
-          </div>
 
-          {form.layout === "custom" && (
-            <div className="rounded-xl border border-[var(--bf-accent)]/20 bg-[var(--bf-accent)]/[0.04] p-4">
-              <p className="mb-3 text-sm font-medium text-white">Custom theme</p>
-              {themes.length > 0 ? (
-                <div className="mb-3">
-                  <label htmlFor="custom_theme_pick" className={labelClassName}>
-                    Active theme
-                  </label>
-                  <select
-                    id="custom_theme_pick"
-                    value={form.custom_theme_id}
-                    onChange={(e) => patchForm({ custom_theme_id: e.target.value })}
-                    className={inputClassName}
-                  >
-                    {themes.map((theme) => (
-                      <option key={theme.id} value={theme.id}>
-                        {theme.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : (
-                <p className="mb-3 text-xs text-neutral-500">Create a theme in the builder first.</p>
-              )}
-              <Link href="/dashboard/custom-theme" className={`${buttonPrimaryClassName} inline-flex`}>
-                Open theme builder
-              </Link>
+            <div>
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <label className={labelClassName}>Premium Lite layouts</label>
+                <span className="rounded-full border border-[rgba(201,184,150,0.28)] bg-[rgba(201,184,150,0.08)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#d4c4a8]">
+                  {PREMIUM_LAYOUT_OPTIONS.length} exclusive
+                </span>
+              </div>
+              <p className="mb-3 text-xs text-neutral-600">Extra profile structures unlocked with Premium Lite.</p>
+              <LayoutGrid
+                options={PREMIUM_LAYOUT_OPTIONS}
+                activeLayout={form.layout}
+                canUsePremiumLayouts={canUsePremiumLayouts}
+                onSelect={(layout) => patchForm({ layout })}
+              />
+              {!canUsePremiumLayouts && isPremiumProfileLayout(form.layout) ? (
+                <p className="mt-3 text-xs text-amber-200/80">
+                  Your current premium layout will fall back to Classic on your public profile until you upgrade.
+                </p>
+              ) : null}
             </div>
-          )}
 
-          <SaveConfirmation success={state.success} error={state.error} />
-          <button type="submit" disabled={isPending} className={buttonPrimaryClassName}>
-            {isPending ? "Saving..." : "Save layout"}
-          </button>
-        </form>
+            {form.layout === "custom" && (
+              <div className="rounded-xl border border-[var(--bf-accent)]/20 bg-[var(--bf-accent)]/[0.04] p-4">
+                <p className="mb-3 text-sm font-medium text-white">Custom theme</p>
+                {themes.length > 0 ? (
+                  <div className="mb-3">
+                    <label htmlFor="custom_theme_pick" className={labelClassName}>
+                      Active theme
+                    </label>
+                    <select
+                      id="custom_theme_pick"
+                      value={form.custom_theme_id}
+                      onChange={(e) => patchForm({ custom_theme_id: e.target.value })}
+                      className={inputClassName}
+                    >
+                      {themes.map((theme) => (
+                        <option key={theme.id} value={theme.id}>
+                          {theme.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <p className="mb-3 text-xs text-neutral-500">Create a theme in the builder first.</p>
+                )}
+                <Link href="/dashboard/custom-theme" className={`${buttonPrimaryClassName} inline-flex`}>
+                  Open theme builder
+                </Link>
+              </div>
+            )}
+
+            <SaveConfirmation success={state.success} error={state.error} />
+            <button type="submit" disabled={isPending} className={buttonPrimaryClassName}>
+              {isPending ? "Saving..." : "Save layout"}
+            </button>
+          </form>
+        </div>
+
+        <div className="hidden lg:block">
+          <div className="sticky top-24 space-y-4">
+            <SelectedLayoutSummary layout={form.layout} />
+            <LayoutColorsPanel settings={settings} form={form} onPatch={patchForm} />
+          </div>
+        </div>
       </div>
     </>
   );

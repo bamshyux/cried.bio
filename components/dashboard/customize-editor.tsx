@@ -24,13 +24,6 @@ import {
   getLayoutLabelPlaceholder,
   layoutSupportsCustomLabel,
 } from "@/lib/layout-labels";
-import {
-  getLayoutColorSlotDefault,
-  getLayoutColorSlotLabel,
-  layoutColorSlots,
-  layoutSupportsColorCustomization,
-  writeLayoutColorOverride,
-} from "@/lib/layout-colors";
 import { CustomizePreview, type CustomizeFormState } from "@/components/dashboard/customize-preview";
 import type { ProfileLayout, ProfileSettings } from "@/lib/types/settings";
 
@@ -41,9 +34,6 @@ function readCustomizeForm(settings: ProfileSettings): CustomizeFormState {
     font_family: settings.font_family,
     content_alignment: settings.content_alignment,
     layout_label: settings.layout_label,
-    layout_primary_color: settings.layout_primary_color,
-    layout_secondary_color: settings.layout_secondary_color,
-    layout_tertiary_color: settings.layout_tertiary_color,
     border_radius: settings.border_radius,
     profile_opacity: settings.profile_opacity,
     profile_blur: settings.profile_blur,
@@ -174,70 +164,6 @@ export function CustomizeEditor({
               <p className="mt-1.5 text-xs text-neutral-600">
                 {getLayoutLabelHint(settings.layout as ProfileLayout)}
               </p>
-            </div>
-          )}
-
-          {layoutSupportsColorCustomization(settings.layout) && (
-            <div className="rounded-xl border border-white/[0.08] bg-[#0c0c0c] p-4">
-              <p className="text-sm font-semibold text-white">Layout colors</p>
-              <p className="mt-1 text-xs text-neutral-500">
-                Your {settings.layout} layout has its own theme accents. Override them here without changing your global profile accent.
-              </p>
-              <div className="mt-4 grid gap-5 sm:grid-cols-2">
-                {layoutColorSlots(settings.layout).map((slot) => {
-                  const field =
-                    slot === "primary"
-                      ? "layout_primary_color"
-                      : slot === "secondary"
-                        ? "layout_secondary_color"
-                        : "layout_tertiary_color";
-                  const stored = form[field];
-                  const previewSettings = { ...settings, ...form };
-                  const effective = getLayoutColorSlotDefault(previewSettings, slot);
-                  const hasOverride = Boolean(stored?.trim());
-
-                  return (
-                    <div key={slot}>
-                      <ColorField
-                        name={field}
-                        label={getLayoutColorSlotLabel(settings.layout, slot)}
-                        value={hasOverride ? stored : effective}
-                        onChange={(color) =>
-                          patchForm({
-                            [field]: writeLayoutColorOverride(color, previewSettings, slot),
-                          })
-                        }
-                      />
-                      {!hasOverride ? (
-                        <p className="mt-1 text-[11px] text-neutral-600">Using layout default</p>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => patchForm({ [field]: "" })}
-                          className="mt-1 text-[11px] font-medium text-neutral-500 transition-colors hover:text-neutral-300"
-                        >
-                          Reset to default
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              {(form.layout_primary_color || form.layout_secondary_color || form.layout_tertiary_color) && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    patchForm({
-                      layout_primary_color: "",
-                      layout_secondary_color: "",
-                      layout_tertiary_color: "",
-                    })
-                  }
-                  className="mt-4 text-xs font-medium text-neutral-500 transition-colors hover:text-neutral-300"
-                >
-                  Reset all layout colors
-                </button>
-              )}
             </div>
           )}
 
