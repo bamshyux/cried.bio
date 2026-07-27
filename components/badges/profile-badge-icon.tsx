@@ -36,11 +36,12 @@ export function ProfileBadgeIcon({
   const hasCustomImage = Boolean(iconUrl?.trim());
   const isVerified = slug === "verified" && !hasCustomImage;
   const isOg = slug === "og" && !hasCustomImage;
-  const isSummer = isSummer2026BadgeSlug(slug) && !hasCustomImage && !silhouette;
+  const isSummer =
+    isSummer2026BadgeSlug(slug) && !hasCustomImage && !silhouette && !monochrome;
   const fillColor = silhouette
     ? COLLECTION_SILHOUETTE_COLOR
     : monochrome
-      ? "#e4e4e7"
+      ? color
       : isSummer
         ? SUMMER_2026_BADGE_COLOR
         : color;
@@ -72,12 +73,12 @@ export function ProfileBadgeIcon({
         className={`bf-profile-badge-icon block ${className}`.trim()}
         aria-hidden
       >
-        <BadgeGlyph slug={slug} color={fillColor} />
+        <BadgeGlyph slug={slug} color={fillColor} monochrome={monochrome} />
       </svg>
     );
   }
 
-  const glowColor = isVerified ? VERIFIED_COLOR : fillColor;
+  const glowColor = isVerified && !monochrome ? VERIFIED_COLOR : fillColor;
 
   if (silhouette) {
     return (

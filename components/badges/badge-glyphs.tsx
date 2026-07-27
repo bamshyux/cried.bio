@@ -78,7 +78,15 @@ function SummerSunGlyph() {
   );
 }
 
-export function BadgeGlyph({ slug, color }: { slug: string; color: string }): ReactNode {
+export function BadgeGlyph({
+  slug,
+  color,
+  monochrome = false,
+}: {
+  slug: string;
+  color: string;
+  monochrome?: boolean;
+}): ReactNode {
   const c = color;
   const hi = "rgba(255,255,255,0.35)";
   const ink = color.trim().toLowerCase() === "#e4e4e7" ? "rgba(0,0,0,0.45)" : hi;
@@ -388,6 +396,19 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
       );
 
     case "summer-2026":
+      if (monochrome) {
+        return (
+          <>
+            <circle cx="12" cy="12" r="5" fill={c} />
+            <path
+              d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.8 5.8l1.8 1.8M16.4 16.4l1.8 1.8M5.8 18.2l1.8-1.8M16.4 7.6l1.8-1.8"
+              stroke={c}
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            />
+          </>
+        );
+      }
       return <SummerSunGlyph />;
 
     default:
