@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition, createContext, useContext } from "react";
 import { createPortal } from "react-dom";
 import { updateCardLayoutAction } from "@/app/actions/settings";
 import { CARD_LAYOUT_MIN_HEIGHT, clampCardLayout, getCardLayoutStyle, getPublicCardLayoutStyle } from "@/lib/settings";
@@ -50,6 +50,13 @@ function measureNaturalHeight(container: HTMLDivElement | null) {
 function resolveResizeHeight(nextHeight: number, naturalHeight: number) {
   const clamped = Math.min(naturalHeight, Math.max(CARD_LAYOUT_MIN_HEIGHT, Math.round(nextHeight)));
   return clamped >= naturalHeight - 4 ? 0 : clamped;
+}
+
+const CardLayoutEditContext = createContext<CardLayoutState | null>(null);
+
+/** Live drag/resize values while edit layout mode is active. */
+export function useCardLayoutEditState() {
+  return useContext(CardLayoutEditContext);
 }
 
 function ProfileEditModeBar({
@@ -339,7 +346,7 @@ export function ProfileCardLayoutEditor({
     [bindResizeListeners],
   );
 
-  const clipOverflow = layout.maxHeight > 0 && !parallaxEnabled;
+  const clipOverflow = !editMode && layout.maxHeight > 0 && !parallaxEnabled;
 
   const wrapperStyle = {
     ...(editMode
@@ -470,7 +477,9 @@ export function ProfileCardLayoutEditor({
             />
           </>
         )}
-        {children}
+        <CardLayoutEditContext.Provider value={editMode ? layout : null}>
+          {children}
+        </CardLayoutEditContext.Provider>
       </div>
     </>
   );

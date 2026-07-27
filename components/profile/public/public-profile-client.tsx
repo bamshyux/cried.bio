@@ -12,7 +12,6 @@ import type { Profile } from "@/lib/types/profile";
 import type { MusicTrack } from "@/lib/data/music-tracks";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
 import type { ProfileSettings } from "@/lib/types/settings";
-import { CardBorderEffect } from "@/components/profile/card-border-effect";
 import { AnalyticsTracker } from "./analytics-tracker";
 import { BadgeRow } from "@/components/badges/badge-ui";
 import { MusicPlayer } from "./music-player";
@@ -30,6 +29,7 @@ import type { ProfileEmbed } from "@/lib/types/embed";
 import type { SocialProfile } from "@/lib/types/social";
 import { PresetPreviewBanner } from "./preset-preview-banner";
 import { ProfileCardLayoutEditor } from "./profile-card-layout-editor";
+import { ProfileCardLayoutBody } from "./profile-card-layout-body";
 import {
   ProfileAvatar,
   ProfileHandle,
@@ -38,11 +38,8 @@ import {
   Username,
   bannerTopRadius,
   getLayoutBadges,
-  ProfileCardFrame,
   type LayoutProps,
 } from "./layout-primitives";
-import { ProfileCardHeightScaler } from "./profile-card-height-scaler";
-import { ProfileParallaxCard } from "./profile-parallax";
 import { CustomThemeLayout } from "./custom-theme-layout";
 import { DiscordPresenceProvider } from "./discord-presence-context";
 import { ProfilePageNav } from "./profile-page-nav";
@@ -961,23 +958,9 @@ export function PublicProfileClient({
                 <div className={getProfileAlignClass(settings.content_alignment)}>
                   <DiscordPresenceProvider presence={discordPresence ?? null}>
                     <ProfileThemeScope scopedCss={settings.layout === "custom" ? scopedCustomCss : null}>
-                      <ProfileParallaxCard enabled={settings.profile_parallax}>
-                        <ProfileCardFrame settings={settings}>
-                          <ProfileCardHeightScaler
-                            maxHeight={settings.card_max_height}
-                            parallaxEnabled={settings.profile_parallax}
-                          >
-                            <CardBorderEffect
-                              settings={settings}
-                              target="main"
-                              borderRadius={settings.border_radius}
-                              className="w-full"
-                            >
-                              <Layout {...layoutProps} />
-                            </CardBorderEffect>
-                          </ProfileCardHeightScaler>
-                        </ProfileCardFrame>
-                      </ProfileParallaxCard>
+                      <ProfileCardLayoutBody settings={settings} parallaxEnabled={settings.profile_parallax}>
+                        <Layout {...layoutProps} />
+                      </ProfileCardLayoutBody>
                     </ProfileThemeScope>
                   </DiscordPresenceProvider>
                 </div>
