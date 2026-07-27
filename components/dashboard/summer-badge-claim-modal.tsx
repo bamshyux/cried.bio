@@ -5,7 +5,10 @@ import { createPortal } from "react-dom";
 import { claimSummer2026BadgeAction } from "@/app/actions/badges";
 import { BadgeMedallion } from "@/components/badges/badge-medallion";
 import { buttonPrimaryClassName } from "@/components/dashboard/form-fields";
-import { SUMMER_2026_CLAIM_SESSION_KEY } from "@/lib/badges/seasonal-events";
+import {
+  SUMMER_2026_BADGE_COLOR,
+  SUMMER_2026_CLAIM_SESSION_KEY,
+} from "@/lib/badges/seasonal-events";
 
 type SummerBadgeClaimModalProps = {
   open: boolean;
@@ -78,7 +81,7 @@ export function SummerBadgeClaimModal({ open, onClose, onClaimed }: SummerBadgeC
         disabled={isPending}
       />
 
-      <div className="bf-summer-claim-modal relative w-full max-w-md overflow-hidden rounded-3xl border border-sky-400/20 shadow-[0_0_80px_rgba(14,165,233,0.35),0_0_160px_rgba(251,191,36,0.12)]">
+      <div className="bf-summer-claim-modal relative w-full max-w-md overflow-hidden rounded-3xl border border-amber-400/25 shadow-[0_0_80px_rgba(251,191,36,0.35),0_0_160px_rgba(249,115,22,0.15)]">
         <div className="bf-summer-claim-rays pointer-events-none absolute inset-0" aria-hidden />
         <div className="bf-summer-claim-shimmer pointer-events-none absolute inset-0" aria-hidden />
 
@@ -121,22 +124,22 @@ export function SummerBadgeClaimModal({ open, onClose, onClaimed }: SummerBadgeC
               Exclusive Summer Event Badge
             </h2>
 
-            <p className="mt-3 text-sm leading-relaxed text-sky-100/70">
-              Claim your free <span className="font-semibold text-sky-200">Summer 2026</span> badge and show it off on your profile all season.
+            <p className="mt-3 text-sm leading-relaxed text-amber-100/70">
+              Claim your free <span className="font-semibold text-amber-200">Summer 2026</span> badge and show it off on your profile all season.
             </p>
 
             <div className="relative mx-auto mt-8 flex h-32 w-32 items-center justify-center">
-              <div className="bf-summer-claim-orbit pointer-events-none absolute inset-0 rounded-full border border-sky-400/30" aria-hidden />
-              <div className="bf-summer-claim-glow pointer-events-none absolute inset-2 rounded-full bg-sky-400/20 blur-2xl" aria-hidden />
+              <div className="bf-summer-claim-orbit pointer-events-none absolute inset-0 rounded-full border border-amber-400/35" aria-hidden />
+              <div className="bf-summer-claim-glow pointer-events-none absolute inset-2 rounded-full bg-amber-400/25 blur-2xl" aria-hidden />
               <BadgeMedallion
-                badge={{ slug: "summer-2026", color: "#0ea5e9", rarity: "epic" }}
+                badge={{ slug: "summer-2026", color: SUMMER_2026_BADGE_COLOR, rarity: "epic" }}
                 size={72}
                 hovered
                 glowEnabled
               />
             </div>
 
-            <p className="mt-4 text-xs font-medium uppercase tracking-[0.22em] text-sky-300/80">
+            <p className="mt-4 text-xs font-medium uppercase tracking-[0.22em] text-amber-300/85">
               Summer Event · Epic · Seasonal
             </p>
 

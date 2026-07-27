@@ -1,6 +1,7 @@
 "use client";
 
 import { ProfileBadgeIcon } from "@/components/badges/profile-badge-icon";
+import { isSummer2026BadgeSlug } from "@/lib/badges/seasonal-events";
 import type { BadgeRarity } from "@/lib/types/badge";
 
 export type MedallionBadge = {
@@ -39,6 +40,7 @@ export function BadgeMedallion({
         active ? "bf-badge-medallion--active" : "",
         glowEnabled ? "" : "bf-badge-medallion--no-glow",
         badge.slug === "og" || badge.slug === "year-one" ? "bf-badge-medallion--milestone" : "",
+        isSummer2026BadgeSlug(badge.slug) ? "bf-badge-medallion--summer" : "",
       ]
         .filter(Boolean)
         .join(" ")}

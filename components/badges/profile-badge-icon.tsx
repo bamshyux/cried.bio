@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { BadgeGlyph } from "@/components/badges/badge-glyphs";
 import { VerifiedBadgeIcon } from "@/components/badges/verified-badge-icon";
 import { SelfGlow } from "@/components/ui/self-glow";
+import { isSummer2026BadgeSlug, SUMMER_2026_BADGE_COLOR } from "@/lib/badges/seasonal-events";
 import { getBadgeSelfGlowStrength } from "@/lib/self-glow";
 
 const VERIFIED_COLOR = "#3b82f6";
@@ -32,8 +33,9 @@ export function ProfileBadgeIcon({
   const hasCustomImage = Boolean(iconUrl?.trim());
   const isVerified = slug === "verified" && !hasCustomImage;
   const isOg = slug === "og" && !hasCustomImage;
-  const fillColor = monochrome ? "#e4e4e7" : color;
-  const glowStrength = isOg ? 0.22 : getBadgeSelfGlowStrength({ hovered, featured });
+  const isSummer = isSummer2026BadgeSlug(slug) && !hasCustomImage;
+  const fillColor = monochrome ? "#e4e4e7" : isSummer ? SUMMER_2026_BADGE_COLOR : color;
+  const glowStrength = isSummer ? 0.42 : isOg ? 0.22 : getBadgeSelfGlowStrength({ hovered, featured });
 
   let icon: ReactNode;
 
@@ -66,7 +68,7 @@ export function ProfileBadgeIcon({
     );
   }
 
-  const glowColor = isVerified ? VERIFIED_COLOR : fillColor;
+  const glowColor = isVerified ? VERIFIED_COLOR : isSummer ? "#f97316" : fillColor;
 
   return (
     <SelfGlow

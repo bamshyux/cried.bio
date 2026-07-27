@@ -139,7 +139,7 @@ insert into public.badges (slug, name, icon, color, description, category, rarit
   ('halloween-2026', 'Halloween 2026', 'halloween-2026', '#f97316', 'Halloween 2026 event badge', 'seasonal', 'epic', 300, true, 'seasonal_halloween_2026'),
   ('christmas-2026', 'Christmas 2026', 'christmas-2026', '#ef4444', 'Christmas 2026 event badge', 'seasonal', 'epic', 310, true, 'seasonal_christmas_2026'),
   ('new-year-2027', 'New Year 2027', 'new-year-2027', '#a855f7', 'New Year 2027 event badge', 'seasonal', 'epic', 320, true, 'seasonal_new_year_2027'),
-  ('summer-2026', 'Summer Event', 'summer-2026', '#0ea5e9', 'Summer 2026 event badge', 'seasonal', 'epic', 330, true, 'seasonal_summer_2026')
+  ('summer-2026', 'Summer Event', 'summer-2026', '#fbbf24', 'Summer 2026 event badge', 'seasonal', 'epic', 330, true, 'seasonal_summer_2026')
 on conflict (slug) do update set
   name = excluded.name,
   icon = excluded.icon,

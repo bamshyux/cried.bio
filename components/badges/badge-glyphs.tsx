@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useId, type ReactNode } from "react";
 import { OgBadgeMarkFromColor } from "@/components/badges/og-badge-mark";
 
 function MedallionRibbon({ c }: { c: string }) {
@@ -47,6 +49,35 @@ function ShieldBadge({ c, hi, children }: { c: string; hi: string; children: Rea
  * Icon-first badge glyphs — 24×24 viewBox, readable at 16×16 by silhouette.
  * Bold filled shapes, no circular backgrounds.
  */
+
+function SummerSunGlyph() {
+  const gradientId = useId().replace(/:/g, "");
+
+  return (
+    <>
+      <defs>
+        <linearGradient id={`${gradientId}-sun`} x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#fef08a" />
+          <stop offset="42%" stopColor="#fbbf24" />
+          <stop offset="100%" stopColor="#f97316" />
+        </linearGradient>
+        <radialGradient id={`${gradientId}-core`} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#fff7cc" />
+          <stop offset="55%" stopColor="#fde047" />
+          <stop offset="100%" stopColor="#fb923c" />
+        </radialGradient>
+      </defs>
+      <circle cx="12" cy="12" r="5.2" fill={`url(#${gradientId}-core)`} />
+      <path
+        d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.4 5.4l1.7 1.7M16.9 16.9l1.7 1.7M5.4 18.6l1.7-1.7M16.9 7.1l1.7-1.7"
+        stroke={`url(#${gradientId}-sun)`}
+        strokeWidth="2.1"
+        strokeLinecap="round"
+      />
+    </>
+  );
+}
+
 export function BadgeGlyph({ slug, color }: { slug: string; color: string }): ReactNode {
   const c = color;
   const hi = "rgba(255,255,255,0.35)";
@@ -357,12 +388,7 @@ export function BadgeGlyph({ slug, color }: { slug: string; color: string }): Re
       );
 
     case "summer-2026":
-      return (
-        <>
-          <circle cx="12" cy="12" r="5" fill={c} />
-          <path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.8 5.8l1.8 1.8M16.4 16.4l1.8 1.8M5.8 18.2l1.8-1.8M16.4 7.6l1.8-1.8" stroke={c} strokeWidth="2.2" strokeLinecap="round" />
-        </>
-      );
+      return <SummerSunGlyph />;
 
     default:
       return (
