@@ -6,7 +6,9 @@ import { layoutHideBorderActive } from "@/lib/layout-colors";
 import {
   buildCardStyle,
   buildCardStyles,
+  cardRadiusCssVars,
   getUsernameEffectClass,
+  resolveLayoutBorderRadius,
   stripUsernameTextColorClasses,
   usernameEffectUsesClipText,
 } from "@/lib/settings";
@@ -315,6 +317,15 @@ export function bannerTopRadius(borderRadius: number) {
   };
 }
 
+/** Shared card corner radius for layout shells (respects square-aesthetic layouts). */
+export function layoutCardRadiusStyle(settings: ProfileSettings): CSSProperties {
+  const radius = resolveLayoutBorderRadius(settings);
+  return {
+    borderRadius: radius,
+    ...cardRadiusCssVars(radius),
+  };
+}
+
 export function getDisplayName(profile: Profile) {
   return profile.display_name || profile.username || "User";
 }
@@ -334,25 +345,30 @@ export function ProfileCardFrame({
 }) {
   const { shell, backdrop } = buildCardStyles(settings);
   const mergedShell = { ...shell, ...style };
-  const radius = mergedShell.borderRadius ?? settings.border_radius;
+  const radius =
+    typeof mergedShell.borderRadius === "number"
+      ? mergedShell.borderRadius
+      : resolveLayoutBorderRadius(settings);
+  const radiusVars = cardRadiusCssVars(radius);
   const hasBlur = settings.profile_blur > 0;
   const hasTint =
     settings.profile_opacity > 0 || settings.glassmorphism || settings.profile_blur > 0;
 
   return (
     <div
-      className={`bf-profile-card-frame relative w-full overflow-visible ${hasBlur ? "bf-profile-card-frame--blur" : ""} ${className}`.trim()}
-      style={{ ...mergedShell, borderRadius: radius }}
+      className={`bf-profile-card-frame relative w-full overflow-hidden ${hasBlur ? "bf-profile-card-frame--blur" : ""} ${className}`.trim()}
+      style={{ ...mergedShell, borderRadius: radius, ...radiusVars }}
     >
       {hasTint ? (
         <div
           className="bf-profile-card-backdrop pointer-events-none absolute inset-0 z-0 overflow-hidden"
-          style={{ ...backdrop, ...backdropStyle, borderRadius: radius }}
+          style={{ ...backdrop, ...backdropStyle, borderRadius: radius, ...radiusVars }}
           aria-hidden
         />
       ) : null}
       <div
-        className="bf-profile-card-content relative z-[1]"
+        className="bf-profile-card-content relative z-[1] overflow-hidden"
+        style={{ borderRadius: radius, ...radiusVars }}
         data-hide-layout-border={layoutHideBorderActive(settings) ? "true" : undefined}
       >
         {children}

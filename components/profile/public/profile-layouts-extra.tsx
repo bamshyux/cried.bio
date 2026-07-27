@@ -4,7 +4,7 @@ import { BadgeRow } from "@/components/badges/badge-ui";
 import { colorAlpha, layoutColorStyle, layoutRootClass, resolveLayoutColors } from "@/lib/layout-colors";
 import { resolveLayoutLabel } from "@/lib/layout-labels";
 import { ProfileBio } from "./profile-bio";
-import { ProfileAvatar, ProfileHandle, ProfileMainContent, ProfileMeta, Username, bannerTopRadius, getDisplayName, getLayoutBadges, type LayoutProps } from "./layout-primitives";
+import { ProfileAvatar, ProfileHandle, ProfileMainContent, ProfileMeta, Username, bannerTopRadius, getDisplayName, getLayoutBadges, layoutCardRadiusStyle, type LayoutProps } from "./layout-primitives";
 
 function VaporwaveLayout(props: LayoutProps) {
   const { profile, settings, badges, viewCount } = props;
@@ -67,7 +67,7 @@ function NewspaperLayout(props: LayoutProps) {
   const date = new Date(profile.created_at).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
   return (
-    <div className="w-full border border-white/20 bg-[#0c0c0c] p-6 sm:p-8" style={{ borderRadius: settings.border_radius }}>
+    <div className="w-full border border-white/20 bg-[#0c0c0c] p-6 sm:p-8" style={layoutCardRadiusStyle(settings)}>
       <div className="border-b-2 border-white pb-3">
         <p className="text-center text-[10px] uppercase tracking-[0.35em] text-neutral-500">The Daily Profile · {date}</p>
         <Username name={displayName} settings={settings} profile={profile} className="mt-3 text-center font-serif text-4xl font-bold leading-tight text-white sm:text-5xl" />
@@ -612,7 +612,7 @@ function HologramLayout(props: LayoutProps) {
   const colors = resolveLayoutColors(settings);
 
   return (
-    <div className={layoutRootClass(settings, "w-full bf-layout-hologram w-full overflow-hidden p-[2px]")} style={{ ...layoutColorStyle(settings), borderRadius: settings.border_radius }}>
+    <div className={layoutRootClass(settings, "w-full bf-layout-hologram w-full overflow-hidden p-[2px]")} style={{ ...layoutColorStyle(settings), ...layoutCardRadiusStyle(settings) }}>
       <div className="bg-[#0a0a0a]/95 px-6 py-8" style={{ borderRadius: Math.max(settings.border_radius - 2, 0) }}>
         <div className="bf-profile-avatar-row mb-4 flex justify-center">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />
@@ -675,7 +675,7 @@ function SpotlightLayout(props: LayoutProps) {
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="w-full relative w-full overflow-hidden bg-black px-6 py-16" style={{ borderRadius: settings.border_radius }}>
+    <div className="w-full relative w-full overflow-hidden bg-black px-6 py-16" style={layoutCardRadiusStyle(settings)}>
       <div
         className="pointer-events-none absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full opacity-30 blur-3xl"
         style={{ background: `radial-gradient(circle, ${settings.accent_color}, transparent 70%)` }}

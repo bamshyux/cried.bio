@@ -25,6 +25,7 @@
   z-index: 1;
   width: 100%;
   border-radius: var(--cbe-radius, 12px);
+  overflow: hidden;
   backface-visibility: hidden;
 }
 

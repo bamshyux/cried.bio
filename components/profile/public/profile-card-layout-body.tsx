@@ -1,6 +1,7 @@
 "use client";
 
 import { CardBorderEffect } from "@/components/profile/card-border-effect";
+import { resolveLayoutBorderRadius } from "@/lib/settings";
 import { ProfileCardFrame } from "./layout-primitives";
 import { useCardLayoutEditState } from "./profile-card-layout-editor";
 import { ProfileCardHeightScaler } from "./profile-card-height-scaler";
@@ -27,7 +28,7 @@ export function ProfileCardLayoutBody({
           <CardBorderEffect
             settings={settings}
             target="main"
-            borderRadius={settings.border_radius}
+            borderRadius={resolveLayoutBorderRadius(settings)}
             className="w-full"
           >
             {children}

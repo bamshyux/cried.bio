@@ -749,6 +749,25 @@ export function getProfileAlignClass(alignment: ContentAlignment = "left") {
   return `bf-profile-align bf-profile-align--${alignment}`;
 }
 
+/** Layouts that intentionally cap radius for a square / retro aesthetic. */
+const SQUARE_AESTHETIC_LAYOUTS: Partial<Record<ProfileLayout, number>> = {
+  brutalist: 4,
+  manga: 4,
+  receipt: 2,
+};
+
+export function resolveLayoutBorderRadius(
+  settings: Pick<ProfileSettings, "border_radius" | "layout">,
+): number {
+  const cap = SQUARE_AESTHETIC_LAYOUTS[settings.layout];
+  if (cap !== undefined) return Math.min(settings.border_radius, cap);
+  return Math.max(0, settings.border_radius);
+}
+
+export function cardRadiusCssVars(borderRadius: number): Record<string, string> {
+  return { "--bf-card-radius": `${borderRadius}px` };
+}
+
 export function buildCardStyles(settings: ProfileSettings): {
   shell: Record<string, string | number | undefined>;
   backdrop: Record<string, string | number | undefined>;
@@ -757,8 +776,11 @@ export function buildCardStyles(settings: ProfileSettings): {
   const blur = Math.max(0, settings.profile_blur);
   const borderHandledExternally = cardBorderEffectStripsDefaultBorder(settings, "main");
 
+  const radius = resolveLayoutBorderRadius(settings);
+
   const shell: Record<string, string | number | undefined> = {
-    borderRadius: settings.border_radius,
+    borderRadius: radius,
+    ...cardRadiusCssVars(radius),
     border:
       settings.hide_card_border || borderHandledExternally
         ? "none"

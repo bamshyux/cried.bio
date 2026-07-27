@@ -1,11 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  getFontCss,
-  getGoogleFontsUrl,
-  getProfileAlignClass,
-} from "@/lib/settings";
+import { getFontCss, getGoogleFontsUrl, getProfileAlignClass, resolveLayoutBorderRadius } from "@/lib/settings";
 import { layoutColorStyle, layoutRootClass, resolveLayoutColors } from "@/lib/layout-colors";
 import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfileLink } from "@/lib/types/link";
@@ -39,6 +35,7 @@ import {
   Username,
   bannerTopRadius,
   getLayoutBadges,
+  layoutCardRadiusStyle,
   type LayoutProps,
 } from "./layout-primitives";
 import { CustomThemeLayout } from "./custom-theme-layout";
@@ -109,7 +106,7 @@ function GamingLayout({ profile, links, settings, badges, viewCount, embeds, fea
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="w-full" style={{  borderRadius: Math.min(settings.border_radius, 6)  }}>
+    <div className="w-full" style={layoutCardRadiusStyle(settings)}>
       <div className="border-b px-5 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ borderColor: `${settings.accent_color}30`, color: settings.accent_color }}>
         Player Profile
       </div>
@@ -272,7 +269,7 @@ function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, f
   const title = profile.username ? `@${profile.username}` : "profile";
 
   return (
-    <div className="w-full overflow-visible font-mono text-sm" style={{  borderRadius: Math.min(settings.border_radius, 8)  }}>
+    <div className="w-full overflow-visible font-mono text-sm" style={layoutCardRadiusStyle(settings)}>
       <div className="flex items-center gap-2 border-b border-white/[0.08] bg-[#0a0a0a] px-4 py-2.5">
         <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
         <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
@@ -349,7 +346,7 @@ function CardLayout({ profile, links, settings, badges, viewCount, embeds, featu
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="w-full mx-auto max-w-sm overflow-visible shadow-2xl" style={{  borderRadius: Math.max(settings.border_radius, 20)  }}>
+    <div className="w-full mx-auto max-w-sm overflow-hidden shadow-2xl" style={layoutCardRadiusStyle(settings)}>
       <div className="px-6 py-8">
         <div className="bf-profile-avatar-row mb-4 flex">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
@@ -376,12 +373,15 @@ function NeonLayout({ profile, links, settings, badges, viewCount, embeds, featu
       className={layoutRootClass(settings, "w-full overflow-hidden p-[1px] bf-layout-neon-frame")}
       style={{
         ...layoutColorStyle(settings),
-        borderRadius: settings.border_radius,
+        ...layoutCardRadiusStyle(settings),
         background: `linear-gradient(135deg, ${colors.primary}, ${colors.primary}40, ${colors.primary})`,
         boxShadow: `0 0 40px ${colors.primary}30, 0 0 80px ${colors.primary}15`,
       }}
     >
-      <div className="overflow-visible p-6" style={{ borderRadius: Math.max(settings.border_radius - 1, 0) }}>
+      <div
+        className="overflow-hidden p-6"
+        style={{ borderRadius: Math.max(resolveLayoutBorderRadius(settings) - 1, 0) }}
+      >
         <div className="mb-4 bf-profile-avatar-row flex items-start gap-4">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20 shrink-0" />
           <div>
@@ -736,7 +736,7 @@ function GlassLayout({ profile, links, settings, badges, viewCount, embeds, feat
   return (
     <div
       className={layoutRootClass(settings, "relative w-full overflow-hidden px-6 py-10")}
-      style={{ borderRadius: settings.border_radius, ...layoutColorStyle(settings) }}
+      style={{ ...layoutColorStyle(settings), ...layoutCardRadiusStyle(settings) }}
     >
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         <div

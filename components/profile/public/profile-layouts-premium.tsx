@@ -4,7 +4,7 @@ import { BadgeRow } from "@/components/badges/badge-ui";
 import { colorAlpha, layoutColorStyle, layoutRootClass, resolveLayoutColors } from "@/lib/layout-colors";
 import { resolveLayoutLabel } from "@/lib/layout-labels";
 import { ProfileBio } from "./profile-bio";
-import { ProfileAvatar, ProfileHandle, ProfileMainContent, ProfileMeta, Username, getDisplayName, getLayoutBadges, type LayoutProps } from "./layout-primitives";
+import { ProfileAvatar, ProfileHandle, ProfileMainContent, ProfileMeta, Username, getDisplayName, getLayoutBadges, layoutCardRadiusStyle, type LayoutProps } from "./layout-primitives";
 
 function HeaderIdentity({ className, ...props }: LayoutProps & { className?: string }) {
   const { profile, settings, badges, viewCount } = props;
@@ -35,6 +35,7 @@ function MonarchLayout(props: LayoutProps) {
       className={layoutRootClass(settings, "w-full bf-layout-monarch relative w-full overflow-hidden border")}
       style={{
         ...layoutColorStyle(settings),
+        ...layoutCardRadiusStyle(settings),
         borderColor: colorAlpha(colors.primary, 0.45),
         boxShadow: `0 0 60px ${colorAlpha(colors.primary, 0.14)}, inset 0 1px 0 ${colorAlpha(colors.secondary, 0.12)}`,
       }}
@@ -118,7 +119,7 @@ function GlitchLayout(props: LayoutProps) {
   return (
     <div
       className={layoutRootClass(settings, "w-full bf-layout-glitch-active relative w-full overflow-hidden border")}
-      style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.primary, 0.2) }}
+      style={{ ...layoutColorStyle(settings), ...layoutCardRadiusStyle(settings), borderColor: colorAlpha(colors.primary, 0.2) }}
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-25"
@@ -158,7 +159,7 @@ function NoirLayout(props: LayoutProps) {
   const colors = resolveLayoutColors(settings);
 
   return (
-    <div className={layoutRootClass(settings, "w-full bg-black px-6 py-10")} style={{ borderRadius: settings.border_radius }}>
+    <div className={layoutRootClass(settings, "w-full bg-black px-6 py-10")} style={layoutCardRadiusStyle(settings)}>
       <div className="mx-auto mb-6 h-1 max-w-xs bg-white/80" />
       <div className="text-center">
         <Username name={displayName} settings={settings} profile={profile} className="font-serif text-4xl italic tracking-tight text-white" />
@@ -206,8 +207,8 @@ function ArcadeLayout(props: LayoutProps) {
       className={layoutRootClass(settings, "w-full bf-layout-arcade-glow w-full overflow-hidden border-4 bg-[#0a0820]")}
       style={{
         ...layoutColorStyle(settings),
+        ...layoutCardRadiusStyle(settings),
         borderColor: colorAlpha(colors.primary, 0.5),
-        borderRadius: Math.min(settings.border_radius, 8),
       }}
     >
       <div
@@ -246,7 +247,7 @@ function PassportLayout(props: LayoutProps) {
   return (
     <div
       className={layoutRootClass(settings, "w-full mx-auto w-full max-w-lg border-2 bg-[#0c1420]")}
-      style={{ borderColor: colorAlpha(colors.primary, 0.6), borderRadius: settings.border_radius }}
+      style={{ borderColor: colorAlpha(colors.primary, 0.6), ...layoutCardRadiusStyle(settings) }}
     >
       <div className="flex items-center justify-between border-b px-5 py-3" style={{ borderColor: colorAlpha(colors.primary, 0.4) }}>
         <p className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: colors.secondary }}>{label}</p>
@@ -268,7 +269,7 @@ function CassetteLayout(props: LayoutProps) {
   const colors = resolveLayoutColors(settings);
 
   return (
-    <div className={layoutRootClass(settings, "w-full overflow-hidden border-2 border-[#2a2a2a] bg-[#121212] shadow-[inset_0_2px_0_rgba(255,255,255,0.04)]")} style={{ borderRadius: settings.border_radius }}>
+    <div className={layoutRootClass(settings, "w-full overflow-hidden border-2 border-[#2a2a2a] bg-[#121212] shadow-[inset_0_2px_0_rgba(255,255,255,0.04)]")} style={layoutCardRadiusStyle(settings)}>
       <div className="border-b border-[#2a2a2a] bg-[#0c0c0c] px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -344,7 +345,7 @@ function CrystalLayout(props: LayoutProps) {
   return (
     <div
       className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border border-white/10")}
-      style={{ ...layoutColorStyle(settings), boxShadow: `0 0 32px ${colorAlpha(colors.primary, 0.12)}` }}
+      style={{ ...layoutColorStyle(settings), ...layoutCardRadiusStyle(settings), boxShadow: `0 0 32px ${colorAlpha(colors.primary, 0.12)}` }}
     >
       <div
         className="relative px-6 py-10 text-center"
@@ -379,7 +380,7 @@ function NebuladriftLayout(props: LayoutProps) {
   return (
     <div
       className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border")}
-      style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.secondary, 0.2) }}
+      style={{ ...layoutColorStyle(settings), ...layoutCardRadiusStyle(settings), borderColor: colorAlpha(colors.secondary, 0.2) }}
     >
       <div
         className="bf-layout-nebula-layer absolute inset-x-0 top-0 h-44"
@@ -481,6 +482,7 @@ function MonolithLayout(props: LayoutProps) {
 
   return (
     <div className={layoutRootClass(settings, "w-full relative mx-auto w-full max-w-sm overflow-hidden border border-white/[0.08] shadow-[0_24px_80px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.06)]")} style={{
+        ...layoutCardRadiusStyle(settings),
         background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))",
       }}>
       <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -492,8 +494,9 @@ function MonolithLayout(props: LayoutProps) {
             style={{ background: `${accent}44` }}
           />
           <div
-            className="relative rounded-2xl px-6 py-5 shadow-[0_0_40px_rgba(255,255,255,0.04)]"
+            className="relative px-6 py-5 shadow-[0_0_40px_rgba(255,255,255,0.04)]"
             style={{
+              borderRadius: settings.border_radius,
               background: `linear-gradient(180deg, ${accent}18, rgba(255,255,255,0.02))`,
               border: `1px solid ${accent}33`,
             }}
@@ -597,9 +600,9 @@ function CommandLayout(props: LayoutProps) {
       className={layoutRootClass(settings, "w-full bf-layout-command relative w-full overflow-hidden border bg-[#030a04] font-mono")}
       style={{
         ...layoutColorStyle(settings),
+        ...layoutCardRadiusStyle(settings),
         borderColor: colorAlpha(colors.primary, 0.3),
         boxShadow: `0 0 40px ${colorAlpha(colors.primary, 0.08)}`,
-        borderRadius: settings.border_radius,
       }}
     >
       <div
@@ -642,7 +645,7 @@ function BloomLayout(props: LayoutProps) {
   return (
     <div
       className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border")}
-      style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.primary, 0.2) }}
+      style={{ ...layoutColorStyle(settings), ...layoutCardRadiusStyle(settings), borderColor: colorAlpha(colors.primary, 0.2) }}
     >
       <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl" style={{ background: `${colors.primary}44` }} />
       {[
@@ -675,7 +678,7 @@ function StealthLayout(props: LayoutProps) {
   return (
     <div
       className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border bg-[#030303] p-5")}
-      style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.secondary, 0.4), borderRadius: settings.border_radius }}
+      style={{ ...layoutColorStyle(settings), ...layoutCardRadiusStyle(settings), borderColor: colorAlpha(colors.secondary, 0.4) }}
     >
       <div
         className="bf-layout-stealth-scan pointer-events-none absolute inset-x-0 h-10 bg-gradient-to-b from-transparent to-transparent"
@@ -748,7 +751,7 @@ function EmberforgeLayout(props: LayoutProps) {
   return (
     <div
       className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border")}
-      style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.primary, 0.35) }}
+      style={{ ...layoutColorStyle(settings), ...layoutCardRadiusStyle(settings), borderColor: colorAlpha(colors.primary, 0.35) }}
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-28">
         {[18, 34, 52, 68, 81].map((left, index) => (
@@ -786,7 +789,7 @@ function MatrixLayout(props: LayoutProps) {
   return (
     <div
       className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border bg-[#020802] font-mono")}
-      style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.primary, 0.25), borderRadius: settings.border_radius }}
+      style={{ ...layoutColorStyle(settings), ...layoutCardRadiusStyle(settings), borderColor: colorAlpha(colors.primary, 0.25) }}
     >
       <div className="bf-layout-matrix-rain relative h-28 border-b px-6 py-4" style={{ borderColor: colorAlpha(colors.primary, 0.2) }}>
         <p className="relative z-10 text-[10px] uppercase tracking-[0.35em]" style={{ color: colors.primary }}>
@@ -854,7 +857,7 @@ function TapewaveLayout(props: LayoutProps) {
   return (
     <div
       className={layoutRootClass(settings, "w-full overflow-hidden border bg-[#071018]")}
-      style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.primary, 0.25), borderRadius: settings.border_radius }}
+      style={{ ...layoutColorStyle(settings), ...layoutCardRadiusStyle(settings), borderColor: colorAlpha(colors.primary, 0.25) }}
     >
       <div className="flex h-16 items-end gap-1 border-b px-5 py-3" style={{ borderColor: colorAlpha(colors.primary, 0.2) }}>
         {Array.from({ length: 12 }).map((_, index) => (

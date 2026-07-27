@@ -21,9 +21,17 @@ export function CardBorderEffect({
   children,
 }: CardBorderEffectProps) {
   const resolved = resolveCardBorderEffect(settings, target, borderRadius);
+  const radius = borderRadius ?? settings.border_radius;
 
   if (!resolved) {
-    return <>{children}</>;
+    return (
+      <div
+        className={className}
+        style={{ borderRadius: radius, overflow: "hidden", ...style }}
+      >
+        {children}
+      </div>
+    );
   }
 
   const showGlow = resolved.effect !== "standard";
