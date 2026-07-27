@@ -94,7 +94,8 @@ export async function GET(request: Request) {
   const { error } = await supabase
     .from("profile_settings")
     .update(patch)
-    .eq("profile_id", userId);
+    .eq("profile_id", userId)
+    .is("page_id", null);
 
   if (error) {
     return redirectWithMessage("save_failed");

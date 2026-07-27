@@ -158,6 +158,7 @@ export function DiscordCardCustomizer({
   );
   const [config, setConfig] = useState<DiscordCardConfig>(() => configFromProfileSettings(settings));
   const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [previewActivity, setPreviewActivity] = useState(true);
   const [isPending, startTransition] = useTransition();
 
@@ -174,12 +175,14 @@ export function DiscordCardCustomizer({
     setSavedConfig(next);
     setConfig(next);
     setStatus("idle");
+    setErrorMessage(null);
   }, [persistedConfigJson, settings]);
 
   useEffect(() => {
     const handleDashboardReset = () => {
       setConfig(savedConfig);
       setStatus("idle");
+      setErrorMessage(null);
     };
     window.addEventListener(DASHBOARD_RESET_EVENT, handleDashboardReset);
     return () => window.removeEventListener(DASHBOARD_RESET_EVENT, handleDashboardReset);
@@ -196,6 +199,7 @@ export function DiscordCardCustomizer({
   const patch = (partial: Partial<DiscordCardConfig>) => {
     setConfig((current) => ({ ...current, ...partial }));
     setStatus("idle");
+    setErrorMessage(null);
     markDirtyForm();
   };
 
@@ -207,11 +211,13 @@ export function DiscordCardCustomizer({
       const result = await updateDiscordCardConfigAction(config);
       if (result.error) {
         setStatus("error");
+        setErrorMessage(result.error);
         unsaved?.clearSaving();
         return;
       }
       setSavedConfig(config);
       setStatus("saved");
+      setErrorMessage(null);
       unsaved?.markClean();
       router.refresh();
     });
@@ -541,7 +547,7 @@ export function DiscordCardCustomizer({
             <p className="text-xs text-emerald-400">Saved</p>
           ) : null}
           {status === "error" ? (
-            <p className="text-xs text-red-400">Could not save changes.</p>
+            <p className="text-xs text-red-400">{errorMessage ?? "Could not save changes."}</p>
           ) : null}
           <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-400">
             <input
