@@ -22,11 +22,13 @@ export function ProfileGuestbookSection({
   settings,
   entries,
   currentUserId,
+  className = "",
 }: {
   profileId: string;
   settings: ProfileSettings;
   entries: GuestbookEntry[];
   currentUserId?: string | null;
+  className?: string;
 }) {
   const [state, formAction, isPending] = useActionState(postGuestbookEntryAction, initial);
 
@@ -36,62 +38,70 @@ export function ProfileGuestbookSection({
   const canSign = !!currentUserId && !isOwner;
   const visibleEntries = entries.slice(0, MAX_VISIBLE_ENTRIES);
   const hiddenCount = entries.length - visibleEntries.length;
-  const { borderStyle, spacing, style: guestbookStyle } = resolveGuestbookAppearance(settings);
+  const { borderStyle, spacing, shell, backdrop, content } = resolveGuestbookAppearance(settings);
+  const radius = shell.borderRadius ?? settings.border_radius;
 
   return (
     <CardBorderEffect settings={settings} target="guestbook" borderRadius={settings.border_radius}>
       <section
-        className="bf-guestbook mt-10 px-4"
-        style={guestbookStyle}
+        className={`bf-guestbook relative overflow-hidden px-4 ${className || "mt-10"}`.trim()}
+        style={shell}
         data-guestbook-border={borderStyle}
         data-guestbook-spacing={spacing}
       >
-        <p className="bf-guestbook__label">guestbook</p>
-
-      {visibleEntries.length > 0 ? (
-        <ul className="bf-guestbook__entries">
-          {visibleEntries.map((entry) => (
-            <GuestbookWhisper key={entry.id} entry={entry} isOwner={isOwner} />
-          ))}
-        </ul>
-      ) : (
-        <p className="bf-guestbook__empty">—</p>
-      )}
-
-      {hiddenCount > 0 && (
-        <p className="bf-guestbook__more">+{hiddenCount} more</p>
-      )}
-
-      {canSign && (
-        <form action={formAction} className="bf-guestbook__form">
-          <input type="hidden" name="profile_id" value={profileId} />
-          <input
-            type="text"
-            name="message"
-            maxLength={500}
-            placeholder="leave a note"
-            className="bf-guestbook__input"
-            required
+        {backdrop ? (
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{ ...backdrop, borderRadius: radius }}
+            aria-hidden
           />
-          <button type="submit" disabled={isPending} className="bf-guestbook__submit">
-            {isPending ? "…" : "sign"}
-          </button>
-          <FormFeedback error={state.error} success={state.success} />
-        </form>
-      )}
+        ) : null}
+        <div className="relative z-[1]" style={content}>
+          <p className="bf-guestbook__label">guestbook</p>
 
-      {!currentUserId && !isOwner && (
-        <p className="bf-guestbook__hint">
-          <Link href="/login">log in</Link> to sign
-        </p>
-      )}
+          {visibleEntries.length > 0 ? (
+            <ul className="bf-guestbook__entries">
+              {visibleEntries.map((entry) => (
+                <GuestbookWhisper key={entry.id} entry={entry} isOwner={isOwner} />
+              ))}
+            </ul>
+          ) : (
+            <p className="bf-guestbook__empty">—</p>
+          )}
 
-      {isOwner && (
-        <p className="bf-guestbook__hint">
-          {entries.some((entry) => entry.is_pinned) ? "Pinned message shows first. " : null}
-          <Link href="/dashboard/guestbook">manage</Link>
-        </p>
-      )}
+          {hiddenCount > 0 ? <p className="bf-guestbook__more">+{hiddenCount} more</p> : null}
+
+          {canSign ? (
+            <form action={formAction} className="bf-guestbook__form">
+              <input type="hidden" name="profile_id" value={profileId} />
+              <input
+                type="text"
+                name="message"
+                maxLength={500}
+                placeholder="leave a note"
+                className="bf-guestbook__input"
+                required
+              />
+              <button type="submit" disabled={isPending} className="bf-guestbook__submit">
+                {isPending ? "…" : "sign"}
+              </button>
+              <FormFeedback error={state.error} success={state.success} />
+            </form>
+          ) : null}
+
+          {!currentUserId && !isOwner ? (
+            <p className="bf-guestbook__hint">
+              <Link href="/login">log in</Link> to sign
+            </p>
+          ) : null}
+
+          {isOwner ? (
+            <p className="bf-guestbook__hint">
+              {entries.some((entry) => entry.is_pinned) ? "Pinned message shows first. " : null}
+              <Link href="/dashboard/guestbook">manage</Link>
+            </p>
+          ) : null}
+        </div>
       </section>
     </CardBorderEffect>
   );

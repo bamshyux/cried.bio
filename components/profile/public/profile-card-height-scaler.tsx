@@ -67,10 +67,12 @@ function measureNaturalContentHeight(content: HTMLElement) {
 export function ProfileCardHeightScaler({
   maxHeight,
   parallaxEnabled = false,
+  blurActive = false,
   children,
 }: {
   maxHeight: number;
   parallaxEnabled?: boolean;
+  blurActive?: boolean;
   children: React.ReactNode;
 }) {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -97,6 +99,7 @@ export function ProfileCardHeightScaler({
 
   const constrained = maxHeight > 0 && metrics.boxHeight !== undefined && metrics.scale < 1;
   const clipOverflow = constrained && !parallaxEnabled;
+  const useScale = constrained && !blurActive;
 
   return (
     <div
@@ -105,7 +108,7 @@ export function ProfileCardHeightScaler({
         constrained
           ? {
               height: metrics.boxHeight,
-              overflow: clipOverflow ? "hidden" : "visible",
+              overflow: clipOverflow || blurActive ? "hidden" : "visible",
               position: "relative",
             }
           : undefined
@@ -115,13 +118,18 @@ export function ProfileCardHeightScaler({
         ref={contentRef}
         className="profile-card-height-scaler__content"
         style={
-          constrained
+          useScale
             ? {
                 transform: `scale(${metrics.scale})`,
                 transformOrigin: "top left",
                 width: `${100 / metrics.scale}%`,
               }
-            : undefined
+            : blurActive && constrained
+              ? {
+                  maxHeight: metrics.boxHeight,
+                  overflowY: "auto",
+                }
+              : undefined
         }
       >
         {children}

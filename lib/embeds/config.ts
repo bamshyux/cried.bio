@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { EmbedConfig, EmbedType } from "@/lib/types/embed";
+import { EMBED_TYPE_OPTIONS } from "@/lib/types/embed";
 
 export const DEFAULT_EMBED_CONFIG: EmbedConfig = {
   display_mode: "iframe",
@@ -242,26 +243,39 @@ function applyHexAlpha(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function resolveEmbedBackground(config: EmbedConfig, fallback: string): string {
+function resolveEmbedBackground(config: EmbedConfig, fallback: string, opacityAlpha: number): string {
   const background = config.background_color || fallback;
-  if (config.blur > 0 && background.startsWith("#")) {
-    return applyHexAlpha(background, 0.55);
+
+  if (background === "transparent") {
+    return opacityAlpha >= 1 ? "transparent" : `rgba(0, 0, 0, ${opacityAlpha * 0.35})`;
   }
+
+  if (background.startsWith("#")) {
+    return applyHexAlpha(background, opacityAlpha);
+  }
+
   if (config.blur > 0 && !config.background_color) {
-    return "rgba(15, 15, 15, 0.55)";
+    return `rgba(15, 15, 15, ${Math.min(opacityAlpha, 0.55)})`;
   }
+
   return background;
 }
 
-export function embedCardStyle(config: EmbedConfig, accentFallback: string) {
+export type EmbedCardStyles = {
+  shell: CSSProperties;
+  background: CSSProperties;
+};
+
+export function embedCardStyles(config: EmbedConfig, accentFallback: string): EmbedCardStyles {
   const accent = config.accent_color || accentFallback;
   const borderColor = config.border_color || "rgba(255,255,255,0.08)";
   const borderWidth = config.show_border ? config.border_width : 0;
   const blur = Math.max(0, config.blur);
+  const opacityAlpha = config.opacity / 100;
+  const shadow = config.show_shadow ? `0 8px 32px rgba(0,0,0,0.35)` : "none";
 
-  const base: CSSProperties = {
+  const shell: CSSProperties = {
     borderRadius: config.border_radius,
-    opacity: config.opacity / 100,
     ...(blur > 0
       ? {
           backdropFilter: `blur(${blur}px)`,
@@ -270,47 +284,52 @@ export function embedCardStyle(config: EmbedConfig, accentFallback: string) {
       : {}),
   };
 
-  const shadow = config.show_shadow ? `0 8px 32px rgba(0,0,0,0.35)` : "none";
+  let background: CSSProperties = {};
+  let fallback = "#0f0f0f";
 
   switch (config.card_style) {
     case "minimal":
-      return {
-        ...base,
-        background: resolveEmbedBackground(
-          config,
-          config.background_color ? config.background_color : "transparent",
-        ),
-        border: borderWidth > 0 ? `${borderWidth}px solid ${borderColor}` : "none",
-        boxShadow: config.show_shadow ? `0 0 0 1px ${borderColor}` : "none",
+      fallback = config.background_color ? config.background_color : "transparent";
+      background = {
+        background: resolveEmbedBackground(config, fallback, opacityAlpha),
       };
+      shell.border = borderWidth > 0 ? `${borderWidth}px solid ${borderColor}` : "none";
+      shell.boxShadow = config.show_shadow ? `0 0 0 1px ${borderColor}` : "none";
+      break;
     case "glass":
-      return {
-        ...base,
-        background: resolveEmbedBackground(config, "rgba(15,15,15,0.55)"),
-        border: borderWidth > 0 ? `${borderWidth}px solid ${borderColor}` : "none",
-        boxShadow: config.show_shadow ? `0 0 0 1px ${accent}14, ${shadow}` : "none",
-        ...(blur === 0
-          ? {
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-            }
-          : {}),
+      background = {
+        background: resolveEmbedBackground(config, "rgba(15,15,15,0.55)", opacityAlpha),
       };
+      shell.border = borderWidth > 0 ? `${borderWidth}px solid ${borderColor}` : "none";
+      shell.boxShadow = config.show_shadow ? `0 0 0 1px ${accent}14, ${shadow}` : "none";
+      if (blur === 0) {
+        shell.backdropFilter = "blur(12px)";
+        shell.WebkitBackdropFilter = "blur(12px)";
+      }
+      break;
     case "bordered":
-      return {
-        ...base,
-        background: resolveEmbedBackground(config, "#0f0f0f"),
-        border: borderWidth > 0 ? `${Math.max(borderWidth, 2)}px solid ${accent}` : "none",
-        boxShadow: config.show_shadow ? `0 0 24px ${accent}18, ${shadow}` : "none",
+      background = {
+        background: resolveEmbedBackground(config, "#0f0f0f", opacityAlpha),
       };
+      shell.border = borderWidth > 0 ? `${Math.max(borderWidth, 2)}px solid ${accent}` : "none";
+      shell.boxShadow = config.show_shadow ? `0 0 24px ${accent}18, ${shadow}` : "none";
+      break;
     default:
-      return {
-        ...base,
-        background: resolveEmbedBackground(config, "#0f0f0f"),
-        border: borderWidth > 0 ? `${borderWidth}px solid ${borderColor}` : "none",
-        boxShadow: config.show_shadow ? `0 0 0 1px ${accent}10, ${shadow}` : "none",
+      background = {
+        background: resolveEmbedBackground(config, "#0f0f0f", opacityAlpha),
       };
+      shell.border = borderWidth > 0 ? `${borderWidth}px solid ${borderColor}` : "none";
+      shell.boxShadow = config.show_shadow ? `0 0 0 1px ${accent}10, ${shadow}` : "none";
+      break;
   }
+
+  return { shell, background };
+}
+
+/** @deprecated Prefer embedCardStyles — returns shell styles only for legacy callers. */
+export function embedCardStyle(config: EmbedConfig, accentFallback: string): CSSProperties {
+  const { shell, background } = embedCardStyles(config, accentFallback);
+  return { ...shell, ...background };
 }
 
 export function embedTextStyle(config: EmbedConfig, settingsTextColor: string): CSSProperties {
@@ -324,4 +343,8 @@ export function embedMutedTextStyle(config: EmbedConfig): CSSProperties {
 
 export function embedContentPadding(config: EmbedConfig): CSSProperties {
   return { padding: config.padding };
+}
+
+export function embedPlatformLabel(type: EmbedType): string {
+  return EMBED_TYPE_OPTIONS.find((option) => option.value === type)?.label ?? type;
 }

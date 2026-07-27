@@ -4,9 +4,11 @@ import { useRef, useState } from "react";
 
 export function ProfileParallaxCard({
   enabled,
+  blurActive = false,
   children,
 }: {
   enabled: boolean;
+  blurActive?: boolean;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -14,7 +16,7 @@ export function ProfileParallaxCard({
     "perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)",
   );
 
-  if (!enabled) return <>{children}</>;
+  if (!enabled || blurActive) return <>{children}</>;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = ref.current;

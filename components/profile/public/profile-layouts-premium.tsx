@@ -9,7 +9,7 @@ import {
   ProfileMainContent,
   ProfileMeta,
   Username,
-  buildCardStyle,
+  ProfileLayoutCard,
   getDisplayName,
   getLayoutBadges,
   type LayoutProps,
@@ -39,9 +39,9 @@ function MonarchLayout(props: LayoutProps) {
   const year = new Date(profile.created_at).getFullYear();
 
   return (
-    <div
+    <ProfileLayoutCard
+      settings={settings}
       className="bf-layout-monarch relative w-full overflow-hidden border border-[#c9a84c]/45 shadow-[0_0_60px_rgba(201,168,76,0.14),inset_0_1px_0_rgba(255,236,179,0.12)]"
-      style={buildCardStyle(settings)}
     >
       <div className="bf-layout-monarch-shimmer pointer-events-none absolute inset-x-0 top-0 h-[2px]" />
       <div className="bf-layout-monarch-corner pointer-events-none absolute left-3 top-3 h-8 w-8 border-l-2 border-t-2 border-[#e8d5a3]/50" />
@@ -80,7 +80,7 @@ function MonarchLayout(props: LayoutProps) {
           <ProfileMainContent {...props} />
         </div>
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -90,7 +90,10 @@ function GlitchLayout(props: LayoutProps) {
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="bf-layout-glitch-active relative w-full overflow-hidden border border-[#ff0080]/20" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="bf-layout-glitch-active relative w-full overflow-hidden border border-[#ff0080]/20"
+    >
       <div
         className="pointer-events-none absolute inset-0 opacity-25"
         style={{
@@ -113,7 +116,7 @@ function GlitchLayout(props: LayoutProps) {
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mt-2" />
         <ProfileMainContent {...props} />
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -123,7 +126,12 @@ function NoirLayout(props: LayoutProps) {
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="w-full bg-black px-6 py-10" style={{ borderRadius: settings.border_radius }}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="w-full bg-black px-6 py-10"
+      style={{ borderRadius: settings.border_radius }}
+      backdropStyle={{ backgroundColor: "transparent" }}
+    >
       <div className="mx-auto mb-6 h-1 max-w-xs bg-white/80" />
       <div className="text-center">
         <Username name={displayName} settings={settings} profile={profile} className="font-serif text-4xl italic tracking-tight text-white" />
@@ -138,7 +146,7 @@ function NoirLayout(props: LayoutProps) {
         </div>
       </div>
       <div className="mx-auto mt-8 h-1 max-w-xs bg-white/80" />
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -147,7 +155,7 @@ function RunwayLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="grid w-full md:grid-cols-[6px_1fr]" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard settings={settings} className="grid w-full md:grid-cols-[6px_1fr]">
       <div className="hidden md:block" style={{ background: `linear-gradient(180deg, ${settings.accent_color}, ${settings.gradient_colors?.[1] ?? settings.accent_color})` }} />
       <div className="p-6 sm:p-8">
         <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-neutral-500">Collection</p>
@@ -157,7 +165,7 @@ function RunwayLayout(props: LayoutProps) {
         </div>
         <ProfileMainContent {...props} />
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -166,7 +174,12 @@ function ArcadeLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="bf-layout-arcade-glow w-full overflow-hidden border-4 border-[#6366f1]/50 bg-[#0a0820]" style={{ ...buildCardStyle(settings), borderRadius: Math.min(settings.border_radius, 8) }}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="bf-layout-arcade-glow w-full overflow-hidden border-4 border-[#6366f1]/50 bg-[#0a0820]"
+      style={{ borderRadius: Math.min(settings.border_radius, 8) }}
+      backdropStyle={{ backgroundColor: "transparent" }}
+    >
       <div className="border-b-4 border-[#6366f1]/40 bg-[#6366f1]/20 px-4 py-2 text-center font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#c7d2fe]">
         Insert Coin · Player 1
       </div>
@@ -177,7 +190,7 @@ function ArcadeLayout(props: LayoutProps) {
         </div>
         <ProfileMainContent {...props} />
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -187,7 +200,12 @@ function PassportLayout(props: LayoutProps) {
   const label = resolveLayoutLabel(settings) || "VISITOR";
 
   return (
-    <div className="mx-auto w-full max-w-lg border-2 border-[#1e3a5f]/60 bg-[#0c1420]" style={{ borderRadius: settings.border_radius }}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="mx-auto w-full max-w-lg border-2 border-[#1e3a5f]/60 bg-[#0c1420]"
+      style={{ borderRadius: settings.border_radius }}
+      backdropStyle={{ backgroundColor: "transparent" }}
+    >
       <div className="flex items-center justify-between border-b border-[#1e3a5f]/40 px-5 py-3">
         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#60a5fa]">{label}</p>
         <div className="h-8 w-8 rounded-full border-2 border-dashed border-[#60a5fa]/50" />
@@ -197,7 +215,7 @@ function PassportLayout(props: LayoutProps) {
         <HeaderIdentity {...props} />
       </div>
       <ProfileMainContent {...props} />
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -207,7 +225,12 @@ function CassetteLayout(props: LayoutProps) {
   const label = resolveLayoutLabel(settings) || "Side A";
 
   return (
-    <div className="w-full overflow-hidden border-2 border-[#2a2a2a] bg-[#121212] shadow-[inset_0_2px_0_rgba(255,255,255,0.04)]" style={{ borderRadius: settings.border_radius }}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="w-full overflow-hidden border-2 border-[#2a2a2a] bg-[#121212] shadow-[inset_0_2px_0_rgba(255,255,255,0.04)]"
+      style={{ borderRadius: settings.border_radius }}
+      backdropStyle={{ backgroundColor: "transparent" }}
+    >
       <div className="border-b border-[#2a2a2a] bg-[#0c0c0c] px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -266,7 +289,7 @@ function CassetteLayout(props: LayoutProps) {
       <div className="border-t border-[#2a2a2a] px-6 pb-8 pt-6">
         <ProfileMainContent {...props} />
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -276,7 +299,10 @@ function CrystalLayout(props: LayoutProps) {
   const accent = settings.accent_color;
 
   return (
-    <div className="relative w-full overflow-hidden border border-white/10 shadow-[0_0_32px_rgba(147,197,253,0.12)]" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="relative w-full overflow-hidden border border-white/10 shadow-[0_0_32px_rgba(147,197,253,0.12)]"
+    >
       <div
         className="relative px-6 py-10 text-center"
         style={{
@@ -293,7 +319,7 @@ function CrystalLayout(props: LayoutProps) {
           <ProfileMainContent {...props} />
         </div>
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -302,7 +328,10 @@ function NebuladriftLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="relative w-full overflow-hidden border border-[#6366f1]/20" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="relative w-full overflow-hidden border border-[#6366f1]/20"
+    >
       <div
         className="bf-layout-nebula-layer absolute inset-x-0 top-0 h-44"
         style={{
@@ -331,7 +360,7 @@ function NebuladriftLayout(props: LayoutProps) {
           <ProfileMainContent {...props} />
         </div>
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -340,7 +369,7 @@ function SamuraiLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="grid w-full md:grid-cols-[1fr_6px]" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard settings={settings} className="grid w-full md:grid-cols-[1fr_6px]">
       <div className="p-6 sm:p-8">
         <p className="font-serif text-[10px] uppercase tracking-[0.4em] text-[#dc2626]">武士</p>
         <div className="mt-4 flex gap-4 bf-profile-avatar-row">
@@ -350,7 +379,7 @@ function SamuraiLayout(props: LayoutProps) {
         <ProfileMainContent {...props} />
       </div>
       <div className="hidden bg-gradient-to-b from-[#dc2626] via-[#7f1d1d] to-[#450a0a] md:block" />
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -360,7 +389,7 @@ function GraffitiLayout(props: LayoutProps) {
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="w-full overflow-hidden" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard settings={settings} className="w-full overflow-hidden">
       <div
         className="relative overflow-visible px-5 py-6 sm:px-6"
         style={{ background: `linear-gradient(135deg, ${settings.accent_color}55 0%, transparent 55%), linear-gradient(180deg, rgba(0,0,0,0.15), transparent)` }}
@@ -385,7 +414,7 @@ function GraffitiLayout(props: LayoutProps) {
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent {...props} />
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -395,12 +424,13 @@ function MonolithLayout(props: LayoutProps) {
   const accent = settings.accent_color;
 
   return (
-    <div
+    <ProfileLayoutCard
+      settings={settings}
       className="relative mx-auto w-full max-w-sm overflow-hidden border border-white/[0.08] shadow-[0_24px_80px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.06)]"
       style={{
-        ...buildCardStyle(settings),
         background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))",
       }}
+      backdropStyle={{ backgroundColor: "transparent" }}
     >
       <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
       <div className="relative px-6 py-10 text-center">
@@ -426,7 +456,7 @@ function MonolithLayout(props: LayoutProps) {
         </div>
       </div>
       <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -436,7 +466,7 @@ function PrismstackLayout(props: LayoutProps) {
   const colors = [settings.accent_color, settings.gradient_colors?.[1] ?? "#6366f1", "#22c55e", "#f97316"];
 
   return (
-    <div className="w-full overflow-hidden" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard settings={settings} className="w-full overflow-hidden">
       <div className="bf-layout-prism-animate flex h-3 shadow-[0_4px_20px_rgba(255,255,255,0.08)]">
         {colors.map((color) => (
           <div key={color} className="flex-1" style={{ background: color }} />
@@ -449,7 +479,7 @@ function PrismstackLayout(props: LayoutProps) {
         </div>
         <ProfileMainContent {...props} />
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -460,7 +490,7 @@ function DashboardLayout(props: LayoutProps) {
   const modules = ["Identity", "Links", "Media"];
 
   return (
-    <div className="w-full overflow-hidden border border-white/[0.08]" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard settings={settings} className="w-full overflow-hidden border border-white/[0.08]">
       <div className="bf-layout-studio-grid relative border-b border-white/[0.08] px-5 py-4">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -500,7 +530,7 @@ function DashboardLayout(props: LayoutProps) {
         </div>
         <ProfileMainContent {...props} />
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -510,7 +540,12 @@ function CommandLayout(props: LayoutProps) {
   const label = resolveLayoutLabel(settings) || "cried-ops";
 
   return (
-    <div className="bf-layout-command relative w-full overflow-hidden border border-[#22c55e]/30 bg-[#030a04] font-mono shadow-[0_0_40px_rgba(34,197,94,0.08)]" style={{ borderRadius: settings.border_radius }}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="bf-layout-command relative w-full overflow-hidden border border-[#22c55e]/30 bg-[#030a04] font-mono shadow-[0_0_40px_rgba(34,197,94,0.08)]"
+      style={{ borderRadius: settings.border_radius }}
+      backdropStyle={{ backgroundColor: "transparent" }}
+    >
       <div className="bf-layout-command-scanline pointer-events-none absolute inset-x-0 h-16 bg-gradient-to-b from-[#22c55e]/10 via-transparent to-transparent opacity-50" />
       <div className="relative flex items-center justify-between border-b border-[#22c55e]/20 bg-[#041208] px-4 py-2.5 text-[10px] uppercase tracking-[0.25em] text-[#22c55e]">
         <div className="flex items-center gap-2">
@@ -533,7 +568,7 @@ function CommandLayout(props: LayoutProps) {
         </div>
         <ProfileMainContent {...props} />
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -543,7 +578,10 @@ function BloomLayout(props: LayoutProps) {
   const accent = settings.accent_color;
 
   return (
-    <div className="relative w-full overflow-hidden border border-[#f472b6]/20" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="relative w-full overflow-hidden border border-[#f472b6]/20"
+    >
       <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl" style={{ background: `${accent}44` }} />
       {[
         { className: "left-[12%] top-[18%] h-3 w-3", delay: "0s" },
@@ -563,7 +601,7 @@ function BloomLayout(props: LayoutProps) {
           <ProfileMainContent {...props} />
         </div>
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -572,7 +610,12 @@ function StealthLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="relative w-full overflow-hidden border border-[#14532d]/40 bg-[#030303] p-5" style={{ borderRadius: settings.border_radius }}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="relative w-full overflow-hidden border border-[#14532d]/40 bg-[#030303] p-5"
+      style={{ borderRadius: settings.border_radius }}
+      backdropStyle={{ backgroundColor: "transparent" }}
+    >
       <div className="bf-layout-stealth-scan pointer-events-none absolute inset-x-0 h-10 bg-gradient-to-b from-transparent via-[#4ade80]/15 to-transparent" />
       <div className="relative flex items-center gap-2 text-[10px] uppercase tracking-[0.35em] text-[#4ade80]/80">
         <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80] animate-pulse" />
@@ -583,7 +626,7 @@ function StealthLayout(props: LayoutProps) {
         <HeaderIdentity {...props} />
       </div>
       <ProfileMainContent {...props} />
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -593,7 +636,7 @@ function FestivalLayout(props: LayoutProps) {
   const label = resolveLayoutLabel(settings) || "ALL ACCESS";
 
   return (
-    <div className="relative mx-auto w-full max-w-md overflow-hidden" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard settings={settings} className="relative mx-auto w-full max-w-md overflow-hidden">
       <div className="absolute left-0 top-1/2 h-8 w-4 -translate-y-1/2 rounded-r-full bg-[#090909]" />
       <div className="absolute right-0 top-1/2 h-8 w-4 -translate-y-1/2 rounded-l-full bg-[#090909]" />
       <div className="border-b border-dashed border-white/15 px-6 py-3 text-center">
@@ -606,7 +649,7 @@ function FestivalLayout(props: LayoutProps) {
           <ProfileMainContent {...props} />
         </div>
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -615,7 +658,12 @@ function MangaLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="w-full border-4 border-white bg-[#fafafa] text-black" style={{ borderRadius: Math.min(settings.border_radius, 4) }}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="w-full border-4 border-white bg-[#fafafa] text-black"
+      style={{ borderRadius: Math.min(settings.border_radius, 4) }}
+      backdropStyle={{ backgroundColor: "transparent" }}
+    >
       <div className="border-b-4 border-black p-5">
         <Username name={displayName} settings={settings} profile={profile} className="text-3xl font-black uppercase text-black" />
         <ProfileHandle profile={profile} className="text-black/60" />
@@ -629,7 +677,7 @@ function MangaLayout(props: LayoutProps) {
         <HeaderIdentity {...props} />
         <ProfileMainContent {...props} hideBio />
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -638,7 +686,10 @@ function EmberforgeLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="relative w-full overflow-hidden border border-[#ea580c]/35" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="relative w-full overflow-hidden border border-[#ea580c]/35"
+    >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-28">
         {[18, 34, 52, 68, 81].map((left, index) => (
           <span
@@ -661,7 +712,7 @@ function EmberforgeLayout(props: LayoutProps) {
       <div className="p-6">
         <ProfileMainContent {...props} />
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -670,7 +721,12 @@ function MatrixLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="relative w-full overflow-hidden border border-[#22c55e]/25 bg-[#020802] font-mono" style={{ borderRadius: settings.border_radius }}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="relative w-full overflow-hidden border border-[#22c55e]/25 bg-[#020802] font-mono"
+      style={{ borderRadius: settings.border_radius }}
+      backdropStyle={{ backgroundColor: "transparent" }}
+    >
       <div className="bf-layout-matrix-rain relative h-28 border-b border-[#22c55e]/20 px-6 py-4">
         <p className="relative z-10 text-[10px] uppercase tracking-[0.35em] text-[#22c55e]">System Access</p>
         <ProfileAvatar profile={profile} displayName={displayName} accentColor="#22c55e" className="relative z-10 mt-3 h-16 w-16 ring-1 ring-[#22c55e]/40" />
@@ -679,7 +735,7 @@ function MatrixLayout(props: LayoutProps) {
         <HeaderIdentity {...props} />
         <ProfileMainContent {...props} />
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -689,7 +745,7 @@ function LiquidLayout(props: LayoutProps) {
   const accent = settings.accent_color;
 
   return (
-    <div className="relative w-full overflow-hidden" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard settings={settings} className="relative w-full overflow-hidden">
       <div
         className="bf-layout-liquid-blob pointer-events-none absolute left-1/2 top-8 h-40 w-40 -translate-x-1/2 opacity-50 blur-2xl"
         style={{ background: `radial-gradient(circle, ${accent}, ${settings.gradient_colors?.[1] ?? accent})` }}
@@ -701,7 +757,7 @@ function LiquidLayout(props: LayoutProps) {
           <ProfileMainContent {...props} />
         </div>
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -711,7 +767,10 @@ function SupernovaLayout(props: LayoutProps) {
   const accent = settings.accent_color;
 
   return (
-    <div className="relative w-full overflow-hidden border border-white/10" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="relative w-full overflow-hidden border border-white/10"
+    >
       <div
         className="bf-layout-supernova-core pointer-events-none absolute left-1/2 top-10 h-36 w-36 -translate-x-1/2 rounded-full blur-2xl"
         style={{ background: `radial-gradient(circle, ${accent}, transparent 70%)` }}
@@ -723,7 +782,7 @@ function SupernovaLayout(props: LayoutProps) {
           <ProfileMainContent {...props} />
         </div>
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -732,7 +791,12 @@ function TapewaveLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="w-full overflow-hidden border border-[#38bdf8]/25 bg-[#071018]" style={{ borderRadius: settings.border_radius }}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="w-full overflow-hidden border border-[#38bdf8]/25 bg-[#071018]"
+      style={{ borderRadius: settings.border_radius }}
+      backdropStyle={{ backgroundColor: "transparent" }}
+    >
       <div className="flex h-16 items-end gap-1 border-b border-[#38bdf8]/20 px-5 py-3">
         {Array.from({ length: 12 }).map((_, index) => (
           <div
@@ -749,7 +813,7 @@ function TapewaveLayout(props: LayoutProps) {
         </div>
         <ProfileMainContent {...props} />
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 
@@ -758,7 +822,10 @@ function PhoenixLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="relative w-full overflow-hidden border border-[#f97316]/30 shadow-[0_0_50px_rgba(249,115,22,0.12)]" style={buildCardStyle(settings)}>
+    <ProfileLayoutCard
+      settings={settings}
+      className="relative w-full overflow-hidden border border-[#f97316]/30 shadow-[0_0_50px_rgba(249,115,22,0.12)]"
+    >
       <div
         className="bf-layout-phoenix-aura pointer-events-none absolute left-1/2 top-0 h-48 w-48 -translate-x-1/2 rounded-full blur-3xl"
         style={{ background: "radial-gradient(circle, rgba(249,115,22,0.45), rgba(234,88,12,0.15) 45%, transparent 70%)" }}
@@ -786,7 +853,7 @@ function PhoenixLayout(props: LayoutProps) {
           <ProfileMainContent {...props} />
         </div>
       </div>
-    </div>
+    </ProfileLayoutCard>
   );
 }
 

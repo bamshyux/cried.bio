@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { updateEmbedConfigAction } from "@/app/actions/embeds";
 import { ProfileEmbedItem } from "@/components/profile/public/profile-embed-item";
 import {
@@ -11,6 +11,10 @@ import {
   SliderField,
   ToggleField,
 } from "@/components/dashboard/form-fields";
+import {
+  DASHBOARD_RESET_EVENT,
+  useUnsavedChangesOptional,
+} from "@/components/dashboard/unsaved-changes";
 import type {
   EmbedAlignment,
   EmbedAspectRatio,
@@ -167,6 +171,8 @@ export function EmbedCustomizer({
   embed: ProfileEmbed;
   settings: ProfileSettings;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const unsaved = useUnsavedChangesOptional();
   const [savedConfig, setSavedConfig] = useState<EmbedConfig>(embed.config);
   const [config, setConfig] = useState<EmbedConfig>(embed.config);
   const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
@@ -178,23 +184,43 @@ export function EmbedCustomizer({
     setStatus("idle");
   }, [embed.config]);
 
+  useEffect(() => {
+    const handleDashboardReset = () => {
+      setConfig(savedConfig);
+      setStatus("idle");
+    };
+    window.addEventListener(DASHBOARD_RESET_EVENT, handleDashboardReset);
+    return () => window.removeEventListener(DASHBOARD_RESET_EVENT, handleDashboardReset);
+  }, [savedConfig]);
+
   const isDirty = useMemo(() => !configsEqual(config, savedConfig), [config, savedConfig]);
+
+  const markDirtyForm = () => {
+    unsaved?.markDirty();
+    if (formRef.current) unsaved?.setLastDirtyForm(formRef.current);
+  };
 
   const updateDraft = (partial: Partial<EmbedConfig>) => {
     setConfig((current) => ({ ...current, ...partial }));
     setStatus("idle");
+    markDirtyForm();
   };
 
   const handleReset = () => {
     setConfig(savedConfig);
     setStatus("idle");
+    unsaved?.markClean();
   };
 
   const handleSave = () => {
+    if (!isDirty || isPending) return;
+
+    unsaved?.markSaving();
     startTransition(async () => {
       const result = await updateEmbedConfigAction(embed.id, config);
       if (result.error) {
         setStatus("error");
+        unsaved?.clearSaving();
         return;
       }
       if (result.config) {
@@ -202,6 +228,7 @@ export function EmbedCustomizer({
         setConfig(result.config);
       }
       setStatus("saved");
+      unsaved?.markClean();
     });
   };
 
@@ -219,7 +246,15 @@ export function EmbedCustomizer({
         : ["16:9", "4:3", "1:1", "auto"];
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+    <form
+      ref={formRef}
+      data-dashboard-section-form="embed-customizer"
+      onSubmit={(event) => {
+        event.preventDefault();
+        handleSave();
+      }}
+      className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]"
+    >
       <div className="space-y-6">
         <section className="space-y-4">
           <SectionHeading title="Content" description="Text shown above or inside the embed card." />
@@ -526,6 +561,16 @@ export function EmbedCustomizer({
         <p className="mb-3 text-[11px] font-medium uppercase tracking-wide text-neutral-500">Preview</p>
         <ProfileEmbedItem embed={{ ...embed, config }} settings={settings} hostname="localhost" />
       </div>
-    </div>
+
+      <button
+        type="submit"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden
+        disabled={!isDirty || isPending}
+      >
+        Save embed changes
+      </button>
+    </form>
   );
 }

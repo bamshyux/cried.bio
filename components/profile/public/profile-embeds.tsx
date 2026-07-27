@@ -17,7 +17,7 @@ export function ProfileEmbedsSection({
   const hostname = typeof window !== "undefined" ? window.location.hostname : "localhost";
 
   return (
-    <div className="profile-embeds bf-profile-block mb-5 space-y-3">
+    <div className="profile-embeds bf-profile-block mb-5 w-full space-y-2.5">
       {visible.map((embed) => (
         <ProfileEmbedItem key={embed.id} embed={embed} settings={settings} hostname={hostname} />
       ))}

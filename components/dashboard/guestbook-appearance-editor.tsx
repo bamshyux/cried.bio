@@ -169,13 +169,30 @@ export function GuestbookAppearanceEditor({ settings }: { settings: ProfileSetti
         data-dashboard-settings-form="guestbook-appearance"
         className="space-y-5"
       >
-        <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0a] p-4">
-          <p className="mb-3 text-[10px] font-medium uppercase tracking-wider text-neutral-600">Preview</p>
+        <div
+          className="relative overflow-hidden rounded-xl border border-white/[0.06] p-4"
+          style={{
+            background:
+              "linear-gradient(135deg, #1a1030 0%, #0c1929 45%, #141414 100%)",
+          }}
+        >
+          <div
+            className="pointer-events-none absolute left-4 top-4 h-20 w-20 rounded-full opacity-50 blur-2xl"
+            style={{ background: settings.accent_color }}
+          />
+          <div
+            className="pointer-events-none absolute bottom-4 right-4 h-16 w-16 rounded-full opacity-35 blur-2xl"
+            style={{ background: "#38bdf8" }}
+          />
+          <p className="relative mb-3 text-[10px] font-medium uppercase tracking-wider text-neutral-600">
+            Preview
+          </p>
           <ProfileGuestbookSection
             profileId="preview"
             settings={preview}
             entries={PREVIEW_ENTRIES}
             currentUserId={null}
+            className="mt-0"
           />
         </div>
 

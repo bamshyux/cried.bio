@@ -1,5 +1,5 @@
 import { cardBorderEffectStripsDefaultBorder } from "@/lib/card-border-effects/resolve";
-import { buildCardStyle } from "@/lib/settings";
+import { buildCardStyles } from "@/lib/settings";
 import type { GuestbookBorderStyle, GuestbookSpacing, ProfileSettings } from "@/lib/types/settings";
 
 function clampPct(value: number, fallback: number): number {
@@ -26,60 +26,79 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   return null;
 }
 
-function buildGuestbookCardStyle(settings: ProfileSettings): Record<string, string | number> {
+function buildGuestbookCardStyles(settings: ProfileSettings): {
+  shell: Record<string, string | number>;
+  backdrop: Record<string, string | number> | null;
+} {
   const borderRadius = settings.border_radius;
+  const borderHandledExternally = cardBorderEffectStripsDefaultBorder(settings, "guestbook");
 
-  const base: Record<string, string | number> = {
+  const shell: Record<string, string | number> = {
     borderRadius,
-    border: "none",
+    border: borderHandledExternally ? "none" : "none",
     boxShadow: "none",
   };
 
   if (!settings.guestbook_show_background) {
-    return { ...base, backgroundColor: "transparent" };
+    return { shell, backdrop: null };
   }
 
   const opacity = clampPct(settings.guestbook_opacity, 88);
-  const blur = settings.guestbook_blur ?? 0;
+  const blur = Math.max(0, settings.guestbook_blur ?? 0);
   const rgb = settings.guestbook_background_color?.trim()
     ? hexToRgb(settings.guestbook_background_color)
     : null;
   const rgba = (alpha: number) =>
     rgb ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})` : `rgba(20, 20, 20, ${alpha})`;
 
-  if (settings.guestbook_glassmorphism) {
-    const blurPx = blur > 0 ? blur : 8;
+  const shouldBlur = blur > 0;
+  const useFrostedBackground = settings.guestbook_glassmorphism || shouldBlur;
+
+  if (useFrostedBackground) {
+    const backgroundAlpha = settings.guestbook_glassmorphism ? opacity * 0.85 : opacity;
+    const finalAlpha = shouldBlur ? Math.min(backgroundAlpha, 0.72) : backgroundAlpha;
+
     return {
-      ...base,
-      backgroundColor: rgba(opacity * 0.85),
-      backdropFilter: `blur(${blurPx}px)`,
-      WebkitBackdropFilter: `blur(${blurPx}px)`,
+      shell,
+      backdrop: {
+        backgroundColor: rgba(finalAlpha),
+        ...(shouldBlur
+          ? {
+              backdropFilter: `blur(${blur}px)`,
+              WebkitBackdropFilter: `blur(${blur}px)`,
+            }
+          : {}),
+      },
     };
   }
 
   return {
-    ...base,
-    backgroundColor: rgba(opacity),
-    ...(blur > 0
-      ? { backdropFilter: `blur(${blur}px)`, WebkitBackdropFilter: `blur(${blur}px)` }
-      : {}),
+    shell,
+    backdrop: {
+      backgroundColor: rgba(opacity),
+    },
   };
 }
 
-export function resolveGuestbookAppearance(settings: ProfileSettings): {
+export type ResolvedGuestbookAppearance = {
   borderStyle: GuestbookBorderStyle;
   spacing: GuestbookSpacing;
-  style: Record<string, string | number>;
-} {
+  shell: Record<string, string | number>;
+  backdrop: Record<string, string | number> | null;
+  content: Record<string, string | number>;
+};
+
+export function resolveGuestbookAppearance(settings: ProfileSettings): ResolvedGuestbookAppearance {
   const borderStyle = settings.guestbook_border_style ?? "accent-left";
   const spacing = settings.guestbook_spacing ?? "default";
-  const messageOpacity = clampPct(settings.guestbook_message_opacity, 50);
 
   const cssVars: Record<string, string> = {
     "--bf-guestbook-label-opacity": String(clampPct(settings.guestbook_label_opacity, 18)),
-    "--bf-guestbook-message-opacity": String(messageOpacity),
+    "--bf-guestbook-message-opacity": String(clampPct(settings.guestbook_message_opacity, 50)),
     "--bf-guestbook-author-opacity": String(clampPct(settings.guestbook_author_opacity, 38)),
-    "--bf-guestbook-pinned-opacity": String(Math.min(1, messageOpacity + 0.12)),
+    "--bf-guestbook-pinned-opacity": String(
+      Math.min(1, clampPct(settings.guestbook_message_opacity, 50) + 0.12),
+    ),
   };
 
   if (settings.guestbook_text_color?.trim()) {
@@ -87,26 +106,42 @@ export function resolveGuestbookAppearance(settings: ProfileSettings): {
   }
 
   const paddingY = settings.guestbook_padding_y ?? 20;
-  const cardStyle = settings.guestbook_use_profile_card
-    ? { ...buildCardStyle(settings) }
-    : buildGuestbookCardStyle(settings);
 
-  if (cardBorderEffectStripsDefaultBorder(settings, "guestbook")) {
-    cardStyle.border = "none";
-    cardStyle.boxShadow = "none";
-  }
+  let shell: Record<string, string | number>;
+  let backdrop: Record<string, string | number> | null;
 
-  // Guestbook border style controls decorative borders via CSS — never the default card outline.
-  if (borderStyle === "none" || !settings.guestbook_use_profile_card) {
-    cardStyle.border = "none";
-    cardStyle.boxShadow = "none";
+  if (settings.guestbook_use_profile_card) {
+    if (!settings.guestbook_show_background) {
+      const { shell: profileShell } = buildCardStyles(settings);
+      shell = {
+        borderRadius: profileShell.borderRadius ?? settings.border_radius,
+        border: "none",
+        boxShadow: "none",
+      };
+      backdrop = null;
+    } else {
+      const styles = buildCardStyles(settings);
+      shell = { ...styles.shell } as Record<string, string | number>;
+      backdrop = { ...styles.backdrop } as Record<string, string | number>;
+    }
+  } else {
+    const styles = buildGuestbookCardStyles(settings);
+    shell = styles.shell;
+
+    if (borderStyle === "none") {
+      shell.border = "none";
+      shell.boxShadow = "none";
+    }
+
+    backdrop = styles.backdrop;
   }
 
   return {
-    borderStyle,
+    borderStyle: settings.guestbook_use_profile_card ? "none" : borderStyle,
     spacing,
-    style: {
-      ...cardStyle,
+    shell,
+    backdrop,
+    content: {
       ...cssVars,
       paddingTop: `${paddingY}px`,
       paddingBottom: `${paddingY}px`,

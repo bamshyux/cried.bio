@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties, ReactNode } from "react";
 import type { ProfileEmbed } from "@/lib/types/embed";
 import type { ProfileSettings } from "@/lib/types/settings";
 import {
@@ -7,12 +8,14 @@ import {
   aspectRatioStyle,
   embedAlignmentClass,
   embedAlignmentStyle,
-  embedCardStyle,
+  embedCardStyles,
   embedContentPadding,
   embedMutedTextStyle,
+  embedPlatformLabel,
   embedTextStyle,
   embedTitleClass,
   resolveEmbedTitle,
+  type EmbedCardStyles,
 } from "@/lib/embeds/config";
 import { getEmbedIframeSrc } from "@/lib/embeds/parse";
 import { isRobloxLinkEmbed, robloxEmbedLinkLabel } from "@/lib/embeds/roblox-profile";
@@ -24,14 +27,111 @@ function isSpotifyEmbed(embedType: ProfileEmbed["embed_type"]) {
   return embedType === "spotify_track" || embedType === "spotify_playlist";
 }
 
-function embedStyleWithBorderEffect(
+function embedStylesWithBorderEffect(
   settings: ProfileSettings,
   config: ProfileEmbed["config"],
   target: CardBorderTarget,
-) {
-  const style = embedCardStyle(config, settings.accent_color);
-  if (!cardBorderEffectStripsDefaultBorder(settings, target)) return style;
-  return { ...style, border: "none", boxShadow: "none" };
+): EmbedCardStyles {
+  const styles = embedCardStyles(config, settings.accent_color);
+  if (!cardBorderEffectStripsDefaultBorder(settings, target)) return styles;
+  return {
+    shell: { ...styles.shell, border: "none", boxShadow: "none" },
+    background: styles.background,
+  };
+}
+
+function EmbedOpenButton() {
+  return (
+    <span className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-medium text-neutral-300 transition-colors group-hover:border-[var(--bf-accent)]/35 group-hover:bg-[var(--bf-accent)]/10 group-hover:text-[var(--bf-accent)]">
+      Open →
+    </span>
+  );
+}
+
+function EmbedCardShell({
+  href,
+  embedType,
+  styles,
+  className = "",
+  children,
+}: {
+  href?: string;
+  embedType: ProfileEmbed["embed_type"];
+  styles: EmbedCardStyles;
+  className?: string;
+  children: ReactNode;
+}) {
+  const shellClassName = `profile-embed group relative block overflow-hidden transition-[transform,box-shadow] duration-200 ${href ? "hover:-translate-y-px" : ""} ${className}`.trim();
+  const inner = (
+    <>
+      <div className="pointer-events-none absolute inset-0" style={styles.background} aria-hidden />
+      <div className="relative z-10">{children}</div>
+    </>
+  );
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={shellClassName}
+        style={styles.shell}
+        data-embed-type={embedType}
+      >
+        {inner}
+      </a>
+    );
+  }
+
+  return (
+    <div className={shellClassName} style={styles.shell} data-embed-type={embedType}>
+      {inner}
+    </div>
+  );
+}
+
+function EmbedTextBlock({
+  embed,
+  title,
+  subtitle,
+  textStyle,
+  mutedStyle,
+  titleClass,
+  config,
+}: {
+  embed: ProfileEmbed;
+  title: string;
+  subtitle?: string;
+  textStyle: CSSProperties;
+  mutedStyle: CSSProperties;
+  titleClass: string;
+  config: ProfileEmbed["config"];
+}) {
+  const mutedColor = mutedStyle.color ? mutedStyle : { color: "rgb(163 163 163)" };
+
+  return (
+    <div className="min-w-0 flex-1">
+      {config.show_title ? (
+        <>
+          <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+            {embedPlatformLabel(embed.embed_type)}
+          </p>
+          <p className={`truncate ${titleClass}`} style={textStyle}>
+            {title}
+          </p>
+        </>
+      ) : null}
+      {config.show_description && subtitle ? (
+        <p
+          className={`truncate text-xs ${config.show_title ? "mt-0.5" : titleClass}`}
+          style={config.show_title ? mutedColor : textStyle}
+        >
+          {subtitle}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 function GenericLinkCard({
@@ -45,7 +145,7 @@ function GenericLinkCard({
 }) {
   const config = embed.config;
   const title = resolveEmbedTitle(embed);
-  const style = embedCardStyle(config, settings.accent_color);
+  const styles = embedCardStyles(config, settings.accent_color);
   const textStyle = embedTextStyle(config, settings.text_color);
   const mutedStyle = embedMutedTextStyle(config);
   const titleClass = embedTitleClass(config.title_size);
@@ -56,8 +156,8 @@ function GenericLinkCard({
         href={embed.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="profile-embed block text-sm transition-colors hover:text-white"
-        style={{ ...textStyle, opacity: config.opacity / 100 }}
+        className="profile-embed inline-flex items-center gap-1.5 text-sm transition-colors hover:text-white"
+        style={textStyle}
       >
         {title} →
       </a>
@@ -65,31 +165,20 @@ function GenericLinkCard({
   }
 
   return (
-    <a
-      href={embed.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="profile-embed block overflow-hidden transition-colors hover:opacity-95"
-      style={style}
-      data-embed-type={embed.embed_type}
-    >
-      <div className="flex items-center gap-4" style={embedContentPadding(config)}>
-        <div className="min-w-0 flex-1" style={textStyle}>
-          {config.show_title ? (
-            <p className={`truncate text-white ${titleClass}`}>{title}</p>
-          ) : null}
-          {config.show_description ? (
-            <p
-              className={`truncate text-xs ${config.show_title ? "mt-1" : ""}`}
-              style={mutedStyle.color ? mutedStyle : { color: "rgb(163 163 163)" }}
-            >
-              {config.description || embed.url}
-            </p>
-          ) : null}
-        </div>
-        <span className="shrink-0 text-xs font-medium text-[var(--bf-accent)]">Open →</span>
+    <EmbedCardShell href={embed.url} embedType={embed.embed_type} styles={styles}>
+      <div className="flex items-center gap-3.5" style={embedContentPadding(config)}>
+        <EmbedTextBlock
+          embed={embed}
+          title={title}
+          subtitle={config.description || embed.url}
+          textStyle={textStyle}
+          mutedStyle={mutedStyle}
+          titleClass={titleClass}
+          config={config}
+        />
+        <EmbedOpenButton />
       </div>
-    </a>
+    </EmbedCardShell>
   );
 }
 
@@ -102,7 +191,7 @@ function RobloxCard({
 }) {
   const config = embed.config;
   const title = resolveEmbedTitle(embed);
-  const style = embedStyleWithBorderEffect(settings, config, "roblox");
+  const styles = embedStylesWithBorderEffect(settings, config, "roblox");
   const textStyle = embedTextStyle(config, settings.text_color);
   const mutedStyle = embedMutedTextStyle(config);
   const titleClass = embedTitleClass(config.title_size);
@@ -119,52 +208,37 @@ function RobloxCard({
     return <GenericLinkCard embed={embed} settings={settings} minimal />;
   }
 
+  const content = (
+    <div
+      className={`flex items-center gap-3.5 ${config.card_style === "minimal" ? "px-0 py-2" : ""}`}
+      style={config.card_style === "minimal" ? undefined : embedContentPadding(config)}
+    >
+      {showImage && imageUrl ? (
+        <img
+          src={imageUrl}
+          alt=""
+          className={`shrink-0 rounded-xl object-cover ring-1 ring-white/10 ${isProfile ? "h-12 w-12" : "h-11 w-11"}`}
+          draggable={false}
+        />
+      ) : null}
+      <EmbedTextBlock
+        embed={embed}
+        title={title}
+        subtitle={subtitle}
+        textStyle={textStyle}
+        mutedStyle={mutedStyle}
+        titleClass={titleClass}
+        config={config}
+      />
+      <EmbedOpenButton />
+    </div>
+  );
+
   return (
     <CardBorderEffect settings={settings} target="roblox" borderRadius={settings.border_radius}>
-      <a
-        href={embed.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="profile-embed block overflow-hidden transition-colors hover:opacity-95"
-        style={style}
-        data-embed-type={embed.embed_type}
-      >
-        <div
-          className={`flex items-center gap-4 ${config.card_style === "minimal" ? "px-0 py-2" : ""}`}
-          style={config.card_style === "minimal" ? undefined : embedContentPadding(config)}
-        >
-        {showImage && imageUrl ? (
-          <img
-            src={imageUrl}
-            alt=""
-            className={`shrink-0 rounded-xl object-cover ${isProfile ? "h-16 w-16" : "h-14 w-14"}`}
-            draggable={false}
-          />
-        ) : null}
-        <div className="min-w-0 flex-1" style={textStyle}>
-          {config.show_title ? (
-            <p className={`truncate text-white ${titleClass}`}>{title}</p>
-          ) : null}
-          {config.show_description ? (
-            <p
-              className={`truncate text-xs ${config.show_title ? "mt-1" : ""}`}
-              style={mutedStyle.color ? mutedStyle : { color: "rgb(163 163 163)" }}
-            >
-              {subtitle}
-            </p>
-          ) : null}
-          {config.description && !isProfile && config.show_description ? (
-            <p
-              className="mt-2 line-clamp-2 text-xs"
-              style={mutedStyle.color ? mutedStyle : { color: "rgb(115 115 115)" }}
-            >
-              {config.description}
-            </p>
-          ) : null}
-        </div>
-        <span className="shrink-0 text-xs font-medium text-[var(--bf-accent)]">Open →</span>
-        </div>
-      </a>
+      <EmbedCardShell href={embed.url} embedType={embed.embed_type} styles={styles}>
+        {content}
+      </EmbedCardShell>
     </CardBorderEffect>
   );
 }
@@ -183,9 +257,9 @@ function IframeEmbed({
   if (!src) return null;
 
   const title = resolveEmbedTitle(embed);
-  const style = isSpotifyEmbed(embed.embed_type)
-    ? embedStyleWithBorderEffect(settings, config, "spotify")
-    : embedCardStyle(config, settings.accent_color);
+  const styles = isSpotifyEmbed(embed.embed_type)
+    ? embedStylesWithBorderEffect(settings, config, "spotify")
+    : embedCardStyles(config, settings.accent_color);
   const textStyle = embedTextStyle(config, settings.text_color);
   const mutedStyle = embedMutedTextStyle(config);
   const titleClass = embedTitleClass(config.title_size);
@@ -193,13 +267,10 @@ function IframeEmbed({
   const ratioStyle = aspectRatioStyle(config.aspect_ratio, config.compact_player);
 
   const body = (
-    <div className="profile-embed overflow-hidden" style={style} data-embed-type={embed.embed_type}>
+    <EmbedCardShell embedType={embed.embed_type} styles={styles}>
       {config.show_title ? (
-        <div
-          className="border-b border-white/[0.06]"
-          style={embedContentPadding(config)}
-        >
-          <p className={`truncate text-white ${titleClass}`} style={textStyle}>
+        <div className="border-b border-white/[0.06]" style={embedContentPadding(config)}>
+          <p className={`truncate ${titleClass}`} style={textStyle}>
             {title}
           </p>
           {config.show_description && config.description ? (
@@ -221,7 +292,7 @@ function IframeEmbed({
           loading="lazy"
         />
       </div>
-    </div>
+    </EmbedCardShell>
   );
 
   if (!isSpotifyEmbed(embed.embed_type)) return body;

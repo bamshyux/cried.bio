@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
+import type { ReactNode } from "react";
 import {
   buildCardStyle,
+  buildCardStyles,
   getUsernameEffectClass,
   stripUsernameTextColorClasses,
   usernameEffectUsesClipText,
@@ -316,4 +318,33 @@ export function getDisplayName(profile: Profile) {
   return profile.display_name || profile.username || "User";
 }
 
-export { buildCardStyle, getUsernameEffectClass };
+export function ProfileLayoutCard({
+  settings,
+  className = "",
+  style,
+  backdropStyle,
+  children,
+}: {
+  settings: ProfileSettings;
+  className?: string;
+  style?: CSSProperties;
+  backdropStyle?: CSSProperties;
+  children: ReactNode;
+}) {
+  const { shell, backdrop } = buildCardStyles(settings);
+  const mergedShell = { ...shell, ...style };
+  const radius = mergedShell.borderRadius ?? settings.border_radius;
+
+  return (
+    <div className={`relative w-full overflow-hidden ${className}`.trim()} style={mergedShell}>
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ ...backdrop, ...backdropStyle, borderRadius: radius }}
+        aria-hidden
+      />
+      <div className="relative z-[1]">{children}</div>
+    </div>
+  );
+}
+
+export { buildCardStyle, buildCardStyles, getUsernameEffectClass };

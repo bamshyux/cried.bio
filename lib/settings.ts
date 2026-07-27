@@ -741,12 +741,15 @@ export function getProfileAlignClass(alignment: ContentAlignment = "left") {
   return `bf-profile-align bf-profile-align--${alignment}`;
 }
 
-export function buildCardStyle(settings: ProfileSettings): Record<string, string | number | undefined> {
+export function buildCardStyles(settings: ProfileSettings): {
+  shell: Record<string, string | number | undefined>;
+  backdrop: Record<string, string | number | undefined>;
+} {
   const opacity = settings.profile_opacity / 100;
   const blur = Math.max(0, settings.profile_blur);
   const borderHandledExternally = cardBorderEffectStripsDefaultBorder(settings, "main");
 
-  const base: Record<string, string | number | undefined> = {
+  const shell: Record<string, string | number | undefined> = {
     borderRadius: settings.border_radius,
     border:
       settings.hide_card_border || borderHandledExternally
@@ -761,24 +764,33 @@ export function buildCardStyle(settings: ProfileSettings): Record<string, string
 
   if (useFrostedBackground) {
     const backgroundAlpha = settings.glassmorphism ? opacity * 0.85 : opacity;
-    const finalAlpha = shouldBlur ? Math.min(backgroundAlpha, 0.92) : backgroundAlpha;
+    const finalAlpha = shouldBlur ? Math.min(backgroundAlpha, 0.72) : backgroundAlpha;
 
     return {
-      ...base,
-      backgroundColor: `rgba(20, 20, 20, ${finalAlpha})`,
-      ...(shouldBlur
-        ? {
-            backdropFilter: `blur(${blur}px)`,
-            WebkitBackdropFilter: `blur(${blur}px)`,
-          }
-        : {}),
+      shell,
+      backdrop: {
+        backgroundColor: `rgba(20, 20, 20, ${finalAlpha})`,
+        ...(shouldBlur
+          ? {
+              backdropFilter: `blur(${blur}px)`,
+              WebkitBackdropFilter: `blur(${blur}px)`,
+            }
+          : {}),
+      },
     };
   }
 
   return {
-    ...base,
-    backgroundColor: `rgba(20, 20, 20, ${opacity})`,
+    shell,
+    backdrop: {
+      backgroundColor: `rgba(20, 20, 20, ${opacity})`,
+    },
   };
+}
+
+export function buildCardStyle(settings: ProfileSettings): Record<string, string | number | undefined> {
+  const { shell, backdrop } = buildCardStyles(settings);
+  return { ...shell, ...backdrop };
 }
 
 export const CARD_LAYOUT_MIN_HEIGHT = 280;

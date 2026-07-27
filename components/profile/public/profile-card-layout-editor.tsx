@@ -370,8 +370,14 @@ export function ProfileCardLayoutEditor({
 
     return (
       <div className="mx-auto w-full overflow-visible" style={viewStyle}>
-        <ProfileCardHeightScaler maxHeight={settings.card_max_height} parallaxEnabled={parallaxEnabled}>
-          <ProfileParallaxCard enabled={!!parallaxEnabled}>{children}</ProfileParallaxCard>
+        <ProfileCardHeightScaler
+          maxHeight={settings.card_max_height}
+          parallaxEnabled={parallaxEnabled}
+          blurActive={settings.profile_blur > 0}
+        >
+          <ProfileParallaxCard enabled={!!parallaxEnabled} blurActive={settings.profile_blur > 0}>
+            {children}
+          </ProfileParallaxCard>
         </ProfileCardHeightScaler>
       </div>
     );
@@ -473,8 +479,14 @@ export function ProfileCardLayoutEditor({
             />
           </>
         )}
-        <ProfileCardHeightScaler maxHeight={layout.maxHeight} parallaxEnabled={parallaxEnabled}>
-          <ProfileParallaxCard enabled={!!parallaxEnabled && !editMode}>{children}</ProfileParallaxCard>
+        <ProfileCardHeightScaler
+          maxHeight={layout.maxHeight}
+          parallaxEnabled={parallaxEnabled}
+          blurActive={settings.profile_blur > 0}
+        >
+          <ProfileParallaxCard enabled={!!parallaxEnabled && !editMode} blurActive={settings.profile_blur > 0}>
+            {children}
+          </ProfileParallaxCard>
         </ProfileCardHeightScaler>
       </div>
     </>
