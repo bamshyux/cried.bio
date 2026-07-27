@@ -1,5 +1,9 @@
-import { getBadgesByProfileId } from "@/lib/data/badges";
+import { getBadgeIdsBySlugs, getBadgesByProfileId, profileHasBadge } from "@/lib/data/badges";
 import { createNotification } from "@/lib/data/notifications";
+import {
+  ACCOUNT_1YR_BADGE_SLUG,
+  isAccountAtLeastOneYearOld,
+} from "@/lib/badges/milestones";
 import { createClient } from "@/lib/supabase/server";
 
 /** Award view, follower, and account-age milestone badges. Idempotent. */
@@ -14,7 +18,7 @@ export async function syncAllMilestoneBadges(profileId: string): Promise<void> {
 
   if (error) {
     if (/sync_all_milestone_badges/i.test(error.message)) {
-      await supabase.rpc("sync_view_milestone_badges", { p_profile_id: profileId });
+      await syncMilestoneBadgesFallback(profileId);
       await notifyNewMilestoneBadges(profileId, beforeIds);
       return;
     }
@@ -23,6 +27,37 @@ export async function syncAllMilestoneBadges(profileId: string): Promise<void> {
   }
 
   await notifyNewMilestoneBadges(profileId, beforeIds);
+}
+
+async function syncMilestoneBadgesFallback(profileId: string): Promise<void> {
+  const supabase = await createClient();
+  await supabase.rpc("sync_view_milestone_badges", { p_profile_id: profileId });
+  await syncAccountAgeBadge(profileId);
+}
+
+async function syncAccountAgeBadge(profileId: string): Promise<void> {
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("created_at")
+    .eq("id", profileId)
+    .maybeSingle();
+
+  if (!profile?.created_at || !isAccountAtLeastOneYearOld(profile.created_at)) return;
+
+  const badgeIds = await getBadgeIdsBySlugs([ACCOUNT_1YR_BADGE_SLUG]);
+  const badgeId = badgeIds.get(ACCOUNT_1YR_BADGE_SLUG);
+  if (!badgeId || (await profileHasBadge(profileId, badgeId))) return;
+
+  const { error } = await supabase.from("profile_badges").insert({
+    profile_id: profileId,
+    badge_id: badgeId,
+    award_source: "analytics",
+  });
+
+  if (error && error.code !== "23505") {
+    console.error("[badges] syncAccountAgeBadge failed:", error.message);
+  }
 }
 
 async function notifyNewMilestoneBadges(profileId: string, beforeIds: Set<string>) {

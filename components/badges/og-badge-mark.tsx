@@ -40,7 +40,7 @@ export function OgBadgeMark({
       )}
 
       {/* Roof */}
-      <path d="M12 2.6 20.6 10.4H3.4L12 2.6z" fill={roofFill} />
+      <path d="M12 2.6 20.6 10.4H3.4L12 2.6z" fill={roofFill} opacity={monochrome ? 0.88 : 1} />
 
       {/* Chimney */}
       <path d="M15.8 5.2h2.1v4.8h-2.1V5.2z" fill={wallFill} />
@@ -62,12 +62,13 @@ export function OgBadgeMark({
       <path
         d="M10.35 14.8a1.65 1.65 0 0 1 3.3 0V21H10.35v-6.2z"
         fill={trim}
+        opacity={monochrome ? 0.5 : 1}
       />
-      <circle cx="12" cy="17.8" r="0.55" fill={accent} opacity={monochrome ? 0.8 : 1} />
+      <circle cx="12" cy="17.8" r="0.55" fill={accent} opacity={monochrome ? 0.65 : 1} />
 
       {/* Windows */}
-      <rect x="6.6" y="12.1" width="2.5" height="2.5" rx="0.45" fill={trim} opacity="0.92" />
-      <rect x="14.9" y="12.1" width="2.5" height="2.5" rx="0.45" fill={trim} opacity="0.92" />
+      <rect x="6.6" y="12.1" width="2.5" height="2.5" rx="0.45" fill={trim} opacity={monochrome ? 0.5 : 0.92} />
+      <rect x="14.9" y="12.1" width="2.5" height="2.5" rx="0.45" fill={trim} opacity={monochrome ? 0.5 : 0.92} />
 
       {/* Window crossbars + warm glow */}
       <path

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { syncFounderBadges, syncSignupBadgesAction } from "@/app/actions/badges";
+import { syncFounderBadges, syncMilestoneBadges } from "@/app/actions/badges";
 import { GlobalSiteBanner } from "@/components/admin/global-site-banner";
 import { DashboardLayoutBody } from "@/components/dashboard/dashboard-layout-body";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
@@ -25,7 +25,7 @@ export default async function DashboardLayout({
 
   const userId = data.claims.sub as string;
   await syncFounderBadges(userId);
-  await syncSignupBadgesAction(userId);
+  await syncMilestoneBadges(userId);
   const { ensurePremiumDowngraded } = await import("@/lib/premium/sync");
   await ensurePremiumDowngraded(userId);
   const { syncActivePresetScheduleAction } = await import("@/app/actions/preset-schedules");

@@ -93,6 +93,17 @@ export function ProfileBadgeIcon({
     );
   }
 
+  if (monochrome) {
+    return (
+      <span
+        className={`bf-profile-badge-icon-wrap--mono inline-flex items-center justify-center ${className}`.trim()}
+        style={{ width: size, height: size, lineHeight: 0, color: fillColor }}
+      >
+        {icon}
+      </span>
+    );
+  }
+
   if (isSummer) {
     return (
       <span

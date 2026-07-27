@@ -2250,6 +2250,29 @@ body,
   display: none;
 }
 
+/* Monochrome badges — flat icons, no bloom or pulse */
+.bf-badge-medallion--mono .bf-self-glow__bloom {
+  display: none !important;
+}
+
+.bf-badge-medallion--mono .bf-self-glow,
+.bf-badge-medallion--mono .bf-self-glow__surface,
+.bf-badge-medallion--mono .bf-profile-badge-icon,
+.bf-badge-medallion--mono .bf-verified-badge {
+  filter: none !important;
+  animation: none !important;
+}
+
+.bf-profile-badge-icon-wrap--mono .bf-profile-badge-icon,
+.bf-profile-badge-icon-wrap--mono .bf-verified-badge {
+  filter: none !important;
+}
+
+.bf-profile-badge-icon-wrap--mono .bf-profile-badge-icon--photo {
+  filter: brightness(0) saturate(100%);
+  opacity: 0.9;
+}
+
 .bf-profile-badge-icon {
   display: block;
   transition: filter 0.22s ease;
@@ -2257,6 +2280,10 @@ body,
 
 .bf-badge-medallion--featured .bf-profile-badge-icon {
   animation: bf-badge-icon-pulse 2.6s ease-in-out infinite;
+}
+
+.bf-badge-medallion--featured.bf-badge-medallion--mono .bf-profile-badge-icon {
+  animation: none !important;
 }
 
 .bf-badge-medallion--milestone:not(.bf-badge-medallion--mono)[data-badge-slug="og"] .bf-profile-badge-icon {
