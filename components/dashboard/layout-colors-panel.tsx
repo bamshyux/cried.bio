@@ -1,6 +1,6 @@
 "use client";
 
-import { ColorField } from "@/components/dashboard/form-fields";
+import { ColorField, buttonSecondaryClassName } from "@/components/dashboard/form-fields";
 import {
   getLayoutColorSlotDefault,
   getLayoutColorSlotLabel,
@@ -25,6 +25,14 @@ export function readLayoutColorFields(settings: ProfileSettings): LayoutColorFie
     layout_primary_color: settings.layout_primary_color,
     layout_secondary_color: settings.layout_secondary_color,
     layout_tertiary_color: settings.layout_tertiary_color,
+  };
+}
+
+export function clearLayoutColorOverrides(): LayoutColorFields {
+  return {
+    layout_primary_color: "",
+    layout_secondary_color: "",
+    layout_tertiary_color: "",
   };
 }
 
@@ -101,20 +109,16 @@ export function LayoutColorsPanel({
           );
         })}
       </div>
-      {hasOverrides ? (
-        <button
-          type="button"
-          onClick={() =>
-            onPatch({
-              layout_primary_color: "",
-              layout_secondary_color: "",
-              layout_tertiary_color: "",
-            })
-          }
-          className="mt-4 text-xs font-medium text-neutral-500 transition-colors hover:text-neutral-300"
-        >
-          Reset all layout colors
-        </button>
+      <button
+        type="button"
+        onClick={() => onPatch(clearLayoutColorOverrides())}
+        disabled={!hasOverrides}
+        className={`${buttonSecondaryClassName} mt-4 w-full disabled:cursor-not-allowed disabled:opacity-45`}
+      >
+        Use original colors
+      </button>
+      {!hasOverrides ? (
+        <p className="mt-2 text-center text-[11px] text-neutral-600">This layout is using its original palette.</p>
       ) : null}
     </div>
   );
