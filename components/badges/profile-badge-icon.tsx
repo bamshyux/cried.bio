@@ -35,7 +35,7 @@ export function ProfileBadgeIcon({
   const isOg = slug === "og" && !hasCustomImage;
   const isSummer = isSummer2026BadgeSlug(slug) && !hasCustomImage;
   const fillColor = monochrome ? "#e4e4e7" : isSummer ? SUMMER_2026_BADGE_COLOR : color;
-  const glowStrength = isSummer ? 0.42 : isOg ? 0.22 : getBadgeSelfGlowStrength({ hovered, featured });
+  const glowStrength = isOg ? 0.22 : getBadgeSelfGlowStrength({ hovered, featured });
 
   let icon: ReactNode;
 
@@ -68,7 +68,18 @@ export function ProfileBadgeIcon({
     );
   }
 
-  const glowColor = isVerified ? VERIFIED_COLOR : isSummer ? "#f97316" : fillColor;
+  const glowColor = isVerified ? VERIFIED_COLOR : fillColor;
+
+  if (isSummer) {
+    return (
+      <span
+        className={`bf-profile-badge-icon-wrap--summer inline-flex items-center justify-center ${className}`.trim()}
+        style={{ width: size, height: size, lineHeight: 0 }}
+      >
+        {icon}
+      </span>
+    );
+  }
 
   return (
     <SelfGlow

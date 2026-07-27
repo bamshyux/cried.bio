@@ -2267,19 +2267,8 @@ body,
   animation: bf-badge-milestone-gleam 3.5s ease-in-out infinite;
 }
 
-.bf-badge-medallion--summer .bf-profile-badge-icon,
-.bf-badge-medallion[data-badge-slug="summer-2026"] .bf-profile-badge-icon {
-  animation: bf-badge-summer-gleam 2.8s ease-in-out infinite;
-}
-
-@keyframes bf-badge-summer-gleam {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.55)) brightness(1) saturate(1.05);
-  }
-  50% {
-    filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.75)) brightness(1.12) saturate(1.15);
-  }
+.bf-profile-badge-icon-wrap--summer .bf-profile-badge-icon {
+  filter: brightness(1.06) saturate(1.08);
 }
 
 @keyframes bf-badge-og-gleam {

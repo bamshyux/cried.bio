@@ -129,13 +129,10 @@ export function SummerBadgeClaimModal({ open, onClose, onClaimed }: SummerBadgeC
             </p>
 
             <div className="relative mx-auto mt-8 flex h-32 w-32 items-center justify-center">
-              <div className="bf-summer-claim-orbit pointer-events-none absolute inset-0 rounded-full border border-amber-400/35" aria-hidden />
-              <div className="bf-summer-claim-glow pointer-events-none absolute inset-2 rounded-full bg-amber-400/25 blur-2xl" aria-hidden />
               <BadgeMedallion
                 badge={{ slug: "summer-2026", color: SUMMER_2026_BADGE_COLOR, rarity: "epic" }}
                 size={72}
-                hovered
-                glowEnabled
+                glowEnabled={false}
               />
             </div>
 
