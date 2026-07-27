@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, type ReactNode } from "react";
+import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { CriedLogo } from "@/components/brand/logo";
 import type { PageNavPosition } from "@/lib/types/settings";
 
@@ -28,6 +28,7 @@ export function ProfileSiteChrome({
   mainClassName = "",
   centerContent = true,
   backdrop,
+  shellStyle,
   children,
 }: {
   navPosition: PageNavPosition;
@@ -35,6 +36,7 @@ export function ProfileSiteChrome({
   mainClassName?: string;
   centerContent?: boolean;
   backdrop?: ReactNode;
+  shellStyle?: CSSProperties;
   children: ReactNode;
 }) {
   const showNav = siteNav && navPosition !== "hidden";
@@ -138,7 +140,7 @@ export function ProfileSiteChrome({
       {fixedLogo}
       {sideRail}
       {bottomBar}
-      <div ref={shellRef} className="bf-profile-viewport-shell">
+      <div ref={shellRef} className="bf-profile-viewport-shell" style={shellStyle}>
         {backdrop}
         {topBar}
         <main

@@ -115,7 +115,8 @@ export function PublicContentPageClient({
           siteNav={siteNav}
           centerContent={false}
           mainClassName="!items-start !justify-center !py-24 sm:!py-28"
-          backdrop={<ProfileBackground settings={settings} contained />}
+          shellStyle={{ backgroundColor: settings.background_color }}
+          backdrop={<ProfileBackground settings={settings} />}
         >
           <div ref={pageRevealRef} className="mx-auto w-full max-w-2xl overflow-visible">
             <CardBorderEffect

@@ -952,7 +952,8 @@ export function PublicProfileClient({
           <ProfileSiteChrome
             navPosition={settings.page_nav_position}
             siteNav={siteNav}
-            backdrop={<ProfileBackground settings={settings} contained />}
+            shellStyle={{ backgroundColor: settings.background_color }}
+            backdrop={<ProfileBackground settings={settings} />}
           >
             <div
               ref={profileRevealRef}
