@@ -1,6 +1,7 @@
 "use client";
 
 import { BadgeRow } from "@/components/badges/badge-ui";
+import { colorAlpha, layoutColorStyle, resolveLayoutColors } from "@/lib/layout-colors";
 import { resolveLayoutLabel } from "@/lib/layout-labels";
 import { ProfileBio } from "./profile-bio";
 import { ProfileAvatar, ProfileHandle, ProfileMainContent, ProfileMeta, Username, bannerTopRadius, getDisplayName, getLayoutBadges, type LayoutProps } from "./layout-primitives";
@@ -10,23 +11,27 @@ function VaporwaveLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const label = resolveLayoutLabel(settings);
+  const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full bf-layout-vaporwave w-full overflow-hidden">
+    <div className="w-full bf-layout-vaporwave w-full overflow-hidden" style={layoutColorStyle(settings)}>
       <div
         className="relative px-6 py-8"
         style={{
           background: `linear-gradient(180deg, ${settings.accent_color}22 0%, transparent 55%), repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 40px), repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 40px)`,
         }}
       >
-        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-[#ff71ce]">{label}</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.4em]" style={{ color: colors.primary }}>{label}</p>
         <div className="-skew-x-6 mt-3 bf-profile-name-row">
           <Username name={displayName} settings={settings} profile={profile} className="text-4xl font-black italic tracking-tight text-white sm:text-5xl" />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
         <ProfileHandle profile={profile} className="mt-2 skew-x-6" />
       </div>
-      <div className="h-1 bg-gradient-to-r from-[#ff71ce] via-[#01cdfe] to-[#05ffa1]" />
+      <div
+        className="h-1"
+        style={{ background: `linear-gradient(to right, ${colors.primary}, ${colors.secondary}, ${colors.tertiary})` }}
+      />
       <div className="px-6 py-6">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent {...props} />
@@ -203,18 +208,19 @@ function TwitchLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const label = resolveLayoutLabel(settings);
+  const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full overflow-hidden">
-      <div className="flex items-center gap-2 bg-[#9146ff]/20 px-4 py-2">
+    <div className="w-full overflow-hidden" style={layoutColorStyle(settings)}>
+      <div className="flex items-center gap-2 px-4 py-2" style={{ backgroundColor: colorAlpha(colors.primary, 0.2) }}>
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
         </span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[#bf94ff]">{label}</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: colors.secondary }}>{label}</span>
       </div>
       <div className="flex gap-4 p-5 bf-profile-avatar-row">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor="#9146ff" className="h-16 w-16 shrink-0" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="h-16 w-16 shrink-0" />
         <div>
           <div className="bf-profile-name-row">
             <Username name={displayName} settings={settings} profile={profile} className="text-xl font-bold text-white" />
@@ -224,7 +230,7 @@ function TwitchLayout(props: LayoutProps) {
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mb-0 mt-2" />
         </div>
       </div>
-      <div className="border-t border-[#9146ff]/20 px-5 py-5">
+      <div className="border-t px-5 py-5" style={{ borderColor: colorAlpha(colors.primary, 0.2) }}>
         <ProfileMainContent {...props} />
       </div>
     </div>
@@ -280,25 +286,34 @@ function BlueprintLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const label = resolveLayoutLabel(settings);
+  const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full bf-layout-blueprint w-full border border-[#4a9eff]/40 p-6 font-mono text-[#b8d4ff]" style={{
+    <div
+      className="w-full bf-layout-blueprint w-full border p-6 font-mono"
+      style={{
+        ...layoutColorStyle(settings),
+        borderColor: colorAlpha(colors.primary, 0.4),
         background: "#0a1628",
-        backgroundImage: "linear-gradient(rgba(74,158,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(74,158,255,0.08) 1px, transparent 1px)",
+        color: colors.secondary,
+        backgroundImage: `linear-gradient(${colorAlpha(colors.primary, 0.08)} 1px, transparent 1px), linear-gradient(90deg, ${colorAlpha(colors.primary, 0.08)} 1px, transparent 1px)`,
         backgroundSize: "20px 20px",
-      }}>
-      <p className="text-[9px] uppercase tracking-[0.3em] text-[#4a9eff]">
+      }}
+    >
+      <p className="text-[9px] uppercase tracking-[0.3em]" style={{ color: colors.primary }}>
         Rev. {profile.uid ?? "001"} · {label}
       </p>
       <div className="mt-4 flex flex-wrap items-start gap-4 bf-profile-avatar-row">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor="#4a9eff" className="h-16 w-16 shrink-0" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="h-16 w-16 shrink-0" />
         <div>
           <Username name={displayName} settings={settings} profile={profile} className="text-xl font-bold uppercase tracking-wide text-white" />
-          <ProfileHandle profile={profile} className="text-[#4a9eff]/70" />
+          <div style={{ color: colorAlpha(colors.primary, 0.7) }}>
+            <ProfileHandle profile={profile} className="text-inherit" />
+          </div>
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
       </div>
-      <div className="mt-5 border border-dashed border-[#4a9eff]/30 p-4">
+      <div className="mt-5 border border-dashed p-4" style={{ borderColor: colorAlpha(colors.primary, 0.3) }}>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent {...props} />
       </div>
@@ -310,11 +325,12 @@ function ComicLayout(props: LayoutProps) {
   const { profile, settings, badges, viewCount } = props;
   const displayName = getDisplayName(profile);
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
+  const colors = resolveLayoutColors(settings);
   const outerRadius = Math.max(settings.border_radius, 12);
   const innerRadius = Math.max(outerRadius - 6, 4);
 
   return (
-    <div className="w-full overflow-hidden bg-[#fef08a] p-1.5 text-black" style={{ borderRadius: outerRadius }}>
+    <div className="w-full overflow-hidden p-1.5 text-black" style={{ backgroundColor: colors.primary, borderRadius: outerRadius }}>
       <div
         className="overflow-hidden border-2 border-black bg-white p-5"
         style={{ borderRadius: innerRadius }}
@@ -352,13 +368,14 @@ function CyberpunkLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const label = resolveLayoutLabel(settings);
+  const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full bf-layout-cyberpunk relative w-full overflow-hidden p-6">
+    <div className="w-full bf-layout-cyberpunk relative w-full overflow-hidden p-6" style={layoutColorStyle(settings)}>
       <div className="pointer-events-none absolute inset-0 opacity-[0.04] bf-cyber-scanlines" />
       <div className="relative">
         <div className="flex items-stretch gap-2.5">
-          <div className="w-1 shrink-0 rounded-sm" style={{ background: settings.accent_color }} />
+          <div className="w-1 shrink-0 rounded-sm" style={{ background: colors.primary }} />
           <div className="min-w-0 flex-1">
             <p className="text-[9px] font-mono uppercase tracking-[0.4em] text-neutral-500">// {label}</p>
             <Username
@@ -368,7 +385,7 @@ function CyberpunkLayout(props: LayoutProps) {
               className="mt-0.5 text-3xl font-black uppercase tracking-tight"
               style={
                 settings.username_effect === "none"
-                  ? { color: settings.accent_color }
+                  ? { color: colors.primary }
                   : undefined
               }
             />
@@ -569,7 +586,7 @@ function AuroraLayout(props: LayoutProps) {
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="w-full overflow-hidden">
+    <div className="w-full overflow-hidden" style={layoutColorStyle(settings)}>
       <div className="bf-layout-aurora relative px-6 py-10">
         <div className="bf-profile-avatar-row mb-4 flex justify-center">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
@@ -592,9 +609,10 @@ function HologramLayout(props: LayoutProps) {
   const { profile, settings, badges, viewCount } = props;
   const displayName = getDisplayName(profile);
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
+  const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full bf-layout-hologram w-full overflow-hidden p-[2px]" style={{ borderRadius: settings.border_radius }}>
+    <div className="w-full bf-layout-hologram w-full overflow-hidden p-[2px]" style={{ ...layoutColorStyle(settings), borderRadius: settings.border_radius }}>
       <div className="bg-[#0a0a0a]/95 px-6 py-8" style={{ borderRadius: Math.max(settings.border_radius - 2, 0) }}>
         <div className="bf-profile-avatar-row mb-4 flex justify-center">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />
@@ -604,7 +622,8 @@ function HologramLayout(props: LayoutProps) {
             name={displayName}
             settings={settings}
             profile={profile}
-            className="bg-gradient-to-r from-[#ff71ce] via-[#01cdfe] to-[#05ffa1] bg-clip-text text-3xl font-bold text-transparent"
+            className="bg-clip-text text-3xl font-bold text-transparent"
+            style={{ backgroundImage: `linear-gradient(to right, ${colors.primary}, ${colors.secondary}, ${colors.tertiary})` }}
           />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>

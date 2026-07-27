@@ -17,6 +17,9 @@ export type CustomizeFormState = {
   font_family: string;
   content_alignment: ContentAlignment;
   layout_label: string;
+  layout_primary_color: string;
+  layout_secondary_color: string;
+  layout_tertiary_color: string;
   border_radius: number;
   profile_opacity: number;
   profile_blur: number;
@@ -42,6 +45,9 @@ function mergePreviewSettings(
     font_family: form.font_family,
     content_alignment: form.content_alignment,
     layout_label: form.layout_label,
+    layout_primary_color: form.layout_primary_color,
+    layout_secondary_color: form.layout_secondary_color,
+    layout_tertiary_color: form.layout_tertiary_color,
     border_radius: form.border_radius,
     profile_opacity: form.profile_opacity,
     profile_blur: form.profile_blur,

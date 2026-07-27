@@ -369,6 +369,9 @@ export type ProfileSettings = {
   enter_gate_card_opacity: number;
   enter_gate_font_family: string;
   layout_label: string;
+  layout_primary_color: string;
+  layout_secondary_color: string;
+  layout_tertiary_color: string;
   hide_card_border: boolean;
   card_border_effect: CardBorderEffectPreset;
   card_border_thickness: number;

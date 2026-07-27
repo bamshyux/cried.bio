@@ -6,6 +6,7 @@ import {
   getGoogleFontsUrl,
   getProfileAlignClass,
 } from "@/lib/settings";
+import { layoutColorStyle, resolveLayoutColors } from "@/lib/layout-colors";
 import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfileLink } from "@/lib/types/link";
 import type { Profile } from "@/lib/types/profile";
@@ -368,14 +369,16 @@ function CardLayout({ profile, links, settings, badges, viewCount, embeds, featu
 function NeonLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
+  const colors = resolveLayoutColors(settings);
 
   return (
     <div
       className="w-full overflow-hidden p-[1px]"
       style={{
+        ...layoutColorStyle(settings),
         borderRadius: settings.border_radius,
-        background: `linear-gradient(135deg, ${settings.accent_color}, ${settings.accent_color}40, ${settings.accent_color})`,
-        boxShadow: `0 0 40px ${settings.accent_color}30, 0 0 80px ${settings.accent_color}15`,
+        background: `linear-gradient(135deg, ${colors.primary}, ${colors.primary}40, ${colors.primary})`,
+        boxShadow: `0 0 40px ${colors.primary}30, 0 0 80px ${colors.primary}15`,
       }}
     >
       <div className="overflow-visible p-6" style={{ borderRadius: Math.max(settings.border_radius - 1, 0) }}>
@@ -651,10 +654,11 @@ function ShowcaseLayout({ profile, links, settings, badges, viewCount, embeds, f
 function RetroLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
+  const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full bf-retro-window overflow-hidden">
-      <div className="flex items-center justify-between bg-gradient-to-r from-[#000080] to-[#1084d0] px-2 py-1">
+    <div className="w-full bf-retro-window overflow-hidden" style={layoutColorStyle(settings)}>
+      <div className="flex items-center justify-between px-2 py-1" style={{ background: `linear-gradient(to right, ${colors.primary}, ${colors.secondary})` }}>
         <span className="truncate text-[11px] font-bold text-white">Profile.exe — {displayName}</span>
         <div className="flex shrink-0 gap-0.5">
           <span className="flex h-4 w-4 items-center justify-center border border-[#404040] bg-[#c0c0c0] text-[9px] leading-none text-black">_</span>
@@ -727,26 +731,27 @@ function PosterLayout({ profile, links, settings, badges, viewCount, embeds, fea
 function GlassLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
+  const colors = resolveLayoutColors(settings);
 
   return (
     <div
       className="relative w-full overflow-hidden px-6 py-10"
-      style={{ borderRadius: settings.border_radius }}
+      style={{ borderRadius: settings.border_radius, ...layoutColorStyle(settings) }}
     >
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         <div
           className="absolute inset-0"
           style={{
             background: [
-              `radial-gradient(circle at 0% 0%, color-mix(in srgb, ${settings.accent_color} 42%, transparent) 0%, transparent 58%)`,
-              `radial-gradient(circle at 100% 100%, color-mix(in srgb, ${settings.gradient_colors[1] ?? settings.accent_color} 28%, transparent) 0%, transparent 52%)`,
+              `radial-gradient(circle at 0% 0%, color-mix(in srgb, ${colors.primary} 42%, transparent) 0%, transparent 58%)`,
+              `radial-gradient(circle at 100% 100%, color-mix(in srgb, ${colors.secondary} 28%, transparent) 0%, transparent 52%)`,
             ].join(", "),
           }}
         />
       </div>
       <div className="relative flex flex-col items-center text-center">
         <div className="bf-profile-avatar-row mb-4 flex">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="h-24 w-24" />
         </div>
         <div className="relative z-10 bf-profile-name-row overflow-visible">
           <Username name={displayName} settings={settings} profile={profile} />

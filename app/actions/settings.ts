@@ -250,6 +250,9 @@ function parseSectionUpdates(
           ? String(formData.get("content_alignment"))
           : existing.content_alignment) as import("@/lib/types/settings").ContentAlignment,
         layout_label: String(formData.get("layout_label") ?? existing.layout_label).slice(0, 64),
+        layout_primary_color: String(formData.get("layout_primary_color") ?? existing.layout_primary_color).slice(0, 32),
+        layout_secondary_color: String(formData.get("layout_secondary_color") ?? existing.layout_secondary_color).slice(0, 32),
+        layout_tertiary_color: String(formData.get("layout_tertiary_color") ?? existing.layout_tertiary_color).slice(0, 32),
         hide_card_border: parseBool(formData.get("hide_card_border")),
         card_border_effect: parseCardBorderEffect(
           String(formData.get("card_border_effect") ?? existing.card_border_effect),
