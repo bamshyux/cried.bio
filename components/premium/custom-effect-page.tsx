@@ -59,6 +59,7 @@ const CONTACT_OPTIONS = [
     description: "Reach bamshy directly for premium requests.",
     action: "Message bamshy on Discord.",
     hint: "Username: bamshy",
+    note: "Less likely to respond here — I don't see all of my message requests.",
     external: false,
   },
 ] as const;
@@ -262,6 +263,9 @@ export function CustomEffectPage({
                 </p>
                 {"hint" in option && option.hint ? (
                   <p className="mt-2 text-xs text-amber-400/80">{option.hint}</p>
+                ) : null}
+                {"note" in option && option.note ? (
+                  <p className="mt-2 text-xs leading-relaxed text-neutral-500">{option.note}</p>
                 ) : null}
               </div>
             ))}
