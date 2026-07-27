@@ -7072,16 +7072,17 @@ body,
   }
 }
 
-/* Profile card frosted backdrop — blur is independent of card opacity */
-.bf-profile-card-frame {
-  isolation: isolate;
-}
-
+/* Profile card frosted backdrop — blur samples the page behind the card */
 .bf-profile-card-backdrop {
   z-index: 0;
 }
 
-.bf-profile-card-backdrop--active {
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+/* Let the blurred page background show through layout shells */
+.bf-profile-card-frame--blur .bf-profile-card-content > .w-full,
+.bf-profile-card-frame--blur .profile-card-height-scaler__content > .w-full,
+.bf-profile-card-frame--blur .bf-cbe__inner > *,
+.bf-profile-card-frame--blur .profile-parallax-card > * {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
 }

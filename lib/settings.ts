@@ -770,8 +770,8 @@ export function buildCardStyles(settings: ProfileSettings): {
   };
 
   if (shouldBlur) {
-    backdrop.backdropFilter = `blur(${blur}px)`;
-    backdrop.WebkitBackdropFilter = `blur(${blur}px)`;
+    backdrop.backdropFilter = `blur(${blur}px) saturate(1.1)`;
+    backdrop.WebkitBackdropFilter = `blur(${blur}px) saturate(1.1)`;
   }
 
   return { shell, backdrop };

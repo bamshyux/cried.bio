@@ -336,17 +336,25 @@ export function ProfileCardFrame({
   const radius = mergedShell.borderRadius ?? settings.border_radius;
   const hasBlur = settings.profile_blur > 0;
 
+  const frameStyle: CSSProperties = {
+    ...mergedShell,
+    borderRadius: radius,
+    ...(hasBlur ? { ...backdrop, ...backdropStyle } : {}),
+  };
+
   return (
     <div
-      className={`bf-profile-card-frame relative w-full overflow-visible ${className}`.trim()}
-      style={{ ...mergedShell, isolation: "isolate" }}
+      className={`bf-profile-card-frame relative w-full overflow-hidden ${hasBlur ? "bf-profile-card-frame--blur" : ""} ${className}`.trim()}
+      style={frameStyle}
     >
-      <div
-        className={`bf-profile-card-backdrop pointer-events-none absolute inset-0 ${hasBlur ? "bf-profile-card-backdrop--active" : ""}`}
-        style={{ ...backdrop, ...backdropStyle, borderRadius: radius }}
-        aria-hidden
-      />
-      <div className="relative z-[1]">{children}</div>
+      {!hasBlur ? (
+        <div
+          className="bf-profile-card-backdrop pointer-events-none absolute inset-0"
+          style={{ ...backdrop, ...backdropStyle, borderRadius: radius }}
+          aria-hidden
+        />
+      ) : null}
+      <div className="bf-profile-card-content relative z-[1]">{children}</div>
     </div>
   );
 }
