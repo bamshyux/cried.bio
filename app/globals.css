@@ -468,6 +468,27 @@ body,
     radial-gradient(ellipse 60% 40% at 50% 80%, color-mix(in srgb, var(--bf-layout-tertiary, #ff64c8) 20%, transparent), transparent 55%);
 }
 
+.bf-profile-card-content[data-hide-layout-border="true"] .bf-layout-removable-border {
+  border-width: 0 !important;
+  border-color: transparent !important;
+  outline: none !important;
+}
+
+.bf-profile-card-content[data-hide-layout-border="true"] .bf-layout-removable-border.bf-layout-neon-frame,
+.bf-profile-card-content[data-hide-layout-border="true"] .bf-layout-removable-border.bf-layout-hologram {
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.bf-profile-card-content[data-hide-layout-border="true"] .bf-layout-monarch-corner {
+  display: none !important;
+}
+
+.bf-profile-card-content[data-hide-layout-border="true"] .bf-layout-monarch-shimmer {
+  opacity: 0 !important;
+}
+
 .bf-layout-hologram {
   background: linear-gradient(
     135deg,

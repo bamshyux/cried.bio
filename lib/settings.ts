@@ -149,6 +149,7 @@ export const DEFAULT_SETTINGS: Omit<
   layout_primary_color: "",
   layout_secondary_color: "",
   layout_tertiary_color: "",
+  layout_hide_border: false,
   hide_card_border: false,
   card_border_effect: "none",
   card_border_thickness: 2,
@@ -701,6 +702,7 @@ export function mergeSettings(
     layout_primary_color: row?.layout_primary_color ?? DEFAULT_SETTINGS.layout_primary_color,
     layout_secondary_color: row?.layout_secondary_color ?? DEFAULT_SETTINGS.layout_secondary_color,
     layout_tertiary_color: row?.layout_tertiary_color ?? DEFAULT_SETTINGS.layout_tertiary_color,
+    layout_hide_border: row?.layout_hide_border ?? DEFAULT_SETTINGS.layout_hide_border,
     hide_card_border: row?.hide_card_border ?? DEFAULT_SETTINGS.hide_card_border,
     card_border_effect:
       (row?.card_border_effect ?? DEFAULT_SETTINGS.card_border_effect) as import("@/lib/types/settings").CardBorderEffectPreset,

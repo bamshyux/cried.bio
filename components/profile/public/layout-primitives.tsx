@@ -2,6 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import type { ReactNode } from "react";
+import { layoutHideBorderActive } from "@/lib/layout-colors";
 import {
   buildCardStyle,
   buildCardStyles,
@@ -350,7 +351,12 @@ export function ProfileCardFrame({
           aria-hidden
         />
       ) : null}
-      <div className="bf-profile-card-content relative z-[1]">{children}</div>
+      <div
+        className="bf-profile-card-content relative z-[1]"
+        data-hide-layout-border={layoutHideBorderActive(settings) ? "true" : undefined}
+      >
+        {children}
+      </div>
     </div>
   );
 }

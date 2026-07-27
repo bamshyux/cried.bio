@@ -1,7 +1,7 @@
 "use client";
 
 import { BadgeRow } from "@/components/badges/badge-ui";
-import { colorAlpha, layoutColorStyle, resolveLayoutColors } from "@/lib/layout-colors";
+import { colorAlpha, layoutColorStyle, layoutRootClass, resolveLayoutColors } from "@/lib/layout-colors";
 import { resolveLayoutLabel } from "@/lib/layout-labels";
 import { ProfileBio } from "./profile-bio";
 import { ProfileAvatar, ProfileHandle, ProfileMainContent, ProfileMeta, Username, bannerTopRadius, getDisplayName, getLayoutBadges, type LayoutProps } from "./layout-primitives";
@@ -14,7 +14,7 @@ function VaporwaveLayout(props: LayoutProps) {
   const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full bf-layout-vaporwave w-full overflow-hidden" style={layoutColorStyle(settings)}>
+    <div className={layoutRootClass(settings, "w-full bf-layout-vaporwave w-full overflow-hidden")} style={layoutColorStyle(settings)}>
       <div
         className="relative px-6 py-8"
         style={{
@@ -46,7 +46,7 @@ function BrutalistLayout(props: LayoutProps) {
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="w-full border-4 border-white bg-[#090909] p-0" style={{ borderRadius: Math.min(settings.border_radius, 4) }}>
+    <div className={layoutRootClass(settings, "w-full border-4 border-white bg-[#090909] p-0")} style={{ borderRadius: Math.min(settings.border_radius, 4) }}>
       <div className="border-b-4 border-white px-6 py-8">
         <Username name={displayName} settings={settings} profile={profile} className="text-5xl font-black uppercase leading-[0.85] tracking-tighter text-white sm:text-6xl" />
         <ProfileHandle profile={profile} className="mt-3 text-white/60" />
@@ -211,7 +211,7 @@ function TwitchLayout(props: LayoutProps) {
   const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full overflow-hidden" style={layoutColorStyle(settings)}>
+    <div className={layoutRootClass(settings, "w-full overflow-hidden")} style={layoutColorStyle(settings)}>
       <div className="flex items-center gap-2 px-4 py-2" style={{ backgroundColor: colorAlpha(colors.primary, 0.2) }}>
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
@@ -290,7 +290,7 @@ function BlueprintLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full bf-layout-blueprint w-full border p-6 font-mono"
+      className={layoutRootClass(settings, "w-full bf-layout-blueprint w-full border p-6 font-mono")}
       style={{
         ...layoutColorStyle(settings),
         borderColor: colorAlpha(colors.primary, 0.4),
@@ -330,7 +330,7 @@ function ComicLayout(props: LayoutProps) {
   const innerRadius = Math.max(outerRadius - 6, 4);
 
   return (
-    <div className="w-full overflow-hidden p-1.5 text-black" style={{ backgroundColor: colors.primary, borderRadius: outerRadius }}>
+    <div className={layoutRootClass(settings, "w-full overflow-hidden p-1.5 text-black")} style={{ backgroundColor: colors.primary, borderRadius: outerRadius }}>
       <div
         className="overflow-hidden border-2 border-black bg-white p-5"
         style={{ borderRadius: innerRadius }}
@@ -371,7 +371,7 @@ function CyberpunkLayout(props: LayoutProps) {
   const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full bf-layout-cyberpunk relative w-full overflow-hidden p-6" style={layoutColorStyle(settings)}>
+    <div className={layoutRootClass(settings, "w-full bf-layout-cyberpunk relative w-full overflow-hidden p-6")} style={layoutColorStyle(settings)}>
       <div className="pointer-events-none absolute inset-0 opacity-[0.04] bf-cyber-scanlines" />
       <div className="relative">
         <div className="flex items-stretch gap-2.5">
@@ -586,7 +586,7 @@ function AuroraLayout(props: LayoutProps) {
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="w-full overflow-hidden" style={layoutColorStyle(settings)}>
+    <div className={layoutRootClass(settings, "w-full overflow-hidden")} style={layoutColorStyle(settings)}>
       <div className="bf-layout-aurora relative px-6 py-10">
         <div className="bf-profile-avatar-row mb-4 flex justify-center">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
@@ -612,7 +612,7 @@ function HologramLayout(props: LayoutProps) {
   const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full bf-layout-hologram w-full overflow-hidden p-[2px]" style={{ ...layoutColorStyle(settings), borderRadius: settings.border_radius }}>
+    <div className={layoutRootClass(settings, "w-full bf-layout-hologram w-full overflow-hidden p-[2px]")} style={{ ...layoutColorStyle(settings), borderRadius: settings.border_radius }}>
       <div className="bg-[#0a0a0a]/95 px-6 py-8" style={{ borderRadius: Math.max(settings.border_radius - 2, 0) }}>
         <div className="bf-profile-avatar-row mb-4 flex justify-center">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />

@@ -6,7 +6,7 @@ import {
   getGoogleFontsUrl,
   getProfileAlignClass,
 } from "@/lib/settings";
-import { layoutColorStyle, resolveLayoutColors } from "@/lib/layout-colors";
+import { layoutColorStyle, layoutRootClass, resolveLayoutColors } from "@/lib/layout-colors";
 import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfileLink } from "@/lib/types/link";
 import type { Profile } from "@/lib/types/profile";
@@ -373,7 +373,7 @@ function NeonLayout({ profile, links, settings, badges, viewCount, embeds, featu
 
   return (
     <div
-      className="w-full overflow-hidden p-[1px]"
+      className={layoutRootClass(settings, "w-full overflow-hidden p-[1px] bf-layout-neon-frame")}
       style={{
         ...layoutColorStyle(settings),
         borderRadius: settings.border_radius,
@@ -657,7 +657,7 @@ function RetroLayout({ profile, links, settings, badges, viewCount, embeds, feat
   const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full bf-retro-window overflow-hidden" style={layoutColorStyle(settings)}>
+    <div className={layoutRootClass(settings, "w-full bf-retro-window overflow-hidden")} style={layoutColorStyle(settings)}>
       <div className="flex items-center justify-between px-2 py-1" style={{ background: `linear-gradient(to right, ${colors.primary}, ${colors.secondary})` }}>
         <span className="truncate text-[11px] font-bold text-white">Profile.exe — {displayName}</span>
         <div className="flex shrink-0 gap-0.5">
@@ -735,7 +735,7 @@ function GlassLayout({ profile, links, settings, badges, viewCount, embeds, feat
 
   return (
     <div
-      className="relative w-full overflow-hidden px-6 py-10"
+      className={layoutRootClass(settings, "relative w-full overflow-hidden px-6 py-10")}
       style={{ borderRadius: settings.border_radius, ...layoutColorStyle(settings) }}
     >
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>

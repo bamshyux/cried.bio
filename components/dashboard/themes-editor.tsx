@@ -33,6 +33,7 @@ type ThemesFormState = {
   layout_primary_color: string;
   layout_secondary_color: string;
   layout_tertiary_color: string;
+  layout_hide_border: boolean;
 };
 
 function readThemesForm(settings: ProfileSettings, fallbackThemeId: string): ThemesFormState {

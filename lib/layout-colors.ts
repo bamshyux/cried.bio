@@ -304,3 +304,84 @@ export function writeLayoutColorOverride(
   const defaultColor = getLayoutColorSlotDefault(settings, slot);
   return next.trim().toLowerCase() === defaultColor.trim().toLowerCase() ? "" : next.trim();
 }
+
+/** Layouts with a decorative outer border/frame that can be hidden. */
+export const LAYOUTS_WITH_REMOVABLE_BORDER = new Set<ProfileLayout>([
+  "monarch",
+  "glitch",
+  "arcade",
+  "passport",
+  "cassette",
+  "crystal",
+  "nebuladrift",
+  "monolith",
+  "dashboard",
+  "command",
+  "bloom",
+  "stealth",
+  "emberforge",
+  "matrix",
+  "tapewave",
+  "phoenix",
+  "supernova",
+  "neon",
+  "hologram",
+  "brutalist",
+  "blueprint",
+  "comic",
+  "manga",
+  "idcard",
+  "ticket",
+  "newspaper",
+  "discord",
+  "card",
+  "terminal",
+  "gaming",
+  "portfolio",
+  "magazine",
+  "bento",
+  "sidebar",
+  "polaroid",
+  "cinematic",
+  "showcase",
+  "poster",
+  "cyberpunk",
+  "luxury",
+  "receipt",
+  "zine",
+  "orbit",
+  "wave",
+  "mosaic",
+  "aurora",
+  "spotify",
+  "spotlight",
+  "vaporwave",
+  "vinyl",
+  "twitch",
+  "festival",
+  "runway",
+  "samurai",
+  "prismstack",
+  "noir",
+  "liquid",
+  "retro",
+]);
+
+export function layoutSupportsBorderToggle(layout: ProfileLayout): boolean {
+  return LAYOUTS_WITH_REMOVABLE_BORDER.has(layout);
+}
+
+export function layoutHideBorderActive(
+  settings: Pick<ProfileSettings, "layout" | "layout_hide_border">,
+): boolean {
+  return settings.layout_hide_border && layoutSupportsBorderToggle(settings.layout);
+}
+
+export function layoutRootClass(settings: ProfileSettings, className: string): string {
+  if (!layoutSupportsBorderToggle(settings.layout)) return className;
+  return `${className} bf-layout-removable-border`.trim();
+}
+
+export function layoutPanelSupported(layout: ProfileLayout): boolean {
+  return layoutSupportsColorCustomization(layout) || layoutSupportsBorderToggle(layout);
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { BadgeRow } from "@/components/badges/badge-ui";
-import { colorAlpha, layoutColorStyle, resolveLayoutColors } from "@/lib/layout-colors";
+import { colorAlpha, layoutColorStyle, layoutRootClass, resolveLayoutColors } from "@/lib/layout-colors";
 import { resolveLayoutLabel } from "@/lib/layout-labels";
 import { ProfileBio } from "./profile-bio";
 import { ProfileAvatar, ProfileHandle, ProfileMainContent, ProfileMeta, Username, getDisplayName, getLayoutBadges, type LayoutProps } from "./layout-primitives";
@@ -32,7 +32,7 @@ function MonarchLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full bf-layout-monarch relative w-full overflow-hidden border"
+      className={layoutRootClass(settings, "w-full bf-layout-monarch relative w-full overflow-hidden border")}
       style={{
         ...layoutColorStyle(settings),
         borderColor: colorAlpha(colors.primary, 0.45),
@@ -117,7 +117,7 @@ function GlitchLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full bf-layout-glitch-active relative w-full overflow-hidden border"
+      className={layoutRootClass(settings, "w-full bf-layout-glitch-active relative w-full overflow-hidden border")}
       style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.primary, 0.2) }}
     >
       <div
@@ -158,7 +158,7 @@ function NoirLayout(props: LayoutProps) {
   const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full bg-black px-6 py-10" style={{ borderRadius: settings.border_radius }}>
+    <div className={layoutRootClass(settings, "w-full bg-black px-6 py-10")} style={{ borderRadius: settings.border_radius }}>
       <div className="mx-auto mb-6 h-1 max-w-xs bg-white/80" />
       <div className="text-center">
         <Username name={displayName} settings={settings} profile={profile} className="font-serif text-4xl italic tracking-tight text-white" />
@@ -182,7 +182,7 @@ function RunwayLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="w-full grid w-full md:grid-cols-[6px_1fr]">
+    <div className={layoutRootClass(settings, "w-full grid w-full md:grid-cols-[6px_1fr]")}>
       <div className="hidden md:block" style={{ background: `linear-gradient(180deg, ${settings.accent_color}, ${settings.gradient_colors?.[1] ?? settings.accent_color})` }} />
       <div className="p-6 sm:p-8">
         <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-neutral-500">Collection</p>
@@ -203,7 +203,7 @@ function ArcadeLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full bf-layout-arcade-glow w-full overflow-hidden border-4 bg-[#0a0820]"
+      className={layoutRootClass(settings, "w-full bf-layout-arcade-glow w-full overflow-hidden border-4 bg-[#0a0820]")}
       style={{
         ...layoutColorStyle(settings),
         borderColor: colorAlpha(colors.primary, 0.5),
@@ -245,7 +245,7 @@ function PassportLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full mx-auto w-full max-w-lg border-2 bg-[#0c1420]"
+      className={layoutRootClass(settings, "w-full mx-auto w-full max-w-lg border-2 bg-[#0c1420]")}
       style={{ borderColor: colorAlpha(colors.primary, 0.6), borderRadius: settings.border_radius }}
     >
       <div className="flex items-center justify-between border-b px-5 py-3" style={{ borderColor: colorAlpha(colors.primary, 0.4) }}>
@@ -268,7 +268,7 @@ function CassetteLayout(props: LayoutProps) {
   const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full overflow-hidden border-2 border-[#2a2a2a] bg-[#121212] shadow-[inset_0_2px_0_rgba(255,255,255,0.04)]" style={{ borderRadius: settings.border_radius }}>
+    <div className={layoutRootClass(settings, "w-full overflow-hidden border-2 border-[#2a2a2a] bg-[#121212] shadow-[inset_0_2px_0_rgba(255,255,255,0.04)]")} style={{ borderRadius: settings.border_radius }}>
       <div className="border-b border-[#2a2a2a] bg-[#0c0c0c] px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -343,7 +343,7 @@ function CrystalLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full relative w-full overflow-hidden border border-white/10"
+      className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border border-white/10")}
       style={{ ...layoutColorStyle(settings), boxShadow: `0 0 32px ${colorAlpha(colors.primary, 0.12)}` }}
     >
       <div
@@ -378,7 +378,7 @@ function NebuladriftLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full relative w-full overflow-hidden border"
+      className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border")}
       style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.secondary, 0.2) }}
     >
       <div
@@ -419,7 +419,7 @@ function SamuraiLayout(props: LayoutProps) {
   const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full grid w-full md:grid-cols-[1fr_6px]" style={layoutColorStyle(settings)}>
+    <div className={layoutRootClass(settings, "w-full grid w-full md:grid-cols-[1fr_6px]")} style={layoutColorStyle(settings)}>
       <div className="p-6 sm:p-8">
         <p className="font-serif text-[10px] uppercase tracking-[0.4em]" style={{ color: colors.primary }}>
           武士
@@ -445,7 +445,7 @@ function GraffitiLayout(props: LayoutProps) {
   const colors = resolveLayoutColors(settings);
 
   return (
-    <div className="w-full overflow-hidden" style={layoutColorStyle(settings)}>
+    <div className={layoutRootClass(settings, "w-full overflow-hidden")} style={layoutColorStyle(settings)}>
       <div
         className="relative overflow-visible px-5 py-6 sm:px-6"
         style={{ background: `linear-gradient(135deg, ${settings.accent_color}55 0%, transparent 55%), linear-gradient(180deg, rgba(0,0,0,0.15), transparent)` }}
@@ -480,7 +480,7 @@ function MonolithLayout(props: LayoutProps) {
   const accent = settings.accent_color;
 
   return (
-    <div className="w-full relative mx-auto w-full max-w-sm overflow-hidden border border-white/[0.08] shadow-[0_24px_80px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.06)]" style={{
+    <div className={layoutRootClass(settings, "w-full relative mx-auto w-full max-w-sm overflow-hidden border border-white/[0.08] shadow-[0_24px_80px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.06)]")} style={{
         background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))",
       }}>
       <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -518,7 +518,7 @@ function PrismstackLayout(props: LayoutProps) {
   const barColors = [colors.primary, colors.secondary, colors.tertiary, settings.accent_color];
 
   return (
-    <div className="w-full overflow-hidden" style={layoutColorStyle(settings)}>
+    <div className={layoutRootClass(settings, "w-full overflow-hidden")} style={layoutColorStyle(settings)}>
       <div className="bf-layout-prism-animate flex h-3 shadow-[0_4px_20px_rgba(255,255,255,0.08)]">
         {barColors.map((color, index) => (
           <div key={`${color}-${index}`} className="flex-1" style={{ background: color }} />
@@ -542,7 +542,7 @@ function DashboardLayout(props: LayoutProps) {
   const modules = ["Identity", "Links", "Media"];
 
   return (
-    <div className="w-full overflow-hidden border border-white/[0.08]">
+    <div className={layoutRootClass(settings, "w-full overflow-hidden border border-white/[0.08]")}>
       <div className="bf-layout-studio-grid relative border-b border-white/[0.08] px-5 py-4">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -594,7 +594,7 @@ function CommandLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full bf-layout-command relative w-full overflow-hidden border bg-[#030a04] font-mono"
+      className={layoutRootClass(settings, "w-full bf-layout-command relative w-full overflow-hidden border bg-[#030a04] font-mono")}
       style={{
         ...layoutColorStyle(settings),
         borderColor: colorAlpha(colors.primary, 0.3),
@@ -641,7 +641,7 @@ function BloomLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full relative w-full overflow-hidden border"
+      className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border")}
       style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.primary, 0.2) }}
     >
       <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl" style={{ background: `${colors.primary}44` }} />
@@ -674,7 +674,7 @@ function StealthLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full relative w-full overflow-hidden border bg-[#030303] p-5"
+      className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border bg-[#030303] p-5")}
       style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.secondary, 0.4), borderRadius: settings.border_radius }}
     >
       <div
@@ -700,7 +700,7 @@ function FestivalLayout(props: LayoutProps) {
   const label = resolveLayoutLabel(settings) || "ALL ACCESS";
 
   return (
-    <div className="w-full relative mx-auto w-full max-w-md overflow-hidden">
+    <div className={layoutRootClass(settings, "w-full relative mx-auto w-full max-w-md overflow-hidden")}>
       <div className="absolute left-0 top-1/2 h-8 w-4 -translate-y-1/2 rounded-r-full bg-[#090909]" />
       <div className="absolute right-0 top-1/2 h-8 w-4 -translate-y-1/2 rounded-l-full bg-[#090909]" />
       <div className="border-b border-dashed border-white/15 px-6 py-3 text-center">
@@ -722,7 +722,7 @@ function MangaLayout(props: LayoutProps) {
   const displayName = getDisplayName(profile);
 
   return (
-    <div className="w-full border-4 border-white bg-[#fafafa] text-black" style={{ borderRadius: Math.min(settings.border_radius, 4) }}>
+    <div className={layoutRootClass(settings, "w-full border-4 border-white bg-[#fafafa] text-black")} style={{ borderRadius: Math.min(settings.border_radius, 4) }}>
       <div className="border-b-4 border-black p-5">
         <Username name={displayName} settings={settings} profile={profile} className="text-3xl font-black uppercase text-black" />
         <ProfileHandle profile={profile} className="text-black/60" />
@@ -747,7 +747,7 @@ function EmberforgeLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full relative w-full overflow-hidden border"
+      className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border")}
       style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.primary, 0.35) }}
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-28">
@@ -785,7 +785,7 @@ function MatrixLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full relative w-full overflow-hidden border bg-[#020802] font-mono"
+      className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border bg-[#020802] font-mono")}
       style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.primary, 0.25), borderRadius: settings.border_radius }}
     >
       <div className="bf-layout-matrix-rain relative h-28 border-b px-6 py-4" style={{ borderColor: colorAlpha(colors.primary, 0.2) }}>
@@ -808,7 +808,7 @@ function LiquidLayout(props: LayoutProps) {
   const accent = settings.accent_color;
 
   return (
-    <div className="w-full relative w-full overflow-hidden">
+    <div className={layoutRootClass(settings, "w-full relative w-full overflow-hidden")}>
       <div
         className="bf-layout-liquid-blob pointer-events-none absolute left-1/2 top-8 h-40 w-40 -translate-x-1/2 opacity-50 blur-2xl"
         style={{ background: `radial-gradient(circle, ${accent}, ${settings.gradient_colors?.[1] ?? accent})` }}
@@ -830,7 +830,7 @@ function SupernovaLayout(props: LayoutProps) {
   const accent = settings.accent_color;
 
   return (
-    <div className="w-full relative w-full overflow-hidden border border-white/10">
+    <div className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border border-white/10")}>
       <div
         className="bf-layout-supernova-core pointer-events-none absolute left-1/2 top-10 h-36 w-36 -translate-x-1/2 rounded-full blur-2xl"
         style={{ background: `radial-gradient(circle, ${accent}, transparent 70%)` }}
@@ -853,7 +853,7 @@ function TapewaveLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full overflow-hidden border bg-[#071018]"
+      className={layoutRootClass(settings, "w-full overflow-hidden border bg-[#071018]")}
       style={{ ...layoutColorStyle(settings), borderColor: colorAlpha(colors.primary, 0.25), borderRadius: settings.border_radius }}
     >
       <div className="flex h-16 items-end gap-1 border-b px-5 py-3" style={{ borderColor: colorAlpha(colors.primary, 0.2) }}>
@@ -883,7 +883,7 @@ function PhoenixLayout(props: LayoutProps) {
 
   return (
     <div
-      className="w-full relative w-full overflow-hidden border"
+      className={layoutRootClass(settings, "w-full relative w-full overflow-hidden border")}
       style={{
         ...layoutColorStyle(settings),
         borderColor: colorAlpha(colors.primary, 0.3),

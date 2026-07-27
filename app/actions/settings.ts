@@ -340,6 +340,7 @@ function parseSectionUpdates(
         layout_primary_color: String(formData.get("layout_primary_color") ?? existing.layout_primary_color).slice(0, 32),
         layout_secondary_color: String(formData.get("layout_secondary_color") ?? existing.layout_secondary_color).slice(0, 32),
         layout_tertiary_color: String(formData.get("layout_tertiary_color") ?? existing.layout_tertiary_color).slice(0, 32),
+        layout_hide_border: parseBool(formData.get("layout_hide_border")),
         ...(layout === "custom" && customThemeId ? { custom_theme_id: customThemeId } : {}),
       };
     }

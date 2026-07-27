@@ -372,6 +372,7 @@ export type ProfileSettings = {
   layout_primary_color: string;
   layout_secondary_color: string;
   layout_tertiary_color: string;
+  layout_hide_border: boolean;
   hide_card_border: boolean;
   card_border_effect: CardBorderEffectPreset;
   card_border_thickness: number;
