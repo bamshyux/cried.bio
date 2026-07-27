@@ -743,7 +743,7 @@ export function getProfileAlignClass(alignment: ContentAlignment = "left") {
 
 export function buildCardStyle(settings: ProfileSettings): Record<string, string | number | undefined> {
   const opacity = settings.profile_opacity / 100;
-  const blur = settings.profile_blur;
+  const blur = Math.max(0, settings.profile_blur);
   const borderHandledExternally = cardBorderEffectStripsDefaultBorder(settings, "main");
 
   const base: Record<string, string | number | undefined> = {
@@ -756,12 +756,22 @@ export function buildCardStyle(settings: ProfileSettings): Record<string, string
       settings.hide_card_border || borderHandledExternally ? "none" : "0 8px 32px rgba(0,0,0,0.4)",
   };
 
-  if (settings.glassmorphism) {
+  const shouldBlur = blur > 0;
+  const useFrostedBackground = settings.glassmorphism || shouldBlur;
+
+  if (useFrostedBackground) {
+    const backgroundAlpha = settings.glassmorphism ? opacity * 0.85 : opacity;
+    const finalAlpha = shouldBlur ? Math.min(backgroundAlpha, 0.92) : backgroundAlpha;
+
     return {
       ...base,
-      backgroundColor: `rgba(20, 20, 20, ${opacity * 0.85})`,
-      backdropFilter: `blur(${blur}px)`,
-      WebkitBackdropFilter: `blur(${blur}px)`,
+      backgroundColor: `rgba(20, 20, 20, ${finalAlpha})`,
+      ...(shouldBlur
+        ? {
+            backdropFilter: `blur(${blur}px)`,
+            WebkitBackdropFilter: `blur(${blur}px)`,
+          }
+        : {}),
     };
   }
 

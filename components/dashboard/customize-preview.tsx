@@ -92,7 +92,7 @@ export function CustomizePreview({
             "linear-gradient(135deg, #1a1030 0%, #0c1929 45%, #141414 100%)",
         }}
       >
-        {preview.glassmorphism ? (
+        {preview.glassmorphism || preview.profile_blur > 0 ? (
           <>
             <div
               className="pointer-events-none absolute left-4 top-4 h-20 w-20 rounded-full opacity-50 blur-2xl"

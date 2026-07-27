@@ -129,6 +129,16 @@ const ALIGN_LABELS: Record<EmbedAlignment, string> = {
   stretch: "Full width",
 };
 
+function configsEqual(a: EmbedConfig, b: EmbedConfig) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+const TITLE_SIZE_LABELS = {
+  sm: "Small",
+  md: "Medium",
+  lg: "Large",
+} as const;
+
 function isMediaEmbed(type: EmbedType) {
   return type === "youtube" || type === "twitch" || type === "tiktok" || type === "discord";
 }
@@ -141,8 +151,13 @@ function isRoblox(type: EmbedType) {
   return type === "roblox" || type === "roblox_profile";
 }
 
-function configsEqual(a: EmbedConfig, b: EmbedConfig) {
-  return JSON.stringify(a) === JSON.stringify(b);
+function SectionHeading({ title, description }: { title: string; description?: string }) {
+  return (
+    <div className="border-b border-white/[0.06] pb-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">{title}</p>
+      {description ? <p className="mt-1 text-xs text-neutral-600">{description}</p> : null}
+    </div>
+  );
 }
 
 export function EmbedCustomizer({
@@ -204,37 +219,59 @@ export function EmbedCustomizer({
         : ["16:9", "4:3", "1:1", "auto"];
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
-      <div className="space-y-5">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelClassName}>Custom title</label>
-            <input
-              type="text"
-              value={config.custom_title}
-              onChange={(e) => updateDraft({ custom_title: e.target.value })}
-              placeholder={embed.title}
-              className={inputClassName}
-            />
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+      <div className="space-y-6">
+        <section className="space-y-4">
+          <SectionHeading title="Content" description="Text shown above or inside the embed card." />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={labelClassName}>Custom title</label>
+              <input
+                type="text"
+                value={config.custom_title}
+                onChange={(e) => updateDraft({ custom_title: e.target.value })}
+                placeholder={embed.title}
+                className={inputClassName}
+              />
+            </div>
+            <div>
+              <label className={labelClassName}>Description</label>
+              <input
+                type="text"
+                value={config.description}
+                onChange={(e) => updateDraft({ description: e.target.value })}
+                placeholder="Optional subtitle or caption"
+                className={inputClassName}
+              />
+            </div>
           </div>
-          <div>
-            <label className={labelClassName}>Description</label>
-            <input
-              type="text"
-              value={config.description}
-              onChange={(e) => updateDraft({ description: e.target.value })}
-              placeholder="Optional subtitle or caption"
-              className={inputClassName}
-            />
-          </div>
-        </div>
 
-        <ToggleField
-          name={`show_title_${embed.id}`}
-          label="Show title on profile"
-          checked={config.show_title}
-          onCheckedChange={(show_title) => updateDraft({ show_title })}
-        />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ToggleField
+              name={`show_title_${embed.id}`}
+              label="Show title on profile"
+              checked={config.show_title}
+              onCheckedChange={(show_title) => updateDraft({ show_title })}
+            />
+            <ToggleField
+              name={`show_description_${embed.id}`}
+              label="Show description"
+              checked={config.show_description}
+              onCheckedChange={(show_description) => updateDraft({ show_description })}
+            />
+          </div>
+
+          <ChipGrid
+            label="Title size"
+            options={["sm", "md", "lg"] as const}
+            value={config.title_size}
+            getLabel={(option) => TITLE_SIZE_LABELS[option]}
+            onChange={(title_size) => updateDraft({ title_size })}
+          />
+        </section>
+
+        <section className="space-y-4">
+          <SectionHeading title="Layout" description="How the embed is displayed on your profile." />
 
         <ChipGrid
           label="Display style"
@@ -271,6 +308,131 @@ export function EmbedCustomizer({
           getLabel={(option) => ALIGN_LABELS[option]}
           onChange={(alignment) => updateDraft({ alignment })}
         />
+
+        {config.alignment !== "stretch" ? (
+          <SliderField
+            name={`max_width_${embed.id}`}
+            label="Max width"
+            min={50}
+            max={100}
+            value={config.max_width}
+            onChange={(max_width) => updateDraft({ max_width })}
+            unit="%"
+          />
+        ) : null}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SliderField
+            name={`padding_${embed.id}`}
+            label="Inner padding"
+            min={0}
+            max={32}
+            value={config.padding}
+            onChange={(padding) => updateDraft({ padding })}
+            unit="px"
+          />
+          <SliderField
+            name={`margin_y_${embed.id}`}
+            label="Vertical spacing"
+            min={0}
+            max={48}
+            value={config.margin_y}
+            onChange={(margin_y) => updateDraft({ margin_y })}
+            unit="px"
+          />
+        </div>
+        </section>
+
+        <section className="space-y-4">
+          <SectionHeading title="Appearance" description="Colors, opacity, blur, borders, and shadows." />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <ColorInput
+            label="Accent color"
+            value={config.accent_color}
+            fallback={settings.accent_color}
+            onChange={(accent_color) => updateDraft({ accent_color })}
+          />
+          <ColorInput
+            label="Background"
+            value={config.background_color}
+            fallback="#0f0f0f"
+            onChange={(background_color) => updateDraft({ background_color })}
+          />
+          <ColorInput
+            label="Text color"
+            value={config.text_color}
+            fallback={settings.text_color}
+            onChange={(text_color) => updateDraft({ text_color })}
+          />
+          <ColorInput
+            label="Border color"
+            value={config.border_color}
+            fallback="rgba(255,255,255,0.08)"
+            onChange={(border_color) => updateDraft({ border_color })}
+          />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SliderField
+            name={`opacity_${embed.id}`}
+            label="Opacity"
+            min={0}
+            max={100}
+            value={config.opacity}
+            onChange={(opacity) => updateDraft({ opacity })}
+            unit="%"
+          />
+          <SliderField
+            name={`blur_${embed.id}`}
+            label="Blur"
+            min={0}
+            max={40}
+            value={config.blur}
+            onChange={(blur) => updateDraft({ blur })}
+            unit="px"
+          />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SliderField
+            name={`radius_${embed.id}`}
+            label="Corner radius"
+            min={0}
+            max={24}
+            value={config.border_radius}
+            onChange={(border_radius) => updateDraft({ border_radius })}
+            unit="px"
+          />
+          <SliderField
+            name={`border_width_${embed.id}`}
+            label="Border width"
+            min={0}
+            max={4}
+            value={config.border_width}
+            onChange={(border_width) => updateDraft({ border_width })}
+            unit="px"
+          />
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ToggleField
+            name={`border_${embed.id}`}
+            label="Show border"
+            checked={config.show_border}
+            onCheckedChange={(show_border) => updateDraft({ show_border })}
+          />
+          <ToggleField
+            name={`shadow_${embed.id}`}
+            label="Drop shadow"
+            checked={config.show_shadow}
+            onCheckedChange={(show_shadow) => updateDraft({ show_shadow })}
+          />
+        </div>
+        </section>
+
+        <section className="space-y-4">
+          <SectionHeading title="Embed options" description="Type-specific player and card settings." />
 
         {embed.embed_type === "roblox_profile" ? (
           <>
@@ -329,37 +491,7 @@ export function EmbedCustomizer({
             onCheckedChange={(autoplay) => updateDraft({ autoplay })}
           />
         ) : null}
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <ColorInput
-            label="Accent color"
-            value={config.accent_color}
-            fallback={settings.accent_color}
-            onChange={(accent_color) => updateDraft({ accent_color })}
-          />
-          <ColorInput
-            label="Background"
-            value={config.background_color}
-            fallback="#0f0f0f"
-            onChange={(background_color) => updateDraft({ background_color })}
-          />
-        </div>
-
-        <SliderField
-          name={`radius_${embed.id}`}
-          label="Corner radius"
-          min={0}
-          max={24}
-          value={config.border_radius}
-          onChange={(border_radius) => updateDraft({ border_radius })}
-        />
-
-        <ToggleField
-          name={`border_${embed.id}`}
-          label="Show border"
-          checked={config.show_border}
-          onCheckedChange={(show_border) => updateDraft({ show_border })}
-        />
+        </section>
 
         <div className="flex flex-wrap items-center gap-3 border-t border-white/[0.06] pt-4">
           <button

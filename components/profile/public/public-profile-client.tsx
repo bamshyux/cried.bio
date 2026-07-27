@@ -736,7 +736,7 @@ function GlassLayout({ profile, links, settings, badges, viewCount, embeds, feat
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const opacity = settings.profile_opacity / 100;
-  const blur = Math.max(settings.profile_blur, 16);
+  const blur = Math.max(0, settings.profile_blur);
 
   return (
     <div
