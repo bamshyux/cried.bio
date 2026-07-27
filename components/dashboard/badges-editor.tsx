@@ -9,6 +9,10 @@ import {
   updateProfileBadgeAction,
 } from "@/app/actions/badges";
 import { BadgesAdminPanel } from "@/components/dashboard/badges-admin-panel";
+import {
+  SummerBadgeClaimModal,
+  useSummerBadgeClaimModal,
+} from "@/components/dashboard/summer-badge-claim-modal";
 import { BadgeCard, BadgeRow, ProfileHoverPreview, BadgeChip } from "@/components/badges/badge-ui";
 import {
   buttonPrimaryClassName,
@@ -21,6 +25,7 @@ import {
   ToggleField,
 } from "@/components/dashboard/form-fields";
 import { useClearUnsavedOnSuccess } from "@/components/dashboard/unsaved-changes";
+import { isSummer2026ClaimActive, SUMMER_2026_BADGE_SLUG } from "@/lib/badges/seasonal-events";
 import { BADGE_CATEGORIES, type Badge, type BadgeFormState, type BadgeInventoryItem } from "@/lib/types/badge";
 import type { ProfileBadge } from "@/lib/types/badge";
 import type { ProfileSettings } from "@/lib/types/settings";
@@ -149,10 +154,19 @@ export function BadgesEditor({
     });
   }, [earned, settings]);
 
+  const hasSummerBadge = inventory.some((badge) => badge.slug === SUMMER_2026_BADGE_SLUG && badge.earned);
+  const summerClaimActive = isSummer2026ClaimActive();
+  const summerModal = useSummerBadgeClaimModal(hasSummerBadge, summerClaimActive);
+
   const refresh = () => router.refresh();
 
   return (
     <>
+      <SummerBadgeClaimModal
+        open={summerModal.open}
+        onClose={summerModal.close}
+        onClaimed={refresh}
+      />
       <PageHeader
         title="Badges"
         description="Collect, showcase, and manage your cried.bio badge collection."

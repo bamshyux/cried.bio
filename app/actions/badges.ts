@@ -14,12 +14,17 @@ import {
   getBadgesByProfileId,
 } from "@/lib/data/badges";
 import { resolveUniqueBadgeSlug } from "@/lib/badges/slug";
+import {
+  isSummer2026ClaimActive,
+  SUMMER_2026_BADGE_SLUG,
+} from "@/lib/badges/seasonal-events";
 import { uploadStoreBadgeIcon, validateStoreBadgeIcon } from "@/lib/badges/store-badge-create";
 import { createNotification } from "@/lib/data/notifications";
 import { formatSchemaError } from "@/lib/db/schema";
 import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
 import type { BadgeFormState } from "@/lib/types/badge";
 import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { revalidateProfileOg } from "@/lib/og/revalidate";
 
@@ -306,6 +311,57 @@ export async function assignBadgeAction(
     .maybeSingle();
   if (target?.username) revalidatePath(`/${target.username}`);
   return { success: "Badge assigned." };
+}
+
+export async function claimSummer2026BadgeAction(): Promise<BadgeFormState> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "You must be logged in." };
+  if (!isSummer2026ClaimActive()) return { error: "This event has ended." };
+
+  const badgeId = await getBadgeIdBySlug(SUMMER_2026_BADGE_SLUG);
+  if (!badgeId) return { error: "Summer Event badge is not available." };
+
+  const admin = createAdminClient();
+  if (!admin) return { error: "Unable to claim badge right now. Try again later." };
+
+  const { data: existing } = await admin
+    .from("profile_badges")
+    .select("id")
+    .eq("profile_id", userId)
+    .eq("badge_id", badgeId)
+    .maybeSingle();
+
+  if (existing) return { error: "You already claimed this badge." };
+
+  const { error } = await admin.from("profile_badges").insert({
+    profile_id: userId,
+    badge_id: badgeId,
+    award_source: "event",
+  });
+
+  if (error) {
+    if (error.code === "23505") return { error: "You already claimed this badge." };
+    return { error: error.message };
+  }
+
+  const { data: badge } = await admin
+    .from("badges")
+    .select("name, slug, description")
+    .eq("id", badgeId)
+    .maybeSingle();
+
+  if (badge) {
+    await createNotification({
+      userId,
+      type: "badge_earned",
+      title: `You earned the ${badge.name} badge`,
+      body: badge.description ?? "Summer 2026 exclusive event badge.",
+      data: { badge_name: badge.name, badge_slug: badge.slug },
+    });
+  }
+
+  await revalidateProfile(userId);
+  return { success: "Summer Event badge claimed!" };
 }
 
 export async function createCustomBadgeAction(

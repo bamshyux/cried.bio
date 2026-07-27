@@ -7118,3 +7118,140 @@ body,
   background-color: transparent !important;
   background-image: none !important;
 }
+
+/* Summer 2026 badge claim modal */
+@keyframes bf-summer-claim-rays-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes bf-summer-claim-shimmer {
+  0%, 100% { opacity: 0.35; transform: translateX(-30%); }
+  50% { opacity: 0.7; transform: translateX(30%); }
+}
+
+@keyframes bf-summer-claim-spark-float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.35; }
+  50% { transform: translateY(-10px) scale(1.35); opacity: 1; }
+}
+
+@keyframes bf-summer-claim-orbit-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes bf-summer-claim-glow-pulse {
+  0%, 100% { transform: scale(0.92); opacity: 0.45; }
+  50% { transform: scale(1.08); opacity: 0.85; }
+}
+
+@keyframes bf-summer-claim-title-shine {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes bf-summer-claim-cta-pulse {
+  0%, 100% { box-shadow: 0 0 24px rgba(14, 165, 233, 0.35), 0 0 48px rgba(251, 191, 36, 0.15); }
+  50% { box-shadow: 0 0 36px rgba(14, 165, 233, 0.55), 0 0 72px rgba(251, 191, 36, 0.28); }
+}
+
+@keyframes bf-summer-claim-success-pop {
+  0% { transform: scale(0.94); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bf-summer-claim-pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.45); opacity: 1; }
+}
+
+.bf-summer-claim-backdrop {
+  animation: bf-share-backdrop-in 0.28s ease-out;
+}
+
+.bf-summer-claim-modal {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.22), transparent 55%),
+    radial-gradient(circle at 80% 100%, rgba(251, 191, 36, 0.12), transparent 45%),
+    linear-gradient(160deg, #071018 0%, #0a1628 45%, #120a04 100%);
+  animation: bf-summer-claim-success-pop 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bf-summer-claim-rays {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(14, 165, 233, 0.14) 18deg,
+    transparent 36deg,
+    rgba(251, 191, 36, 0.1) 54deg,
+    transparent 72deg,
+    rgba(14, 165, 233, 0.12) 90deg,
+    transparent 108deg,
+    rgba(251, 191, 36, 0.08) 126deg,
+    transparent 144deg,
+    rgba(14, 165, 233, 0.1) 162deg,
+    transparent 180deg,
+    rgba(251, 191, 36, 0.1) 198deg,
+    transparent 216deg,
+    rgba(14, 165, 233, 0.12) 234deg,
+    transparent 252deg,
+    rgba(251, 191, 36, 0.08) 270deg,
+    transparent 288deg,
+    rgba(14, 165, 233, 0.14) 306deg,
+    transparent 324deg,
+    rgba(251, 191, 36, 0.1) 342deg,
+    transparent 360deg
+  );
+  animation: bf-summer-claim-rays-spin 18s linear infinite;
+  opacity: 0.75;
+}
+
+.bf-summer-claim-shimmer {
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 45%,
+    rgba(255, 255, 255, 0.14) 50%,
+    rgba(255, 255, 255, 0.06) 55%,
+    transparent 100%
+  );
+  animation: bf-summer-claim-shimmer 3.2s ease-in-out infinite;
+}
+
+.bf-summer-claim-spark {
+  animation: bf-summer-claim-spark-float 2.4s ease-in-out infinite;
+}
+
+.bf-summer-claim-orbit {
+  animation: bf-summer-claim-orbit-spin 10s linear infinite;
+}
+
+.bf-summer-claim-glow {
+  animation: bf-summer-claim-glow-pulse 2.2s ease-in-out infinite;
+}
+
+.bf-summer-claim-title {
+  background: linear-gradient(90deg, #ffffff 0%, #7dd3fc 35%, #fde68a 65%, #ffffff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: bf-summer-claim-title-shine 4s linear infinite;
+}
+
+.bf-summer-claim-cta {
+  animation: bf-summer-claim-cta-pulse 2.4s ease-in-out infinite;
+}
+
+.bf-summer-claim-success {
+  animation: bf-summer-claim-success-pop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bf-summer-claim-pulse-dot {
+  animation: bf-summer-claim-pulse-dot 1.4s ease-in-out infinite;
+}
+
+.bf-summer-claim-eyebrow {
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.12);
+}
+
