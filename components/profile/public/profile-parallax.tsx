@@ -36,7 +36,7 @@ export function ProfileParallaxCard({
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="profile-parallax-card relative z-[1] overflow-visible transition-transform duration-300 ease-out will-change-transform"
+      className="profile-parallax-card relative z-[1] w-full overflow-visible transition-transform duration-300 ease-out will-change-transform"
       style={{ transform }}
     >
       {children}

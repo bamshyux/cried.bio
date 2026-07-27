@@ -961,12 +961,12 @@ export function PublicProfileClient({
                 <div className={getProfileAlignClass(settings.content_alignment)}>
                   <DiscordPresenceProvider presence={discordPresence ?? null}>
                     <ProfileThemeScope scopedCss={settings.layout === "custom" ? scopedCustomCss : null}>
-                      <ProfileCardFrame settings={settings}>
-                        <ProfileCardHeightScaler
-                          maxHeight={settings.card_max_height}
-                          parallaxEnabled={settings.profile_parallax}
-                        >
-                          <ProfileParallaxCard enabled={settings.profile_parallax}>
+                      <ProfileParallaxCard enabled={settings.profile_parallax}>
+                        <ProfileCardFrame settings={settings}>
+                          <ProfileCardHeightScaler
+                            maxHeight={settings.card_max_height}
+                            parallaxEnabled={settings.profile_parallax}
+                          >
                             <CardBorderEffect
                               settings={settings}
                               target="main"
@@ -975,9 +975,9 @@ export function PublicProfileClient({
                             >
                               <Layout {...layoutProps} />
                             </CardBorderEffect>
-                          </ProfileParallaxCard>
-                        </ProfileCardHeightScaler>
-                      </ProfileCardFrame>
+                          </ProfileCardHeightScaler>
+                        </ProfileCardFrame>
+                      </ProfileParallaxCard>
                     </ProfileThemeScope>
                   </DiscordPresenceProvider>
                 </div>
