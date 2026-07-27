@@ -2259,11 +2259,11 @@ body,
   animation: bf-badge-icon-pulse 2.6s ease-in-out infinite;
 }
 
-.bf-badge-medallion--milestone[data-badge-slug="og"] .bf-profile-badge-icon {
+.bf-badge-medallion--milestone:not(.bf-badge-medallion--mono)[data-badge-slug="og"] .bf-profile-badge-icon {
   animation: bf-badge-og-gleam 3.5s ease-in-out infinite;
 }
 
-.bf-badge-medallion--milestone[data-badge-slug="year-one"] .bf-profile-badge-icon {
+.bf-badge-medallion--milestone:not(.bf-badge-medallion--mono)[data-badge-slug="year-one"] .bf-profile-badge-icon {
   animation: bf-badge-milestone-gleam 3.5s ease-in-out infinite;
 }
 

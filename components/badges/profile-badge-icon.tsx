@@ -45,7 +45,7 @@ export function ProfileBadgeIcon({
       : isSummer
         ? SUMMER_2026_BADGE_COLOR
         : color;
-  const glowStrength = isOg ? 0.22 : getBadgeSelfGlowStrength({ hovered, featured });
+  const glowStrength = isOg && !monochrome ? 0.22 : getBadgeSelfGlowStrength({ hovered, featured });
 
   let icon: ReactNode;
 
@@ -62,7 +62,9 @@ export function ProfileBadgeIcon({
       />
     );
   } else if (isVerified) {
-    icon = <VerifiedBadgeIcon size={size} monochrome={monochrome} className={className} />;
+    icon = (
+      <VerifiedBadgeIcon size={size} monochrome={monochrome} color={fillColor} className={className} />
+    );
   } else {
     icon = (
       <svg

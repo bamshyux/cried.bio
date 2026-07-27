@@ -22,10 +22,12 @@ const VERIFIED_VISUAL_SCALE = 0.93;
 export function VerifiedBadgeIcon({
   size = 22,
   monochrome = false,
+  color = "#e4e4e7",
   className = "",
 }: {
   size?: number;
   monochrome?: boolean;
+  color?: string;
   className?: string;
 }) {
   const uid = useId().replace(/:/g, "");
@@ -53,14 +55,16 @@ export function VerifiedBadgeIcon({
       )}
       <path
         d={shape}
-        fill={monochrome ? "#d4d4d8" : `url(#${gradId})`}
-        stroke={monochrome ? "#52525b" : "#0b4f86"}
+        fill={monochrome ? color : `url(#${gradId})`}
+        stroke={monochrome ? color : "#0b4f86"}
         strokeWidth="1.1"
         strokeLinejoin="round"
+        strokeOpacity={monochrome ? 0.55 : 1}
       />
       <path
         d="M8.6 12.2 10.8 14.4 15.6 9.3"
-        stroke={monochrome ? "#18181b" : "#ffffff"}
+        stroke={monochrome ? color : "#ffffff"}
+        strokeOpacity={monochrome ? 0.85 : 1}
         strokeWidth="1.85"
         strokeLinecap="round"
         strokeLinejoin="round"

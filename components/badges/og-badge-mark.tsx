@@ -3,18 +3,14 @@
 import type { ReactNode } from "react";
 import { useId } from "react";
 
-const MONOCHROME_FILL = "#e4e4e7";
-
-function isMonochromeColor(color: string) {
-  return color.trim().toLowerCase() === MONOCHROME_FILL;
-}
-
 /** Cozy home mark for OG — warm gold house, readable at badge size. */
 export function OgBadgeMark({
   monochrome = false,
+  color = "#c9a83a",
   idPrefix,
 }: {
   monochrome?: boolean;
+  color?: string;
   idPrefix?: string;
 }): ReactNode {
   const uid = useId().replace(/:/g, "");
@@ -22,10 +18,10 @@ export function OgBadgeMark({
   const goldId = `bf-og-gold-${prefix}`;
   const roofId = `bf-og-roof-${prefix}`;
 
-  const roofFill = monochrome ? "#d4d4d8" : `url(#${roofId})`;
-  const wallFill = monochrome ? "#a1a1aa" : `url(#${goldId})`;
-  const trim = monochrome ? "#18181b" : "#f8f4ea";
-  const accent = monochrome ? "#52525b" : "#8a7024";
+  const roofFill = monochrome ? color : `url(#${roofId})`;
+  const wallFill = monochrome ? color : `url(#${goldId})`;
+  const trim = monochrome ? color : "#f8f4ea";
+  const accent = monochrome ? color : "#8a7024";
 
   return (
     <>
@@ -83,7 +79,7 @@ export function OgBadgeMark({
       />
 
       {/* Step */}
-      <path d="M8.8 21h6.4v1.15H8.8V21z" fill={monochrome ? "#71717a" : "#7a6420"} />
+      <path d="M8.8 21h6.4v1.15H8.8V21z" fill={monochrome ? color : "#7a6420"} opacity={monochrome ? 0.75 : 1} />
 
       {!monochrome && (
         <>
@@ -98,12 +94,4 @@ export function OgBadgeMark({
       )}
     </>
   );
-}
-
-export function OgBadgeMarkFromColor({
-  color,
-}: {
-  color: string;
-}): ReactNode {
-  return <OgBadgeMark monochrome={isMonochromeColor(color)} />;
 }

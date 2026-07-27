@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, type ReactNode } from "react";
-import { OgBadgeMarkFromColor } from "@/components/badges/og-badge-mark";
+import { OgBadgeMark } from "@/components/badges/og-badge-mark";
 
 function MedallionRibbon({ c }: { c: string }) {
   return (
@@ -251,7 +251,7 @@ export function BadgeGlyph({
       );
 
     case "og":
-      return <OgBadgeMarkFromColor color={c} />;
+      return <OgBadgeMark monochrome={monochrome} color={c} />;
 
     case "year-one":
       return (
