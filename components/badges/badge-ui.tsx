@@ -204,13 +204,13 @@ export function BadgeCard({
   const rarityVisual = getRarityVisual(badge.rarity);
   const monochrome = resolveBadgeMonochrome(badge, styleOptions);
   const glowEnabled = styleOptions?.glow ?? true;
-  const displayColor = resolveDisplayColor(badge, styleOptions);
+  const displayColor = earned ? resolveDisplayColor(badge, styleOptions) : "#71717a";
   const [hovered, setHovered] = useState(false);
 
   return (
     <div
       className={`group relative overflow-hidden rounded-2xl p-4 transition-all duration-300 ${
-        earned ? "bg-[#0c0c0c]/90" : "bg-[#080808]/80 opacity-45"
+        earned ? "bg-[#0c0c0c]/90" : "bf-badge-card--locked bg-[#080808]/80"
       } ${draggable && earned ? "cursor-grab active:cursor-grabbing" : ""}`}
       style={
         earned
@@ -222,16 +222,18 @@ export function BadgeCard({
           : undefined
       }
       draggable={draggable && earned}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() => earned && setHovered(true)}
+      onMouseLeave={() => earned && setHovered(false)}
     >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background: `radial-gradient(circle at 50% 28%, ${rarityVisual.aura} 0%, transparent 62%)`,
-        }}
-        aria-hidden
-      />
+      {earned ? (
+        <div
+          className="pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            background: `radial-gradient(circle at 50% 28%, ${rarityVisual.aura} 0%, transparent 62%)`,
+          }}
+          aria-hidden
+        />
+      ) : null}
 
       <div className="relative flex flex-col items-center text-center">
         <BadgeMedallion
@@ -243,10 +245,11 @@ export function BadgeCard({
             is_featured: badge.is_featured,
           }}
           size={48}
-          hovered={hovered}
-          monochrome={monochrome || !earned}
-          featured={badge.is_featured}
-          glowEnabled={glowEnabled}
+          hovered={earned && hovered}
+          monochrome={earned ? monochrome : false}
+          featured={earned ? badge.is_featured : false}
+          glowEnabled={earned && glowEnabled}
+          silhouette={!earned}
         />
 
         <p

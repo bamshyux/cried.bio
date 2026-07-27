@@ -8,6 +8,7 @@ import { isSummer2026BadgeSlug, SUMMER_2026_BADGE_COLOR } from "@/lib/badges/sea
 import { getBadgeSelfGlowStrength } from "@/lib/self-glow";
 
 const VERIFIED_COLOR = "#3b82f6";
+const COLLECTION_SILHOUETTE_COLOR = "#71717a";
 
 export function ProfileBadgeIcon({
   slug,
@@ -18,6 +19,7 @@ export function ProfileBadgeIcon({
   glowEnabled = true,
   hovered = false,
   featured = false,
+  silhouette = false,
   className = "",
 }: {
   slug: string;
@@ -28,13 +30,20 @@ export function ProfileBadgeIcon({
   glowEnabled?: boolean;
   hovered?: boolean;
   featured?: boolean;
+  silhouette?: boolean;
   className?: string;
 }) {
   const hasCustomImage = Boolean(iconUrl?.trim());
   const isVerified = slug === "verified" && !hasCustomImage;
   const isOg = slug === "og" && !hasCustomImage;
-  const isSummer = isSummer2026BadgeSlug(slug) && !hasCustomImage;
-  const fillColor = monochrome ? "#e4e4e7" : isSummer ? SUMMER_2026_BADGE_COLOR : color;
+  const isSummer = isSummer2026BadgeSlug(slug) && !hasCustomImage && !silhouette;
+  const fillColor = silhouette
+    ? COLLECTION_SILHOUETTE_COLOR
+    : monochrome
+      ? "#e4e4e7"
+      : isSummer
+        ? SUMMER_2026_BADGE_COLOR
+        : color;
   const glowStrength = isOg ? 0.22 : getBadgeSelfGlowStrength({ hovered, featured });
 
   let icon: ReactNode;
@@ -69,6 +78,17 @@ export function ProfileBadgeIcon({
   }
 
   const glowColor = isVerified ? VERIFIED_COLOR : fillColor;
+
+  if (silhouette) {
+    return (
+      <span
+        className={`bf-profile-badge-icon-wrap--silhouette inline-flex items-center justify-center ${className}`.trim()}
+        style={{ width: size, height: size, lineHeight: 0, color: COLLECTION_SILHOUETTE_COLOR }}
+      >
+        {icon}
+      </span>
+    );
+  }
 
   if (isSummer) {
     return (

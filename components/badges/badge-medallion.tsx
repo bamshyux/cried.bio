@@ -18,6 +18,7 @@ export function BadgeMedallion({
   monochrome = false,
   featured = false,
   glowEnabled = true,
+  silhouette = false,
 }: {
   badge: MedallionBadge;
   size?: number;
@@ -25,9 +26,10 @@ export function BadgeMedallion({
   monochrome?: boolean;
   featured?: boolean;
   glowEnabled?: boolean;
+  silhouette?: boolean;
 }) {
   const isFeatured = featured || badge.is_featured;
-  const active = hovered || isFeatured;
+  const active = !silhouette && (hovered || isFeatured);
   const scale = active ? 1.1 : 1;
 
   return (
@@ -38,6 +40,7 @@ export function BadgeMedallion({
         isFeatured ? "bf-badge-medallion--featured" : "",
         active ? "bf-badge-medallion--active" : "",
         glowEnabled ? "" : "bf-badge-medallion--no-glow",
+        silhouette ? "bf-badge-medallion--silhouette" : "",
         badge.slug === "og" || badge.slug === "year-one" ? "bf-badge-medallion--milestone" : "",
       ]
         .filter(Boolean)
@@ -46,7 +49,7 @@ export function BadgeMedallion({
       style={{
         width: size,
         height: size,
-        transform: `scale(${scale})`,
+        transform: silhouette ? undefined : `scale(${scale})`,
       }}
     >
       <ProfileBadgeIcon
@@ -58,6 +61,7 @@ export function BadgeMedallion({
         glowEnabled={glowEnabled}
         hovered={hovered}
         featured={isFeatured}
+        silhouette={silhouette}
       />
     </span>
   );

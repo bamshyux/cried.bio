@@ -2271,6 +2271,39 @@ body,
   filter: brightness(1.06) saturate(1.08);
 }
 
+/* Locked badges in dashboard collection — flat silhouette, no depth or glow */
+.bf-badge-card--locked {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.bf-badge-medallion--silhouette {
+  filter: none !important;
+}
+
+.bf-badge-medallion--silhouette .bf-profile-badge-icon {
+  animation: none !important;
+  filter: none !important;
+}
+
+.bf-profile-badge-icon-wrap--silhouette {
+  color: #71717a;
+}
+
+.bf-profile-badge-icon-wrap--silhouette svg * {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+}
+
+.bf-profile-badge-icon-wrap--silhouette svg stop {
+  stop-color: currentColor !important;
+}
+
+.bf-profile-badge-icon-wrap--silhouette .bf-profile-badge-icon--photo {
+  filter: brightness(0) saturate(100%);
+  opacity: 0.38;
+}
+
 @keyframes bf-badge-og-gleam {
   0%,
   100% {
