@@ -729,15 +729,21 @@ function GlassLayout({ profile, links, settings, badges, viewCount, embeds, feat
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
   return (
-    <div className="relative w-full px-6 py-10">
-      <div
-        className="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full opacity-40 blur-3xl"
-        style={{ background: settings.accent_color }}
-      />
-      <div
-        className="pointer-events-none absolute -bottom-12 -right-12 h-40 w-40 rounded-full opacity-25 blur-3xl"
-        style={{ background: settings.gradient_colors[1] ?? settings.accent_color }}
-      />
+    <div
+      className="relative w-full overflow-hidden px-6 py-10"
+      style={{ borderRadius: settings.border_radius }}
+    >
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div
+          className="absolute inset-0"
+          style={{
+            background: [
+              `radial-gradient(circle at 0% 0%, color-mix(in srgb, ${settings.accent_color} 42%, transparent) 0%, transparent 58%)`,
+              `radial-gradient(circle at 100% 100%, color-mix(in srgb, ${settings.gradient_colors[1] ?? settings.accent_color} 28%, transparent) 0%, transparent 52%)`,
+            ].join(", "),
+          }}
+        />
+      </div>
       <div className="relative flex flex-col items-center text-center">
         <div className="bf-profile-avatar-row mb-4 flex">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />

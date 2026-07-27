@@ -241,10 +241,12 @@ const LAYOUT_PREVIEWS: Record<ProfileLayout, ReactNode> = {
   ),
 
   glass: (
-    <div className={`${BASE} bg-[#0a0a0a]/80`}>
-      <div className="absolute left-1 top-1 h-4 w-4 rounded-full bg-purple-500/30 blur-sm" />
-      <div className="absolute bottom-1 right-2 h-3 w-3 rounded-full bg-cyan-500/30 blur-sm" />
-      <div className="absolute inset-1 rounded border border-white/10 bg-white/[0.04] backdrop-blur-sm">
+    <div className={`${BASE} overflow-hidden bg-[#0a0a0a]/80`}>
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-1 -top-1 h-6 w-6 rounded-full bg-purple-500/30 blur-sm" />
+        <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-cyan-500/30 blur-sm" />
+      </div>
+      <div className="absolute inset-1 overflow-hidden rounded border border-white/10 bg-white/[0.04] backdrop-blur-sm">
         <div className="flex h-full flex-col items-center justify-center gap-1 p-1">
           <Line w="w-10" className="bg-white/15" />
           <Line w="w-8" />
