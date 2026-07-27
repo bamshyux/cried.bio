@@ -54,6 +54,16 @@ const TYPE_DEFAULTS: Partial<Record<EmbedType, Partial<EmbedConfig>>> = {
     show_thumbnail: true,
     aspect_ratio: "auto",
   },
+  letterboxd: {
+    display_mode: "card",
+    card_style: "default",
+    show_title: true,
+    show_avatar: true,
+    show_username: true,
+    show_stats: true,
+    show_description: true,
+    aspect_ratio: "auto",
+  },
   spotify_track: {
     display_mode: "iframe",
     compact_player: true,

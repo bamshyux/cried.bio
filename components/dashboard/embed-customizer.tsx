@@ -155,6 +155,14 @@ function isRoblox(type: EmbedType) {
   return type === "roblox" || type === "roblox_profile";
 }
 
+function isLetterboxd(type: EmbedType) {
+  return type === "letterboxd";
+}
+
+function isProfileLinkCard(type: EmbedType) {
+  return isRoblox(type) || isLetterboxd(type);
+}
+
 function SectionHeading({ title, description }: { title: string; description?: string }) {
   return (
     <div className="border-b border-white/[0.06] pb-3">
@@ -232,7 +240,7 @@ export function EmbedCustomizer({
     });
   };
 
-  const displayOptions: EmbedDisplayMode[] = isRoblox(embed.embed_type)
+  const displayOptions: EmbedDisplayMode[] = isProfileLinkCard(embed.embed_type)
     ? ["card", "minimal"]
     : isMediaEmbed(embed.embed_type) || isAudioEmbed(embed.embed_type) || embed.embed_type === "discord"
       ? ["iframe", "card", "minimal"]
@@ -469,12 +477,16 @@ export function EmbedCustomizer({
         <section className="space-y-4">
           <SectionHeading title="Embed options" description="Type-specific player and card settings." />
 
-        {embed.embed_type === "roblox_profile" ? (
+        {(embed.embed_type === "roblox_profile" || embed.embed_type === "letterboxd") ? (
           <>
             <ToggleField
               name={`show_avatar_${embed.id}`}
               label="Show avatar"
-              description="Display the Roblox headshot on the card."
+              description={
+                embed.embed_type === "letterboxd"
+                  ? "Display the Letterboxd profile photo on the card."
+                  : "Display the Roblox headshot on the card."
+              }
               checked={config.show_avatar}
               onCheckedChange={(show_avatar) => updateDraft({ show_avatar })}
             />
@@ -485,6 +497,16 @@ export function EmbedCustomizer({
               onCheckedChange={(show_username) => updateDraft({ show_username })}
             />
           </>
+        ) : null}
+
+        {embed.embed_type === "letterboxd" ? (
+          <ToggleField
+            name={`show_stats_${embed.id}`}
+            label="Show profile stats"
+            description="Film count, followers, and following when available."
+            checked={config.show_stats}
+            onCheckedChange={(show_stats) => updateDraft({ show_stats })}
+          />
         ) : null}
 
         {embed.embed_type === "roblox" ? (

@@ -7,6 +7,7 @@ export type EmbedType =
   | "soundcloud"
   | "roblox"
   | "roblox_profile"
+  | "letterboxd"
   | "discord";
 
 export type EmbedDisplayMode = "iframe" | "card" | "minimal";
@@ -83,5 +84,6 @@ export const EMBED_TYPE_OPTIONS: { value: EmbedType; label: string }[] = [
   { value: "soundcloud", label: "SoundCloud Track" },
   { value: "roblox", label: "Roblox Game" },
   { value: "roblox_profile", label: "Roblox Profile" },
+  { value: "letterboxd", label: "Letterboxd Profile" },
   { value: "discord", label: "Discord Server Widget" },
 ];

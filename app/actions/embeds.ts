@@ -3,7 +3,7 @@
 import { getAuthenticatedUserId } from "@/lib/actions/auth";
 import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
 import { parseEmbedUrl } from "@/lib/embeds/parse";
-import { buildInitialEmbedConfig, enrichRobloxProfileEmbed, mergeEmbedConfig, refreshEmbedMediaConfig } from "@/lib/embeds/enrich";
+import { buildInitialEmbedConfig, enrichLetterboxdProfileEmbed, enrichRobloxProfileEmbed, mergeEmbedConfig, refreshEmbedMediaConfig } from "@/lib/embeds/enrich";
 import { logActivity } from "@/lib/data/activity";
 import type { EmbedConfig, EmbedFormState, EmbedType } from "@/lib/types/embed";
 import { createClient } from "@/lib/supabase/server";
@@ -16,7 +16,7 @@ export async function createEmbedAction(_prev: EmbedFormState, formData: FormDat
   const parsedRaw = parseEmbedUrl(url);
   if (!parsedRaw) return { error: "Unsupported or invalid embed URL." };
 
-  const parsed = await enrichRobloxProfileEmbed(parsedRaw);
+  const parsed = await enrichLetterboxdProfileEmbed(await enrichRobloxProfileEmbed(parsedRaw));
   const config = await buildInitialEmbedConfig(parsed);
 
   const supabase = await createClient();

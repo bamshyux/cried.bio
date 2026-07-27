@@ -1,6 +1,7 @@
 import type { EmbedConfig, EmbedType } from "@/lib/types/embed";
 import type { ParsedEmbed } from "@/lib/types/embed";
 import { buildRobloxProfileUrl } from "@/lib/embeds/roblox-profile";
+import { buildLetterboxdProfileUrl, normalizeLetterboxdUsername } from "@/lib/embeds/letterboxd-profile";
 
 export type { ParsedEmbed } from "@/lib/types/embed";
 
@@ -16,6 +17,7 @@ const PATTERNS: { type: EmbedType; regex: RegExp; title: string }[] = [
   { type: "roblox_profile", regex: /roblox\.com\/@([\w.]+)/i, title: "Roblox Profile" },
   { type: "roblox_profile", regex: /roblox\.com\/user\.aspx\?username=([\w.]+)/i, title: "Roblox Profile" },
   { type: "roblox", regex: /roblox\.com\/games\/(\d+)/i, title: "Roblox Game" },
+  { type: "letterboxd", regex: /(?:www\.)?letterboxd\.com\/([a-zA-Z0-9_]+)(?:\/|$|\?)/i, title: "Letterboxd Profile" },
   { type: "discord", regex: /discord(?:\.gg|(?:app)?\.com\/invite)\/([\w-]+)/i, title: "Discord Server" },
 ];
 
@@ -39,11 +41,18 @@ export function parseEmbedUrl(raw: string): ParsedEmbed | null {
     if (!match) continue;
     const embedId = match[1] || match[2] || "";
     if (!embedId) continue;
+    if (type === "letterboxd" && !normalizeLetterboxdUsername(embedId)) continue;
+    const url =
+      type === "roblox_profile"
+        ? buildRobloxProfileUrl(embedId)
+        : type === "letterboxd"
+          ? buildLetterboxdProfileUrl(embedId)
+          : inputUrl;
     return {
       embed_type: type,
-      embed_id: embedId,
+      embed_id: type === "letterboxd" ? normalizeLetterboxdUsername(embedId)! : embedId,
       title,
-      url: type === "roblox_profile" ? buildRobloxProfileUrl(embedId) : inputUrl,
+      url,
     };
   }
 
@@ -91,6 +100,7 @@ export function getEmbedIframeSrcServer(
       return `https://discord.com/widget?invite=${encodeURIComponent(embedId)}&theme=${theme}`;
     case "roblox":
     case "roblox_profile":
+    case "letterboxd":
       return null;
     default:
       return null;

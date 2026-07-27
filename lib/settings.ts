@@ -760,32 +760,21 @@ export function buildCardStyles(settings: ProfileSettings): {
   };
 
   const shouldBlur = blur > 0;
-  const useFrostedBackground = settings.glassmorphism || shouldBlur;
-
-  if (useFrostedBackground) {
-    const backgroundAlpha = settings.glassmorphism ? opacity * 0.85 : opacity;
-    const finalAlpha = shouldBlur ? Math.min(backgroundAlpha, 0.72) : backgroundAlpha;
-
-    return {
-      shell,
-      backdrop: {
-        backgroundColor: `rgba(20, 20, 20, ${finalAlpha})`,
-        ...(shouldBlur
-          ? {
-              backdropFilter: `blur(${blur}px)`,
-              WebkitBackdropFilter: `blur(${blur}px)`,
-            }
-          : {}),
-      },
-    };
+  let backgroundAlpha = opacity;
+  if (settings.glassmorphism) {
+    backgroundAlpha = opacity * 0.85;
   }
 
-  return {
-    shell,
-    backdrop: {
-      backgroundColor: `rgba(20, 20, 20, ${opacity})`,
-    },
+  const backdrop: Record<string, string | number | undefined> = {
+    backgroundColor: `rgba(20, 20, 20, ${backgroundAlpha})`,
   };
+
+  if (shouldBlur) {
+    backdrop.backdropFilter = `blur(${blur}px)`;
+    backdrop.WebkitBackdropFilter = `blur(${blur}px)`;
+  }
+
+  return { shell, backdrop };
 }
 
 export function buildCardStyle(settings: ProfileSettings): Record<string, string | number | undefined> {
@@ -799,7 +788,9 @@ export function getCardLayoutStyle(settings: ProfileSettings): Record<string, st
   return {
     width: `${settings.card_width}%`,
     maxWidth: "100%",
-    transform: `translate(${settings.card_offset_x}px, ${settings.card_offset_y}px)`,
+    position: "relative",
+    left: settings.card_offset_x,
+    top: settings.card_offset_y,
   };
 }
 
@@ -810,7 +801,8 @@ export function getPublicCardLayoutStyle(
   return {
     width: `${settings.card_width}%`,
     maxWidth: "100%",
-    transform: `translate(${settings.card_offset_x}px, 0px)`,
+    position: "relative",
+    left: settings.card_offset_x,
   };
 }
 

@@ -18,6 +18,7 @@ import {
 } from "@/lib/embeds/config";
 import { getEmbedIframeSrc } from "@/lib/embeds/parse";
 import { isRobloxLinkEmbed, robloxEmbedLinkLabel } from "@/lib/embeds/roblox-profile";
+import { isLetterboxdLinkEmbed, letterboxdEmbedLinkLabel } from "@/lib/embeds/letterboxd-profile";
 import { CardBorderEffect } from "@/components/profile/card-border-effect";
 import { cardBorderEffectStripsDefaultBorder } from "@/lib/card-border-effects/resolve";
 import type { CardBorderTarget } from "@/lib/card-border-effects/types";
@@ -176,7 +177,26 @@ function GenericLinkCard({
   );
 }
 
-function RobloxCard({
+function isProfileLinkEmbed(
+  type: ProfileEmbed["embed_type"],
+): type is "roblox" | "roblox_profile" | "letterboxd" {
+  return isRobloxLinkEmbed(type) || isLetterboxdLinkEmbed(type);
+}
+
+function LetterboxdBrandMark() {
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-[#40bcf4]">
+      <span className="inline-flex items-center gap-0.5" aria-hidden>
+        <span className="h-2 w-2 rounded-full bg-[#ff8000]" />
+        <span className="h-2 w-2 rounded-full bg-[#00e054]" />
+        <span className="h-2 w-2 rounded-full bg-[#40bcf4]" />
+      </span>
+      Letterboxd
+    </span>
+  );
+}
+
+function ProfileLinkCard({
   embed,
   settings,
 }: {
@@ -185,18 +205,28 @@ function RobloxCard({
 }) {
   const config = embed.config;
   const title = resolveEmbedTitle(embed);
-  const styles = embedStylesWithBorderEffect(settings, config, "roblox");
+  const isLetterboxd = embed.embed_type === "letterboxd";
+  const styles = isLetterboxd
+    ? embedCardStyles(config, settings.accent_color)
+    : embedStylesWithBorderEffect(settings, config, "roblox");
   const textStyle = embedTextStyle(config, settings.text_color);
   const mutedStyle = embedMutedTextStyle(config);
   const titleClass = embedTitleClass(config.title_size);
   const isProfile = embed.embed_type === "roblox_profile";
-  const imageUrl = isProfile ? config.avatar_url : config.thumbnail_url;
-  const showImage = isProfile ? config.show_avatar : config.show_thumbnail;
+  const isLetterboxdProfile = embed.embed_type === "letterboxd";
+  const imageUrl = isProfile || isLetterboxdProfile ? config.avatar_url : config.thumbnail_url;
+  const showImage = isProfile || isLetterboxdProfile ? config.show_avatar : config.show_thumbnail;
   const subtitle = isProfile
     ? config.show_username && config.username
       ? `@${config.username}`
       : robloxEmbedLinkLabel(embed.embed_type)
-    : config.description || robloxEmbedLinkLabel(embed.embed_type);
+    : isLetterboxdProfile
+      ? config.show_stats && config.description
+        ? config.description
+        : config.show_username && config.username
+          ? `@${config.username}`
+          : letterboxdEmbedLinkLabel()
+      : config.description || robloxEmbedLinkLabel(embed.embed_type);
 
   if (config.display_mode === "minimal") {
     return <GenericLinkCard embed={embed} settings={settings} minimal />;
@@ -211,7 +241,7 @@ function RobloxCard({
         <img
           src={imageUrl}
           alt=""
-          className={`shrink-0 rounded-xl object-cover ring-1 ring-white/10 ${isProfile ? "h-12 w-12" : "h-11 w-11"}`}
+          className={`shrink-0 rounded-xl object-cover ring-1 ring-white/10 ${isProfile || isLetterboxdProfile ? "h-12 w-12" : "h-11 w-11"}`}
           draggable={false}
         />
       ) : null}
@@ -224,17 +254,26 @@ function RobloxCard({
         titleClass={titleClass}
         config={config}
       />
+      {isLetterboxdProfile ? <LetterboxdBrandMark /> : null}
       <EmbedOpenButton />
     </div>
   );
 
-  return (
-    <CardBorderEffect settings={settings} target="roblox" borderRadius={settings.border_radius}>
-      <EmbedCardShell href={embed.url} embedType={embed.embed_type} styles={styles}>
-        {content}
-      </EmbedCardShell>
-    </CardBorderEffect>
+  const shell = (
+    <EmbedCardShell href={embed.url} embedType={embed.embed_type} styles={styles}>
+      {content}
+    </EmbedCardShell>
   );
+
+  if (isRobloxLinkEmbed(embed.embed_type)) {
+    return (
+      <CardBorderEffect settings={settings} target="roblox" borderRadius={settings.border_radius}>
+        {shell}
+      </CardBorderEffect>
+    );
+  }
+
+  return shell;
 }
 
 function IframeEmbed({
@@ -319,8 +358,8 @@ export function ProfileEmbedItem({
 
   if (config.display_mode === "minimal") {
     return wrap(
-      isRobloxLinkEmbed(embed.embed_type) ? (
-        <RobloxCard embed={embed} settings={settings} />
+      isProfileLinkEmbed(embed.embed_type) ? (
+        <ProfileLinkCard embed={embed} settings={settings} />
       ) : (
         <GenericLinkCard embed={embed} settings={settings} minimal />
       ),
@@ -329,8 +368,8 @@ export function ProfileEmbedItem({
 
   if (config.display_mode === "card") {
     return wrap(
-      isRobloxLinkEmbed(embed.embed_type) ? (
-        <RobloxCard embed={embed} settings={settings} />
+      isProfileLinkEmbed(embed.embed_type) ? (
+        <ProfileLinkCard embed={embed} settings={settings} />
       ) : (
         <GenericLinkCard embed={embed} settings={settings} />
       ),

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { buildCardStyle, FONT_OPTIONS, getFontCss, getGoogleFontsUrl, getProfileAlignClass } from "@/lib/settings";
+import { buildCardStyles, FONT_OPTIONS, getFontCss, getGoogleFontsUrl, getProfileAlignClass } from "@/lib/settings";
 import { writeContentPageBorderTargets } from "@/lib/card-border-effects/resolve";
 import { ProfileBio } from "@/components/profile/public/profile-bio";
 import { CardBorderEffect } from "@/components/profile/card-border-effect";
@@ -66,7 +66,7 @@ export function ContentPageStylePreview({
   const fontLabel =
     FONT_OPTIONS.find((option) => option.value === preview.font_family)?.label ??
     preview.font_family;
-  const cardStyle = buildCardStyle(preview);
+  const { shell, backdrop } = buildCardStyles(preview);
   const alignClass = getProfileAlignClass(preview.content_alignment);
   const pageTitle = page.label || page.slug;
   const showLinkBorder = form.card_border_effect !== "none" && form.border_links;
@@ -117,7 +117,13 @@ export function ContentPageStylePreview({
             borderRadius={preview.border_radius}
             className="w-full"
           >
-            <div className="p-4" style={cardStyle as React.CSSProperties}>
+            <div className="relative w-full overflow-visible" style={shell as React.CSSProperties}>
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{ ...backdrop, borderRadius: preview.border_radius } as React.CSSProperties}
+                aria-hidden
+              />
+              <div className="relative z-[1] p-4">
               <div className="mb-4 flex items-center gap-2">
                 {page.icon ? (
                   <span className="text-xl leading-none" aria-hidden>
@@ -163,6 +169,7 @@ export function ContentPageStylePreview({
                   Sample link
                 </div>
               )}
+              </div>
             </div>
           </CardBorderEffect>
         </div>

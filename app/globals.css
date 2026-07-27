@@ -7071,3 +7071,17 @@ body,
     transition: none !important;
   }
 }
+
+/* Profile card frosted backdrop — blur is independent of card opacity */
+.bf-profile-card-frame {
+  isolation: isolate;
+}
+
+.bf-profile-card-backdrop {
+  z-index: 0;
+}
+
+.bf-profile-card-backdrop--active {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}

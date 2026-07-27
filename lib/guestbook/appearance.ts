@@ -52,30 +52,21 @@ function buildGuestbookCardStyles(settings: ProfileSettings): {
     rgb ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})` : `rgba(20, 20, 20, ${alpha})`;
 
   const shouldBlur = blur > 0;
-  const useFrostedBackground = settings.guestbook_glassmorphism || shouldBlur;
-
-  if (useFrostedBackground) {
-    const backgroundAlpha = settings.guestbook_glassmorphism ? opacity * 0.85 : opacity;
-    const finalAlpha = shouldBlur ? Math.min(backgroundAlpha, 0.72) : backgroundAlpha;
-
-    return {
-      shell,
-      backdrop: {
-        backgroundColor: rgba(finalAlpha),
-        ...(shouldBlur
-          ? {
-              backdropFilter: `blur(${blur}px)`,
-              WebkitBackdropFilter: `blur(${blur}px)`,
-            }
-          : {}),
-      },
-    };
+  let backgroundAlpha = opacity;
+  if (settings.guestbook_glassmorphism) {
+    backgroundAlpha = opacity * 0.85;
   }
 
   return {
     shell,
     backdrop: {
-      backgroundColor: rgba(opacity),
+      backgroundColor: rgba(backgroundAlpha),
+      ...(shouldBlur
+        ? {
+            backdropFilter: `blur(${blur}px)`,
+            WebkitBackdropFilter: `blur(${blur}px)`,
+          }
+        : {}),
     },
   };
 }

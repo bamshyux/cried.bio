@@ -95,7 +95,7 @@ export function EmbedsEditor({
         <form key={formKey} action={formAction} className="space-y-4">
           <div>
             <label htmlFor="url" className={labelClassName}>Paste embed URL</label>
-            <input id="url" name="url" type="url" placeholder="https://youtube.com/watch?v=... or roblox.com/users/..." className={inputClassName} required />
+            <input id="url" name="url" type="url" placeholder="https://letterboxd.com/username or youtube.com/watch?v=..." className={inputClassName} required />
           </div>
           <p className="text-xs text-neutral-600">
             Supported: {EMBED_TYPE_OPTIONS.map((e) => e.label).join(", ")}

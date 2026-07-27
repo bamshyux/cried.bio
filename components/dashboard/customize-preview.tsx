@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { ProfileStatusLine } from "@/components/profile/public/profile-social";
 import {
-  buildCardStyle,
+  buildCardStyles,
   FONT_OPTIONS,
   getFontCss,
   getGoogleFontsUrl,
@@ -68,7 +68,7 @@ export function CustomizePreview({
   const fontLabel =
     FONT_OPTIONS.find((option) => option.value === preview.font_family)?.label ??
     preview.font_family;
-  const cardStyle = buildCardStyle(preview);
+  const { shell, backdrop } = buildCardStyles(preview);
   const alignClass = getProfileAlignClass(preview.content_alignment);
   const usernameGlow = preview.neon_glow
     ? { textShadow: `0 0 24px ${preview.accent_color}80` }
@@ -115,7 +115,13 @@ export function CustomizePreview({
             } as React.CSSProperties
           }
         >
-          <div className="p-4" style={cardStyle as React.CSSProperties}>
+          <div className="relative overflow-visible" style={shell as React.CSSProperties}>
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{ ...backdrop, borderRadius: preview.border_radius } as React.CSSProperties}
+              aria-hidden
+            />
+            <div className="relative z-[1] p-4">
             <div className="bf-profile-avatar-row mb-3 flex items-center gap-3">
               <div
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-bold text-[#090909]"
@@ -161,6 +167,7 @@ export function CustomizePreview({
               }}
             >
               Sample link
+            </div>
             </div>
           </div>
         </div>

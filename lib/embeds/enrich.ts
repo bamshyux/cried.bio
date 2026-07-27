@@ -1,8 +1,10 @@
 import type { EmbedConfig, EmbedType, ParsedEmbed } from "@/lib/types/embed";
 import { getDefaultEmbedConfig, parseEmbedConfig } from "@/lib/embeds/config";
 import { enrichRobloxProfileEmbed } from "@/lib/embeds/roblox-profile";
+import { fetchLetterboxdProfile } from "@/lib/embeds/letterboxd-profile";
 
 export { enrichRobloxProfileEmbed };
+export { enrichLetterboxdProfileEmbed } from "@/lib/embeds/letterboxd-profile";
 
 async function fetchRobloxUser(userId: string) {
   const res = await fetch(`https://users.roblox.com/v1/users/${userId}`, {
@@ -86,6 +88,22 @@ export async function buildInitialEmbedConfig(parsed: ParsedEmbed): Promise<Embe
     return config;
   }
 
+  if (parsed.embed_type === "letterboxd") {
+    const profile = await fetchLetterboxdProfile(parsed.embed_id);
+    if (profile) {
+      config.avatar_url = profile.avatarUrl;
+      config.username = profile.username;
+      config.display_name = profile.displayName;
+      config.custom_title = parsed.title;
+      config.description = profile.statsLine || profile.bio;
+      config.show_title = true;
+      config.show_avatar = true;
+      config.show_username = true;
+      config.show_stats = true;
+    }
+    return config;
+  }
+
   return config;
 }
 
@@ -109,6 +127,18 @@ export async function refreshEmbedMediaConfig(
 
   if (embedType === "roblox" && next.show_thumbnail && !next.thumbnail_url) {
     next.thumbnail_url = await fetchRobloxGameThumbnail(embedId);
+  }
+
+  if (embedType === "letterboxd") {
+    const profile = await fetchLetterboxdProfile(embedId);
+    if (profile) {
+      if (next.show_avatar && !next.avatar_url) {
+        next.avatar_url = profile.avatarUrl;
+      }
+      if (!next.username) next.username = profile.username;
+      if (!next.display_name) next.display_name = profile.displayName;
+      if (!next.description) next.description = profile.statsLine || profile.bio;
+    }
   }
 
   return next;

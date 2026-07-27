@@ -334,15 +334,15 @@ export function ProfileCardFrame({
   const { shell, backdrop } = buildCardStyles(settings);
   const mergedShell = { ...shell, ...style };
   const radius = mergedShell.borderRadius ?? settings.border_radius;
-  const hasBlur = settings.profile_blur > 0 || settings.glassmorphism;
+  const hasBlur = settings.profile_blur > 0;
 
   return (
     <div
-      className={`bf-profile-card-frame relative w-full ${hasBlur ? "overflow-visible" : "overflow-hidden"} ${className}`.trim()}
-      style={mergedShell}
+      className={`bf-profile-card-frame relative w-full overflow-visible ${className}`.trim()}
+      style={{ ...mergedShell, isolation: "isolate" }}
     >
       <div
-        className="pointer-events-none absolute inset-0"
+        className={`bf-profile-card-backdrop pointer-events-none absolute inset-0 ${hasBlur ? "bf-profile-card-backdrop--active" : ""}`}
         style={{ ...backdrop, ...backdropStyle, borderRadius: radius }}
         aria-hidden
       />
