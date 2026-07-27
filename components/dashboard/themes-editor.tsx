@@ -11,7 +11,7 @@ import {
   labelClassName,
   PageHeader,
 } from "@/components/dashboard/form-fields";
-import { LayoutColorsPanel, readLayoutColorsForm } from "@/components/dashboard/layout-colors-panel";
+import { LayoutColorsPanel, readLayoutColorFields } from "@/components/dashboard/layout-colors-panel";
 import { LayoutPreview } from "@/components/dashboard/layout-preview";
 import { PremiumLockBadge } from "@/components/premium/premium-locked";
 import { useUpgradeModal } from "@/components/premium/upgrade-modal";
@@ -39,7 +39,7 @@ function readThemesForm(settings: ProfileSettings, fallbackThemeId: string): The
   return {
     layout: settings.layout,
     custom_theme_id: settings.custom_theme_id ?? fallbackThemeId,
-    ...readLayoutColorsForm(settings),
+    ...readLayoutColorFields(settings),
   };
 }
 

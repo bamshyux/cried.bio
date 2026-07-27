@@ -10,16 +10,18 @@ import {
 } from "@/lib/layout-colors";
 import type { ProfileLayout, ProfileSettings } from "@/lib/types/settings";
 
-export type LayoutColorsFormState = {
-  layout: ProfileLayout;
+export type LayoutColorFields = {
   layout_primary_color: string;
   layout_secondary_color: string;
   layout_tertiary_color: string;
 };
 
-export function readLayoutColorsForm(settings: ProfileSettings): LayoutColorsFormState {
+export type LayoutColorsFormState = LayoutColorFields & {
+  layout: ProfileLayout;
+};
+
+export function readLayoutColorFields(settings: ProfileSettings): LayoutColorFields {
   return {
-    layout: settings.layout,
     layout_primary_color: settings.layout_primary_color,
     layout_secondary_color: settings.layout_secondary_color,
     layout_tertiary_color: settings.layout_tertiary_color,
