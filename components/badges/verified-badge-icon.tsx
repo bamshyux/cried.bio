@@ -44,31 +44,49 @@ export function VerifiedBadgeIcon({
       className={`bf-verified-badge ${className}`.trim()}
       aria-hidden
     >
-      {!monochrome && (
-        <defs>
-          <linearGradient id={gradId} x1="8%" y1="6%" x2="92%" y2="94%">
-            <stop offset="0%" stopColor="#5CC4FF" />
-            <stop offset="38%" stopColor="#1D9BF0" />
-            <stop offset="100%" stopColor="#1574B8" />
-          </linearGradient>
-        </defs>
+      {monochrome ? (
+        <>
+          <path
+            d={shape}
+            fill="none"
+            stroke={color}
+            strokeWidth="1.65"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M8.6 12.2 10.8 14.4 15.6 9.3"
+            stroke={color}
+            strokeWidth="2.05"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </>
+      ) : (
+        <>
+          <defs>
+            <linearGradient id={gradId} x1="8%" y1="6%" x2="92%" y2="94%">
+              <stop offset="0%" stopColor="#5CC4FF" />
+              <stop offset="38%" stopColor="#1D9BF0" />
+              <stop offset="100%" stopColor="#1574B8" />
+            </linearGradient>
+          </defs>
+          <path
+            d={shape}
+            fill={`url(#${gradId})`}
+            stroke="#0b4f86"
+            strokeWidth="1.1"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M8.6 12.2 10.8 14.4 15.6 9.3"
+            stroke="#ffffff"
+            strokeWidth="1.85"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>
       )}
-      <path
-        d={shape}
-        fill={monochrome ? color : `url(#${gradId})`}
-        stroke={monochrome ? color : "#0b4f86"}
-        strokeWidth="1.1"
-        strokeLinejoin="round"
-        strokeOpacity={monochrome ? 0.55 : 1}
-      />
-      <path
-        d="M8.6 12.2 10.8 14.4 15.6 9.3"
-        stroke={monochrome ? color : "#ffffff"}
-        strokeOpacity={monochrome ? 0.85 : 1}
-        strokeWidth="1.85"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </svg>
   );
 }
