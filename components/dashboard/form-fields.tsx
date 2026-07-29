@@ -26,7 +26,7 @@ export function RemoveMediaButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="text-xs font-medium text-red-400 transition-colors hover:text-red-300 disabled:opacity-50"
+      className="self-start text-left text-xs font-medium text-red-400 transition-colors hover:text-red-300 disabled:opacity-50"
     >
       {label}
     </button>

@@ -19,7 +19,7 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T | null> 
         Accept: "application/json",
         ...(init?.headers ?? {}),
       },
-      next: { revalidate: 3600 },
+      cache: "no-store",
     });
     if (!response.ok) return null;
     return (await response.json()) as T;
@@ -30,15 +30,20 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T | null> 
   }
 }
 
-async function fetchText(url: string): Promise<string | null> {
+async function fetchText(url: string, init?: RequestInit): Promise<string | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   try {
     const response = await fetch(url, {
+      ...init,
       signal: controller.signal,
-      headers: { "User-Agent": USER_AGENT, Accept: "text/html,application/json" },
-      next: { revalidate: 3600 },
+      cache: "no-store",
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept: "text/html,application/json",
+        ...(init?.headers ?? {}),
+      },
     });
     if (!response.ok) return null;
     return await response.text();
@@ -109,7 +114,7 @@ async function fetchPlainText(url: string, init?: RequestInit): Promise<string |
         Accept: "text/plain,*/*",
         ...(init?.headers ?? {}),
       },
-      next: { revalidate: 3600 },
+      cache: "no-store",
     });
     if (!response.ok) return null;
     return (await response.text()).trim();
@@ -125,6 +130,28 @@ function parseCount(value: string | null | undefined): number | null {
   const normalized = value.replace(/,/g, "").trim();
   const parsed = Number.parseInt(normalized, 10);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parseCompactCountText(value: string | null | undefined): number | null {
+  if (!value) return null;
+
+  const compactMatch = value.trim().match(/([\d,.]+)\s*([KMBkmb])?/);
+  if (compactMatch) {
+    let num = Number.parseFloat(compactMatch[1].replace(/,/g, ""));
+    if (Number.isFinite(num)) {
+      const suffix = (compactMatch[2] ?? "").toUpperCase();
+      if (suffix === "K") num *= 1_000;
+      else if (suffix === "M") num *= 1_000_000;
+      else if (suffix === "B") num *= 1_000_000_000;
+      return Math.round(num);
+    }
+  }
+
+  return parseCount(value.replace(/[^\d,]/g, ""));
+}
+
+function isYouTubeChannelId(value: string): boolean {
+  return /^UC[\w-]{20,}$/i.test(value);
 }
 
 async function fetchDiscordInviteStats(code: string): Promise<PlatformStatFetchResult> {
@@ -243,34 +270,75 @@ async function fetchTwitchStats(username: string): Promise<PlatformStatFetchResu
   };
 }
 
-async function fetchYouTubeStats(handle: string): Promise<PlatformStatFetchResult> {
-  const apiKey = process.env.YOUTUBE_API_KEY?.trim();
-  if (!apiKey) return emptyResult("Subscribers");
+async function scrapeYouTubeStats(handle: string): Promise<PlatformStatFetchResult | null> {
+  const normalizedHandle = handle.replace(/^@/, "");
+  const pageUrl = isYouTubeChannelId(handle)
+    ? `https://www.youtube.com/channel/${encodeURIComponent(handle)}/about`
+    : `https://www.youtube.com/@${encodeURIComponent(normalizedHandle)}/about`;
 
-  const normalized = handle.startsWith("@") ? handle : `@${handle}`;
-  const data = await fetchJson<{
-    items?: Array<{
-      snippet?: { title?: string; customUrl?: string; thumbnails?: { default?: { url?: string } } };
-      statistics?: { subscriberCount?: string };
-    }>;
-  }>(
-    `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forHandle=${encodeURIComponent(normalized)}&key=${encodeURIComponent(apiKey)}`,
-  );
+  const html = await fetchText(pageUrl);
+  if (!html) return null;
 
-  const channel = data?.items?.[0];
-  if (!channel) return emptyResult("Subscribers");
+  const subscriberMatch =
+    html.match(/"subscriberCountText":"([^"]+)"/) ??
+    html.match(/"subscriberCountText":\{"simpleText":"([^"]+)"/) ??
+    html.match(/"subscriberCount":"(\d+)"/);
 
-  const subscribers = channel.statistics?.subscriberCount
-    ? Number.parseInt(channel.statistics.subscriberCount, 10)
-    : null;
+  const rawCount = subscriberMatch?.[1] ?? null;
+  const followerCount =
+    rawCount && /^\d+$/.test(rawCount)
+      ? Number.parseInt(rawCount, 10)
+      : parseCompactCountText(rawCount);
+
+  const avatarMatch = html.match(/"avatar":\{"thumbnails":\[\{"url":"([^"]+)"/);
+  const ogTitleMatch = html.match(/<meta property="og:title" content="([^"]+)"/);
+
+  if (followerCount == null && !ogTitleMatch) return null;
 
   return {
-    platform_username: channel.snippet?.customUrl?.replace(/^@/, "") ?? handle.replace(/^@/, ""),
-    display_name: channel.snippet?.title ?? handle,
-    avatar_url: channel.snippet?.thumbnails?.default?.url ?? null,
-    follower_count: Number.isFinite(subscribers ?? NaN) ? subscribers : null,
+    platform_username: normalizedHandle || handle,
+    display_name: ogTitleMatch?.[1] ?? normalizedHandle ?? handle,
+    avatar_url: avatarMatch?.[1] ?? null,
+    follower_count: followerCount,
     count_label: "Subscribers",
   };
+}
+
+async function fetchYouTubeStats(handle: string): Promise<PlatformStatFetchResult> {
+  const apiKey = process.env.YOUTUBE_API_KEY?.trim();
+
+  if (apiKey) {
+    const apiUrl = isYouTubeChannelId(handle)
+      ? `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${encodeURIComponent(handle)}&key=${encodeURIComponent(apiKey)}`
+      : `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forHandle=${encodeURIComponent(handle.startsWith("@") ? handle : `@${handle}`)}&key=${encodeURIComponent(apiKey)}`;
+
+    const data = await fetchJson<{
+      items?: Array<{
+        snippet?: { title?: string; customUrl?: string; thumbnails?: { default?: { url?: string } } };
+        statistics?: { subscriberCount?: string };
+      }>;
+    }>(apiUrl);
+
+    const channel = data?.items?.[0];
+    if (channel) {
+      const subscribers = channel.statistics?.subscriberCount
+        ? Number.parseInt(channel.statistics.subscriberCount, 10)
+        : null;
+
+      if (Number.isFinite(subscribers ?? NaN)) {
+        return {
+          platform_username: channel.snippet?.customUrl?.replace(/^@/, "") ?? handle.replace(/^@/, ""),
+          display_name: channel.snippet?.title ?? handle,
+          avatar_url: channel.snippet?.thumbnails?.default?.url ?? null,
+          follower_count: subscribers,
+          count_label: "Subscribers",
+        };
+      }
+    }
+  }
+
+  const scraped = await scrapeYouTubeStats(handle);
+  return scraped ?? emptyResult("Subscribers");
 }
 
 async function fetchTikTokStats(username: string): Promise<PlatformStatFetchResult> {
@@ -319,6 +387,29 @@ async function fetchInstagramStats(username: string): Promise<PlatformStatFetchR
   };
 }
 
+async function fetchTwitterViaFxTwitter(username: string): Promise<PlatformStatFetchResult | null> {
+  const data = await fetchJson<{
+    code?: number;
+    user?: {
+      screen_name?: string;
+      name?: string;
+      avatar_url?: string;
+      followers?: number;
+    };
+  }>(`https://api.fxtwitter.com/2/profile/${encodeURIComponent(username)}`);
+
+  const user = data?.user;
+  if (!user?.screen_name || typeof user.followers !== "number") return null;
+
+  return {
+    platform_username: user.screen_name,
+    display_name: user.name ?? user.screen_name,
+    avatar_url: user.avatar_url ?? null,
+    follower_count: user.followers,
+    count_label: "Followers",
+  };
+}
+
 async function fetchTwitterStats(username: string): Promise<PlatformStatFetchResult> {
   const bearer = process.env.X_BEARER_TOKEN?.trim();
   if (bearer) {
@@ -345,6 +436,9 @@ async function fetchTwitterStats(username: string): Promise<PlatformStatFetchRes
       };
     }
   }
+
+  const fxTwitter = await fetchTwitterViaFxTwitter(username);
+  if (fxTwitter) return fxTwitter;
 
   const html = await fetchText(`https://x.com/${encodeURIComponent(username)}`);
   if (!html) return emptyResult();
@@ -420,6 +514,94 @@ async function fetchRobloxStats(identifier: string): Promise<PlatformStatFetchRe
   };
 }
 
+async function getSpotifyWebPlayerToken(): Promise<string | null> {
+  const data = await fetchJson<{ accessToken?: string }>(
+    "https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
+    {
+      headers: {
+        Accept: "application/json",
+        Referer: "https://open.spotify.com/",
+      },
+    },
+  );
+  return data?.accessToken ?? null;
+}
+
+const SPOTIFY_ARTIST_OVERVIEW_HASHES = [
+  "79a4a9d7c3a3781d801e62b62ef11c7ee56fce2626772eb26cd20c69f84b3f49",
+  "d66221ea13998b2f81883c5187d174c8646e4041d67f5b1e103bc262d447e3a0",
+];
+
+async function fetchSpotifyArtistViaPathfinder(
+  artistId: string,
+): Promise<PlatformStatFetchResult | null> {
+  const token = await getSpotifyWebPlayerToken();
+  if (!token) return null;
+
+  const spotifyHeaders = {
+    Authorization: `Bearer ${token}`,
+    "app-platform": "WebPlayer",
+    origin: "https://open.spotify.com",
+    referer: "https://open.spotify.com/",
+  };
+
+  for (const sha256Hash of SPOTIFY_ARTIST_OVERVIEW_HASHES) {
+    const variables = JSON.stringify({
+      uri: `spotify:artist:${artistId}`,
+      locale: "",
+      includePrerelease: true,
+    });
+    const extensions = JSON.stringify({
+      persistedQuery: { version: 1, sha256Hash },
+    });
+
+    const data = await fetchJson<{
+      data?: {
+        artistUnion?: {
+          profile?: { name?: string };
+          stats?: { followers?: number };
+          visuals?: { avatarImage?: { sources?: Array<{ url?: string }> } };
+        };
+      };
+    }>(
+      `https://api-partner.spotify.com/pathfinder/v1/query?operationName=queryArtistOverview&variables=${encodeURIComponent(variables)}&extensions=${encodeURIComponent(extensions)}`,
+      { headers: spotifyHeaders },
+    );
+
+    const artist = data?.data?.artistUnion;
+    const name = artist?.profile?.name;
+    const followers = artist?.stats?.followers;
+    if (!name || typeof followers !== "number") continue;
+
+    return {
+      platform_username: name,
+      display_name: name,
+      avatar_url: artist.visuals?.avatarImage?.sources?.[0]?.url ?? null,
+      follower_count: followers,
+      count_label: "Followers",
+    };
+  }
+
+  return null;
+}
+
+async function fetchSpotifyOEmbed(url: string): Promise<PlatformStatFetchResult | null> {
+  const data = await fetchJson<{
+    title?: string;
+    thumbnail_url?: string;
+  }>(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
+
+  if (!data?.title) return null;
+
+  return {
+    platform_username: data.title,
+    display_name: data.title,
+    avatar_url: data.thumbnail_url ?? null,
+    follower_count: null,
+    count_label: "Followers",
+  };
+}
+
 async function getSpotifyAccessToken(): Promise<string | null> {
   const clientId = process.env.SPOTIFY_CLIENT_ID?.trim();
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET?.trim();
@@ -454,27 +636,38 @@ async function getSpotifyAccessToken(): Promise<string | null> {
 async function fetchSpotifyStats(identifier: string, url: string): Promise<PlatformStatFetchResult> {
   const parsed = new URL(url);
   const kind = parsed.pathname.split("/").filter(Boolean)[0];
-  const token = await getSpotifyAccessToken();
 
-  if (token && kind === "artist") {
-    const data = await fetchJson<{
-      name?: string;
-      followers?: { total?: number };
-      images?: Array<{ url?: string }>;
-    }>(`https://api.spotify.com/v1/artists/${encodeURIComponent(identifier)}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  if (kind === "artist") {
+    const pathfinder = await fetchSpotifyArtistViaPathfinder(identifier);
+    if (pathfinder?.follower_count != null) return pathfinder;
 
-    if (data?.name) {
-      return {
-        platform_username: data.name,
-        display_name: data.name,
-        avatar_url: data.images?.[0]?.url ?? null,
-        follower_count: data.followers?.total ?? null,
-        count_label: "Followers",
-      };
+    const token = await getSpotifyAccessToken();
+    if (token) {
+      const data = await fetchJson<{
+        name?: string;
+        followers?: { total?: number };
+        images?: Array<{ url?: string }>;
+      }>(`https://api.spotify.com/v1/artists/${encodeURIComponent(identifier)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (data?.name) {
+        return {
+          platform_username: data.name,
+          display_name: data.name,
+          avatar_url: data.images?.[0]?.url ?? null,
+          follower_count:
+            typeof data.followers?.total === "number" ? data.followers.total : pathfinder?.follower_count ?? null,
+          count_label: "Followers",
+        };
+      }
     }
+
+    if (pathfinder) return pathfinder;
   }
+
+  const oembed = await fetchSpotifyOEmbed(url);
+  if (oembed) return oembed;
 
   const html = await fetchText(url);
   if (html) {
@@ -493,7 +686,7 @@ async function fetchSpotifyStats(identifier: string, url: string): Promise<Platf
         display_name: name ?? "Spotify",
         avatar_url: imageMatch?.[1]?.replace(/\\u0026/g, "&") ?? null,
         follower_count: Number.isFinite(followerCount ?? NaN) ? followerCount : null,
-        count_label: kind === "artist" ? "Followers" : "Followers",
+        count_label: "Followers",
       };
     }
   }

@@ -1,29 +1,12 @@
 "use client";
 
 import type { LayoutProps } from "./layout-primitives";
-import { ProfileAvatar, ProfileHandle, ProfileMainContent, ProfileMeta, Username, getDisplayName, getLayoutBadges } from "./layout-primitives";
+import { ProfileAvatar, ProfileHandle, ProfileMainContent, ProfileMeta, Username, getDisplayName, getLayoutBadges, pickMainContentProps } from "./layout-primitives";
 import { BadgeRow } from "@/components/badges/badge-ui";
 
 /** Minimal layout shell for custom CSS themes — styling comes from user CSS only. */
-export function CustomThemeLayout({
-  profile,
-  links,
-  settings,
-  badges,
-  viewCount,
-  embeds,
-  featured,
-  guestbook,
-  activity,
-  friends,
-  followerCount,
-  followingCount,
-  isFollowing,
-  isLoggedIn,
-  currentUserId,
-  discordPresence,
-  totalFollowersSummary,
-}: LayoutProps) {
+export function CustomThemeLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount } = props;
   const displayName = getDisplayName(profile);
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const bannerStyle = profile.banner_url
@@ -55,23 +38,7 @@ export function CustomThemeLayout({
           </div>
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="profile-meta" />
-        <ProfileMainContent
-          profile={profile}
-          links={links}
-          settings={settings}
-          embeds={embeds}
-          featured={featured}
-          guestbook={guestbook}
-          activity={activity}
-          friends={friends}
-          followerCount={followerCount}
-          followingCount={followingCount}
-          isFollowing={isFollowing}
-          isLoggedIn={isLoggedIn}
-          currentUserId={currentUserId}
-          discordPresence={discordPresence}
-          totalFollowersSummary={totalFollowersSummary}
-        />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
     </div>
   );

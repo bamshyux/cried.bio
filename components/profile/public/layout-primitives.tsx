@@ -305,6 +305,11 @@ export function ProfileMainContent(props: Omit<LayoutProps, "badges" | "viewCoun
   return <ProfileContentSections {...props} />;
 }
 
+export function pickMainContentProps(props: LayoutProps): Omit<LayoutProps, "badges" | "viewCount"> {
+  const { badges: _badges, viewCount: _viewCount, ...contentProps } = props;
+  return contentProps;
+}
+
 export function getLayoutBadges(badges: ProfileBadge[], settings: ProfileSettings) {
   return {
     displayBadges: preparePublicBadges(badges, settings),

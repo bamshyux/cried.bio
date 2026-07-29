@@ -17,6 +17,7 @@ import { ProfileFriendsSection, ProfileSocialBar, ProfileStatusLine } from "./pr
 import { ProfileLinks, SocialIconOnlyRow, SocialIconRow } from "./profile-links";
 import { ProfileBio } from "./profile-bio";
 import { TotalFollowersStat } from "./total-followers-stat";
+import { summaryFromLinks } from "@/lib/platform-followers/summary-from-links";
 import type { TotalFollowersSummary } from "@/lib/types/link-platform-stats";
 
 export function ProfileContentSections({
@@ -54,6 +55,9 @@ export function ProfileContentSections({
   discordPresence?: DiscordPresence | null;
   totalFollowersSummary?: TotalFollowersSummary | null;
 }) {
+  const followersSummary =
+    totalFollowersSummary ?? (settings.show_total_followers ? summaryFromLinks(links) : null);
+
   return (
     <>
       <ProfileStatusLine settings={settings} />
@@ -76,8 +80,8 @@ export function ProfileContentSections({
       {!hideBio && profile.bio && <ProfileBio text={profile.bio} settings={settings} />}
       <ProfileEmbedsSection embeds={embeds} settings={settings} />
       <ProfileFeaturedSection blocks={featured} settings={settings} />
-      {settings.show_total_followers && totalFollowersSummary ? (
-        <TotalFollowersStat summary={totalFollowersSummary} />
+      {settings.show_total_followers && followersSummary ? (
+        <TotalFollowersStat summary={followersSummary} />
       ) : null}
       {settings.links_style === "icons" ? (
         <SocialIconRow links={links} settings={settings} profileId={profile.id} />

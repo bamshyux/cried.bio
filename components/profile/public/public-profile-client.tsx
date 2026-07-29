@@ -37,6 +37,7 @@ import {
   bannerTopRadius,
   getLayoutBadges,
   layoutCardRadiusStyle,
+  pickMainContentProps,
   type LayoutProps,
 } from "./layout-primitives";
 import { CustomThemeLayout } from "./custom-theme-layout";
@@ -49,7 +50,8 @@ import { getPageEntranceClassName, PAGE_ENTRANCE_CLASS_NAMES } from "@/lib/page-
 import { PREMIUM_LAYOUTS } from "./profile-layouts-premium";
 import { ExternalLinkConfirmProvider } from "./external-link-confirm";
 
-function ClassicLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function ClassicLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -74,13 +76,14 @@ function ClassicLayout({ profile, links, settings, badges, viewCount, embeds, fe
           </div>
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
     </div>
   );
 }
 
-function ModernLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function ModernLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -96,13 +99,14 @@ function ModernLayout({ profile, links, settings, badges, viewCount, embeds, fea
       <ProfileHandle profile={profile} className="mb-4" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
       <div className="bf-profile-block max-w-md">
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
     </div>
   );
 }
 
-function GamingLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function GamingLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -123,13 +127,14 @@ function GamingLayout({ profile, links, settings, badges, viewCount, embeds, fea
         </div>
       </div>
       <div className="space-y-2 px-5 pb-5">
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
     </div>
   );
 }
 
-function PortfolioLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function PortfolioLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -145,13 +150,14 @@ function PortfolioLayout({ profile, links, settings, badges, viewCount, embeds, 
         </div>
         <ProfileHandle profile={profile} className="mb-3" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
     </div>
   );
 }
 
-function MinimalLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function MinimalLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -163,12 +169,13 @@ function MinimalLayout({ profile, links, settings, badges, viewCount, embeds, fe
       </div>
       <ProfileHandle profile={profile} className="mb-3" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
     </div>
   );
 }
 
-function StackedLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function StackedLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -195,14 +202,15 @@ function StackedLayout({ profile, links, settings, badges, viewCount, embeds, fe
         </div>
 
         <div className="bf-profile-block max-w-md">
-          <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+          <ProfileMainContent {...pickMainContentProps(props)} />
         </div>
       </div>
     </div>
   );
 }
 
-function SplitLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function SplitLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -237,7 +245,7 @@ function SplitLayout({ profile, links, settings, badges, viewCount, embeds, feat
         </div>
         <ProfileHandle profile={profile} className="mb-3" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
     </div>
   );
@@ -264,7 +272,8 @@ function TerminalSection({
   );
 }
 
-function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function TerminalLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const title = profile.username ? `@${profile.username}` : "profile";
@@ -298,29 +307,15 @@ function TerminalLayout({ profile, links, settings, badges, viewCount, embeds, f
         )}
 
         <TerminalSection className={profile.bio ? undefined : "!border-t-0 !pt-0"}>
-          <ProfileMainContent
-            profile={profile}
-            links={links}
-            settings={settings}
-            embeds={embeds}
-            featured={featured}
-            guestbook={guestbook}
-            activity={activity}
-            friends={friends}
-            followerCount={followerCount}
-            followingCount={followingCount}
-            isFollowing={isFollowing}
-            isLoggedIn={isLoggedIn}
-            currentUserId={currentUserId}
-            hideBio
-          />
+          <ProfileMainContent {...pickMainContentProps(props)} hideBio />
         </TerminalSection>
       </div>
     </div>
   );
 }
 
-function CompactLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function CompactLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -337,12 +332,13 @@ function CompactLayout({ profile, links, settings, badges, viewCount, embeds, fe
         </div>
       </div>
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-      <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+      <ProfileMainContent {...pickMainContentProps(props)} />
     </div>
   );
 }
 
-function CardLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function CardLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -358,13 +354,14 @@ function CardLayout({ profile, links, settings, badges, viewCount, embeds, featu
         </div>
         <ProfileHandle profile={profile} className="mb-3" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
     </div>
   );
 }
 
-function NeonLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function NeonLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const colors = resolveLayoutColors(settings);
@@ -394,13 +391,14 @@ function NeonLayout({ profile, links, settings, badges, viewCount, embeds, featu
           </div>
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
     </div>
   );
 }
 
-function MagazineLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function MagazineLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -424,13 +422,14 @@ function MagazineLayout({ profile, links, settings, badges, viewCount, embeds, f
       </div>
       <div className="mt-6 border-t border-white/[0.06] pt-6">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
     </div>
   );
 }
 
-function BentoLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function BentoLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -459,14 +458,15 @@ function BentoLayout({ profile, links, settings, badges, viewCount, embeds, feat
         )}
         <div className="rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4 sm:col-span-2">
           <p className="mb-3 text-[10px] font-medium uppercase tracking-wider text-neutral-600">Links</p>
-          <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} hideBio />
+          <ProfileMainContent {...pickMainContentProps(props)} hideBio />
         </div>
       </div>
     </div>
   );
 }
 
-function SidebarLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function SidebarLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -484,13 +484,14 @@ function SidebarLayout({ profile, links, settings, badges, viewCount, embeds, fe
         </div>
       </aside>
       <main className="min-w-0 flex-1 p-6">
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </main>
     </div>
   );
 }
 
-function HeroLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function HeroLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const heroStyle = profile.banner_url
@@ -520,7 +521,7 @@ function HeroLayout({ profile, links, settings, badges, viewCount, embeds, featu
         </div>
         <div className="pt-14">
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
-          <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+          <ProfileMainContent {...pickMainContentProps(props)} />
         </div>
       </div>
     </div>
@@ -556,7 +557,8 @@ function PolaroidAvatar({
   );
 }
 
-function PolaroidLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function PolaroidLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -578,12 +580,13 @@ function PolaroidLayout({ profile, links, settings, badges, viewCount, embeds, f
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         </div>
       </div>
-      <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+      <ProfileMainContent {...pickMainContentProps(props)} />
     </div>
   );
 }
 
-function CinematicLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function CinematicLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const frameStyle = profile.banner_url
@@ -610,13 +613,14 @@ function CinematicLayout({ profile, links, settings, badges, viewCount, embeds, 
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
     </div>
   );
 }
 
-function ShowcaseLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function ShowcaseLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -646,13 +650,14 @@ function ShowcaseLayout({ profile, links, settings, badges, viewCount, embeds, f
       <ProfileHandle profile={profile} className="mt-1" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
       <div className="bf-profile-block mx-auto mt-2 max-w-md">
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
     </div>
   );
 }
 
-function RetroLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function RetroLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const colors = resolveLayoutColors(settings);
@@ -681,7 +686,7 @@ function RetroLayout({ profile, links, settings, badges, viewCount, embeds, feat
             </div>
           </div>
           <div className="mt-5 border-t border-dashed border-white/10 pt-5">
-            <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+            <ProfileMainContent {...pickMainContentProps(props)} />
           </div>
         </div>
       </div>
@@ -689,7 +694,8 @@ function RetroLayout({ profile, links, settings, badges, viewCount, embeds, feat
   );
 }
 
-function PosterLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function PosterLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
 
@@ -723,13 +729,14 @@ function PosterLayout({ profile, links, settings, badges, viewCount, embeds, fea
         </div>
       </div>
       <div className="border-t border-white/[0.06] px-6 py-6">
-        <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+        <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
     </div>
   );
 }
 
-function GlassLayout({ profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId }: LayoutProps) {
+function GlassLayout(props: LayoutProps) {
+  const { profile, links, settings, badges, viewCount, embeds, featured, guestbook, activity, friends, followerCount, followingCount, isFollowing, isLoggedIn, currentUserId } = props;
   const displayName = profile.display_name || profile.username || "User";
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
   const colors = resolveLayoutColors(settings);
@@ -761,7 +768,7 @@ function GlassLayout({ profile, links, settings, badges, viewCount, embeds, feat
         <ProfileHandle profile={profile} className="mt-1" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
         <div className="bf-profile-block mt-2 w-full max-w-md">
-          <ProfileMainContent profile={profile} links={links} settings={settings} embeds={embeds} featured={featured} guestbook={guestbook} activity={activity} friends={friends} followerCount={followerCount} followingCount={followingCount} isFollowing={isFollowing} isLoggedIn={isLoggedIn} currentUserId={currentUserId} />
+          <ProfileMainContent {...pickMainContentProps(props)} />
         </div>
       </div>
     </div>

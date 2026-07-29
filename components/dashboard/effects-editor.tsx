@@ -397,7 +397,7 @@ export function EffectsEditor({
                     }}
                   />
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col items-start gap-2">
                   <RemoveMediaButton
                     label="Remove cursor"
                     onClick={handleRemoveCursor}
