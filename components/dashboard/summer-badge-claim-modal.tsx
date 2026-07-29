@@ -83,7 +83,7 @@ export function SummerBadgeClaimModal({ open, onClose, onClaimed }: SummerBadgeC
       />
 
       <div className="bf-summer-claim-modal relative w-full max-w-md overflow-hidden rounded-3xl border border-amber-400/25 shadow-[0_0_80px_rgba(251,191,36,0.35),0_0_160px_rgba(249,115,22,0.15)]">
-        <div className="bf-summer-claim-rays pointer-events-none absolute inset-0" aria-hidden />
+        <div className="bf-summer-claim-ambient pointer-events-none absolute inset-0" aria-hidden />
         <div className="bf-summer-claim-shimmer pointer-events-none absolute inset-0" aria-hidden />
 
         {[0, 1, 2, 3, 4, 5].map((i) => (
@@ -130,6 +130,7 @@ export function SummerBadgeClaimModal({ open, onClose, onClaimed }: SummerBadgeC
             </p>
 
             <div className="relative mx-auto mt-8 flex h-32 w-32 items-center justify-center">
+              <div className="bf-summer-claim-badge-halo pointer-events-none absolute inset-0" aria-hidden />
               <BadgeMedallion
                 badge={{ slug: "summer-2026", color: SUMMER_2026_BADGE_COLOR, rarity: "epic" }}
                 size={72}
