@@ -10,6 +10,7 @@ import type { ProfileLink } from "@/lib/types/link";
 import type { Profile } from "@/lib/types/profile";
 import type { ProfileSettings } from "@/lib/types/settings";
 import type { SocialProfile } from "@/lib/types/social";
+import type { TotalFollowersSummary } from "@/lib/types/link-platform-stats";
 import { PublicProfileClient } from "./public/public-profile-client";
 
 export function PublicProfileView({
@@ -34,6 +35,7 @@ export function PublicProfileView({
   presetPreviewMode = false,
   musicTracks = [],
   navPages = [],
+  totalFollowersSummary = null,
 }: {
   profile: Profile;
   links: ProfileLink[];
@@ -56,6 +58,7 @@ export function PublicProfileView({
   presetPreviewMode?: boolean;
   musicTracks?: MusicTrack[];
   navPages?: ProfilePage[];
+  totalFollowersSummary?: TotalFollowersSummary | null;
 }) {
   return (
     <PublicProfileClient
@@ -80,6 +83,7 @@ export function PublicProfileView({
       presetPreviewMode={presetPreviewMode}
       musicTracks={musicTracks}
       navPages={navPages}
+      totalFollowersSummary={totalFollowersSummary}
     />
   );
 }

@@ -2833,6 +2833,74 @@ body,
     transform 0.15s ease;
 }
 
+/* Checkered finish flag — visible on nav hover only */
+.bf-dash-nav-flag {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  z-index: 0;
+  width: 1.65rem;
+  height: 1.15rem;
+  opacity: 0;
+  transform: translateY(-50%) translateX(0.45rem) scale(0.92);
+  transition:
+    opacity 0.22s ease,
+    transform 0.28s cubic-bezier(0.34, 1.35, 0.64, 1);
+  pointer-events: none;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow:
+    0 0 10px rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.bf-dash-nav-flag::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    conic-gradient(#fafafa 90deg, #111 90deg 180deg, #fafafa 180deg 270deg, #111 270deg)
+      0 0 / 7px 7px;
+}
+
+.bf-dash-nav-flag::after {
+  content: "";
+  position: absolute;
+  left: -0.18rem;
+  top: 8%;
+  bottom: 8%;
+  width: 2px;
+  border-radius: 1px;
+  background: linear-gradient(to bottom, #52525b, #d4d4d8 48%, #52525b);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.12);
+}
+
+.bf-dash-nav-flag--sub {
+  width: 1.35rem;
+  height: 0.95rem;
+  right: 0.45rem;
+}
+
+.bf-dash-nav-flag--sub::before {
+  background-size: 6px 6px;
+}
+
+.bf-dash-nav-link:hover .bf-dash-nav-flag,
+.bf-dash-nav-sublink:hover .bf-dash-nav-flag {
+  opacity: 0.92;
+  transform: translateY(-50%) translateX(0) scale(1);
+  animation: bf-dash-flag-flutter 0.55s ease-in-out infinite alternate;
+}
+
+@keyframes bf-dash-flag-flutter {
+  0% {
+    transform: translateY(-50%) translateX(0) rotate(-1deg) skewY(0deg);
+  }
+  100% {
+    transform: translateY(calc(-50% - 1px)) translateX(0) rotate(1.5deg) skewY(-2deg);
+  }
+}
+
 .bf-dash-nav-link:hover {
   background: rgba(255, 255, 255, 0.04);
   color: var(--bf-text);

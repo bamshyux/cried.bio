@@ -575,6 +575,13 @@ export function LinksEditor({
             defaultChecked={settings.links_show_hostname ?? false}
           />
 
+          <ToggleField
+            name="show_total_followers"
+            label="Total Followers"
+            description="Show combined followers from connected social links. Click to view the breakdown by platform."
+            defaultChecked={settings.show_total_followers ?? false}
+          />
+
           <FormFeedback error={linkSettingsState.error} success={linkSettingsState.success} />
           <button type="submit" disabled={linkSettingsPending} className={buttonSecondaryClassName}>
             {linkSettingsPending ? "Saving..." : "Save link settings"}

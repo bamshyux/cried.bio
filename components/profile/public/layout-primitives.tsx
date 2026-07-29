@@ -25,6 +25,7 @@ import type { FeaturedBlock } from "@/lib/types/featured";
 import type { GuestbookEntry } from "@/lib/types/guestbook";
 import type { ProfileEmbed } from "@/lib/types/embed";
 import type { SocialProfile } from "@/lib/types/social";
+import type { TotalFollowersSummary } from "@/lib/types/link-platform-stats";
 import { ProfileContentSections } from "./profile-content-sections";
 
 export type LayoutProps = {
@@ -44,6 +45,7 @@ export type LayoutProps = {
   isLoggedIn: boolean;
   currentUserId?: string | null;
   discordPresence?: DiscordPresence | null;
+  totalFollowersSummary?: TotalFollowersSummary | null;
 };
 
 export function ProfileHandle({ profile, className = "" }: { profile: Profile; className?: string }) {

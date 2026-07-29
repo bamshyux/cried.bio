@@ -337,6 +337,7 @@ export type ProfileSettings = {
   links_border_radius: number;
   links_button_opacity: number;
   links_show_hostname: boolean;
+  show_total_followers: boolean;
   profile_parallax: boolean;
   content_alignment: ContentAlignment;
   page_nav_position: PageNavPosition;

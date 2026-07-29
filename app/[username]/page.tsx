@@ -192,6 +192,21 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
     previewSettings.show_view_count = false;
   }
 
+  if (isOwnProfile && !isPresetPreview && settings.show_total_followers) {
+    try {
+      const { syncLinkPlatformStats } = await import("@/lib/platform-followers/sync");
+      await syncLinkPlatformStats(baseProfile.id);
+    } catch {
+      // Follower sync is best-effort and should never block the public profile.
+    }
+  }
+
+  let totalFollowersSummary = null;
+  if (!isPresetPreview && previewSettings.show_total_followers) {
+    const { getTotalFollowersSummary } = await import("@/lib/platform-followers/sync");
+    totalFollowersSummary = await getTotalFollowersSummary(baseProfile.id);
+  }
+
   const discordPresence = await getDiscordPresenceForSettings(previewSettings);
 
   if (
@@ -235,6 +250,7 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
         presetPreviewTitle={presetPreviewTitle}
         musicTracks={musicTracks}
         navPages={navPages}
+        totalFollowersSummary={totalFollowersSummary}
       />
     </>
   );

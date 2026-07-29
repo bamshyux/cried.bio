@@ -23,6 +23,7 @@ import type { ActivityEvent } from "@/lib/types/activity";
 import type { FeaturedBlock } from "@/lib/types/featured";
 import type { GuestbookEntry } from "@/lib/types/guestbook";
 import type { ProfileEmbed } from "@/lib/types/embed";
+import type { TotalFollowersSummary } from "@/lib/types/link-platform-stats";
 import type { SocialProfile } from "@/lib/types/social";
 import { PresetPreviewBanner } from "./preset-preview-banner";
 import { ProfileCardLayoutEditor } from "./profile-card-layout-editor";
@@ -820,6 +821,7 @@ export function PublicProfileClient({
   presetPreviewMode = false,
   musicTracks = [],
   navPages = [],
+  totalFollowersSummary = null,
 }: {
   profile: Profile;
   links: ProfileLink[];
@@ -842,6 +844,7 @@ export function PublicProfileClient({
   presetPreviewMode?: boolean;
   musicTracks?: MusicTrack[];
   navPages?: ProfilePage[];
+  totalFollowersSummary?: TotalFollowersSummary | null;
 }) {
   const isPresetPreview = presetPreviewMode || Boolean(presetPreviewTitle);
   const showPresetPreviewBanner = Boolean(presetPreviewTitle) && !presetPreviewMode;
@@ -913,6 +916,7 @@ export function PublicProfileClient({
     isLoggedIn,
     currentUserId,
     discordPresence,
+    totalFollowersSummary,
   };
 
   return (

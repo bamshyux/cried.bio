@@ -316,6 +316,7 @@ function parseSectionUpdates(
           parseIntField(formData.get("links_button_opacity"), existing.links_button_opacity),
         ),
         links_show_hostname: parseBool(formData.get("links_show_hostname")),
+        show_total_followers: parseBool(formData.get("show_total_followers")),
         link_animation: String(formData.get("link_animation") ?? existing.link_animation) as LinkAnimation,
       };
     case "background":

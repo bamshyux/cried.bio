@@ -22,6 +22,7 @@ export function CustomThemeLayout({
   isLoggedIn,
   currentUserId,
   discordPresence,
+  totalFollowersSummary,
 }: LayoutProps) {
   const displayName = getDisplayName(profile);
   const { displayBadges, styleOptions } = getLayoutBadges(badges, settings);
@@ -69,6 +70,7 @@ export function CustomThemeLayout({
           isLoggedIn={isLoggedIn}
           currentUserId={currentUserId}
           discordPresence={discordPresence}
+          totalFollowersSummary={totalFollowersSummary}
         />
       </div>
     </div>

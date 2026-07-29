@@ -9,6 +9,15 @@ import {
   isSubNavItemActive,
 } from "@/lib/dashboard/navigation";
 
+function DashNavFlagAccent({ sub = false }: { sub?: boolean }) {
+  return (
+    <span
+      className={`bf-dash-nav-flag ${sub ? "bf-dash-nav-flag--sub" : ""}`.trim()}
+      aria-hidden
+    />
+  );
+}
+
 function SectionBlock({
   section,
   pathname,
@@ -29,7 +38,7 @@ function SectionBlock({
       <Link
         href={section.href}
         data-tour={section.id}
-        className={`bf-dash-nav-link flex min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium ${
+        className={`bf-dash-nav-link relative overflow-hidden flex min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 pr-10 text-[14px] font-medium ${
           active && !hasItems
             ? "bf-dash-nav-link--active"
             : parentActive
@@ -44,7 +53,8 @@ function SectionBlock({
         >
           <section.Icon size={18} />
         </span>
-        <span className="truncate">{section.label}</span>
+        <span className="min-w-0 flex-1 truncate">{section.label}</span>
+        <DashNavFlagAccent />
       </Link>
 
       {hasItems ? (
@@ -55,11 +65,12 @@ function SectionBlock({
               <Link
                 key={`${item.href}-${item.label}`}
                 href={item.href}
-                className={`bf-dash-nav-sublink block rounded-lg px-3 py-2 text-[13px] ${
+                className={`bf-dash-nav-sublink relative overflow-hidden block rounded-lg px-3 py-2 pr-9 text-[13px] ${
                   itemActive ? "bf-dash-nav-sublink--active" : ""
                 }`}
               >
-                {item.label}
+                <span className="relative z-[1]">{item.label}</span>
+                <DashNavFlagAccent sub />
               </Link>
             );
           })}
@@ -85,10 +96,11 @@ export function DashboardSidebar({
           <div className="mb-3 space-y-1">
             <Link
               href="/dashboard"
-              className="bf-dash-nav-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-neutral-400"
+              className="bf-dash-nav-link relative overflow-hidden flex items-center gap-3 rounded-xl px-3 py-2.5 pr-10 text-[14px] font-medium text-neutral-400"
             >
               <span className="inline-flex rounded-lg p-1.5 text-neutral-500">←</span>
-              Back to dashboard
+              <span className="flex-1">Back to dashboard</span>
+              <DashNavFlagAccent />
             </Link>
           </div>
         ) : null}

@@ -58,6 +58,15 @@ async function revalidateProfilePaths(userId: string, pageId?: string | null) {
   }
 }
 
+async function syncLinkStatsBestEffort(userId: string) {
+  try {
+    const { syncLinkPlatformStats } = await import("@/lib/platform-followers/sync");
+    await syncLinkPlatformStats(userId, { force: true });
+  } catch {
+    // Follower sync is best-effort and should never block link saves.
+  }
+}
+
 function validateLinkInput(title: string, url: string) {
   if (!title.trim()) {
     return "Title is required.";
@@ -151,6 +160,7 @@ export async function createLinkAction(
   }
 
   await revalidateProfilePaths(userId, pageId);
+  void syncLinkStatsBestEffort(userId);
   return { success: "Link added." };
 }
 
@@ -211,6 +221,7 @@ export async function createSocialLinkAction(
   if (error) return { error: error.message };
 
   await revalidateProfilePaths(userId, pageId);
+  void syncLinkStatsBestEffort(userId);
   return { success: `${platform.name} link added.` };
 }
 
@@ -280,6 +291,7 @@ export async function updateLinkAction(
   }
 
   await revalidateProfilePaths(userId, resolvedPageId);
+  void syncLinkStatsBestEffort(userId);
   return { success: "Link updated." };
 }
 
@@ -301,6 +313,7 @@ export async function deleteLinkAction(linkId: string, pageId?: string | null): 
   }
 
   await revalidateProfilePaths(userId, pageId);
+  void syncLinkStatsBestEffort(userId);
   return { success: "Link deleted." };
 }
 

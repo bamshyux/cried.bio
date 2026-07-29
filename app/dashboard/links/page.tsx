@@ -16,6 +16,15 @@ export default async function DashboardLinksPage() {
     getSettingsByProfileId(userId),
   ]);
 
+  if (settings.show_total_followers) {
+    try {
+      const { syncLinkPlatformStats } = await import("@/lib/platform-followers/sync");
+      await syncLinkPlatformStats(userId);
+    } catch {
+      // Follower sync is best-effort and should never block the links editor.
+    }
+  }
+
   return (
     <>
       <div className="mb-8">

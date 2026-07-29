@@ -16,6 +16,8 @@ import { ProfileGuestbookSection } from "./profile-guestbook";
 import { ProfileFriendsSection, ProfileSocialBar, ProfileStatusLine } from "./profile-social";
 import { ProfileLinks, SocialIconOnlyRow, SocialIconRow } from "./profile-links";
 import { ProfileBio } from "./profile-bio";
+import { TotalFollowersStat } from "./total-followers-stat";
+import type { TotalFollowersSummary } from "@/lib/types/link-platform-stats";
 
 export function ProfileContentSections({
   profile,
@@ -33,6 +35,7 @@ export function ProfileContentSections({
   currentUserId,
   hideBio = false,
   discordPresence = null,
+  totalFollowersSummary = null,
 }: {
   profile: Profile;
   links: ProfileLink[];
@@ -49,6 +52,7 @@ export function ProfileContentSections({
   currentUserId?: string | null;
   hideBio?: boolean;
   discordPresence?: DiscordPresence | null;
+  totalFollowersSummary?: TotalFollowersSummary | null;
 }) {
   return (
     <>
@@ -72,6 +76,9 @@ export function ProfileContentSections({
       {!hideBio && profile.bio && <ProfileBio text={profile.bio} settings={settings} />}
       <ProfileEmbedsSection embeds={embeds} settings={settings} />
       <ProfileFeaturedSection blocks={featured} settings={settings} />
+      {settings.show_total_followers && totalFollowersSummary ? (
+        <TotalFollowersStat summary={totalFollowersSummary} />
+      ) : null}
       {settings.links_style === "icons" ? (
         <SocialIconRow links={links} settings={settings} profileId={profile.id} />
       ) : settings.links_style === "icons_only" ? (
