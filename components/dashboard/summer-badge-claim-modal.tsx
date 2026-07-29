@@ -9,6 +9,7 @@ import {
   SUMMER_2026_BADGE_COLOR,
   SUMMER_2026_CLAIM_SESSION_KEY,
 } from "@/lib/badges/seasonal-events";
+import { useDashboardTourActive } from "@/components/onboarding/dashboard-tour-active-context";
 
 type SummerBadgeClaimModalProps = {
   open: boolean;
@@ -180,16 +181,23 @@ export function SummerBadgeClaimModal({ open, onClose, onClaimed }: SummerBadgeC
 
 export function useSummerBadgeClaimModal(hasBadge: boolean, campaignActive: boolean) {
   const [open, setOpen] = useState(false);
+  const tourActive = useDashboardTourActive();
 
   useEffect(() => {
+    if (tourActive) {
+      setOpen(false);
+      return;
+    }
+
     if (hasBadge || !campaignActive) return;
     if (sessionStorage.getItem(SUMMER_2026_CLAIM_SESSION_KEY)) return;
+
     const timer = window.setTimeout(() => setOpen(true), 450);
     return () => window.clearTimeout(timer);
-  }, [hasBadge, campaignActive]);
+  }, [hasBadge, campaignActive, tourActive]);
 
   return {
-    open,
+    open: open && !tourActive,
     close: () => setOpen(false),
   };
 }

@@ -8,6 +8,7 @@ import {
   UnsavedChangesProvider,
 } from "@/components/dashboard/unsaved-changes";
 import { DashboardTour } from "@/components/onboarding/dashboard-tour";
+import { DashboardTourActiveProvider } from "@/components/onboarding/dashboard-tour-active-context";
 import { SetupRedirect } from "@/components/onboarding/setup-redirect";
 import { isBadgeCreationPath } from "@/lib/store/badge-creation-route";
 
@@ -68,16 +69,18 @@ export function DashboardShell({
 
   return (
     <UnsavedChangesProvider>
-      <div className="bf-dash-shell relative z-0">
-        <SetupRedirect needsSetupWizard={needsSetupWizard} />
-        <UnsavedChangesNotice />
-        <DashboardTour
-          key={tourKey}
-          active={showTour}
-          onFinished={() => setForcedTour(false)}
-        />
-        <DashboardFormTracker>{children}</DashboardFormTracker>
-      </div>
+      <DashboardTourActiveProvider active={showTour}>
+        <div className="bf-dash-shell relative z-0">
+          <SetupRedirect needsSetupWizard={needsSetupWizard} />
+          <UnsavedChangesNotice />
+          <DashboardTour
+            key={tourKey}
+            active={showTour}
+            onFinished={() => setForcedTour(false)}
+          />
+          <DashboardFormTracker>{children}</DashboardFormTracker>
+        </div>
+      </DashboardTourActiveProvider>
     </UnsavedChangesProvider>
   );
 }
