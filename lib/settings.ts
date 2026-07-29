@@ -19,7 +19,7 @@ import {
   cardBorderEffectStripsDefaultBorder,
   parseCardBorderTargets,
 } from "@/lib/card-border-effects/resolve";
-import { clampCursorImageSize } from "@/lib/profile/custom-cursor";
+import { clampCursorHotspotPercent, clampCursorImageSize } from "@/lib/profile/custom-cursor";
 import {
   normalizeBackgroundMediaFields,
   normalizeEnterGateMediaFields,
@@ -57,6 +57,8 @@ export const DEFAULT_SETTINGS: Omit<
   cursor_effect: "none",
   cursor_image_url: null,
   cursor_image_size: 48,
+  cursor_hotspot_x: 50,
+  cursor_hotspot_y: 50,
   profile_favicon_url: null,
   tab_title_animation: "none",
   typing_bio: false,
@@ -593,6 +595,8 @@ export function mergeSettings(
     cursor_effect: parseCursorEffect(row?.cursor_effect ?? legacyCursor, DEFAULT_SETTINGS.cursor_effect),
     cursor_image_url: row?.cursor_image_url ?? null,
     cursor_image_size: clampCursorImageSize(row?.cursor_image_size, DEFAULT_SETTINGS.cursor_image_size),
+    cursor_hotspot_x: clampCursorHotspotPercent(row?.cursor_hotspot_x, DEFAULT_SETTINGS.cursor_hotspot_x),
+    cursor_hotspot_y: clampCursorHotspotPercent(row?.cursor_hotspot_y, DEFAULT_SETTINGS.cursor_hotspot_y),
     profile_favicon_url: row?.profile_favicon_url ?? null,
     tab_title_animation: parseTabTitleAnimation(
       row?.tab_title_animation,

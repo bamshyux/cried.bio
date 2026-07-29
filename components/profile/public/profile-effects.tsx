@@ -5,7 +5,11 @@ import type { CSSProperties } from "react";
 import { resolveBioStyle } from "@/lib/bio-style";
 import { BRAND } from "@/lib/design/tokens";
 import type { CursorEffect, ProfileSettings } from "@/lib/types/settings";
-import { CUSTOM_CURSOR_SIZE_DEFAULT } from "@/lib/profile/custom-cursor";
+import {
+  CURSOR_HOTSPOT_DEFAULT,
+  CUSTOM_CURSOR_SIZE_DEFAULT,
+  cursorHotspotTransform,
+} from "@/lib/profile/custom-cursor";
 
 type Particle = {
   x: number;
@@ -475,15 +479,21 @@ export function CursorEffectCanvas({
 export function CustomProfileCursor({
   imageUrl,
   maxSize = CUSTOM_CURSOR_SIZE_DEFAULT,
+  hotspotX = CURSOR_HOTSPOT_DEFAULT,
+  hotspotY = CURSOR_HOTSPOT_DEFAULT,
 }: {
   imageUrl: string | null;
   maxSize?: number;
+  hotspotX?: number;
+  hotspotY?: number;
 }) {
   const [pos, setPos] = useState({ x: -100, y: -100 });
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     if (!imageUrl) return;
+
+    document.documentElement.classList.add("bf-custom-cursor-active");
 
     const onMove = (event: MouseEvent) => {
       setPos({ x: event.clientX, y: event.clientY });
@@ -498,6 +508,7 @@ export function CustomProfileCursor({
     document.documentElement.addEventListener("mouseleave", onLeave);
 
     return () => {
+      document.documentElement.classList.remove("bf-custom-cursor-active");
       window.removeEventListener("mousemove", onMove);
       document.documentElement.removeEventListener("mouseleave", onLeave);
     };
@@ -519,7 +530,7 @@ export function CustomProfileCursor({
         maxHeight: maxSize,
         width: "auto",
         height: "auto",
-        transform: "translate(-50%, -50%)",
+        transform: cursorHotspotTransform(hotspotX, hotspotY),
         opacity: visible ? 1 : 0,
       }}
     />

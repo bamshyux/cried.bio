@@ -9,7 +9,7 @@ import {
   parseLinksButtonStyle,
   parseLinksSpacing,
 } from "@/lib/settings";
-import { clampCursorImageSize } from "@/lib/profile/custom-cursor";
+import { clampCursorHotspotPercent, clampCursorImageSize } from "@/lib/profile/custom-cursor";
 import { isValidProfileFaviconStorageUrl } from "@/lib/profile/favicon";
 import { backgroundUploadSizeError, MAX_BACKGROUND_UPLOAD_BYTES } from "@/lib/uploads/limits";
 import {
@@ -365,6 +365,14 @@ function parseSectionUpdates(
         cursor_image_size: clampCursorImageSize(
           formData.get("cursor_image_size"),
           existing.cursor_image_size,
+        ),
+        cursor_hotspot_x: clampCursorHotspotPercent(
+          formData.get("cursor_hotspot_x"),
+          existing.cursor_hotspot_x,
+        ),
+        cursor_hotspot_y: clampCursorHotspotPercent(
+          formData.get("cursor_hotspot_y"),
+          existing.cursor_hotspot_y,
         ),
         typing_bio: parseBool(formData.get("typing_bio")),
         username_effect: parseUsernameEffect(formData.get("username_effect"), existing.username_effect),
@@ -900,6 +908,7 @@ export async function removeMusicAction(pageId?: string | null): Promise<Setting
 export async function saveCursorImageAction(
   imageUrl: string,
   pageId?: string | null,
+  hotspot?: { x: number; y: number },
 ): Promise<SettingsFormState> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "You must be logged in." };
@@ -909,11 +918,44 @@ export async function saveCursorImageAction(
   const ensure = await ensureSettingsRow(userId, pageId);
   if (ensure.error) return { error: ensure.error };
 
-  const { error } = await patchProfileSettings(userId, { cursor_image_url: imageUrl }, pageId);
+  const patch: Partial<Omit<ProfileSettings, "profile_id" | "created_at" | "updated_at">> = {
+    cursor_image_url: imageUrl,
+  };
+  if (hotspot) {
+    patch.cursor_hotspot_x = clampCursorHotspotPercent(hotspot.x);
+    patch.cursor_hotspot_y = clampCursorHotspotPercent(hotspot.y);
+  }
+
+  const { error } = await patchProfileSettings(userId, patch, pageId);
   if (error) return { error };
 
   await revalidateProfile(userId, pageId);
   return { success: "Custom cursor uploaded." };
+}
+
+export async function saveCursorHotspotAction(
+  hotspotX: number,
+  hotspotY: number,
+  pageId?: string | null,
+): Promise<SettingsFormState> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { error: "You must be logged in." };
+
+  const ensure = await ensureSettingsRow(userId, pageId);
+  if (ensure.error) return { error: ensure.error };
+
+  const { error } = await patchProfileSettings(
+    userId,
+    {
+      cursor_hotspot_x: clampCursorHotspotPercent(hotspotX),
+      cursor_hotspot_y: clampCursorHotspotPercent(hotspotY),
+    },
+    pageId,
+  );
+  if (error) return { error };
+
+  await revalidateProfile(userId, pageId);
+  return { success: "Cursor click point updated." };
 }
 
 export async function removeCursorImageAction(pageId?: string | null): Promise<SettingsFormState> {

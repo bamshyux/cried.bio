@@ -63,9 +63,15 @@ function TotalFollowersModal({
         <ul className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
           {summary.items.map((item) => {
             const platform = getPlatform(item.platform);
-            const label = platform?.name ?? item.platform;
-            const handle = item.platform_username ?? item.display_name ?? label;
-            const count = item.follower_count ?? 0;
+            const platformLabel = platform?.name ?? item.platform;
+            const title = item.display_name ?? item.platform_username ?? platformLabel;
+            const handle =
+              item.platform !== "discord" &&
+              item.platform_username &&
+              item.platform_username !== title
+                ? item.platform_username
+                : null;
+            const count = item.follower_count;
 
             return (
               <li
@@ -82,7 +88,7 @@ function TotalFollowersModal({
                     />
                   ) : (
                     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.08] text-sm font-semibold text-white">
-                      {handle.charAt(0).toUpperCase()}
+                      {title.charAt(0).toUpperCase()}
                     </div>
                   )}
                   <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-[#141414] bg-[#141414]">
@@ -91,9 +97,12 @@ function TotalFollowersModal({
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-white">{handle}</p>
+                  <p className="truncate text-sm font-medium text-white">{title}</p>
                   <p className="text-xs text-neutral-500">
-                    {formatCompactCount(count)} {item.count_label}
+                    {handle ? `@${handle} · ` : ""}
+                    {count != null
+                      ? `${formatCompactCount(count)} ${item.count_label}`
+                      : `${platformLabel} · unavailable`}
                   </p>
                 </div>
               </li>
@@ -120,7 +129,7 @@ function TotalFollowersModal({
 export function TotalFollowersStat({ summary }: { summary: TotalFollowersSummary }) {
   const [open, setOpen] = useState(false);
 
-  if (summary.total <= 0 || summary.items.length === 0) return null;
+  if (summary.items.length === 0) return null;
 
   return (
     <>

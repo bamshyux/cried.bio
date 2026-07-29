@@ -1,6 +1,7 @@
 import { getLinksByProfileId } from "@/lib/data/links";
 import { fetchPlatformStats } from "@/lib/platform-followers/fetch-stats";
-import { parseSocialLink } from "@/lib/platform-followers/parse-link";
+import { parseSocialLink, type ParsedSocialLink } from "@/lib/platform-followers/parse-link";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { TotalFollowersSummary } from "@/lib/types/link-platform-stats";
 import type { LinkPlatformStat } from "@/lib/types/link-platform-stats";
@@ -36,7 +37,11 @@ export function buildTotalFollowersSummary(items: LinkPlatformStat[]): TotalFoll
 
   return {
     total,
-    items: [...counted].sort((a, b) => (b.follower_count ?? 0) - (a.follower_count ?? 0)),
+    items: [...items].sort((a, b) => {
+      const aScore = a.follower_count ?? -1;
+      const bScore = b.follower_count ?? -1;
+      return bScore - aScore;
+    }),
   };
 }
 
@@ -57,12 +62,66 @@ export async function getTotalFollowersSummary(profileId: string): Promise<Total
   return buildTotalFollowersSummary(items);
 }
 
-export async function syncLinkPlatformStats(profileId: string, options?: { force?: boolean }): Promise<void> {
+function placeholderStatFromLink(link: ParsedSocialLink): LinkPlatformStat {
+  return {
+    link_id: link.linkId,
+    platform: link.platformId,
+    platform_username: null,
+    display_name: link.title,
+    avatar_url: null,
+    follower_count: null,
+    count_label: "Followers",
+    fetched_at: null,
+  };
+}
+
+async function getTrackableSocialLinks(profileId: string): Promise<ParsedSocialLink[]> {
   const links = await getLinksByProfileId(profileId);
-  const socialLinks = links.map(parseSocialLink).filter((link): link is NonNullable<typeof link> => link !== null);
+  return links
+    .map(parseSocialLink)
+    .filter((link): link is ParsedSocialLink => link !== null);
+}
+
+/** Merge live links with cached stats so the UI can render even before the first sync. */
+export async function getTotalFollowersSummaryForProfile(
+  profileId: string,
+): Promise<TotalFollowersSummary | null> {
+  const socialLinks = await getTrackableSocialLinks(profileId);
+  if (socialLinks.length === 0) return null;
+
+  const stats = await getLinkPlatformStats(profileId);
+  const statsByLink = new Map(stats.map((row) => [row.link_id, row]));
+
+  const items = socialLinks.map((link) => statsByLink.get(link.linkId) ?? placeholderStatFromLink(link));
+  return buildTotalFollowersSummary(items);
+}
+
+export async function ensureLinkPlatformStatsSynced(profileId: string): Promise<void> {
+  const socialLinks = await getTrackableSocialLinks(profileId);
+  if (socialLinks.length === 0) return;
+
+  const existing = await getLinkPlatformStats(profileId);
+  const existingByLink = new Map(existing.map((row) => [row.link_id, row]));
+  const missingAny = socialLinks.some((link) => !existingByLink.has(link.linkId));
+  const anyStale = socialLinks.some((link) => {
+    const cached = existingByLink.get(link.linkId);
+    return !cached || isStale(cached.fetched_at);
+  });
+
+  if (missingAny || anyStale) {
+    await syncLinkPlatformStats(profileId, { force: missingAny });
+  }
+}
+
+async function getStatsWriteClient() {
+  return createAdminClient() ?? (await createClient());
+}
+
+export async function syncLinkPlatformStats(profileId: string, options?: { force?: boolean }): Promise<void> {
+  const socialLinks = await getTrackableSocialLinks(profileId);
 
   if (socialLinks.length === 0) {
-    const supabase = await createClient();
+    const supabase = await getStatsWriteClient();
     await supabase.from("link_platform_stats").delete().eq("profile_id", profileId);
     return;
   }
@@ -71,7 +130,7 @@ export async function syncLinkPlatformStats(profileId: string, options?: { force
   const existingByLink = new Map(existing.map((row) => [row.link_id, row]));
   const activeLinkIds = new Set(socialLinks.map((link) => link.linkId));
 
-  const supabase = await createClient();
+  const supabase = await getStatsWriteClient();
 
   for (const staleRow of existing) {
     if (!activeLinkIds.has(staleRow.link_id)) {
@@ -86,7 +145,7 @@ export async function syncLinkPlatformStats(profileId: string, options?: { force
     const stats = await fetchPlatformStats(link.platformId, link.url);
     const fetchedAt = new Date().toISOString();
 
-    await supabase.from("link_platform_stats").upsert(
+    const { error } = await supabase.from("link_platform_stats").upsert(
       {
         link_id: link.linkId,
         profile_id: profileId,
@@ -100,5 +159,9 @@ export async function syncLinkPlatformStats(profileId: string, options?: { force
       },
       { onConflict: "link_id" },
     );
+
+    if (error) {
+      console.error(`[platform-followers] upsert failed for ${link.linkId}:`, error.message);
+    }
   }
 }

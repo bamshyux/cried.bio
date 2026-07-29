@@ -2836,24 +2836,20 @@ body,
 /* Diagonal checkered finish texture — hover-only background accent */
 .bf-dash-nav-flag {
   position: absolute;
-  inset: 0 0 0 36%;
+  inset: 0;
   z-index: 0;
   opacity: 0;
   pointer-events: none;
   border-radius: inherit;
   transition: opacity 0.28s ease;
-  overflow: hidden;
+  /* Diagonal wedge on the right — always includes the bottom-right corner */
+  clip-path: polygon(38% 0, 100% 0, 100% 100%, 58% 100%);
 }
 
 .bf-dash-nav-flag::before {
   content: "";
   position: absolute;
-  top: -30%;
-  right: -20%;
-  bottom: -30%;
-  left: -35%;
-  transform: rotate(-26deg);
-  transform-origin: center center;
+  inset: -20% -15% -20% -10%;
   background-image:
     linear-gradient(
       45deg,
@@ -2871,12 +2867,12 @@ body,
     );
   background-size: 11px 11px;
   background-position: 0 0, 5.5px 5.5px;
-  -webkit-mask-image: linear-gradient(to left, #000 0%, rgba(0, 0, 0, 0.65) 38%, transparent 92%);
-  mask-image: linear-gradient(to left, #000 0%, rgba(0, 0, 0, 0.65) 38%, transparent 92%);
+  -webkit-mask-image: linear-gradient(to left, #000 0%, rgba(0, 0, 0, 0.72) 42%, transparent 88%);
+  mask-image: linear-gradient(to left, #000 0%, rgba(0, 0, 0, 0.72) 42%, transparent 88%);
 }
 
 .bf-dash-nav-flag--sub {
-  inset: 0 0 0 44%;
+  clip-path: polygon(44% 0, 100% 0, 100% 100%, 64% 100%);
 }
 
 .bf-dash-nav-flag--sub::before {

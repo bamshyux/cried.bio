@@ -192,19 +192,26 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
     previewSettings.show_view_count = false;
   }
 
-  if (isOwnProfile && !isPresetPreview && settings.show_total_followers) {
+  let totalFollowersSummary = null;
+  if (!isPresetPreview && previewSettings.show_total_followers) {
+    const { ensureLinkPlatformStatsSynced, getTotalFollowersSummaryForProfile } = await import(
+      "@/lib/platform-followers/sync"
+    );
     try {
-      const { syncLinkPlatformStats } = await import("@/lib/platform-followers/sync");
-      await syncLinkPlatformStats(baseProfile.id);
+      await Promise.race([
+        ensureLinkPlatformStatsSynced(baseProfile.id),
+        new Promise<void>((resolve) => {
+          setTimeout(resolve, 4000);
+        }),
+      ]);
     } catch {
       // Follower sync is best-effort and should never block the public profile.
     }
-  }
-
-  let totalFollowersSummary = null;
-  if (!isPresetPreview && previewSettings.show_total_followers) {
-    const { getTotalFollowersSummary } = await import("@/lib/platform-followers/sync");
-    totalFollowersSummary = await getTotalFollowersSummary(baseProfile.id);
+    try {
+      totalFollowersSummary = await getTotalFollowersSummaryForProfile(baseProfile.id);
+    } catch {
+      // Summary from links alone is still best-effort.
+    }
   }
 
   const discordPresence = await getDiscordPresenceForSettings(previewSettings);

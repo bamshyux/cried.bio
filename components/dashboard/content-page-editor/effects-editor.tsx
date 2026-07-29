@@ -20,17 +20,20 @@ import {
 import {
   removeCursorImageAction,
   removeProfileFaviconAction,
+  saveCursorHotspotAction,
   saveCursorImageAction,
   saveProfileFaviconAction,
 } from "@/app/actions/settings";
 import { uploadCursorImageToStorage } from "@/lib/uploads/cursor-client";
 import { uploadProfileFaviconToStorage } from "@/lib/uploads/favicon-client";
 import { IMAGE_CROP_PRESETS } from "@/lib/uploads/image-crop";
+import { useCursorImagePicker, useCursorHotspotEditor } from "@/hooks/use-cursor-image-picker";
 import { useImageCropPicker } from "@/hooks/use-image-crop-picker";
 import {
   CUSTOM_CURSOR_SIZE_DEFAULT,
   CUSTOM_CURSOR_SIZE_MAX,
   CUSTOM_CURSOR_SIZE_MIN,
+  type CursorHotspot,
 } from "@/lib/profile/custom-cursor";
 import { CURSOR_EFFECT_OPTIONS, TAB_TITLE_ANIMATION_OPTIONS } from "@/lib/settings";
 import { PAGE_ENTRANCE_ANIMATION_OPTIONS } from "@/lib/page-entrance";
@@ -43,6 +46,8 @@ const fileInputClassName =
 type ContentPageEffectsFormState = {
   cursor_effect: CursorEffect;
   cursor_image_size: number;
+  cursor_hotspot_x: number;
+  cursor_hotspot_y: number;
   tab_title_animation: TabTitleAnimation;
   hover_animations: boolean;
   page_entrance_animation: PageEntranceAnimation;
@@ -52,6 +57,8 @@ function readContentPageEffectsForm(settings: ProfileSettings): ContentPageEffec
   return {
     cursor_effect: settings.cursor_effect,
     cursor_image_size: settings.cursor_image_size,
+    cursor_hotspot_x: settings.cursor_hotspot_x,
+    cursor_hotspot_y: settings.cursor_hotspot_y,
     tab_title_animation: settings.tab_title_animation,
     hover_animations: settings.hover_animations,
     page_entrance_animation: settings.page_entrance_animation,
@@ -120,34 +127,70 @@ export function ContentPageEffectsEditor({
     submit(formRef.current);
   };
 
-  const handleCursorUpload = useCallback(async (file: File | undefined) => {
-    if (!file) return;
+  const handleCursorUpload = useCallback(
+    async (file: File | undefined, hotspot?: CursorHotspot) => {
+      if (!file) return;
 
-    setUploadPending(true);
-    setUploadError(undefined);
-    setUploadSuccess(undefined);
+      setUploadPending(true);
+      setUploadError(undefined);
+      setUploadSuccess(undefined);
 
-    const previewUrl = URL.createObjectURL(file);
-    setCursorPreview(previewUrl);
+      const previewUrl = URL.createObjectURL(file);
+      setCursorPreview(previewUrl);
 
-    try {
-      const url = await uploadCursorImageToStorage(file);
-      const result = await saveCursorImageAction(url, pageId);
-      if (result.error) {
-        setUploadError(result.error);
+      try {
+        const url = await uploadCursorImageToStorage(file);
+        const result = await saveCursorImageAction(url, pageId, hotspot);
+        if (result.error) {
+          setUploadError(result.error);
+          setCursorPreview(null);
+          return;
+        }
+        if (hotspot) {
+          patchForm({
+            cursor_hotspot_x: hotspot.x,
+            cursor_hotspot_y: hotspot.y,
+          });
+        }
+        setUploadSuccess(result.success ?? "Custom cursor uploaded.");
+        router.refresh();
+      } catch (error) {
+        setUploadError(error instanceof Error ? error.message : "Upload failed.");
         setCursorPreview(null);
-        return;
+      } finally {
+        setUploadPending(false);
+        setFileInputKey((k) => k + 1);
       }
-      setUploadSuccess(result.success ?? "Custom cursor uploaded.");
-      router.refresh();
-    } catch (error) {
-      setUploadError(error instanceof Error ? error.message : "Upload failed.");
-      setCursorPreview(null);
-    } finally {
-      setUploadPending(false);
-      setFileInputKey((k) => k + 1);
-    }
-  }, [pageId, router]);
+    },
+    [pageId, patchForm, router],
+  );
+
+  const handleHotspotSave = useCallback(
+    async (hotspot: CursorHotspot) => {
+      setUploadError(undefined);
+      setUploadSuccess(undefined);
+      setUploadPending(true);
+
+      try {
+        const result = await saveCursorHotspotAction(hotspot.x, hotspot.y, pageId);
+        if (result.error) {
+          setUploadError(result.error);
+          return;
+        }
+        patchForm({
+          cursor_hotspot_x: hotspot.x,
+          cursor_hotspot_y: hotspot.y,
+        });
+        setUploadSuccess(result.success ?? "Cursor click point updated.");
+        router.refresh();
+      } catch (error) {
+        setUploadError(error instanceof Error ? error.message : "Could not save click point.");
+      } finally {
+        setUploadPending(false);
+      }
+    },
+    [pageId, patchForm, router],
+  );
 
   const handleRemoveCursor = () => {
     startRemove(async () => {
@@ -193,9 +236,16 @@ export function ContentPageEffectsEditor({
     }
   }, [pageId, router]);
 
-  const cursorCrop = useImageCropPicker({
-    ...IMAGE_CROP_PRESETS.cursor,
-    onCropped: (file) => void handleCursorUpload(file),
+  const cursorPicker = useCursorImagePicker({
+    initialHotspot: {
+      x: form.cursor_hotspot_x,
+      y: form.cursor_hotspot_y,
+    },
+    onComplete: (file, hotspot) => void handleCursorUpload(file, hotspot),
+  });
+
+  const hotspotEditor = useCursorHotspotEditor({
+    onConfirm: (hotspot) => void handleHotspotSave(hotspot),
   });
 
   const faviconCrop = useImageCropPicker({
@@ -308,7 +358,7 @@ export function ContentPageEffectsEditor({
           <div className="rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4">
             <p className={labelClassName}>Custom cursor image</p>
             {displayCursorUrl ? (
-              <div className="mt-4 flex items-center gap-4">
+              <div className="mt-4 flex flex-wrap items-center gap-4">
                 <div className="flex h-20 w-20 items-center justify-center rounded-lg border border-white/[0.08] bg-[#141414]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -321,11 +371,29 @@ export function ContentPageEffectsEditor({
                     }}
                   />
                 </div>
-                <RemoveMediaButton
-                  label="Remove cursor"
-                  onClick={handleRemoveCursor}
-                  disabled={isRemoving || uploadPending}
-                />
+                <div className="flex flex-col gap-2">
+                  <RemoveMediaButton
+                    label="Remove cursor"
+                    onClick={handleRemoveCursor}
+                    disabled={isRemoving || uploadPending}
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      hotspotEditor.open(displayCursorUrl, {
+                        x: form.cursor_hotspot_x,
+                        y: form.cursor_hotspot_y,
+                      })
+                    }
+                    disabled={uploadPending}
+                    className="text-left text-xs font-medium text-neutral-400 transition-colors hover:text-white disabled:opacity-50"
+                  >
+                    Adjust click point
+                  </button>
+                  <p className="text-xs text-neutral-600">
+                    Click point at {form.cursor_hotspot_x}% / {form.cursor_hotspot_y}%
+                  </p>
+                </div>
               </div>
             ) : (
               <p className="mt-3 text-xs text-neutral-500">No custom cursor uploaded yet.</p>
@@ -355,8 +423,13 @@ export function ContentPageEffectsEditor({
                 accept="image/jpeg,image/png,image/webp,image/gif"
                 disabled={uploadPending}
                 className={fileInputClassName}
-                onChange={(event) => cursorCrop.open(event.target.files?.[0])}
+                onChange={(event) => cursorPicker.open(event.target.files?.[0])}
               />
+              <p className="mt-2 text-xs text-neutral-500">
+                {uploadPending
+                  ? "Uploading..."
+                  : "After cropping, you will set the click point."}
+              </p>
             </div>
             <FormFeedback error={uploadError} success={uploadSuccess} />
           </div>
@@ -370,13 +443,17 @@ export function ContentPageEffectsEditor({
             />
           </div>
 
+          <input type="hidden" name="cursor_hotspot_x" value={form.cursor_hotspot_x} />
+          <input type="hidden" name="cursor_hotspot_y" value={form.cursor_hotspot_y} />
+
           <SaveConfirmation success={state.success} error={state.error} />
           <button type="submit" disabled={isPending} className={buttonPrimaryClassName}>
             {isPending ? "Saving..." : "Save page effects"}
           </button>
         </form>
       </div>
-      {cursorCrop.dialog}
+      {cursorPicker.dialog}
+      {hotspotEditor.dialog}
       {faviconCrop.dialog}
     </>
   );

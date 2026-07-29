@@ -20,6 +20,8 @@ const TRACKED_PLATFORMS = new Set<SocialPlatformId>([
   "kick",
   "reddit",
   "facebook",
+  "roblox",
+  "spotify",
 ]);
 
 export function parseSocialLink(link: ProfileLink): ParsedSocialLink | null {
@@ -46,7 +48,6 @@ export function parseSocialLink(link: ProfileLink): ParsedSocialLink | null {
 export function extractPlatformUsername(url: string, platformId: SocialPlatformId): string | null {
   try {
     const parsed = new URL(url);
-    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
     const parts = parsed.pathname.split("/").filter(Boolean);
 
     switch (platformId) {
@@ -58,15 +59,34 @@ export function extractPlatformUsername(url: string, platformId: SocialPlatformI
         return parts[0] ?? null;
       }
       case "discord": {
+        if (parts[0] === "invite" && parts[1]) return parts[1];
         const invite = parts[0] ?? parsed.pathname.replace(/^\//, "");
-        return invite || null;
+        return invite.split("?")[0] || null;
+      }
+      case "roblox": {
+        if (parts[0] === "users" && parts[1] && /^\d+$/.test(parts[1])) return parts[1];
+        const username = parsed.searchParams.get("username");
+        if (username) return username;
+        return null;
+      }
+      case "spotify": {
+        if ((parts[0] === "artist" || parts[0] === "user") && parts[1]) {
+          return parts[1].split("?")[0] ?? null;
+        }
+        return null;
+      }
+      case "steam": {
+        if (parts[0] === "id" && parts[1]) return parts[1];
+        if (parts[0] === "profiles" && parts[1]) return parts[1];
+        return parts[0] ?? null;
       }
       case "twitch":
       case "kick":
       case "github":
+        return parts[0] ?? null;
       case "reddit":
-        if (platformId === "reddit" && parts[0] === "u" && parts[1]) return parts[1];
-        if (platformId === "reddit" && parts[0] === "user" && parts[1]) return parts[1];
+        if (parts[0] === "u" && parts[1]) return parts[1];
+        if (parts[0] === "user" && parts[1]) return parts[1];
         return parts[0] ?? null;
       case "tiktok":
         if (parts[0]?.startsWith("@")) return parts[0].slice(1);

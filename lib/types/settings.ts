@@ -280,6 +280,8 @@ export type ProfileSettings = {
   cursor_effect: CursorEffect;
   cursor_image_url: string | null;
   cursor_image_size: number;
+  cursor_hotspot_x: number;
+  cursor_hotspot_y: number;
   profile_favicon_url: string | null;
   tab_title_animation: TabTitleAnimation;
   typing_bio: boolean;

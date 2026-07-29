@@ -97,6 +97,8 @@ export function PublicContentPageClient({
         <CustomProfileCursor
           imageUrl={settings.cursor_image_url}
           maxSize={settings.cursor_image_size}
+          hotspotX={settings.cursor_hotspot_x}
+          hotspotY={settings.cursor_hotspot_y}
         />
       ) : null}
 
