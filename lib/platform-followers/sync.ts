@@ -7,8 +7,10 @@ import type { TotalFollowersSummary } from "@/lib/types/link-platform-stats";
 import type { LinkPlatformStat } from "@/lib/types/link-platform-stats";
 
 const STALE_MS = 6 * 60 * 60 * 1000;
+const FAILED_RETRY_MS = 60 * 60 * 1000;
+const PRIORITY_FETCH_PLATFORMS = new Set(["youtube", "twitter", "instagram", "spotify"]);
 
-function isStale(fetchedAt: string | null | undefined): boolean {
+function isStale(fetchedAt: string | null | undefined, staleMs = STALE_MS): boolean {
   if (!fetchedAt) return true;
   const ts = new Date(fetchedAt).getTime();
   if (Number.isNaN(ts)) return true;
@@ -21,7 +23,10 @@ function needsRefresh(
 ): boolean {
   if (options?.force) return true;
   if (!cached) return true;
-  if (cached.follower_count == null) return true;
+  if (cached.follower_count == null) {
+    if (!cached.fetched_at) return true;
+    return isStale(cached.fetched_at, FAILED_RETRY_MS);
+  }
   return isStale(cached.fetched_at);
 }
 
@@ -78,7 +83,7 @@ async function getTrackableSocialLinks(profileId: string): Promise<ParsedSocialL
     .filter((link): link is ParsedSocialLink => link !== null);
 }
 
-/** Merge live links with cached stats so the UI can render even before the first sync. */
+/** Merge live links with cached stats; fetches any missing counts before returning. */
 export async function getTotalFollowersSummaryForProfile(
   profileId: string,
 ): Promise<TotalFollowersSummary | null> {
@@ -87,6 +92,44 @@ export async function getTotalFollowersSummaryForProfile(
 
   const stats = await getLinkPlatformStats(profileId);
   const statsByLink = new Map(stats.map((row) => [row.link_id, row]));
+
+  const missingCountLinks = socialLinks.filter((link) => {
+    const cached = statsByLink.get(link.linkId);
+    if (PRIORITY_FETCH_PLATFORMS.has(link.platformId)) {
+      return !cached || cached.follower_count == null;
+    }
+    return needsRefresh(cached);
+  });
+
+  if (missingCountLinks.length > 0) {
+    const supabase = await getStatsWriteClient();
+    await Promise.all(
+      missingCountLinks.map(async (link) => {
+        const fetched = await fetchPlatformStats(link.platformId, link.url);
+        const fetchedAt = new Date().toISOString();
+
+        const row = {
+          link_id: link.linkId,
+          profile_id: profileId,
+          platform: link.platformId,
+          platform_username: fetched.platform_username,
+          display_name: fetched.display_name ?? link.title,
+          avatar_url: fetched.avatar_url,
+          follower_count: fetched.follower_count,
+          count_label: fetched.count_label,
+          fetched_at: fetchedAt,
+        };
+
+        const { error } = await supabase.from("link_platform_stats").upsert(row, { onConflict: "link_id" });
+        if (error) {
+          console.error(`[platform-followers] inline upsert failed for ${link.linkId}:`, error.message);
+          return;
+        }
+
+        statsByLink.set(link.linkId, mapRow(row));
+      }),
+    );
+  }
 
   const items = socialLinks.map((link) => statsByLink.get(link.linkId) ?? placeholderStatFromLink(link));
   return buildTotalFollowersSummary(items);

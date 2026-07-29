@@ -272,64 +272,98 @@ async function fetchTwitchStats(username: string): Promise<PlatformStatFetchResu
 
 function buildYouTubeScrapeUrls(handle: string, url?: string): string[] {
   const normalizedHandle = handle.replace(/^@/, "");
-  const candidates = new Set<string>();
+  const candidates: string[] = [];
+
+  if (isYouTubeChannelId(handle)) {
+    candidates.push(`https://www.youtube.com/channel/${encodeURIComponent(handle)}/about`);
+  } else if (normalizedHandle) {
+    candidates.push(`https://www.youtube.com/@${encodeURIComponent(normalizedHandle)}/about`);
+    candidates.push(`https://m.youtube.com/@${encodeURIComponent(normalizedHandle)}/about`);
+    candidates.push(`https://www.youtube.com/c/${encodeURIComponent(normalizedHandle)}/about`);
+    candidates.push(`https://www.youtube.com/user/${encodeURIComponent(normalizedHandle)}/about`);
+  }
 
   if (url) {
     try {
       const parsed = new URL(url);
       const path = parsed.pathname.replace(/\/$/, "");
-      candidates.add(`https://www.youtube.com${path}/about`);
-      if (!path.endsWith("/about")) candidates.add(`https://www.youtube.com${path}`);
+      if (path) {
+        candidates.push(`https://www.youtube.com${path}/about`);
+        if (!path.endsWith("/about")) candidates.push(`https://www.youtube.com${path}`);
+      }
     } catch {
       // ignore malformed URLs
     }
   }
 
-  if (isYouTubeChannelId(handle)) {
-    candidates.add(`https://www.youtube.com/channel/${encodeURIComponent(handle)}/about`);
-  } else if (normalizedHandle) {
-    candidates.add(`https://www.youtube.com/@${encodeURIComponent(normalizedHandle)}/about`);
-    candidates.add(`https://www.youtube.com/c/${encodeURIComponent(normalizedHandle)}/about`);
-    candidates.add(`https://www.youtube.com/user/${encodeURIComponent(normalizedHandle)}/about`);
+  return [...new Set(candidates)];
+}
+
+function parseYouTubeSubscriberCount(html: string): number | null {
+  const patterns = [
+    /"subscriberCountText":"([^"]+)"/,
+    /"subscriberCountText":\{"simpleText":"([^"]+)"/,
+    /"subscriberCountText":\{"runs":\[\{"text":"([^"]+)"/,
+    /"subscriberCountText":\{"accessibility":\{[^}]*\}[^}]*"simpleText":"([^"]+)"/,
+    /"subscriberCount":"(\d+)"/,
+    /"subscriberCount":(\d+)/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    const raw = match?.[1];
+    if (!raw) continue;
+
+    if (/^\d+$/.test(raw)) return Number.parseInt(raw, 10);
+    const compact = parseCompactCountText(raw);
+    if (compact != null) return compact;
   }
 
-  return [...candidates];
+  return null;
+}
+
+function parseYouTubeChannelMeta(html: string, fallbackHandle: string) {
+  const handleMatch =
+    html.match(/"canonicalBaseUrl":"\\\/@([^"\\]+)/) ??
+    html.match(/"vanityChannelUrl":"https:\\\/\\\/www\.youtube\.com\\\/@([^"\\]+)/);
+  const avatarMatch = html.match(/"avatar":\{"thumbnails":\[\{"url":"([^"]+)"/);
+  const ogTitleMatch = html.match(/<meta property="og:title" content="([^"]+)"/);
+
+  return {
+    platform_username: handleMatch?.[1] ?? fallbackHandle.replace(/^@/, ""),
+    display_name: ogTitleMatch?.[1] ?? handleMatch?.[1] ?? fallbackHandle,
+    avatar_url: avatarMatch?.[1] ?? null,
+  };
 }
 
 async function scrapeYouTubeStats(handle: string, url?: string): Promise<PlatformStatFetchResult | null> {
   const normalizedHandle = handle.replace(/^@/, "");
   const scrapeUrls = buildYouTubeScrapeUrls(handle, url);
   let html: string | null = null;
+  let followerCount: number | null = null;
 
   for (const pageUrl of scrapeUrls) {
-    html = await fetchText(pageUrl, {
+    const pageHtml = await fetchText(pageUrl, {
       headers: { "Accept-Language": "en-US,en;q=0.9" },
     });
-    if (html && (html.includes("subscriberCount") || html.includes("og:title"))) break;
+    if (!pageHtml) continue;
+
+    const count = parseYouTubeSubscriberCount(pageHtml);
+    if (count != null) {
+      html = pageHtml;
+      followerCount = count;
+      break;
+    }
   }
 
-  if (!html) return null;
+  if (!html || followerCount == null) return null;
 
-  const subscriberMatch =
-    html.match(/"subscriberCountText":"([^"]+)"/) ??
-    html.match(/"subscriberCountText":\{"simpleText":"([^"]+)"/) ??
-    html.match(/"subscriberCount":"(\d+)"/);
-
-  const rawCount = subscriberMatch?.[1] ?? null;
-  const followerCount =
-    rawCount && /^\d+$/.test(rawCount)
-      ? Number.parseInt(rawCount, 10)
-      : parseCompactCountText(rawCount);
-
-  const avatarMatch = html.match(/"avatar":\{"thumbnails":\[\{"url":"([^"]+)"/);
-  const ogTitleMatch = html.match(/<meta property="og:title" content="([^"]+)"/);
-
-  if (followerCount == null && !ogTitleMatch) return null;
+  const meta = parseYouTubeChannelMeta(html, normalizedHandle || handle);
 
   return {
-    platform_username: normalizedHandle || handle,
-    display_name: ogTitleMatch?.[1] ?? normalizedHandle ?? handle,
-    avatar_url: avatarMatch?.[1] ?? null,
+    platform_username: meta.platform_username,
+    display_name: meta.display_name,
+    avatar_url: meta.avatar_url,
     follower_count: followerCount,
     count_label: "Subscribers",
   };

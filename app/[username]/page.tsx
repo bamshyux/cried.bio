@@ -194,23 +194,11 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
 
   let totalFollowersSummary = null;
   if (!isPresetPreview && previewSettings.show_total_followers) {
-    const { ensureLinkPlatformStatsSynced, getTotalFollowersSummaryForProfile } = await import(
-      "@/lib/platform-followers/sync"
-    );
-    try {
-      await Promise.race([
-        ensureLinkPlatformStatsSynced(baseProfile.id),
-        new Promise<void>((resolve) => {
-          setTimeout(resolve, 12_000);
-        }),
-      ]);
-    } catch {
-      // Follower sync is best-effort and should never block the public profile.
-    }
+    const { getTotalFollowersSummaryForProfile } = await import("@/lib/platform-followers/sync");
     try {
       totalFollowersSummary = await getTotalFollowersSummaryForProfile(baseProfile.id);
     } catch {
-      // Summary from links alone is still best-effort.
+      // Summary is best-effort and should never block the public profile.
     }
   }
 

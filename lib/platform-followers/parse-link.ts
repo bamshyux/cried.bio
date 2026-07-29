@@ -54,7 +54,11 @@ export function extractPlatformUsername(url: string, platformId: SocialPlatformI
         if (parts[0] === "channel" && parts[1]) return parts[1];
         if (parts[0] === "c" && parts[1]) return parts[1];
         if (parts[0] === "user" && parts[1]) return parts[1];
-        return parts[0] ?? null;
+        // Plain /bamshy style paths — resolve via @handle fallback in scraper.
+        if (parts[0] && !["feed", "gaming", "premium", "account", "results"].includes(parts[0])) {
+          return parts[0];
+        }
+        return null;
       }
       case "discord": {
         if (parts[0] === "invite" && parts[1]) return parts[1];
