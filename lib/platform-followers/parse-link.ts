@@ -17,9 +17,6 @@ const TRACKED_PLATFORMS = new Set<SocialPlatformId>([
   "instagram",
   "twitter",
   "github",
-  "kick",
-  "reddit",
-  "facebook",
   "roblox",
   "spotify",
 ]);
@@ -52,6 +49,7 @@ export function extractPlatformUsername(url: string, platformId: SocialPlatformI
 
     switch (platformId) {
       case "youtube": {
+        if (parts[0] === "watch" || parts[0] === "playlist" || parts[0] === "shorts") return null;
         if (parts[0]?.startsWith("@")) return parts[0].slice(1);
         if (parts[0] === "channel" && parts[1]) return parts[1];
         if (parts[0] === "c" && parts[1]) return parts[1];

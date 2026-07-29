@@ -201,7 +201,7 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
       await Promise.race([
         ensureLinkPlatformStatsSynced(baseProfile.id),
         new Promise<void>((resolve) => {
-          setTimeout(resolve, 4000);
+          setTimeout(resolve, 12_000);
         }),
       ]);
     } catch {

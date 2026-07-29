@@ -15,6 +15,16 @@ function isStale(fetchedAt: string | null | undefined): boolean {
   return Date.now() - ts > STALE_MS;
 }
 
+function needsRefresh(
+  cached: LinkPlatformStat | undefined,
+  options?: { force?: boolean },
+): boolean {
+  if (options?.force) return true;
+  if (!cached) return true;
+  if (cached.follower_count == null) return true;
+  return isStale(cached.fetched_at);
+}
+
 function mapRow(row: Record<string, unknown>): LinkPlatformStat {
   return {
     link_id: String(row.link_id),
@@ -89,10 +99,7 @@ export async function ensureLinkPlatformStatsSynced(profileId: string): Promise<
   const existing = await getLinkPlatformStats(profileId);
   const existingByLink = new Map(existing.map((row) => [row.link_id, row]));
   const missingAny = socialLinks.some((link) => !existingByLink.has(link.linkId));
-  const anyStale = socialLinks.some((link) => {
-    const cached = existingByLink.get(link.linkId);
-    return !cached || isStale(cached.fetched_at);
-  });
+  const anyStale = socialLinks.some((link) => needsRefresh(existingByLink.get(link.linkId)));
 
   if (missingAny || anyStale) {
     await syncLinkPlatformStats(profileId, { force: missingAny });
@@ -124,30 +131,36 @@ export async function syncLinkPlatformStats(profileId: string, options?: { force
     }
   }
 
+  const linksToRefresh: ParsedSocialLink[] = [];
   for (const link of socialLinks) {
     const cached = existingByLink.get(link.linkId);
-    if (!options?.force && cached && !isStale(cached.fetched_at)) continue;
-
-    const stats = await fetchPlatformStats(link.platformId, link.url);
-    const fetchedAt = new Date().toISOString();
-
-    const { error } = await supabase.from("link_platform_stats").upsert(
-      {
-        link_id: link.linkId,
-        profile_id: profileId,
-        platform: link.platformId,
-        platform_username: stats.platform_username,
-        display_name: stats.display_name ?? link.title,
-        avatar_url: stats.avatar_url,
-        follower_count: stats.follower_count,
-        count_label: stats.count_label,
-        fetched_at: fetchedAt,
-      },
-      { onConflict: "link_id" },
-    );
-
-    if (error) {
-      console.error(`[platform-followers] upsert failed for ${link.linkId}:`, error.message);
-    }
+    if (!needsRefresh(cached, options)) continue;
+    linksToRefresh.push(link);
   }
+
+  await Promise.all(
+    linksToRefresh.map(async (link) => {
+      const stats = await fetchPlatformStats(link.platformId, link.url);
+      const fetchedAt = new Date().toISOString();
+
+      const { error } = await supabase.from("link_platform_stats").upsert(
+        {
+          link_id: link.linkId,
+          profile_id: profileId,
+          platform: link.platformId,
+          platform_username: stats.platform_username,
+          display_name: stats.display_name ?? link.title,
+          avatar_url: stats.avatar_url,
+          follower_count: stats.follower_count,
+          count_label: stats.count_label,
+          fetched_at: fetchedAt,
+        },
+        { onConflict: "link_id" },
+      );
+
+      if (error) {
+        console.error(`[platform-followers] upsert failed for ${link.linkId}:`, error.message);
+      }
+    }),
+  );
 }

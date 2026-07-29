@@ -270,13 +270,44 @@ async function fetchTwitchStats(username: string): Promise<PlatformStatFetchResu
   };
 }
 
-async function scrapeYouTubeStats(handle: string): Promise<PlatformStatFetchResult | null> {
+function buildYouTubeScrapeUrls(handle: string, url?: string): string[] {
   const normalizedHandle = handle.replace(/^@/, "");
-  const pageUrl = isYouTubeChannelId(handle)
-    ? `https://www.youtube.com/channel/${encodeURIComponent(handle)}/about`
-    : `https://www.youtube.com/@${encodeURIComponent(normalizedHandle)}/about`;
+  const candidates = new Set<string>();
 
-  const html = await fetchText(pageUrl);
+  if (url) {
+    try {
+      const parsed = new URL(url);
+      const path = parsed.pathname.replace(/\/$/, "");
+      candidates.add(`https://www.youtube.com${path}/about`);
+      if (!path.endsWith("/about")) candidates.add(`https://www.youtube.com${path}`);
+    } catch {
+      // ignore malformed URLs
+    }
+  }
+
+  if (isYouTubeChannelId(handle)) {
+    candidates.add(`https://www.youtube.com/channel/${encodeURIComponent(handle)}/about`);
+  } else if (normalizedHandle) {
+    candidates.add(`https://www.youtube.com/@${encodeURIComponent(normalizedHandle)}/about`);
+    candidates.add(`https://www.youtube.com/c/${encodeURIComponent(normalizedHandle)}/about`);
+    candidates.add(`https://www.youtube.com/user/${encodeURIComponent(normalizedHandle)}/about`);
+  }
+
+  return [...candidates];
+}
+
+async function scrapeYouTubeStats(handle: string, url?: string): Promise<PlatformStatFetchResult | null> {
+  const normalizedHandle = handle.replace(/^@/, "");
+  const scrapeUrls = buildYouTubeScrapeUrls(handle, url);
+  let html: string | null = null;
+
+  for (const pageUrl of scrapeUrls) {
+    html = await fetchText(pageUrl, {
+      headers: { "Accept-Language": "en-US,en;q=0.9" },
+    });
+    if (html && (html.includes("subscriberCount") || html.includes("og:title"))) break;
+  }
+
   if (!html) return null;
 
   const subscriberMatch =
@@ -304,7 +335,7 @@ async function scrapeYouTubeStats(handle: string): Promise<PlatformStatFetchResu
   };
 }
 
-async function fetchYouTubeStats(handle: string): Promise<PlatformStatFetchResult> {
+async function fetchYouTubeStats(handle: string, url?: string): Promise<PlatformStatFetchResult> {
   const apiKey = process.env.YOUTUBE_API_KEY?.trim();
 
   if (apiKey) {
@@ -337,7 +368,7 @@ async function fetchYouTubeStats(handle: string): Promise<PlatformStatFetchResul
     }
   }
 
-  const scraped = await scrapeYouTubeStats(handle);
+  const scraped = await scrapeYouTubeStats(handle, url);
   return scraped ?? emptyResult("Subscribers");
 }
 
@@ -366,6 +397,36 @@ async function fetchTikTokStats(username: string): Promise<PlatformStatFetchResu
 }
 
 async function fetchInstagramStats(username: string): Promise<PlatformStatFetchResult> {
+  const apiData = await fetchJson<{
+    data?: {
+      user?: {
+        username?: string;
+        full_name?: string;
+        profile_pic_url_hd?: string;
+        profile_pic_url?: string;
+        edge_followed_by?: { count?: number };
+        follower_count?: number;
+      };
+    };
+  }>(`https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`, {
+    headers: {
+      "X-IG-App-ID": "936619743392459",
+      Referer: "https://www.instagram.com/",
+    },
+  });
+
+  const user = apiData?.data?.user;
+  if (user?.username) {
+    const followerCount = user.edge_followed_by?.count ?? user.follower_count ?? null;
+    return {
+      platform_username: user.username,
+      display_name: user.full_name || user.username,
+      avatar_url: user.profile_pic_url_hd ?? user.profile_pic_url ?? null,
+      follower_count: typeof followerCount === "number" ? followerCount : null,
+      count_label: "Followers",
+    };
+  }
+
   const html = await fetchText(`https://www.instagram.com/${encodeURIComponent(username)}/`);
   if (!html) return emptyResult();
 
@@ -411,6 +472,9 @@ async function fetchTwitterViaFxTwitter(username: string): Promise<PlatformStatF
 }
 
 async function fetchTwitterStats(username: string): Promise<PlatformStatFetchResult> {
+  const fxTwitter = await fetchTwitterViaFxTwitter(username);
+  if (fxTwitter) return fxTwitter;
+
   const bearer = process.env.X_BEARER_TOKEN?.trim();
   if (bearer) {
     const data = await fetchJson<{
@@ -436,9 +500,6 @@ async function fetchTwitterStats(username: string): Promise<PlatformStatFetchRes
       };
     }
   }
-
-  const fxTwitter = await fetchTwitterViaFxTwitter(username);
-  if (fxTwitter) return fxTwitter;
 
   const html = await fetchText(`https://x.com/${encodeURIComponent(username)}`);
   if (!html) return emptyResult();
@@ -514,17 +575,13 @@ async function fetchRobloxStats(identifier: string): Promise<PlatformStatFetchRe
   };
 }
 
-async function getSpotifyWebPlayerToken(): Promise<string | null> {
-  const data = await fetchJson<{ accessToken?: string }>(
-    "https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
-    {
-      headers: {
-        Accept: "application/json",
-        Referer: "https://open.spotify.com/",
-      },
-    },
-  );
-  return data?.accessToken ?? null;
+async function getSpotifyEmbedToken(artistId: string): Promise<string | null> {
+  const html = await fetchText(`https://open.spotify.com/embed/artist/${encodeURIComponent(artistId)}`);
+  if (!html) return null;
+
+  const tokenMatch =
+    html.match(/"accessToken":"([^"]+)"/) ?? html.match(/accessToken\\":\\"([^\\"]+)/);
+  return tokenMatch?.[1] ?? null;
 }
 
 const SPOTIFY_ARTIST_OVERVIEW_HASHES = [
@@ -535,7 +592,7 @@ const SPOTIFY_ARTIST_OVERVIEW_HASHES = [
 async function fetchSpotifyArtistViaPathfinder(
   artistId: string,
 ): Promise<PlatformStatFetchResult | null> {
-  const token = await getSpotifyWebPlayerToken();
+  const token = await getSpotifyEmbedToken(artistId);
   if (!token) return null;
 
   const spotifyHeaders = {
@@ -555,20 +612,23 @@ async function fetchSpotifyArtistViaPathfinder(
       persistedQuery: { version: 1, sha256Hash },
     });
 
+    type SpotifyArtistPayload = {
+      profile?: { name?: string };
+      stats?: { followers?: number };
+      visuals?: { avatarImage?: { sources?: Array<{ url?: string }> } };
+    };
+
     const data = await fetchJson<{
       data?: {
-        artistUnion?: {
-          profile?: { name?: string };
-          stats?: { followers?: number };
-          visuals?: { avatarImage?: { sources?: Array<{ url?: string }> } };
-        };
+        artistUnion?: SpotifyArtistPayload;
+        artist?: SpotifyArtistPayload;
       };
     }>(
       `https://api-partner.spotify.com/pathfinder/v1/query?operationName=queryArtistOverview&variables=${encodeURIComponent(variables)}&extensions=${encodeURIComponent(extensions)}`,
       { headers: spotifyHeaders },
     );
 
-    const artist = data?.data?.artistUnion;
+    const artist = data?.data?.artistUnion ?? data?.data?.artist;
     const name = artist?.profile?.name;
     const followers = artist?.stats?.followers;
     if (!name || typeof followers !== "number") continue;
@@ -711,7 +771,7 @@ export async function fetchPlatformStats(
     case "twitch":
       return fetchTwitchStats(username);
     case "youtube":
-      return fetchYouTubeStats(username);
+      return fetchYouTubeStats(username, url);
     case "tiktok":
       return fetchTikTokStats(username);
     case "instagram":

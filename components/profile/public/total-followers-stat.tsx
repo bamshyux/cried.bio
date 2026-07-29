@@ -100,9 +100,7 @@ function TotalFollowersModal({
                   <p className="truncate text-sm font-medium text-white">{title}</p>
                   <p className="text-xs text-neutral-500">
                     {handle ? `@${handle} · ` : ""}
-                    {count != null
-                      ? `${formatCompactCount(count)} ${item.count_label}`
-                      : `${platformLabel} · unavailable`}
+                    {`${formatCompactCount(count!)} ${item.count_label}`}
                   </p>
                 </div>
               </li>
@@ -129,7 +127,7 @@ function TotalFollowersModal({
 export function TotalFollowersStat({ summary }: { summary: TotalFollowersSummary }) {
   const [open, setOpen] = useState(false);
 
-  if (summary.items.length === 0) return null;
+  if (summary.items.length === 0 || summary.total <= 0) return null;
 
   return (
     <>
