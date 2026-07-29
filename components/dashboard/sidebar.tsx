@@ -38,7 +38,7 @@ function SectionBlock({
       <Link
         href={section.href}
         data-tour={section.id}
-        className={`bf-dash-nav-link relative overflow-hidden flex min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 pr-10 text-[14px] font-medium ${
+        className={`bf-dash-nav-link relative overflow-hidden flex min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium ${
           active && !hasItems
             ? "bf-dash-nav-link--active"
             : parentActive
@@ -47,13 +47,13 @@ function SectionBlock({
         }`}
       >
         <span
-          className={`bf-dash-nav-icon inline-flex rounded-lg p-1.5 ${
+          className={`bf-dash-nav-icon relative z-[1] inline-flex rounded-lg p-1.5 ${
             active ? "bg-white/[0.08] text-white" : "text-neutral-500"
           }`}
         >
           <section.Icon size={18} />
         </span>
-        <span className="min-w-0 flex-1 truncate">{section.label}</span>
+        <span className="relative z-[1] min-w-0 flex-1 truncate">{section.label}</span>
         <DashNavFlagAccent />
       </Link>
 
@@ -65,7 +65,7 @@ function SectionBlock({
               <Link
                 key={`${item.href}-${item.label}`}
                 href={item.href}
-                className={`bf-dash-nav-sublink relative overflow-hidden block rounded-lg px-3 py-2 pr-9 text-[13px] ${
+                className={`bf-dash-nav-sublink relative overflow-hidden block rounded-lg px-3 py-2 text-[13px] ${
                   itemActive ? "bf-dash-nav-sublink--active" : ""
                 }`}
               >
@@ -96,10 +96,10 @@ export function DashboardSidebar({
           <div className="mb-3 space-y-1">
             <Link
               href="/dashboard"
-              className="bf-dash-nav-link relative overflow-hidden flex items-center gap-3 rounded-xl px-3 py-2.5 pr-10 text-[14px] font-medium text-neutral-400"
+              className="bf-dash-nav-link relative overflow-hidden flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-neutral-400"
             >
-              <span className="inline-flex rounded-lg p-1.5 text-neutral-500">←</span>
-              <span className="flex-1">Back to dashboard</span>
+              <span className="relative z-[1] inline-flex rounded-lg p-1.5 text-neutral-500">←</span>
+              <span className="relative z-[1] flex-1">Back to dashboard</span>
               <DashNavFlagAccent />
             </Link>
           </div>
