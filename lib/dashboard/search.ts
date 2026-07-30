@@ -151,6 +151,16 @@ const DASHBOARD_FEATURE_ENTRIES: FeatureEntry[] = [
     priority: 80,
   },
   {
+    href: "/dashboard/premium/profile-effects",
+    label: "Profile Effects",
+    description: "Animated borders around your profile picture",
+    section: "Premium",
+    sectionId: "premium",
+    iconId: "premium",
+    keywords: ["avatar", "pfp", "profile picture", "border", "ring", "effect", "premium"],
+    priority: 78,
+  },
+  {
     href: "/dashboard/card-border-effects",
     label: "Card Border Effects",
     description: "Animated borders for profile cards",

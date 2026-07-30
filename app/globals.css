@@ -2833,7 +2833,7 @@ body,
     transform 0.15s ease;
 }
 
-/* Diagonal checkered finish texture — hover-only background accent */
+/* Diagonal checkered finish texture — hover + active nav accent */
 .bf-dash-nav-flag {
   position: absolute;
   inset: 0;
@@ -2881,7 +2881,10 @@ body,
 }
 
 .bf-dash-nav-link:hover .bf-dash-nav-flag,
-.bf-dash-nav-sublink:hover .bf-dash-nav-flag {
+.bf-dash-nav-link--active .bf-dash-nav-flag,
+.bf-dash-nav-link--parent-active .bf-dash-nav-flag,
+.bf-dash-nav-sublink:hover .bf-dash-nav-flag,
+.bf-dash-nav-sublink--active .bf-dash-nav-flag {
   opacity: 1;
 }
 

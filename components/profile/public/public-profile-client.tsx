@@ -66,7 +66,7 @@ function ClassicLayout(props: LayoutProps) {
       )}
       <div className="px-6 pb-6 pt-4">
         <div className="-mt-10 mb-4 bf-profile-avatar-row flex items-end gap-4">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} />
           <div className="pb-1">
             <div className="relative z-10 bf-profile-name-row overflow-visible">
               <Username name={displayName} settings={settings} profile={profile} />
@@ -90,7 +90,7 @@ function ModernLayout(props: LayoutProps) {
   return (
     <div className="w-full px-6 py-10">
       <div className="bf-profile-avatar-row mb-4 flex">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-28 w-28" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-28 w-28" />
       </div>
       <div className="relative z-10 mb-1 bf-profile-name-row overflow-visible">
         <Username name={displayName} settings={settings} profile={profile} />
@@ -116,7 +116,7 @@ function GamingLayout(props: LayoutProps) {
         Player Profile
       </div>
       <div className="flex gap-4 p-5 bf-profile-avatar-row">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20 shrink-0" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-20 w-20 shrink-0" />
         <div>
           <div className="relative z-10 bf-profile-name-row overflow-visible">
             <Username name={displayName} settings={settings} profile={profile} />
@@ -141,7 +141,7 @@ function PortfolioLayout(props: LayoutProps) {
   return (
     <div className="w-full grid md:grid-cols-[180px_1fr]">
       <div className="flex flex-col items-center border-b border-white/[0.06] p-6 md:border-b-0 md:border-r">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-28 w-28" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-28 w-28" />
       </div>
       <div className="p-6">
         <div className="relative z-10 mb-1 bf-profile-name-row overflow-visible">
@@ -190,7 +190,7 @@ function StackedLayout(props: LayoutProps) {
       )}
       <div className="px-6 pb-8 pt-0">
         <div className="-mt-12 mb-4 bf-profile-avatar-row flex">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-24 w-24" />
         </div>
         <div className="relative z-10 mb-1 bf-profile-name-row overflow-visible">
           <Username name={displayName} settings={settings} profile={profile} />
@@ -235,7 +235,7 @@ function SplitLayout(props: LayoutProps) {
           <img src={profile.banner_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
         )}
         <div className="relative z-10 p-6">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-28 w-28" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-28 w-28" />
         </div>
       </div>
       <div className="split-layout__content flex flex-col justify-center p-6">
@@ -289,7 +289,7 @@ function TerminalLayout(props: LayoutProps) {
 
       <div className="space-y-4 p-5">
         <div className="flex items-start gap-4 bf-profile-avatar-row">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-14 w-14 shrink-0" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-14 w-14 shrink-0" />
           <div className="min-w-0 flex-1">
             <div className="relative z-10 bf-profile-name-row overflow-visible">
               <Username name={displayName} settings={settings} profile={profile} className="text-lg font-semibold tracking-tight text-white" />
@@ -322,7 +322,7 @@ function CompactLayout(props: LayoutProps) {
   return (
     <div className="w-full p-5">
         <div className="mb-4 bf-profile-avatar-row flex items-center gap-3">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-14 w-14 shrink-0" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-14 w-14 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="relative z-10 bf-profile-name-row overflow-visible">
             <Username name={displayName} settings={settings} profile={profile} className="truncate text-lg font-semibold" />
@@ -346,7 +346,7 @@ function CardLayout(props: LayoutProps) {
     <div className="w-full mx-auto max-w-sm overflow-hidden shadow-2xl" style={layoutCardRadiusStyle(settings)}>
       <div className="px-6 py-8">
         <div className="bf-profile-avatar-row mb-4 flex">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-20 w-20" />
         </div>
         <div className="relative z-10 mb-1 bf-profile-name-row overflow-visible">
           <Username name={displayName} settings={settings} profile={profile} />
@@ -381,7 +381,7 @@ function NeonLayout(props: LayoutProps) {
         style={{ borderRadius: Math.max(resolveLayoutBorderRadius(settings) - 1, 0) }}
       >
         <div className="mb-4 bf-profile-avatar-row flex items-start gap-4">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20 shrink-0" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-20 w-20 shrink-0" />
           <div>
             <div className="relative z-10 bf-profile-name-row overflow-visible">
               <Username name={displayName} settings={settings} profile={profile} />
@@ -405,7 +405,7 @@ function MagazineLayout(props: LayoutProps) {
   return (
     <div className="w-full overflow-visible p-6 sm:p-8">
       <div className="absolute right-6 top-6 sm:right-8 sm:top-8">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16 sm:h-20 sm:w-20" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-16 w-16 sm:h-20 sm:w-20" />
       </div>
       <div className="bf-profile-block max-w-[75%] pr-4">
         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-neutral-600">Profile</p>
@@ -437,7 +437,7 @@ function BentoLayout(props: LayoutProps) {
     <div className="w-full p-4 sm:p-5">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4 sm:col-span-2">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16 shrink-0" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-16 w-16 shrink-0" />
           <div className="min-w-0">
             <div className="relative z-10 bf-profile-name-row overflow-visible">
               <Username name={displayName} settings={settings} profile={profile} />
@@ -473,7 +473,7 @@ function SidebarLayout(props: LayoutProps) {
   return (
     <div className="w-full overflow-hidden md:flex">
       <aside className="flex shrink-0 flex-col items-center border-b border-white/[0.06] p-6 md:w-60 md:border-b-0 md:border-r">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-24 w-24" />
         <div className="mt-4 w-full text-center">
           <div className="relative z-10 bf-profile-name-row overflow-visible">
             <Username name={displayName} settings={settings} profile={profile} />
@@ -517,7 +517,7 @@ function HeroLayout(props: LayoutProps) {
       </div>
       <div className="relative px-6 pb-8">
         <div className="absolute -top-12 bf-profile-avatar-row flex">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24 ring-4 ring-[#141414]" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-24 w-24 ring-4 ring-[#141414]" />
         </div>
         <div className="pt-14">
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
@@ -567,7 +567,7 @@ function PolaroidLayout(props: LayoutProps) {
       <div className="bf-profile-row mb-6 flex flex-wrap items-end gap-6">
         <div className="bf-polaroid shrink-0 -rotate-2 transition-transform duration-300 hover:rotate-0">
           <div className="w-36 rounded-sm bg-white p-2 pb-10 shadow-[0_12px_40px_rgba(0,0,0,0.55)] sm:w-40">
-            <PolaroidAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} />
+            <PolaroidAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} />
             <p className="mt-3 truncate text-center font-serif text-xs text-neutral-600">{displayName}</p>
           </div>
         </div>
@@ -606,7 +606,7 @@ function CinematicLayout(props: LayoutProps) {
       <div className="h-2 bg-black sm:h-3" />
       <div className="mx-auto max-w-md px-6 py-8">
         <div className="bf-profile-avatar-row mb-4 flex justify-center">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-16 w-16" />
         </div>
         <div className="relative z-10 bf-profile-name-row mb-2 overflow-visible">
           <ProfileHandle profile={profile} className="mb-0" />
@@ -640,7 +640,7 @@ function ShowcaseLayout(props: LayoutProps) {
             className="absolute -inset-1 rounded-full border opacity-60"
             style={{ borderColor: `${settings.accent_color}80` }}
           />
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="relative h-32 w-32 sm:h-36 sm:w-36" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="relative h-32 w-32 sm:h-36 sm:w-36" />
         </div>
       </div>
       <div className="relative z-10 bf-profile-name-row overflow-visible">
@@ -675,7 +675,7 @@ function RetroLayout(props: LayoutProps) {
       <div className="border-2 border-t-white border-l-white border-b-[#404040] border-r-[#404040] bg-[#c0c0c0] p-2">
         <div className="overflow-visible border-2 border-t-[#404040] border-l-[#404040] border-b-white border-r-white bg-[#0a0a0a] p-5">
           <div className="flex flex-wrap items-start gap-4 bf-profile-avatar-row">
-            <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-16 w-16 shrink-0" />
+            <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-16 w-16 shrink-0" />
             <div className="min-w-0 flex-1">
               <div className="relative z-10 bf-profile-name-row overflow-visible">
                 <Username name={displayName} settings={settings} profile={profile} />
@@ -708,7 +708,7 @@ function PosterLayout(props: LayoutProps) {
             className="flex flex-col justify-end p-6 sm:w-[38%]"
             style={{ background: `linear-gradient(165deg, ${settings.accent_color}28, transparent 70%)` }}
           >
-            <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20 sm:h-24 sm:w-24" />
+            <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-20 w-20 sm:h-24 sm:w-24" />
           </div>
           <div className="flex flex-1 flex-col justify-center p-6 sm:py-8">
             <p className="text-[10px] font-bold uppercase tracking-[0.35em]" style={{ color: settings.accent_color }}>
@@ -759,7 +759,7 @@ function GlassLayout(props: LayoutProps) {
       </div>
       <div className="relative flex flex-col items-center text-center">
         <div className="bf-profile-avatar-row mb-4 flex">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="h-24 w-24" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="h-24 w-24" />
         </div>
         <div className="relative z-10 bf-profile-name-row overflow-visible">
           <Username name={displayName} settings={settings} profile={profile} />

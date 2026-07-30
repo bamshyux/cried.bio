@@ -26,7 +26,8 @@ import type { GuestbookEntry } from "@/lib/types/guestbook";
 import type { ProfileEmbed } from "@/lib/types/embed";
 import type { SocialProfile } from "@/lib/types/social";
 import type { TotalFollowersSummary } from "@/lib/types/link-platform-stats";
-import { ProfileContentSections } from "./profile-content-sections";
+import { ProfileAvatarEffect } from "@/components/profile/profile-avatar-effect";
+import { avatarSizeFromClassName, resolveProfileAvatarEffect } from "@/lib/profile-avatar-effects/resolve";
 
 export type LayoutProps = {
   profile: Profile;
@@ -158,36 +159,51 @@ export function ProfileAvatar({
   accentColor,
   className = "h-24 w-24",
   rounded = "rounded-full",
+  settings,
 }: {
   profile: Profile;
   displayName: string;
   accentColor: string;
   className?: string;
   rounded?: string;
+  settings?: ProfileSettings;
 }) {
-  const ring = `0 0 0 2px ${accentColor}40, 0 8px 24px rgba(0,0,0,0.5)`;
+  const sizePx = avatarSizeFromClassName(className);
+  const hasEffect = Boolean(settings && resolveProfileAvatarEffect(settings, sizePx));
+  const ring = hasEffect
+    ? undefined
+    : `0 0 0 2px ${accentColor}40, 0 8px 24px rgba(0,0,0,0.5)`;
   const [imageFailed, setImageFailed] = useState(false);
 
-  if (profile.avatar_url && !imageFailed) {
-    return (
+  const innerClassName = hasEffect ? `h-full w-full ${rounded} object-cover` : `${className} ${rounded} object-cover`;
+
+  const avatarNode =
+    profile.avatar_url && !imageFailed ? (
       <img
         src={profile.avatar_url}
         alt={displayName}
-        className={`${className} ${rounded} object-cover`}
-        style={{ boxShadow: ring }}
+        className={innerClassName}
+        style={ring ? { boxShadow: ring } : undefined}
         onError={() => setImageFailed(true)}
       />
+    ) : (
+      <div
+        className={`${hasEffect ? "h-full w-full" : className} flex items-center justify-center ${rounded} text-2xl font-bold text-[#090909]`}
+        style={{ background: accentColor, boxShadow: ring }}
+      >
+        {displayName.charAt(0).toUpperCase()}
+      </div>
+    );
+
+  if (hasEffect && settings) {
+    return (
+      <ProfileAvatarEffect settings={settings} sizePx={sizePx} className={className}>
+        {avatarNode}
+      </ProfileAvatarEffect>
     );
   }
 
-  return (
-    <div
-      className={`${className} flex items-center justify-center ${rounded} text-2xl font-bold text-[#090909]`}
-      style={{ background: accentColor, boxShadow: ring }}
-    >
-      {displayName.charAt(0).toUpperCase()}
-    </div>
-  );
+  return avatarNode;
 }
 
 function ProfileUidBadge({ uid, accentColor }: { uid: number; accentColor: string }) {

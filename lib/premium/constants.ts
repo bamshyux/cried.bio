@@ -8,6 +8,7 @@ export const PREMIUM_LITE_BENEFITS = [
   "4 additional profile pages",
   "Scheduled profile presets",
   "Premium font library",
+  "Profile picture border effects",
   "Custom profile effect request",
   "24-hour username changes",
   "Premium badge on your profile",

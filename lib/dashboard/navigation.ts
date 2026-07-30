@@ -273,6 +273,13 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
         Icon: IconPresets,
       },
       {
+        href: "/dashboard/premium/profile-effects",
+        label: "Profile effects",
+        description: "Animated borders around your profile picture",
+        keywords: ["avatar", "pfp", "profile picture", "border", "ring", "effect"],
+        Icon: IconPremium,
+      },
+      {
         href: "/dashboard/premium/custom-effect",
         label: "Custom effect",
         description: "Request a bespoke profile effect",
@@ -341,6 +348,7 @@ export function isNavActive(pathname: string, href: string): boolean {
       "/dashboard/pages",
       "/dashboard/profile-pages",
       "/dashboard/preset-schedules",
+      "/dashboard/premium/profile-effects",
       "/dashboard/premium/custom-effect",
     ].some((p) => pathname.startsWith(p));
   }

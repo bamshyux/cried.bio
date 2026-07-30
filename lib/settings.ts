@@ -162,6 +162,12 @@ export const DEFAULT_SETTINGS: Omit<
   card_border_secondary_color: "",
   card_border_apply_all: true,
   card_border_targets: ["main", "discord", "roblox", "spotify", "links", "guestbook"],
+  profile_avatar_effect: "none",
+  profile_avatar_effect_thickness: 3,
+  profile_avatar_effect_speed: 100,
+  profile_avatar_effect_glow: 70,
+  profile_avatar_effect_color: "",
+  profile_avatar_effect_secondary_color: "",
   card_offset_x: 0,
   card_offset_y: 0,
   card_width: 100,
@@ -723,6 +729,18 @@ export function mergeSettings(
     card_border_targets: parseCardBorderTargets(
       row?.card_border_targets ?? DEFAULT_SETTINGS.card_border_targets,
     ),
+    profile_avatar_effect:
+      (row?.profile_avatar_effect ?? DEFAULT_SETTINGS.profile_avatar_effect) as import("@/lib/types/settings").CardBorderEffectPreset,
+    profile_avatar_effect_thickness:
+      row?.profile_avatar_effect_thickness ?? DEFAULT_SETTINGS.profile_avatar_effect_thickness,
+    profile_avatar_effect_speed:
+      row?.profile_avatar_effect_speed ?? DEFAULT_SETTINGS.profile_avatar_effect_speed,
+    profile_avatar_effect_glow:
+      row?.profile_avatar_effect_glow ?? DEFAULT_SETTINGS.profile_avatar_effect_glow,
+    profile_avatar_effect_color:
+      row?.profile_avatar_effect_color ?? DEFAULT_SETTINGS.profile_avatar_effect_color,
+    profile_avatar_effect_secondary_color:
+      row?.profile_avatar_effect_secondary_color ?? DEFAULT_SETTINGS.profile_avatar_effect_secondary_color,
     card_offset_x: row?.card_offset_x ?? DEFAULT_SETTINGS.card_offset_x,
     card_offset_y: row?.card_offset_y ?? DEFAULT_SETTINGS.card_offset_y,
     card_width: row?.card_width ?? DEFAULT_SETTINGS.card_width,

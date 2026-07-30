@@ -98,7 +98,7 @@ function MonarchLayout(props: LayoutProps) {
               boxShadow: `0 0 32px ${colorAlpha(colors.primary, 0.35)}`,
             }}
           >
-            <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="h-24 w-24 ring-2 ring-[#090909]/80" />
+            <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} settings={settings} className="h-24 w-24 ring-2 ring-[#090909]/80" />
           </div>
         </div>
         <HeaderIdentity {...props} className="justify-center" />
@@ -136,7 +136,7 @@ function GlitchLayout(props: LayoutProps) {
           ERR://RENDER
         </p>
         <div className="bf-profile-avatar-row mt-4 flex items-end gap-4">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="h-20 w-20 ring-2" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="h-20 w-20 ring-2" />
           <div className="relative min-w-0">
             <Username name={displayName} settings={settings} profile={profile} className="relative z-10 text-2xl font-black text-white" />
             <span className="absolute left-0.5 top-0.5 -z-0 truncate text-2xl font-black" style={{ color: colorAlpha(colors.primary, 0.7) }} aria-hidden>{displayName}</span>
@@ -165,7 +165,7 @@ function NoirLayout(props: LayoutProps) {
         <Username name={displayName} settings={settings} profile={profile} className="font-serif text-4xl italic tracking-tight text-white" />
         <ProfileHandle profile={profile} className="mt-2 text-white/50" />
         <div className="bf-profile-avatar-row my-6 flex justify-center">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="h-20 w-20 grayscale" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="h-20 w-20 grayscale" />
         </div>
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mt-2 justify-center" />
@@ -188,7 +188,7 @@ function RunwayLayout(props: LayoutProps) {
       <div className="p-6 sm:p-8">
         <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-neutral-500">Collection</p>
         <div className="mt-4 flex flex-wrap items-end gap-5 bf-profile-avatar-row">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-24 w-24" />
           <HeaderIdentity {...props} />
         </div>
         <ProfileMainContent {...props} />
@@ -226,7 +226,7 @@ function ArcadeLayout(props: LayoutProps) {
           <ProfileAvatar
             profile={profile}
             displayName={displayName}
-            accentColor={colors.primary}
+            accentColor={colors.primary} settings={settings}
             className="h-16 w-16 rounded-md"
             rounded="rounded-md"
           />
@@ -254,7 +254,7 @@ function PassportLayout(props: LayoutProps) {
         <div className="h-8 w-8 rounded-full border-2 border-dashed" style={{ borderColor: colorAlpha(colors.secondary, 0.5) }} />
       </div>
       <div className="flex flex-col gap-4 p-5 sm:flex-row">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-28 w-28 shrink-0" rounded="rounded-md" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-28 w-28 shrink-0" rounded="rounded-md" />
         <HeaderIdentity {...props} />
       </div>
       <ProfileMainContent {...props} />
@@ -320,7 +320,7 @@ function CassetteLayout(props: LayoutProps) {
           <ProfileAvatar
             profile={profile}
             displayName={displayName}
-            accentColor={settings.accent_color}
+            accentColor={settings.accent_color} settings={settings}
             className="h-20 w-20 shrink-0 ring-2 ring-[#444] sm:h-24 sm:w-24"
           />
           <div className="flex min-w-0 w-full flex-1 flex-col items-center sm:items-start">
@@ -359,6 +359,7 @@ function CrystalLayout(props: LayoutProps) {
           profile={profile}
           displayName={displayName}
           accentColor={colors.secondary}
+          settings={settings}
           className="relative z-10 mx-auto h-24 w-24 ring-2"
         />
       </div>
@@ -404,7 +405,7 @@ function NebuladriftLayout(props: LayoutProps) {
         ))}
       </div>
       <div className="relative px-6 py-10 text-center">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="mx-auto h-24 w-24 ring-2" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="mx-auto h-24 w-24 ring-2" />
         <HeaderIdentity {...props} className="mt-4 justify-center" />
         <div className="bf-profile-block mx-auto mt-4 max-w-md">
           <ProfileMainContent {...props} />
@@ -426,7 +427,7 @@ function SamuraiLayout(props: LayoutProps) {
           武士
         </p>
         <div className="mt-4 flex gap-4 bf-profile-avatar-row">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-20 w-20" />
           <HeaderIdentity {...props} />
         </div>
         <ProfileMainContent {...props} />
@@ -501,7 +502,7 @@ function MonolithLayout(props: LayoutProps) {
               border: `1px solid ${accent}33`,
             }}
           >
-            <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="mx-auto h-28 w-28 ring-2 ring-white/10" />
+            <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} settings={settings} className="mx-auto h-28 w-28 ring-2 ring-white/10" />
           </div>
         </div>
         <HeaderIdentity {...props} className="justify-center" />
@@ -529,7 +530,7 @@ function PrismstackLayout(props: LayoutProps) {
       </div>
       <div className="p-6">
         <div className="flex gap-4 bf-profile-avatar-row">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-20 w-20" />
           <HeaderIdentity {...props} />
         </div>
         <ProfileMainContent {...props} />
@@ -579,7 +580,7 @@ function DashboardLayout(props: LayoutProps) {
         <div className="flex gap-4 bf-profile-avatar-row">
           <div className="relative">
             <div className="absolute -inset-1 rounded-2xl opacity-60 blur-md" style={{ background: `${accent}33` }} />
-            <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="relative h-16 w-16 ring-2 ring-white/10" />
+            <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} settings={settings} className="relative h-16 w-16 ring-2 ring-white/10" />
           </div>
           <HeaderIdentity {...props} />
         </div>
@@ -627,7 +628,7 @@ function CommandLayout(props: LayoutProps) {
         <div className="mb-4 rounded-lg border bg-[#041208]/80 p-3" style={{ borderColor: colorAlpha(colors.primary, 0.15) }}>
           <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: colorAlpha(colors.primary, 0.6) }}>[ operator ]</p>
           <div className="mt-3 flex gap-4 bf-profile-avatar-row">
-            <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="h-16 w-16 ring-1" />
+            <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="h-16 w-16 ring-1" />
             <HeaderIdentity {...props} />
           </div>
         </div>
@@ -660,7 +661,7 @@ function BloomLayout(props: LayoutProps) {
         />
       ))}
       <div className="relative px-6 py-10 text-center">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="mx-auto h-24 w-24 ring-2" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="mx-auto h-24 w-24 ring-2" />
         <HeaderIdentity {...props} className="mt-4 justify-center" />
         <div className="bf-profile-block mx-auto mt-4 max-w-md">
           <ProfileMainContent {...props} />
@@ -689,7 +690,7 @@ function StealthLayout(props: LayoutProps) {
         Stealth mode
       </div>
       <div className="relative mt-4 flex gap-4 bf-profile-avatar-row">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="h-16 w-16 opacity-90 ring-1" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="h-16 w-16 opacity-90 ring-1" />
         <HeaderIdentity {...props} />
       </div>
       <ProfileMainContent {...props} />
@@ -710,7 +711,7 @@ function FestivalLayout(props: LayoutProps) {
         <p className="text-[10px] font-bold uppercase tracking-[0.35em]" style={{ color: settings.accent_color }}>{label}</p>
       </div>
       <div className="p-6 text-center">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="mx-auto h-20 w-20" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="mx-auto h-20 w-20" />
         <HeaderIdentity {...props} className="mt-4 justify-center" />
         <div className="bf-profile-block mt-4">
           <ProfileMainContent {...props} />
@@ -770,7 +771,7 @@ function EmberforgeLayout(props: LayoutProps) {
           Forge Online
         </p>
         <div className="mt-3 flex gap-4 bf-profile-avatar-row">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="h-20 w-20 ring-2" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="h-20 w-20 ring-2" />
           <HeaderIdentity {...props} />
         </div>
       </div>
@@ -795,7 +796,7 @@ function MatrixLayout(props: LayoutProps) {
         <p className="relative z-10 text-[10px] uppercase tracking-[0.35em]" style={{ color: colors.primary }}>
           System Access
         </p>
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="relative z-10 mt-3 h-16 w-16 ring-1" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="relative z-10 mt-3 h-16 w-16 ring-1" />
       </div>
       <div className="p-5">
         <HeaderIdentity {...props} />
@@ -817,7 +818,7 @@ function LiquidLayout(props: LayoutProps) {
         style={{ background: `radial-gradient(circle, ${accent}, ${settings.gradient_colors?.[1] ?? accent})` }}
       />
       <div className="relative px-6 py-10 text-center">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="mx-auto h-24 w-24 ring-2 ring-white/15" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} settings={settings} className="mx-auto h-24 w-24 ring-2 ring-white/15" />
         <HeaderIdentity {...props} className="mt-4 justify-center" />
         <div className="bf-profile-block mx-auto mt-4 max-w-md">
           <ProfileMainContent {...props} />
@@ -839,7 +840,7 @@ function SupernovaLayout(props: LayoutProps) {
         style={{ background: `radial-gradient(circle, ${accent}, transparent 70%)` }}
       />
       <div className="relative px-6 py-10 text-center">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} className="mx-auto h-24 w-24 shadow-[0_0_30px_rgba(255,255,255,0.18)]" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={accent} settings={settings} className="mx-auto h-24 w-24 shadow-[0_0_30px_rgba(255,255,255,0.18)]" />
         <HeaderIdentity {...props} className="mt-4 justify-center" />
         <div className="bf-profile-block mx-auto mt-4 max-w-md">
           <ProfileMainContent {...props} />
@@ -870,7 +871,7 @@ function TapewaveLayout(props: LayoutProps) {
       </div>
       <div className="p-5">
         <div className="flex gap-4 bf-profile-avatar-row">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="h-16 w-16" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="h-16 w-16" />
           <HeaderIdentity {...props} />
         </div>
         <ProfileMainContent {...props} />
@@ -913,7 +914,7 @@ function PhoenixLayout(props: LayoutProps) {
       <div className="relative px-6 pb-10 pt-12 text-center">
         <div className="relative mx-auto mb-5 flex justify-center">
           <div className="absolute inset-0 mx-auto h-28 w-28 animate-pulse rounded-full blur-xl" style={{ backgroundColor: colorAlpha(colors.secondary, 0.2) }} />
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="relative h-24 w-24 ring-2" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="relative h-24 w-24 ring-2" />
         </div>
         <HeaderIdentity {...props} className="justify-center" />
         <div className="bf-profile-block mx-auto mt-5 max-w-md border-t pt-5" style={{ borderColor: colorAlpha(colors.primary, 0.15) }}>

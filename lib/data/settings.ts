@@ -5,6 +5,7 @@ import { getDiscordStatusWidget } from "@/lib/data/discord-widget";
 import { mergeSettings } from "@/lib/settings";
 import { getUserEntitlements } from "@/lib/premium/entitlements";
 import { enforceCardBorderEffectEntitlement } from "@/lib/card-border-effects/premium";
+import { enforceProfileAvatarEffectEntitlement } from "@/lib/profile-avatar-effects/premium";
 import { enforceProfileLayoutEntitlement } from "@/lib/premium/layout-settings";
 import { enforceMusicPlayerVisibility } from "@/lib/premium/music-settings";
 import type { ProfileSettings } from "@/lib/types/settings";
@@ -68,6 +69,7 @@ export async function getSettingsByProfileId(
   const entitlements = await getUserEntitlements(profileId);
   settings = enforceMusicPlayerVisibility(settings, entitlements.can_use_playlist);
   settings = enforceCardBorderEffectEntitlement(settings, entitlements.animated_effects);
+  settings = enforceProfileAvatarEffectEntitlement(settings, entitlements.animated_effects);
   settings = {
     ...settings,
     layout: enforceProfileLayoutEntitlement(settings.layout, entitlements.animated_effects),

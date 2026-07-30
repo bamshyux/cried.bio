@@ -27,6 +27,8 @@ import type { CardBorderEffectPreset } from "@/lib/types/settings";
 import { parseCardBorderTargets, writeContentPageBorderTargets } from "@/lib/card-border-effects/resolve";
 import { CARD_BORDER_EFFECT_OPTIONS } from "@/lib/card-border-effects/presets";
 import { sanitizeCardBorderEffectSelection } from "@/lib/card-border-effects/premium";
+import { parseProfileAvatarEffect } from "@/lib/profile-avatar-effects/resolve";
+import { sanitizeProfileAvatarEffectSelection } from "@/lib/profile-avatar-effects/premium";
 import { parsePageEntranceAnimation } from "@/lib/page-entrance";
 import { sanitizeProfileLayoutSelection } from "@/lib/premium/layout-settings";
 import type {
@@ -294,6 +296,37 @@ function parseSectionUpdates(
         card_border_targets: parseCardBorderTargets(
           formData.get("card_border_targets") ?? existing.card_border_targets,
         ),
+      };
+    case "profile_avatar":
+      return {
+        profile_avatar_effect: parseProfileAvatarEffect(
+          String(formData.get("profile_avatar_effect") ?? existing.profile_avatar_effect),
+          existing.profile_avatar_effect,
+        ),
+        profile_avatar_effect_thickness: clampCardBorder(
+          parseIntField(formData.get("profile_avatar_effect_thickness"), existing.profile_avatar_effect_thickness),
+          1,
+          8,
+          existing.profile_avatar_effect_thickness,
+        ),
+        profile_avatar_effect_speed: clampCardBorder(
+          parseIntField(formData.get("profile_avatar_effect_speed"), existing.profile_avatar_effect_speed),
+          25,
+          300,
+          existing.profile_avatar_effect_speed,
+        ),
+        profile_avatar_effect_glow: clampCardBorder(
+          parseIntField(formData.get("profile_avatar_effect_glow"), existing.profile_avatar_effect_glow),
+          0,
+          100,
+          existing.profile_avatar_effect_glow,
+        ),
+        profile_avatar_effect_color: String(
+          formData.get("profile_avatar_effect_color") ?? existing.profile_avatar_effect_color,
+        ).slice(0, 32),
+        profile_avatar_effect_secondary_color: String(
+          formData.get("profile_avatar_effect_secondary_color") ?? existing.profile_avatar_effect_secondary_color,
+        ).slice(0, 32),
       };
     case "links":
       return {
@@ -609,6 +642,14 @@ export async function updateSettingsAction(
     );
   }
 
+  if (section === "profile_avatar" && updates.profile_avatar_effect) {
+    const entitlements = await getUserEntitlements(userId);
+    updates.profile_avatar_effect = sanitizeProfileAvatarEffectSelection(
+      updates.profile_avatar_effect,
+      entitlements.animated_effects,
+    );
+  }
+
   if (section === "themes" && updates.layout) {
     const entitlements = await getUserEntitlements(userId);
     updates.layout = sanitizeProfileLayoutSelection(
@@ -639,6 +680,7 @@ export async function updateSettingsAction(
     music: "Music settings saved.",
     effects: "Effects saved.",
     card_border: "Card border effects saved.",
+    profile_avatar: "Profile effects saved.",
     profile: "Bio styling saved.",
     guestbook: "Guestbook settings saved.",
     social: "Social settings saved.",

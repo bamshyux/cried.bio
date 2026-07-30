@@ -194,6 +194,7 @@ export type SettingsSection =
   | "music"
   | "effects"
   | "card_border"
+  | "profile_avatar"
   | "links"
   | "guestbook"
   | "social"
@@ -385,6 +386,12 @@ export type ProfileSettings = {
   card_border_secondary_color: string;
   card_border_apply_all: boolean;
   card_border_targets: CardBorderTarget[];
+  profile_avatar_effect: CardBorderEffectPreset;
+  profile_avatar_effect_thickness: number;
+  profile_avatar_effect_speed: number;
+  profile_avatar_effect_glow: number;
+  profile_avatar_effect_color: string;
+  profile_avatar_effect_secondary_color: string;
   card_offset_x: number;
   card_offset_y: number;
   card_width: number;

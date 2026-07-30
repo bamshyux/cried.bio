@@ -68,10 +68,19 @@ export const PREMIUM_COMPARISON_FEATURES: PremiumComparisonFeature[] = [
     preview: "fonts",
   },
   {
+    id: "profile-effects",
+    name: "Profile picture effects",
+    description:
+      "Wrap your avatar in animated borders — neon glow, fire, holographic, matrix, aurora, and 30+ more premium ring styles.",
+    free: { kind: "excluded" },
+    premium: { kind: "included" },
+    preview: "effects",
+  },
+  {
     id: "effects",
     name: "Premium effects",
     description:
-      "Unlock animated card effects, premium cursor styles, border animations, and one custom effect request built for your profile.",
+      "Unlock animated card effects, premium cursor styles, border animations, profile picture effects, and one custom effect request built for your profile.",
     free: { kind: "partial", label: "Basic effects" },
     premium: { kind: "included" },
     preview: "effects",

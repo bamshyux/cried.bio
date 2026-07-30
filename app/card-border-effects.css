@@ -1075,3 +1075,21 @@
     animation: none !important;
   }
 }
+
+/* Profile avatar — circular card border effect wrapper */
+.bf-pae {
+  flex-shrink: 0;
+}
+
+.bf-pae__inner {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--cbe-radius, 50%);
+  overflow: hidden;
+}
+
+.bf-pae .bf-cbe__border,
+.bf-pae .bf-cbe__glow,
+.bf-pae .bf-cbe__sparks {
+  border-radius: var(--cbe-radius, 50%);
+}

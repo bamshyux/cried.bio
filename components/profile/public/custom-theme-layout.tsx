@@ -22,6 +22,7 @@ export function CustomThemeLayout(props: LayoutProps) {
             profile={profile}
             displayName={displayName}
             accentColor={settings.accent_color}
+            settings={settings}
             className="profile-avatar h-24 w-24"
           />
           <div className="pb-1">

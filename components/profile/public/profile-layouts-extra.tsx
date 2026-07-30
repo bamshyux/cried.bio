@@ -180,7 +180,7 @@ function DiscordLayout(props: LayoutProps) {
       <div className="relative px-5 pb-6">
         <div className="-mt-10 mb-3 bf-profile-avatar-row flex items-end gap-3">
           <div className="relative">
-            <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20 ring-4 ring-[#141414]" />
+            <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-20 w-20 ring-4 ring-[#141414]" />
             <span className="absolute bottom-0.5 right-0.5 h-4 w-4 rounded-full border-[3px] border-[#141414] bg-emerald-500" />
           </div>
           <div className="pb-1">
@@ -220,7 +220,7 @@ function TwitchLayout(props: LayoutProps) {
         <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: colors.secondary }}>{label}</span>
       </div>
       <div className="flex gap-4 p-5 bf-profile-avatar-row">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="h-16 w-16 shrink-0" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="h-16 w-16 shrink-0" />
         <div>
           <div className="bf-profile-name-row">
             <Username name={displayName} settings={settings} profile={profile} className="text-xl font-bold text-white" />
@@ -253,7 +253,7 @@ function IdcardLayout(props: LayoutProps) {
         <ProfileAvatar
           profile={profile}
           displayName={displayName}
-          accentColor={settings.accent_color}
+          accentColor={settings.accent_color} settings={settings}
           className="h-24 w-24 shrink-0 sm:h-28 sm:w-28"
           rounded="rounded-lg"
         />
@@ -304,7 +304,7 @@ function BlueprintLayout(props: LayoutProps) {
         Rev. {profile.uid ?? "001"} · {label}
       </p>
       <div className="mt-4 flex flex-wrap items-start gap-4 bf-profile-avatar-row">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} className="h-16 w-16 shrink-0" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="h-16 w-16 shrink-0" />
         <div>
           <Username name={displayName} settings={settings} profile={profile} className="text-xl font-bold uppercase tracking-wide text-white" />
           <div style={{ color: colorAlpha(colors.primary, 0.7) }}>
@@ -336,7 +336,7 @@ function ComicLayout(props: LayoutProps) {
         style={{ borderRadius: innerRadius }}
       >
         <div className="flex flex-wrap items-start gap-4 bf-profile-avatar-row">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20 shrink-0 ring-2 ring-black" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-20 w-20 shrink-0 ring-2 ring-black" />
           <div>
             <Username
               name={displayName}
@@ -411,7 +411,7 @@ function LuxuryLayout(props: LayoutProps) {
       <div className="mx-auto mb-6 h-px w-16" style={{ background: `linear-gradient(90deg, transparent, ${settings.accent_color}, transparent)` }} />
       <p className="text-[10px] font-medium uppercase tracking-[0.45em] text-neutral-500">{label}</p>
       <div className="bf-profile-avatar-row mt-6 flex justify-center">
-        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
+        <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-20 w-20" />
       </div>
       <div className="bf-profile-name-row mt-5">
         <Username name={displayName} settings={settings} profile={profile} className="font-serif text-3xl font-light tracking-wide text-white sm:text-4xl" />
@@ -490,7 +490,7 @@ function OrbitLayout(props: LayoutProps) {
           style={{ borderColor: `${settings.accent_color}50` }}
         />
         <div className="absolute inset-0 flex items-center justify-center">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-20 w-20" />
         </div>
       </div>
       <div className="bf-profile-name-row">
@@ -555,7 +555,7 @@ function MosaicLayout(props: LayoutProps) {
                   <ProfileAvatar
                     profile={profile}
                     displayName={displayName}
-                    accentColor={settings.accent_color}
+                    accentColor={settings.accent_color} settings={settings}
                     className="h-full w-full max-h-full max-w-full rounded-sm"
                   />
                 </div>
@@ -589,7 +589,7 @@ function AuroraLayout(props: LayoutProps) {
     <div className={layoutRootClass(settings, "w-full overflow-hidden")} style={layoutColorStyle(settings)}>
       <div className="bf-layout-aurora relative px-6 py-10">
         <div className="bf-profile-avatar-row mb-4 flex justify-center">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-20 w-20" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-20 w-20" />
         </div>
         <div className="bf-profile-name-row text-center">
           <Username name={displayName} settings={settings} profile={profile} />
@@ -615,7 +615,7 @@ function HologramLayout(props: LayoutProps) {
     <div className={layoutRootClass(settings, "w-full bf-layout-hologram w-full overflow-hidden p-[2px]")} style={{ ...layoutColorStyle(settings), ...layoutCardRadiusStyle(settings) }}>
       <div className="bg-[#0a0a0a]/95 px-6 py-8" style={{ borderRadius: Math.max(settings.border_radius - 2, 0) }}>
         <div className="bf-profile-avatar-row mb-4 flex justify-center">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-24 w-24" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-24 w-24" />
         </div>
         <div className="bf-profile-name-row text-center">
           <Username
@@ -653,7 +653,7 @@ function SpotifyLayout(props: LayoutProps) {
           <ProfileAvatar
             profile={profile}
             displayName={displayName}
-            accentColor={settings.accent_color}
+            accentColor={settings.accent_color} settings={settings}
             className="h-28 w-28 shrink-0 shadow-2xl ring-4 ring-[#121212] sm:h-32 sm:w-32"
           />
         </div>
@@ -682,7 +682,7 @@ function SpotlightLayout(props: LayoutProps) {
       />
       <div className="relative text-center">
         <div className="bf-profile-avatar-row mb-6 flex justify-center">
-          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} className="h-28 w-28" />
+          <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-28 w-28" />
         </div>
         <div className="bf-profile-name-row">
           <Username name={displayName} settings={settings} profile={profile} />
