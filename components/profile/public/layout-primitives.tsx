@@ -28,6 +28,7 @@ import type { SocialProfile } from "@/lib/types/social";
 import type { TotalFollowersSummary } from "@/lib/types/link-platform-stats";
 import { ProfileAvatarEffect } from "@/components/profile/profile-avatar-effect";
 import { avatarSizeFromClassName, resolveProfileAvatarEffect } from "@/lib/profile-avatar-effects/resolve";
+import { ProfileContentSections } from "./profile-content-sections";
 
 export type LayoutProps = {
   profile: Profile;

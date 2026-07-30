@@ -156,7 +156,7 @@ const DASHBOARD_FEATURE_ENTRIES: FeatureEntry[] = [
     description: "Animated borders around your profile picture",
     section: "Premium",
     sectionId: "premium",
-    iconId: "premium",
+    iconId: "effects",
     keywords: ["avatar", "pfp", "profile picture", "border", "ring", "effect", "premium"],
     priority: 78,
   },

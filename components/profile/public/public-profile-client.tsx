@@ -532,28 +532,22 @@ function PolaroidAvatar({
   profile,
   displayName,
   accentColor,
+  settings,
 }: {
   profile: Profile;
   displayName: string;
   accentColor: string;
+  settings: ProfileSettings;
 }) {
-  if (profile.avatar_url) {
-    return (
-      <img
-        src={profile.avatar_url}
-        alt={displayName}
-        className="aspect-square w-full object-cover"
-      />
-    );
-  }
-
   return (
-    <div
-      className="flex aspect-square w-full items-center justify-center text-4xl font-bold text-[#090909]"
-      style={{ background: accentColor }}
-    >
-      {displayName.charAt(0).toUpperCase()}
-    </div>
+    <ProfileAvatar
+      profile={profile}
+      displayName={displayName}
+      accentColor={accentColor}
+      settings={settings}
+      className="h-36 w-36 sm:h-40 sm:w-40"
+      rounded="rounded-none"
+    />
   );
 }
 
