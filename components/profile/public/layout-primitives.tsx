@@ -30,6 +30,11 @@ import { ProfileAvatarEffect } from "@/components/profile/profile-avatar-effect"
 import { avatarSizeFromClassName, resolveProfileAvatarEffect } from "@/lib/profile-avatar-effects/resolve";
 import { ProfileContentSections } from "./profile-content-sections";
 
+/** Strip Tailwind ring utilities — they draw outside the effect and cause light halos. */
+function avatarEffectWrapperClass(className: string): string {
+  return className.replace(/\bring(?:-\[[^\]]+\]|-[\w]+(?:\/[\w.%]+)?)?\b/g, "").replace(/\s+/g, " ").trim();
+}
+
 export type LayoutProps = {
   profile: Profile;
   links: ProfileLink[];
@@ -176,7 +181,7 @@ export function ProfileAvatar({
     : `0 0 0 2px ${accentColor}40, 0 8px 24px rgba(0,0,0,0.5)`;
   const [imageFailed, setImageFailed] = useState(false);
 
-  const innerClassName = hasEffect ? `h-full w-full ${rounded} object-cover` : `${className} ${rounded} object-cover`;
+  const innerClassName = hasEffect ? "block h-full w-full object-cover" : `${className} ${rounded} object-cover`;
 
   const avatarNode =
     profile.avatar_url && !imageFailed ? (
@@ -189,7 +194,7 @@ export function ProfileAvatar({
       />
     ) : (
       <div
-        className={`${hasEffect ? "h-full w-full" : className} flex items-center justify-center ${rounded} text-2xl font-bold text-[#090909]`}
+        className={`${hasEffect ? "flex h-full w-full items-center justify-center text-2xl font-bold text-[#090909]" : `${className} flex items-center justify-center ${rounded} text-2xl font-bold text-[#090909]`}`}
         style={{ background: accentColor, boxShadow: ring }}
       >
         {displayName.charAt(0).toUpperCase()}
@@ -198,7 +203,11 @@ export function ProfileAvatar({
 
   if (hasEffect && settings) {
     return (
-      <ProfileAvatarEffect settings={settings} sizePx={sizePx} className={className}>
+      <ProfileAvatarEffect
+        settings={settings}
+        sizePx={sizePx}
+        className={avatarEffectWrapperClass(className)}
+      >
         {avatarNode}
       </ProfileAvatarEffect>
     );

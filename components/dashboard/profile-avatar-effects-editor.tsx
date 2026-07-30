@@ -8,7 +8,6 @@ import {
   buttonPrimaryClassName,
   cardClassName,
   ColorField,
-  FormFeedback,
   labelClassName,
   PageHeader,
   SliderField,
@@ -233,10 +232,10 @@ export function ProfileAvatarEffectsEditor({
               </>
             ) : null}
 
-            <FormFeedback error={state.error} success={state.success} />
             <button type="submit" disabled={isPending} className={buttonPrimaryClassName}>
               {isPending ? "Saving..." : "Save profile effects"}
             </button>
+            <SaveConfirmation success={state.success} error={state.error} />
           </form>
         </div>
 
@@ -251,8 +250,6 @@ export function ProfileAvatarEffectsEditor({
           </div>
         </div>
       </div>
-
-      <SaveConfirmation success={state.success} error={state.error} />
     </>
   );
 }
