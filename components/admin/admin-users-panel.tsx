@@ -89,22 +89,24 @@ export function AdminUsersPanel({
                   <EditableUidCell userId={user.id} uid={user.uid} />
                 </td>
                 <td className="px-4 py-3">
-                  <EditableOwnerTextCell
-                    userId={user.id}
-                    value={user.username}
-                    field="username"
-                    editable={isOwner}
-                    className="font-medium text-white"
-                    emptyLabel="—"
-                  />
-                  <EditableOwnerTextCell
-                    userId={user.id}
-                    value={user.display_name}
-                    field="display_name"
-                    editable={isOwner}
-                    className="text-xs text-neutral-500"
-                    emptyLabel="No display name"
-                  />
+                  <div className="flex flex-col gap-0.5">
+                    <EditableOwnerTextCell
+                      userId={user.id}
+                      value={user.username}
+                      field="username"
+                      editable={isOwner}
+                      className="block font-medium text-white"
+                      emptyLabel="—"
+                    />
+                    <EditableOwnerTextCell
+                      userId={user.id}
+                      value={user.display_name}
+                      field="display_name"
+                      editable={isOwner}
+                      className="block text-xs text-neutral-500"
+                      emptyLabel="No display name"
+                    />
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-xs text-neutral-400">{user.email ?? "—"}</td>
                 <td className="px-4 py-3">
