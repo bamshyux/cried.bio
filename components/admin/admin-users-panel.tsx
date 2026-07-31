@@ -15,11 +15,18 @@ import {
   AdminPageHeader,
   AdminTableWrap,
 } from "@/components/admin/admin-ui";
+import { EditableOwnerTextCell } from "@/components/admin/editable-owner-text-cell";
 import { EditableUidCell } from "@/components/admin/editable-uid-cell";
 import { buttonSecondaryClassName, inputClassName } from "@/components/dashboard/form-fields";
 import type { AdminUserRow } from "@/lib/types/admin";
 
-export function AdminUsersPanel({ initialUsers }: { initialUsers: AdminUserRow[] }) {
+export function AdminUsersPanel({
+  initialUsers,
+  isOwner = false,
+}: {
+  initialUsers: AdminUserRow[];
+  isOwner?: boolean;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -82,8 +89,22 @@ export function AdminUsersPanel({ initialUsers }: { initialUsers: AdminUserRow[]
                   <EditableUidCell userId={user.id} uid={user.uid} />
                 </td>
                 <td className="px-4 py-3">
-                  <div className="font-medium text-white">{user.username ?? "—"}</div>
-                  <div className="text-xs text-neutral-500">{user.display_name || "No display name"}</div>
+                  <EditableOwnerTextCell
+                    userId={user.id}
+                    value={user.username}
+                    field="username"
+                    editable={isOwner}
+                    className="font-medium text-white"
+                    emptyLabel="—"
+                  />
+                  <EditableOwnerTextCell
+                    userId={user.id}
+                    value={user.display_name}
+                    field="display_name"
+                    editable={isOwner}
+                    className="text-xs text-neutral-500"
+                    emptyLabel="No display name"
+                  />
                 </td>
                 <td className="px-4 py-3 text-xs text-neutral-400">{user.email ?? "—"}</td>
                 <td className="px-4 py-3">

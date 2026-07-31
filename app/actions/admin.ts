@@ -6,7 +6,8 @@ import { syncPremiumBadge } from "@/lib/premium/badge-sync";
 import { revokePremiumAccess } from "@/lib/premium/sync";
 import { logAdminAudit, logUserTimelineEvent } from "@/lib/admin/audit";
 import { requireAdminAccess } from "@/lib/auth/admin-access";
-import { normalizeUsername } from "@/lib/profile";
+import { rejectIfModerated } from "@/lib/moderation/validate";
+import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { AdminFormState, AnnouncementType } from "@/lib/types/admin";
@@ -133,6 +134,129 @@ export async function adminUpdateUidAction(
   if (existing.username) revalidatePath(`/${existing.username}`);
 
   return { success: "UID updated." };
+}
+
+export async function adminUpdateUsernameAction(
+  userId: string,
+  usernameRaw: string,
+): Promise<AdminFormState> {
+  const gate = await guard("owner");
+  if ("error" in gate) return { error: gate.error };
+
+  const username = normalizeUsername(usernameRaw);
+  if (!username) return { error: "Username is required." };
+  if (!isValidUsername(username)) {
+    return { error: "Username must be 3–20 characters: lowercase letters, numbers, underscores." };
+  }
+
+  const moderationError = await rejectIfModerated(username, "username", userId);
+  if (moderationError) return { error: moderationError };
+
+  const supabase = await db();
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!existing) return { error: "User not found." };
+  if (existing.username === username) return { success: "Username unchanged." };
+
+  const { data: taken } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("username", username)
+    .neq("id", userId)
+    .maybeSingle();
+
+  if (taken) return { error: "That username is already taken." };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      username,
+      username_changed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId);
+
+  if (error) return { error: error.message };
+
+  await logAdminAudit({
+    actorId: gate.access.userId,
+    actorEmail: gate.access.email,
+    targetUserId: userId,
+    action: "username_changed",
+    details: { from: existing.username, to: username },
+  });
+
+  await logUserTimelineEvent({
+    userId,
+    eventType: "username_changed",
+    title: `Username changed to @${username}`,
+    metadata: { from: existing.username, to: username },
+  });
+
+  revalidatePath("/dashboard/admin/users");
+  revalidatePath(`/dashboard/admin/users/${userId}`);
+  if (existing.username) revalidatePath(`/${existing.username}`);
+  revalidatePath(`/${username}`);
+
+  return { success: "Username updated." };
+}
+
+export async function adminUpdateDisplayNameAction(
+  userId: string,
+  displayNameRaw: string,
+): Promise<AdminFormState> {
+  const gate = await guard("owner");
+  if ("error" in gate) return { error: gate.error };
+
+  const displayName = displayNameRaw.trim().slice(0, 64);
+
+  const moderationError = await rejectIfModerated(displayName, "display_name", userId);
+  if (moderationError) return { error: moderationError };
+
+  const supabase = await db();
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("username, display_name")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!existing) return { error: "User not found." };
+  if ((existing.display_name ?? "") === displayName) return { success: "Display name unchanged." };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      display_name: displayName,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId);
+
+  if (error) return { error: error.message };
+
+  await logAdminAudit({
+    actorId: gate.access.userId,
+    actorEmail: gate.access.email,
+    targetUserId: userId,
+    action: "display_name_changed",
+    details: { from: existing.display_name, to: displayName },
+  });
+
+  await logUserTimelineEvent({
+    userId,
+    eventType: "display_name_changed",
+    title: displayName ? `Display name changed to ${displayName}` : "Display name cleared",
+    metadata: { from: existing.display_name, to: displayName },
+  });
+
+  revalidatePath("/dashboard/admin/users");
+  revalidatePath(`/dashboard/admin/users/${userId}`);
+  if (existing.username) revalidatePath(`/${existing.username}`);
+
+  return { success: "Display name updated." };
 }
 
 export async function adminGrantPremiumAction(
