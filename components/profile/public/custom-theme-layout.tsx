@@ -35,7 +35,7 @@ export function CustomThemeLayout(props: LayoutProps) {
               />
               <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
             </div>
-            <ProfileHandle profile={profile} className="profile-handle mb-3" />
+            <ProfileHandle profile={profile} settings={settings} className="profile-handle mb-3" />
           </div>
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="profile-meta" />

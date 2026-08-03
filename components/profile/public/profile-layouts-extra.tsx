@@ -26,7 +26,7 @@ function VaporwaveLayout(props: LayoutProps) {
           <Username name={displayName} settings={settings} profile={profile} className="text-4xl font-black italic tracking-tight text-white sm:text-5xl" />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="mt-2 skew-x-6" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-2 skew-x-6" />
       </div>
       <div
         className="h-1"
@@ -49,7 +49,7 @@ function BrutalistLayout(props: LayoutProps) {
     <div className={layoutRootClass(settings, "w-full border-4 border-white bg-[#090909] p-0")} style={{ borderRadius: Math.min(settings.border_radius, 4) }}>
       <div className="border-b-4 border-white px-6 py-8">
         <Username name={displayName} settings={settings} profile={profile} className="text-5xl font-black uppercase leading-[0.85] tracking-tighter text-white sm:text-6xl" />
-        <ProfileHandle profile={profile} className="mt-3 text-white/60" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-3 text-white/60" />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       </div>
       <div className="px-6 py-6">
@@ -71,7 +71,7 @@ function NewspaperLayout(props: LayoutProps) {
       <div className="border-b-2 border-white pb-3">
         <p className="text-center text-[10px] uppercase tracking-[0.35em] text-neutral-500">The Daily Profile · {date}</p>
         <Username name={displayName} settings={settings} profile={profile} className="mt-3 text-center font-serif text-4xl font-bold leading-tight text-white sm:text-5xl" />
-        <ProfileHandle profile={profile} className="mt-2 text-center" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-2 text-center" />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       </div>
       <div className="mt-6 columns-1 gap-8 sm:columns-2">
@@ -106,7 +106,7 @@ function TicketLayout(props: LayoutProps) {
             <Username name={displayName} settings={settings} profile={profile} className="text-xl font-bold text-white sm:text-2xl" />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
-          <ProfileHandle profile={profile} className="mt-0.5" />
+          <ProfileHandle profile={profile} settings={settings} className="mt-0.5" />
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mb-0 mt-2" />
         </div>
         <div className="relative flex w-11 shrink-0 items-center justify-center border-l border-dashed border-white/20 bg-black/25 px-1">
@@ -155,7 +155,7 @@ function VinylLayout(props: LayoutProps) {
             <Username name={displayName} settings={settings} profile={profile} />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
-          <ProfileHandle profile={profile} className="mt-1" />
+          <ProfileHandle profile={profile} settings={settings} className="mt-1" />
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
           <ProfileMainContent {...props} />
         </div>
@@ -188,7 +188,7 @@ function DiscordLayout(props: LayoutProps) {
               <Username name={displayName} settings={settings} profile={profile} className="text-xl font-bold text-white" />
               <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
             </div>
-            <ProfileHandle profile={profile} />
+            <ProfileHandle profile={profile} settings={settings} />
           </div>
         </div>
         {profile.bio && (
@@ -226,7 +226,7 @@ function TwitchLayout(props: LayoutProps) {
             <Username name={displayName} settings={settings} profile={profile} className="text-xl font-bold text-white" />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
-          <ProfileHandle profile={profile} className="text-[#adadb8]" />
+          <ProfileHandle profile={profile} settings={settings} className="text-[#adadb8]" />
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mb-0 mt-2" />
         </div>
       </div>
@@ -259,7 +259,7 @@ function IdcardLayout(props: LayoutProps) {
         />
         <div className="min-w-0 flex-1 text-center sm:text-left">
           <Username name={displayName} settings={settings} profile={profile} className="text-xl font-bold text-white" />
-          <ProfileHandle profile={profile} />
+          <ProfileHandle profile={profile} settings={settings} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mb-0 mt-2 justify-center sm:justify-start" />
         </div>
@@ -308,7 +308,7 @@ function BlueprintLayout(props: LayoutProps) {
         <div>
           <Username name={displayName} settings={settings} profile={profile} className="text-xl font-bold uppercase tracking-wide text-white" />
           <div style={{ color: colorAlpha(colors.primary, 0.7) }}>
-            <ProfileHandle profile={profile} className="text-inherit" />
+            <ProfileHandle profile={profile} settings={settings} className="text-inherit" />
           </div>
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
@@ -345,7 +345,7 @@ function ComicLayout(props: LayoutProps) {
               className="text-3xl font-black uppercase italic leading-none text-black"
               suffix="!"
             />
-            <ProfileHandle profile={profile} className="text-neutral-600" />
+            <ProfileHandle profile={profile} settings={settings} className="text-neutral-600" />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
         </div>
@@ -389,7 +389,7 @@ function CyberpunkLayout(props: LayoutProps) {
                   : undefined
               }
             />
-            <ProfileHandle profile={profile} className="font-mono" />
+            <ProfileHandle profile={profile} settings={settings} className="font-mono" />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
         </div>
@@ -417,7 +417,7 @@ function LuxuryLayout(props: LayoutProps) {
         <Username name={displayName} settings={settings} profile={profile} className="font-serif text-3xl font-light tracking-wide text-white sm:text-4xl" />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       </div>
-      <ProfileHandle profile={profile} className="mt-2" />
+      <ProfileHandle profile={profile} settings={settings} className="mt-2" />
       <div className="mx-auto mb-6 mt-6 h-px w-24 bg-white/10" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
       <div className="bf-profile-block mx-auto mt-2 max-w-md">
@@ -439,7 +439,7 @@ function ReceiptLayout(props: LayoutProps) {
       <p className="mt-1 text-center text-[9px] text-neutral-500">{now}</p>
       <div className="my-3 border-t border-dashed border-neutral-400" />
       <p className="font-bold uppercase">{displayName}</p>
-      <ProfileHandle profile={profile} className="text-neutral-600" />
+      <ProfileHandle profile={profile} settings={settings} className="text-neutral-600" />
       <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       <div className="my-3 border-t border-dashed border-neutral-400" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mb-3 text-neutral-600" />
@@ -465,7 +465,7 @@ function ZineLayout(props: LayoutProps) {
           {label} #{profile.uid ?? "01"}
         </p>
         <Username name={displayName} settings={settings} profile={profile} className="mt-2 text-3xl font-black uppercase leading-tight text-white sm:text-4xl" />
-        <ProfileHandle profile={profile} className="mt-2" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-2" />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       </div>
       <div className="px-6 py-6">
@@ -497,7 +497,7 @@ function OrbitLayout(props: LayoutProps) {
         <Username name={displayName} settings={settings} profile={profile} />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       </div>
-      <ProfileHandle profile={profile} className="mt-1" />
+      <ProfileHandle profile={profile} settings={settings} className="mt-1" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
       <div className="bf-profile-block mx-auto mt-2 max-w-md">
         <ProfileMainContent {...props} />
@@ -522,7 +522,7 @@ function WaveLayout(props: LayoutProps) {
           <Username name={displayName} settings={settings} profile={profile} className="text-3xl font-bold text-white" />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="relative mt-1 text-neutral-300" />
+        <ProfileHandle profile={profile} settings={settings} className="relative mt-1 text-neutral-300" />
         <svg className="absolute -bottom-px left-0 w-full text-[#141414]" viewBox="0 0 1200 80" preserveAspectRatio="none" aria-hidden>
           <path d="M0,40 C300,100 900,0 1200,50 L1200,80 L0,80 Z" fill="currentColor" />
         </svg>
@@ -572,7 +572,7 @@ function MosaicLayout(props: LayoutProps) {
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="mt-1" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-1" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent {...props} />
       </div>
@@ -595,7 +595,7 @@ function AuroraLayout(props: LayoutProps) {
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="mt-1 text-center" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-1 text-center" />
       </div>
       <div className="px-6 pb-8">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
@@ -627,7 +627,7 @@ function HologramLayout(props: LayoutProps) {
           />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="mt-1 text-center" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-1 text-center" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
         <ProfileMainContent {...props} />
       </div>
@@ -661,7 +661,7 @@ function SpotifyLayout(props: LayoutProps) {
           <Username name={displayName} settings={settings} profile={profile} className="text-3xl font-black tracking-tight text-white sm:text-4xl" />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="mt-2 text-neutral-400" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-2 text-neutral-400" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent {...props} />
       </div>
@@ -688,7 +688,7 @@ function SpotlightLayout(props: LayoutProps) {
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="mt-1" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-1" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
         <div className="bf-profile-block mx-auto mt-4 max-w-md">
           <ProfileMainContent {...props} />

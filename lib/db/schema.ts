@@ -50,6 +50,7 @@ export const REQUIRED_PROFILE_SETTINGS_COLUMNS = [
   "link_animation",
   "show_view_count",
   "show_join_date",
+  "hide_profile_handle",
   "profile_status",
   "profile_status_color",
   "music_player_color",
@@ -283,6 +284,7 @@ const COLUMN_MIGRATIONS: Record<string, string> = {
   username_effect: "supabase/v3_features.sql",
   show_view_count: "supabase/v3_features.sql",
   show_join_date: "supabase/v3_features.sql",
+  hide_profile_handle: "supabase/v109_hide_profile_handle.sql",
   profile_status: "supabase/v3_features.sql",
   featured_link_id: "supabase/v3_features.sql",
 };

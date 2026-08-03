@@ -17,7 +17,7 @@ function HeaderIdentity({ className, ...props }: LayoutProps & { className?: str
         <Username name={displayName} settings={settings} profile={profile} />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       </div>
-      <ProfileHandle profile={profile} className="mt-1" />
+      <ProfileHandle profile={profile} settings={settings} className="mt-1" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mt-2" />
     </>
   );
@@ -144,7 +144,7 @@ function GlitchLayout(props: LayoutProps) {
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
         </div>
-        <ProfileHandle profile={profile} className="mt-2" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-2" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mt-2" />
         <ProfileMainContent {...props} />
       </div>
@@ -163,7 +163,7 @@ function NoirLayout(props: LayoutProps) {
       <div className="mx-auto mb-6 h-1 max-w-xs bg-white/80" />
       <div className="text-center">
         <Username name={displayName} settings={settings} profile={profile} className="font-serif text-4xl italic tracking-tight text-white" />
-        <ProfileHandle profile={profile} className="mt-2 text-white/50" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-2 text-white/50" />
         <div className="bf-profile-avatar-row my-6 flex justify-center">
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={colors.primary} settings={settings} className="h-20 w-20 grayscale" />
         </div>
@@ -465,7 +465,7 @@ function GraffitiLayout(props: LayoutProps) {
             />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
-          <ProfileHandle profile={profile} className="relative mt-2" />
+          <ProfileHandle profile={profile} settings={settings} className="relative mt-2" />
         </div>
       </div>
       <div className="px-5 pb-8 sm:px-6">
@@ -729,7 +729,7 @@ function MangaLayout(props: LayoutProps) {
     <div className={layoutRootClass(settings, "w-full border-4 border-white bg-[#fafafa] text-black")} style={{ borderRadius: Math.min(settings.border_radius, 4) }}>
       <div className="border-b-4 border-black p-5">
         <Username name={displayName} settings={settings} profile={profile} className="text-3xl font-black uppercase text-black" />
-        <ProfileHandle profile={profile} className="text-black/60" />
+        <ProfileHandle profile={profile} settings={settings} className="text-black/60" />
       </div>
       <div className="p-5">
         {profile.bio ? (

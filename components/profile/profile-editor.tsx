@@ -20,6 +20,7 @@ import {
   inputClassName,
   labelClassName,
   RemoveMediaButton,
+  ToggleField,
 } from "@/components/dashboard/form-fields";
 import { useClearUnsavedOnSuccess, useUnsavedChangesOptional, DASHBOARD_RESET_EVENT } from "@/components/dashboard/unsaved-changes";
 import { SITE_HOST } from "@/lib/site";
@@ -197,6 +198,14 @@ export function ProfileEditor({
               Username locked until {formatUsernameChangeAvailableDate(usernameCooldown.nextChangeAt)}.
             </p>
           ) : null}
+          <div className="mt-3">
+            <ToggleField
+              name="hide_profile_handle"
+              label="Hide @username on profile"
+              description="Hides the gray @handle under your display name. Your cried.bio link still works."
+              defaultChecked={settings?.hide_profile_handle ?? true}
+            />
+          </div>
         </div>
 
         <div>

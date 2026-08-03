@@ -72,7 +72,7 @@ function ClassicLayout(props: LayoutProps) {
               <Username name={displayName} settings={settings} profile={profile} />
               <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
             </div>
-            <ProfileHandle profile={profile} className="mb-3" />
+            <ProfileHandle profile={profile} settings={settings} className="mb-3" />
           </div>
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
@@ -96,7 +96,7 @@ function ModernLayout(props: LayoutProps) {
         <Username name={displayName} settings={settings} profile={profile} />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       </div>
-      <ProfileHandle profile={profile} className="mb-4" />
+      <ProfileHandle profile={profile} settings={settings} className="mb-4" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
       <div className="bf-profile-block max-w-md">
         <ProfileMainContent {...pickMainContentProps(props)} />
@@ -122,7 +122,7 @@ function GamingLayout(props: LayoutProps) {
             <Username name={displayName} settings={settings} profile={profile} />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
-          <ProfileHandle profile={profile} className="mb-3" />
+          <ProfileHandle profile={profile} settings={settings} className="mb-3" />
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         </div>
       </div>
@@ -148,7 +148,7 @@ function PortfolioLayout(props: LayoutProps) {
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="mb-3" />
+        <ProfileHandle profile={profile} settings={settings} className="mb-3" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
@@ -167,7 +167,7 @@ function MinimalLayout(props: LayoutProps) {
         <Username name={displayName} settings={settings} profile={profile} />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       </div>
-      <ProfileHandle profile={profile} className="mb-3" />
+      <ProfileHandle profile={profile} settings={settings} className="mb-3" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent {...pickMainContentProps(props)} />
     </div>
@@ -196,7 +196,7 @@ function StackedLayout(props: LayoutProps) {
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="mb-4" />
+        <ProfileHandle profile={profile} settings={settings} className="mb-4" />
         <div className="bf-profile-row flex">
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         </div>
@@ -243,7 +243,7 @@ function SplitLayout(props: LayoutProps) {
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="mb-3" />
+        <ProfileHandle profile={profile} settings={settings} className="mb-3" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
@@ -295,7 +295,7 @@ function TerminalLayout(props: LayoutProps) {
               <Username name={displayName} settings={settings} profile={profile} className="text-lg font-semibold tracking-tight text-white" />
               <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
             </div>
-            <ProfileHandle profile={profile} className="mt-1" />
+            <ProfileHandle profile={profile} settings={settings} className="mt-1" />
             <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mb-0 mt-2" />
           </div>
         </div>
@@ -328,7 +328,7 @@ function CompactLayout(props: LayoutProps) {
             <Username name={displayName} settings={settings} profile={profile} className="truncate text-lg font-semibold" />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
-          <ProfileHandle profile={profile} />
+          <ProfileHandle profile={profile} settings={settings} />
         </div>
       </div>
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
@@ -352,7 +352,7 @@ function CardLayout(props: LayoutProps) {
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="mb-3" />
+        <ProfileHandle profile={profile} settings={settings} className="mb-3" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         <ProfileMainContent {...pickMainContentProps(props)} />
       </div>
@@ -387,7 +387,7 @@ function NeonLayout(props: LayoutProps) {
               <Username name={displayName} settings={settings} profile={profile} />
               <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
             </div>
-            <ProfileHandle profile={profile} className="mt-1" />
+            <ProfileHandle profile={profile} settings={settings} className="mt-1" />
           </div>
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
@@ -418,7 +418,7 @@ function MagazineLayout(props: LayoutProps) {
           />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="mt-3" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-3" />
       </div>
       <div className="mt-6 border-t border-white/[0.06] pt-6">
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
@@ -443,7 +443,7 @@ function BentoLayout(props: LayoutProps) {
               <Username name={displayName} settings={settings} profile={profile} />
               <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
             </div>
-            <ProfileHandle profile={profile} className="mt-1" />
+            <ProfileHandle profile={profile} settings={settings} className="mt-1" />
           </div>
         </div>
         <div className="rounded-xl border border-white/[0.06] bg-[#0f0f0f] p-4 sm:col-span-2">
@@ -479,7 +479,7 @@ function SidebarLayout(props: LayoutProps) {
             <Username name={displayName} settings={settings} profile={profile} />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
-          <ProfileHandle profile={profile} className="mt-1" />
+          <ProfileHandle profile={profile} settings={settings} className="mt-1" />
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mb-0 mt-3 justify-center" />
         </div>
       </aside>
@@ -512,7 +512,7 @@ function HeroLayout(props: LayoutProps) {
             />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
-          <ProfileHandle profile={profile} className="mt-1 text-neutral-300" />
+          <ProfileHandle profile={profile} settings={settings} className="mt-1 text-neutral-300" />
         </div>
       </div>
       <div className="relative px-6 pb-8">
@@ -570,7 +570,7 @@ function PolaroidLayout(props: LayoutProps) {
             <Username name={displayName} settings={settings} profile={profile} />
             <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
           </div>
-          <ProfileHandle profile={profile} className="mt-1" />
+          <ProfileHandle profile={profile} settings={settings} className="mt-1" />
           <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} />
         </div>
       </div>
@@ -603,7 +603,7 @@ function CinematicLayout(props: LayoutProps) {
           <ProfileAvatar profile={profile} displayName={displayName} accentColor={settings.accent_color} settings={settings} className="h-16 w-16" />
         </div>
         <div className="relative z-10 bf-profile-name-row mb-2 overflow-visible">
-          <ProfileHandle profile={profile} className="mb-0" />
+          <ProfileHandle profile={profile} settings={settings} className="mb-0" />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
@@ -641,7 +641,7 @@ function ShowcaseLayout(props: LayoutProps) {
         <Username name={displayName} settings={settings} profile={profile} />
         <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
       </div>
-      <ProfileHandle profile={profile} className="mt-1" />
+      <ProfileHandle profile={profile} settings={settings} className="mt-1" />
       <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
       <div className="bf-profile-block mx-auto mt-2 max-w-md">
         <ProfileMainContent {...pickMainContentProps(props)} />
@@ -675,7 +675,7 @@ function RetroLayout(props: LayoutProps) {
                 <Username name={displayName} settings={settings} profile={profile} />
                 <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
               </div>
-              <ProfileHandle profile={profile} className="mt-1" />
+              <ProfileHandle profile={profile} settings={settings} className="mt-1" />
               <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mb-0 mt-2" />
             </div>
           </div>
@@ -715,7 +715,7 @@ function PosterLayout(props: LayoutProps) {
               className="mt-2 text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-4xl"
             />
             <div className="relative z-10 mt-3 bf-profile-name-row overflow-visible">
-              <ProfileHandle profile={profile} className="mb-0" />
+              <ProfileHandle profile={profile} settings={settings} className="mb-0" />
               <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
             </div>
             <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="mb-0 mt-3" />
@@ -759,7 +759,7 @@ function GlassLayout(props: LayoutProps) {
           <Username name={displayName} settings={settings} profile={profile} />
           <BadgeRow badges={displayBadges} compact styleOptions={styleOptions} />
         </div>
-        <ProfileHandle profile={profile} className="mt-1" />
+        <ProfileHandle profile={profile} settings={settings} className="mt-1" />
         <ProfileMeta profile={profile} settings={settings} viewCount={viewCount} className="justify-center" />
         <div className="bf-profile-block mt-2 w-full max-w-md">
           <ProfileMainContent {...pickMainContentProps(props)} />

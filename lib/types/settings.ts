@@ -299,6 +299,7 @@ export type ProfileSettings = {
   link_animation: LinkAnimation;
   show_view_count: boolean;
   show_join_date: boolean;
+  hide_profile_handle: boolean;
   profile_status: string;
   profile_status_color: string;
   status_preset: StatusPreset;

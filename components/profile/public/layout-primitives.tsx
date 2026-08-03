@@ -55,7 +55,19 @@ export type LayoutProps = {
   totalFollowersSummary?: TotalFollowersSummary | null;
 };
 
-export function ProfileHandle({ profile, className = "" }: { profile: Profile; className?: string }) {
+export function ProfileHandle({
+  profile,
+  settings,
+  className = "",
+}: {
+  profile: Profile;
+  settings?: ProfileSettings;
+  className?: string;
+}) {
+  if ((settings?.hide_profile_handle ?? true) === true) {
+    return null;
+  }
+
   return (
     <p className={`bf-profile-handle text-sm text-neutral-500 ${className}`.trim()}>
       @{profile.username}

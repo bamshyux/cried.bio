@@ -6,6 +6,9 @@ import { getUsernameChangeBlockReason } from "@/lib/username-cooldown";
 import { getUserEntitlements } from "@/lib/premium/entitlements";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import type { ProfileFormState } from "@/lib/types/profile";
+import { ensureProfileSettingsRow } from "@/lib/data/ensure-profile-settings-row";
+import { omitUnsupportedSettingsColumns } from "@/lib/db/validate-schema";
+import { formatSchemaError } from "@/lib/db/schema";
 import { revalidateAfterProfileAppearanceChange } from "@/lib/profile-presets/revalidate";
 import { revalidateProfileOg } from "@/lib/og/revalidate";
 import { revalidatePath } from "next/cache";
@@ -110,6 +113,8 @@ export async function updateProfileAction(
   const displayName = String(formData.get("displayName") ?? "").trim();
   const bio = String(formData.get("bio") ?? "").trim();
   const location = String(formData.get("location") ?? "").trim().slice(0, 64);
+  const hideProfileHandle =
+    formData.get("hide_profile_handle") === "true" || formData.get("hide_profile_handle") === "on";
 
   if (!username) {
     return { error: "Username is required." };
@@ -188,6 +193,23 @@ export async function updateProfileAction(
       return { error: "That username is already taken." };
     }
     return { error: error.message };
+  }
+
+  const settingsPatch = await omitUnsupportedSettingsColumns({
+    hide_profile_handle: hideProfileHandle,
+  });
+  const ensureSettings = await ensureProfileSettingsRow(userId);
+  if (ensureSettings.error) {
+    return { error: ensureSettings.error };
+  }
+  const { error: settingsError } = await supabase
+    .from("profile_settings")
+    .update(settingsPatch)
+    .eq("profile_id", userId)
+    .is("page_id", null);
+
+  if (settingsError && !/does not exist/i.test(settingsError.message)) {
+    return { error: formatSchemaError(settingsError.message) };
   }
 
   const {
