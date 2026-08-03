@@ -11,7 +11,7 @@ import {
   resolveEnterGateSubtitleColor,
   resolveEnterGateTitleColor,
 } from "@/lib/enter-gate";
-import { getFontCss, getGoogleFontsUrl } from "@/lib/settings";
+import { getFontCss, getFontStylesheetUrl } from "@/lib/font-utils";
 import { EnterGateBackground } from "./enter-gate-background";
 import { ParticleCanvas } from "./particle-canvas";
 
@@ -43,7 +43,7 @@ export function ProfileEnterGate({
   const cardOpacity = settings.enter_gate_card_opacity / 100;
   const fontKey = resolveEnterGateFontKey(settings);
   const fontCss = getFontCss(fontKey);
-  const fontUrl = getGoogleFontsUrl(fontKey);
+  const fontUrl = getFontStylesheetUrl(fontKey);
 
   const showSubtitle = subtitle || (settings.enter_gate_show_username && profile.username);
 

@@ -16,8 +16,9 @@ import {
   SliderField,
   ToggleField,
 } from "@/components/dashboard/form-fields";
-import { FONT_OPTIONS, CONTENT_ALIGNMENT_OPTIONS } from "@/lib/settings";
-import { PREMIUM_FONT_OPTIONS, isPremiumFont } from "@/lib/premium/fonts";
+import { CONTENT_ALIGNMENT_OPTIONS } from "@/lib/settings";
+import { buildFontSelectOptions } from "@/lib/font-utils";
+import { isPremiumFont } from "@/lib/premium/fonts";
 import { useUpgradeModal } from "@/components/premium/upgrade-modal";
 import {
   getLayoutLabelHint,
@@ -109,16 +110,10 @@ export function CustomizeEditor({
               }
               patchForm({ font_family });
             }}
-            options={[
-              ...FONT_OPTIONS.map((f) => ({ value: f.value, label: f.label })),
-              ...PREMIUM_FONT_OPTIONS.map((f) => ({
-                value: f.value,
-                label: `${f.label}${canUsePremiumFonts ? "" : " ★ Premium"}`,
-              })),
-            ]}
+            options={buildFontSelectOptions({ canUsePremiumFonts })}
           />
           <p className="-mt-3 text-xs text-neutral-600">
-            See the live preview for how this font looks on your profile.
+            Standard fonts are free. Premium includes display styles (drip, grunge, horror) plus elegant and modern typefaces.
           </p>
 
           <div>

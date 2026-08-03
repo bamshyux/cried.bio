@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { buildCardStyles, FONT_OPTIONS, getFontCss, getGoogleFontsUrl, getProfileAlignClass } from "@/lib/settings";
+import { buildCardStyles, getProfileAlignClass } from "@/lib/settings";
+import { getFontCss, getFontLabel, getFontStylesheetUrl } from "@/lib/font-utils";
 import { writeContentPageBorderTargets } from "@/lib/card-border-effects/resolve";
 import { ProfileBio } from "@/components/profile/public/profile-bio";
 import { CardBorderEffect } from "@/components/profile/card-border-effect";
@@ -62,10 +63,8 @@ export function ContentPageStylePreview({
 }) {
   const preview = useMemo(() => mergePreviewSettings(settings, form), [settings, form]);
   const fontCss = getFontCss(preview.font_family);
-  const fontUrl = getGoogleFontsUrl(preview.font_family);
-  const fontLabel =
-    FONT_OPTIONS.find((option) => option.value === preview.font_family)?.label ??
-    preview.font_family;
+  const fontUrl = getFontStylesheetUrl(preview.font_family);
+  const fontLabel = getFontLabel(preview.font_family);
   const { shell, backdrop } = buildCardStyles(preview);
   const alignClass = getProfileAlignClass(preview.content_alignment);
   const pageTitle = page.label || page.slug;

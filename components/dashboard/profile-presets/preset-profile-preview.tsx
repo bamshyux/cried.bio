@@ -5,7 +5,8 @@ import { getProfileLayoutComponent } from "@/components/profile/public/public-pr
 import { ProfileBackground } from "@/components/profile/public/profile-background";
 import { ProfileThemeScope } from "@/components/profile/public/profile-theme-scope";
 import type { LayoutProps } from "@/components/profile/public/layout-primitives";
-import { getProfileAlignClass, getFontCss, getGoogleFontsUrl } from "@/lib/settings";
+import { getProfileAlignClass } from "@/lib/settings";
+import { getFontCss, getFontStylesheetUrl } from "@/lib/font-utils";
 import {
   buildProfileViewFromPreset,
   createPreviewBaseProfile,
@@ -44,7 +45,7 @@ export function PresetProfilePreview({
 
   const Layout = getProfileLayoutComponent(preview.settings.layout);
   const fontCss = getFontCss(preview.settings.font_family);
-  const fontUrl = getGoogleFontsUrl(preview.settings.font_family);
+  const fontUrl = getFontStylesheetUrl(preview.settings.font_family);
   const alignClass = getProfileAlignClass(preview.settings.content_alignment);
 
   const layoutProps: LayoutProps = {

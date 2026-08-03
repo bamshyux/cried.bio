@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+export type SelectOption = {
+  value: string;
+  label: string;
+  group?: string;
+};
 
 export function ControlledSelect({
   label,
@@ -12,11 +18,24 @@ export function ControlledSelect({
   label: string;
   value: string;
   onChange: (value: string) => void;
-  options: { value: string; label: string }[];
+  options: SelectOption[];
   /** Optional — omit when the parent form submits via React state. */
   name?: string;
 }) {
   const id = name ?? label.toLowerCase().replace(/\s+/g, "_");
+  const groupedOptions = useMemo(() => {
+    const hasGroups = options.some((option) => option.group);
+    if (!hasGroups) return null;
+
+    const groups = new Map<string, SelectOption[]>();
+    for (const option of options) {
+      const group = option.group ?? "Other";
+      const list = groups.get(group) ?? [];
+      list.push(option);
+      groups.set(group, list);
+    }
+    return groups;
+  }, [options]);
 
   return (
     <div>
@@ -30,11 +49,21 @@ export function ControlledSelect({
         onChange={(e) => onChange(e.target.value)}
         className="bf-input"
       >
-        {options.map((o) => (
-          <option key={o.value} value={o.value} className="bg-[#141414]">
-            {o.label}
-          </option>
-        ))}
+        {groupedOptions
+          ? Array.from(groupedOptions.entries()).map(([group, groupOptions]) => (
+              <optgroup key={group} label={group}>
+                {groupOptions.map((option) => (
+                  <option key={option.value} value={option.value} className="bg-[#141414]">
+                    {option.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))
+          : options.map((option) => (
+              <option key={option.value} value={option.value} className="bg-[#141414]">
+                {option.label}
+              </option>
+            ))}
       </select>
     </div>
   );

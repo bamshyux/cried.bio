@@ -344,6 +344,10 @@ export type FontOption = {
   css: string;
   /** Google Fonts CSS2 family param; omit for system/local fonts */
   google?: string;
+  /** Fontshare family param, e.g. `satoshi@400,500,600,700` */
+  fontshare?: string;
+  /** Dropdown optgroup label (used for premium font categories) */
+  selectGroup?: string;
 };
 
 export const FONT_OPTIONS: FontOption[] = [
@@ -544,16 +548,6 @@ export const BACKGROUND_TYPE_OPTIONS: { value: BackgroundType; label: string }[]
   { value: "video", label: "Video (MP4)" },
   { value: "particles", label: "Particle Effect" },
 ];
-
-export function getFontCss(fontKey: string) {
-  return FONT_OPTIONS.find((f) => f.value === fontKey)?.css ?? FONT_OPTIONS[0].css;
-}
-
-export function getGoogleFontsUrl(fontKey: string) {
-  const family = FONT_OPTIONS.find((f) => f.value === fontKey)?.google;
-  if (!family) return null;
-  return `https://fonts.googleapis.com/css2?family=${family}&display=swap`;
-}
 
 export function mergeSettings(
   row: Partial<ProfileSettings> | null,

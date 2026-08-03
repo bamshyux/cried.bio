@@ -3,12 +3,8 @@
 import { useMemo } from "react";
 import { ProfileStatusLine } from "@/components/profile/public/profile-social";
 import { ProfileCardFrame } from "@/components/profile/public/layout-primitives";
-import {
-  FONT_OPTIONS,
-  getFontCss,
-  getGoogleFontsUrl,
-  getProfileAlignClass,
-} from "@/lib/settings";
+import { getFontCss, getFontLabel, getFontStylesheetUrl, isDisplayFont } from "@/lib/font-utils";
+import { getProfileAlignClass } from "@/lib/settings";
 import type { ContentAlignment, ProfileSettings } from "@/lib/types/settings";
 
 export type CustomizeFormState = {
@@ -64,14 +60,16 @@ export function CustomizePreview({
 }) {
   const preview = useMemo(() => mergePreviewSettings(settings, form), [settings, form]);
   const fontCss = getFontCss(preview.font_family);
-  const fontUrl = getGoogleFontsUrl(preview.font_family);
-  const fontLabel =
-    FONT_OPTIONS.find((option) => option.value === preview.font_family)?.label ??
-    preview.font_family;
+  const fontUrl = getFontStylesheetUrl(preview.font_family);
+  const fontLabel = getFontLabel(preview.font_family);
+  const displayFont = isDisplayFont(preview.font_family);
   const alignClass = getProfileAlignClass(preview.content_alignment);
+  const displayGlow = displayFont
+    ? { textShadow: `0 0 12px ${preview.text_color}cc, 0 0 28px ${preview.text_color}55` }
+    : undefined;
   const usernameGlow = preview.neon_glow
     ? { textShadow: `0 0 24px ${preview.accent_color}80` }
-    : undefined;
+    : displayGlow;
 
   return (
     <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a0a0a]">
@@ -128,10 +126,10 @@ export function CustomizePreview({
               </div>
               <div className="min-w-0">
                 <p
-                  className="truncate text-lg font-semibold leading-tight"
+                  className={`truncate text-lg font-semibold leading-tight ${displayFont ? "uppercase tracking-wide" : ""}`}
                   style={usernameGlow}
                 >
-                  Your Name
+                  {displayFont ? "YOUR NAME" : "Your Name"}
                 </p>
                 <p className="truncate text-sm opacity-60">@username</p>
               </div>
@@ -146,11 +144,14 @@ export function CustomizePreview({
               </div>
             )}
 
-            <p className="bf-profile-block mb-3 text-sm leading-relaxed opacity-85">
-              The quick brown fox jumps over the lazy dog.
+            <p
+              className={`bf-profile-block mb-3 leading-relaxed opacity-85 ${displayFont ? "text-base uppercase tracking-wide" : "text-sm"}`}
+              style={displayFont ? displayGlow : undefined}
+            >
+              {displayFont ? "THEY ONLY SEE THE RESULTS" : "The quick brown fox jumps over the lazy dog."}
             </p>
             <p className="bf-profile-block mb-4 text-xs leading-relaxed opacity-55">
-              ABCDEFGHIJKLM abcdefghijklm 0123456789
+              {displayFont ? "WAKE UP TO REALITY" : "ABCDEFGHIJKLM abcdefghijklm 0123456789"}
             </p>
 
             <div

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { getFontCss, getGoogleFontsUrl } from "@/lib/settings";
+import { getFontCss, getFontStylesheetUrl } from "@/lib/font-utils";
 import {
   getPageEntranceClassName,
   PAGE_ENTRANCE_CLASS_NAMES,
@@ -50,7 +50,7 @@ export function PublicContentPageClient({
   musicTracks?: MusicTrack[];
 }) {
   const fontCss = getFontCss(settings.font_family);
-  const fontUrl = getGoogleFontsUrl(settings.font_family);
+  const fontUrl = getFontStylesheetUrl(settings.font_family);
   const showParticles =
     (settings.background_type === "particles" || settings.particle_effect) &&
     settings.particle_effect;

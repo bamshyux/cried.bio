@@ -18,8 +18,9 @@ import { useUpgradeModal } from "@/components/premium/upgrade-modal";
 import { CARD_BORDER_EFFECT_OPTIONS } from "@/lib/card-border-effects/presets";
 import { isPremiumCardBorderEffect, sanitizeCardBorderEffectSelection } from "@/lib/card-border-effects/premium";
 import { readContentPageBorderTargets } from "@/lib/card-border-effects/resolve";
-import { PREMIUM_FONT_OPTIONS, isPremiumFont } from "@/lib/premium/fonts";
-import { FONT_OPTIONS, CONTENT_ALIGNMENT_OPTIONS } from "@/lib/settings";
+import { buildFontSelectOptions } from "@/lib/font-utils";
+import { isPremiumFont } from "@/lib/premium/fonts";
+import { CONTENT_ALIGNMENT_OPTIONS } from "@/lib/settings";
 import type { ProfilePage } from "@/lib/profile-pages/slug";
 import type { ProfileSettings } from "@/lib/types/settings";
 
@@ -118,13 +119,7 @@ export function ContentPageStyleEditor({
                     }
                     patchForm({ font_family });
                   }}
-                  options={[
-                    ...FONT_OPTIONS.map((f) => ({ value: f.value, label: f.label })),
-                    ...PREMIUM_FONT_OPTIONS.map((f) => ({
-                      value: f.value,
-                      label: `${f.label}${canUsePremiumFonts ? "" : " ★ Premium"}`,
-                    })),
-                  ]}
+                  options={buildFontSelectOptions({ canUsePremiumFonts })}
                 />
               </div>
 

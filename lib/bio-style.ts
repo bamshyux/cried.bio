@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { getFontCss } from "@/lib/settings";
+import { getFontCss } from "@/lib/font-utils";
 import type { BioLetterSpacing, ProfileSettings } from "@/lib/types/settings";
 
 export function clampBioFontSize(value: number) {

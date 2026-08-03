@@ -2,21 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { DashNavTearAccent } from "@/components/dashboard/dash-nav-tear";
 import { DiscordCommunityPromo } from "@/components/discord/discord-community-promo";
 import {
   DASHBOARD_SECTIONS,
   isNavActive,
   isSubNavItemActive,
 } from "@/lib/dashboard/navigation";
-
-function DashNavFlagAccent({ sub = false }: { sub?: boolean }) {
-  return (
-    <span
-      className={`bf-dash-nav-flag ${sub ? "bf-dash-nav-flag--sub" : ""}`.trim()}
-      aria-hidden
-    />
-  );
-}
 
 function SectionBlock({
   section,
@@ -30,6 +23,8 @@ function SectionBlock({
   const active = isNavActive(pathname, section.href);
   const hasItems = section.items.length > 0;
   const parentActive = active && hasItems;
+  const [hovered, setHovered] = useState(false);
+  const linkEngaged = active || parentActive || hovered;
 
   if (isAdminRoute && section.id !== "overview") return null;
 
@@ -38,6 +33,8 @@ function SectionBlock({
       <Link
         href={section.href}
         data-tour={section.id}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         className={`bf-dash-nav-link relative overflow-hidden flex min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium ${
           active && !hasItems
             ? "bf-dash-nav-link--active"
@@ -54,7 +51,7 @@ function SectionBlock({
           <section.Icon size={18} />
         </span>
         <span className="relative z-[1] min-w-0 flex-1 truncate">{section.label}</span>
-        <DashNavFlagAccent />
+        <DashNavTearAccent engaged={linkEngaged} />
       </Link>
 
       {hasItems ? (
@@ -62,21 +59,56 @@ function SectionBlock({
           {section.items.map((item) => {
             const itemActive = isSubNavItemActive(pathname, item, section.items);
             return (
-              <Link
-                key={`${item.href}-${item.label}`}
-                href={item.href}
-                className={`bf-dash-nav-sublink relative overflow-hidden block rounded-lg px-3 py-2 text-[13px] ${
-                  itemActive ? "bf-dash-nav-sublink--active" : ""
-                }`}
-              >
-                <span className="relative z-[1]">{item.label}</span>
-                <DashNavFlagAccent sub />
-              </Link>
+              <SubNavLink key={`${item.href}-${item.label}`} href={item.href} active={itemActive}>
+                {item.label}
+              </SubNavLink>
             );
           })}
         </div>
       ) : null}
     </div>
+  );
+}
+
+function SubNavLink({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <Link
+      href={href}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className={`bf-dash-nav-sublink relative overflow-hidden block rounded-lg px-3 py-2 text-[13px] ${
+        active ? "bf-dash-nav-sublink--active" : ""
+      }`}
+    >
+      <span className="relative z-[1]">{children}</span>
+      <DashNavTearAccent engaged={active || hovered} sub />
+    </Link>
+  );
+}
+
+function BackNavLink({ children }: { children: React.ReactNode }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <Link
+      href="/dashboard"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="bf-dash-nav-link relative overflow-hidden flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-neutral-400"
+    >
+      {children}
+      <DashNavTearAccent engaged={hovered} />
+    </Link>
   );
 }
 
@@ -94,14 +126,10 @@ export function DashboardSidebar({
       <nav className="bf-dash-nav flex flex-col gap-1 lg:pr-2">
         {isAdminRoute ? (
           <div className="mb-3 space-y-1">
-            <Link
-              href="/dashboard"
-              className="bf-dash-nav-link relative overflow-hidden flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-neutral-400"
-            >
+            <BackNavLink>
               <span className="relative z-[1] inline-flex rounded-lg p-1.5 text-neutral-500">←</span>
               <span className="relative z-[1] flex-1">Back to dashboard</span>
-              <DashNavFlagAccent />
-            </Link>
+            </BackNavLink>
           </div>
         ) : null}
 
