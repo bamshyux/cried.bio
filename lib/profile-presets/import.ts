@@ -103,6 +103,7 @@ export function parsePresetDataLenient(raw: unknown): ProfilePresetData | null {
     profile: {
       display_name: String(profile.display_name ?? ""),
       bio: String(profile.bio ?? ""),
+      location: String(profile.location ?? ""),
       avatar_url: typeof profile.avatar_url === "string" ? profile.avatar_url : null,
       banner_url: typeof profile.banner_url === "string" ? profile.banner_url : null,
     },
@@ -115,6 +116,11 @@ export function parsePresetDataLenient(raw: unknown): ProfilePresetData | null {
     profileBadges: Array.isArray(data.profileBadges)
       ? (data.profileBadges as ProfilePresetData["profileBadges"])
       : [],
+    musicTracks: Array.isArray(data.musicTracks)
+      ? (data.musicTracks as ProfilePresetData["musicTracks"])
+      : [],
+    musicDefaultTrackIndex:
+      typeof data.musicDefaultTrackIndex === "number" ? data.musicDefaultTrackIndex : null,
     discordWidget:
       data.discordWidget && typeof data.discordWidget === "object"
         ? (data.discordWidget as ProfilePresetData["discordWidget"])

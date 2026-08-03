@@ -71,11 +71,18 @@ export type ProfilePresetDiscordWidget = {
   config: DiscordCardConfig;
 };
 
+export type ProfilePresetMusicTrack = {
+  url: string;
+  title: string;
+  sort_order: number;
+};
+
 export type ProfilePresetData = {
   version: typeof PRESET_DATA_VERSION;
   profile: {
     display_name: string;
     bio: string;
+    location: string;
     avatar_url: string | null;
     banner_url: string | null;
   };
@@ -84,6 +91,8 @@ export type ProfilePresetData = {
   embeds: ProfilePresetEmbed[];
   featuredBlocks: ProfilePresetFeaturedBlock[];
   profileBadges: ProfilePresetBadgeDisplay[];
+  musicTracks: ProfilePresetMusicTrack[];
+  musicDefaultTrackIndex: number | null;
   discordWidget: ProfilePresetDiscordWidget | null;
   customTheme: ProfilePresetCustomTheme | null;
   featuredLinkIndex: number | null;

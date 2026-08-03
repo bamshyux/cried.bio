@@ -94,6 +94,7 @@ export function collectPresetAssetUrls(data: ProfilePresetData): string[] {
 
   for (const link of data.links) push(link.icon);
   for (const block of data.featuredBlocks) push(block.thumbnail_url);
+  for (const track of data.musicTracks ?? []) push(track.url);
 
   return urls;
 }

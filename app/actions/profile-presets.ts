@@ -56,7 +56,7 @@ async function captureAndFreezePreset(
   rawData?: Awaited<ReturnType<typeof captureProfilePresetSnapshot>>,
 ) {
   const supabase = await createClient();
-  const snapshot = rawData ?? (await captureProfilePresetSnapshot(userId, { styleOnly: true }));
+  const snapshot = rawData ?? (await captureProfilePresetSnapshot(userId));
   const frozen = await freezePresetAssets(userId, scopeId, snapshot, { supabase });
   const freezeError = freezeFailureMessage(frozen.failedAssets);
   if (freezeError) {

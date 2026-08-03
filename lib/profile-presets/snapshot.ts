@@ -3,6 +3,7 @@ import { getDiscordStatusWidget } from "@/lib/data/discord-widget";
 import { getEmbedsByProfileId } from "@/lib/data/embeds";
 import { getFeaturedBlocksByProfileId } from "@/lib/data/featured";
 import { getLinksByProfileId } from "@/lib/data/links";
+import { getMusicTracks } from "@/lib/data/music-tracks";
 import { getBadgesByProfileId } from "@/lib/data/badges";
 import { getProfileByUserId } from "@/lib/data/profiles";
 import { getSettingsByProfileId } from "@/lib/data/settings";
@@ -60,6 +61,7 @@ async function readBackgroundColumnsFromDb(profileId: string): Promise<Record<st
     .from("profile_settings")
     .select(BACKGROUND_PRESET_SELECT)
     .eq("profile_id", profileId)
+    .is("page_id", null)
     .maybeSingle();
 
   return (data ?? {}) as Record<string, unknown>;
@@ -71,6 +73,7 @@ async function readExtraPresetColumnsFromDb(profileId: string): Promise<Record<s
     .from("profile_settings")
     .select(PRESET_SETTINGS_EXTRA_SELECT)
     .eq("profile_id", profileId)
+    .is("page_id", null)
     .maybeSingle();
 
   return (data ?? {}) as Record<string, unknown>;
@@ -105,15 +108,19 @@ function finalizeStylePresetSnapshot(data: ProfilePresetData): ProfilePresetData
     profile: {
       display_name: "",
       bio: "",
+      location: "",
       avatar_url: data.profile.avatar_url,
       banner_url: data.profile.banner_url,
     },
     links: [],
     profileBadges: [],
+    musicTracks: [],
+    musicDefaultTrackIndex: null,
     featuredLinkIndex: null,
     settings: {
       ...data.settings,
       featured_link_id: null,
+      music_default_track_id: null,
     },
   };
 }
@@ -127,11 +134,20 @@ function resolveFeaturedLinkIndex(
   return index >= 0 ? index : null;
 }
 
+function resolveMusicDefaultTrackIndex(
+  tracks: Awaited<ReturnType<typeof getMusicTracks>>,
+  defaultTrackId: string | null | undefined,
+): number | null {
+  if (!defaultTrackId) return null;
+  const index = tracks.findIndex((track) => track.id === defaultTrackId);
+  return index >= 0 ? index : null;
+}
+
 export async function captureProfilePresetSnapshot(
   userId: string,
   options?: CapturePresetOptions,
 ): Promise<ProfilePresetData> {
-  const [profile, settings, backgroundColumns, extraColumns, links, embeds, featuredBlocks, profileBadges, discordWidget] =
+  const [profile, settings, backgroundColumns, extraColumns, links, embeds, featuredBlocks, profileBadges, musicTracks, discordWidget] =
     await Promise.all([
       getProfileByUserId(userId),
       getSettingsByProfileId(userId),
@@ -141,6 +157,7 @@ export async function captureProfilePresetSnapshot(
       getEmbedsByProfileId(userId),
       getFeaturedBlocksByProfileId(userId),
       getBadgesByProfileId(userId),
+      getMusicTracks(userId),
       getDiscordStatusWidget(userId),
     ]);
 
@@ -151,6 +168,7 @@ export async function captureProfilePresetSnapshot(
       ...backgroundColumns,
       ...extraColumns,
     }),
+    ...extraColumns,
   } as ProfileSettings;
 
   let customTheme: ProfilePresetData["customTheme"] = null;
@@ -178,6 +196,7 @@ export async function captureProfilePresetSnapshot(
     profile: {
       display_name: profile?.display_name ?? "",
       bio: profile?.bio ?? "",
+      location: profile?.location ?? "",
       avatar_url: profile?.avatar_url ?? null,
       banner_url: profile?.banner_url ?? null,
     },
@@ -217,6 +236,17 @@ export async function captureProfilePresetSnapshot(
       is_featured: badge.is_featured,
       sort_order: badge.sort_order,
     })),
+    musicTracks: musicTracks.map((track) => ({
+      url: track.url,
+      title: track.title,
+      sort_order: track.sort_order,
+    })),
+    musicDefaultTrackIndex: resolveMusicDefaultTrackIndex(
+      musicTracks,
+      (settingsForPreset as ProfileSettings & { music_default_track_id?: string | null })
+        .music_default_track_id ??
+        (extraColumns.music_default_track_id as string | null | undefined),
+    ),
     discordWidget: discordWidgetSnapshot,
     customTheme,
     featuredLinkIndex: resolveFeaturedLinkIndex(links, settingsForPreset.featured_link_id),
@@ -242,6 +272,7 @@ function parsePresetData(raw: unknown): ProfilePresetData | null {
     profile: {
       display_name: String(data.profile.display_name ?? ""),
       bio: String(data.profile.bio ?? ""),
+      location: String(data.profile.location ?? ""),
       avatar_url: data.profile.avatar_url ?? null,
       banner_url: data.profile.banner_url ?? null,
     },
@@ -250,6 +281,9 @@ function parsePresetData(raw: unknown): ProfilePresetData | null {
     embeds: Array.isArray(data.embeds) ? data.embeds : [],
     featuredBlocks: Array.isArray(data.featuredBlocks) ? data.featuredBlocks : [],
     profileBadges: Array.isArray(data.profileBadges) ? data.profileBadges : [],
+    musicTracks: Array.isArray(data.musicTracks) ? data.musicTracks : [],
+    musicDefaultTrackIndex:
+      typeof data.musicDefaultTrackIndex === "number" ? data.musicDefaultTrackIndex : null,
     discordWidget: data.discordWidget ?? null,
     customTheme: data.customTheme ?? null,
     featuredLinkIndex:
@@ -316,7 +350,7 @@ export async function applyProfilePresetSnapshot(
   const { data: currentProfile } = preservePersonal
     ? await supabase
         .from("profiles")
-        .select("display_name, bio")
+        .select("display_name, bio, location")
         .eq("id", userId)
         .maybeSingle()
     : { data: null };
@@ -338,6 +372,7 @@ export async function applyProfilePresetSnapshot(
   delete settingsPatch.discord_card_style;
   delete settingsPatch.discord_show_lanyard_hint;
   delete settingsPatch.active_preset_id;
+  delete settingsPatch.music_default_track_id;
 
   const safeSettingsPatch = await omitUnsupportedSettingsColumns(settingsPatch);
 
@@ -348,6 +383,9 @@ export async function applyProfilePresetSnapshot(
         ? (currentProfile?.display_name ?? data.profile.display_name)
         : data.profile.display_name,
       bio: preservePersonal ? (currentProfile?.bio ?? data.profile.bio) : data.profile.bio,
+      location: preservePersonal
+        ? (currentProfile?.location ?? data.profile.location)
+        : data.profile.location,
       avatar_url: data.profile.avatar_url,
       banner_url: data.profile.banner_url,
     })
@@ -463,6 +501,46 @@ export async function applyProfilePresetSnapshot(
         .eq("profile_id", userId)
         .eq("badge_id", badge.badge_id);
     }
+  }
+
+  if (!preservePersonal) {
+    await supabase.from("profile_music_tracks").delete().eq("profile_id", userId).is("page_id", null);
+
+    const sortedTracks = [...data.musicTracks].sort((a, b) => a.sort_order - b.sort_order);
+    let defaultTrackId: string | null = null;
+    if (sortedTracks.length > 0) {
+      const { data: insertedTracks, error: tracksError } = await supabase
+        .from("profile_music_tracks")
+        .insert(
+          sortedTracks.map((track, index) => ({
+            profile_id: userId,
+            page_id: null,
+            url: track.url,
+            title: track.title,
+            sort_order: index,
+          })),
+        )
+        .select("id");
+
+      if (tracksError) return { error: formatSchemaError(tracksError.message) };
+
+      if (
+        insertedTracks &&
+        data.musicDefaultTrackIndex != null &&
+        data.musicDefaultTrackIndex >= 0 &&
+        data.musicDefaultTrackIndex < insertedTracks.length
+      ) {
+        defaultTrackId = insertedTracks[data.musicDefaultTrackIndex].id as string;
+      } else if (insertedTracks?.[0]) {
+        defaultTrackId = insertedTracks[0].id as string;
+      }
+    }
+
+    await supabase
+      .from("profile_settings")
+      .update({ music_default_track_id: defaultTrackId })
+      .eq("profile_id", userId)
+      .is("page_id", null);
   }
 
   if (data.discordWidget) {

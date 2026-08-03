@@ -13,6 +13,8 @@ function normalizePresetForCompare(data: ProfilePresetData) {
     embeds: sortByOrder(data.embeds),
     featuredBlocks: sortByOrder(data.featuredBlocks),
     profileBadges: [...data.profileBadges].sort((a, b) => a.badge_id.localeCompare(b.badge_id)),
+    musicTracks: sortByOrder(data.musicTracks ?? []),
+    musicDefaultTrackIndex: data.musicDefaultTrackIndex ?? null,
     discordWidget: data.discordWidget,
     customTheme: data.customTheme,
     featuredLinkIndex: data.featuredLinkIndex,

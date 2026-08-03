@@ -79,6 +79,7 @@ export function buildProfileViewFromPreset({
       ? baseProfile.display_name
       : presetData.profile.display_name,
     bio: presetData.profile.bio,
+    location: presetData.profile.location ?? "",
     avatar_url: presetData.profile.avatar_url,
     banner_url: presetData.profile.banner_url,
   };

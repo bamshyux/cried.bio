@@ -30,14 +30,23 @@ export const MEDIA_PRESET_KEYS = [
   "music_player_color",
 ] as const satisfies readonly (keyof ProfileSettings)[];
 
+/** Premium playlist controls stored in presets. */
+export const MUSIC_PLAYLIST_PRESET_KEYS = [
+  "music_playlist_mode",
+  "music_shuffle",
+  "music_autoplay_next",
+  "music_default_track_id",
+] as const;
+
 export const PRESET_SETTINGS_EXTRA_SELECT = [
   ...GUESTBOOK_PRESET_KEYS,
   ...MEDIA_PRESET_KEYS,
+  ...MUSIC_PLAYLIST_PRESET_KEYS,
 ].join(",");
 
 export function pickPresetExtraSettings(input: Record<string, unknown>): Record<string, unknown> {
   const picked: Record<string, unknown> = {};
-  for (const key of [...GUESTBOOK_PRESET_KEYS, ...MEDIA_PRESET_KEYS]) {
+  for (const key of [...GUESTBOOK_PRESET_KEYS, ...MEDIA_PRESET_KEYS, ...MUSIC_PLAYLIST_PRESET_KEYS]) {
     if (key in input) picked[key] = input[key];
   }
   return picked;
