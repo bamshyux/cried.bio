@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { DashNavTearAccent } from "@/components/dashboard/dash-nav-tear";
 import { DiscordCommunityPromo } from "@/components/discord/discord-community-promo";
 import {
@@ -23,8 +22,7 @@ function SectionBlock({
   const active = isNavActive(pathname, section.href);
   const hasItems = section.items.length > 0;
   const parentActive = active && hasItems;
-  const [hovered, setHovered] = useState(false);
-  const linkEngaged = active || parentActive || hovered;
+  const selected = hasItems ? pathname === section.href : active;
 
   if (isAdminRoute && section.id !== "overview") return null;
 
@@ -33,8 +31,6 @@ function SectionBlock({
       <Link
         href={section.href}
         data-tour={section.id}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
         className={`bf-dash-nav-link relative overflow-hidden flex min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium ${
           active && !hasItems
             ? "bf-dash-nav-link--active"
@@ -51,7 +47,7 @@ function SectionBlock({
           <section.Icon size={18} />
         </span>
         <span className="relative z-[1] min-w-0 flex-1 truncate">{section.label}</span>
-        <DashNavTearAccent engaged={linkEngaged} />
+        <DashNavTearAccent selected={selected} />
       </Link>
 
       {hasItems ? (
@@ -79,35 +75,15 @@ function SubNavLink({
   active: boolean;
   children: React.ReactNode;
 }) {
-  const [hovered, setHovered] = useState(false);
-
   return (
     <Link
       href={href}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       className={`bf-dash-nav-sublink relative overflow-hidden block rounded-lg px-3 py-2 text-[13px] ${
         active ? "bf-dash-nav-sublink--active" : ""
       }`}
     >
       <span className="relative z-[1]">{children}</span>
-      <DashNavTearAccent engaged={active || hovered} sub />
-    </Link>
-  );
-}
-
-function BackNavLink({ children }: { children: React.ReactNode }) {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <Link
-      href="/dashboard"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="bf-dash-nav-link relative overflow-hidden flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-neutral-400"
-    >
-      {children}
-      <DashNavTearAccent engaged={hovered} />
+      <DashNavTearAccent selected={active} sub />
     </Link>
   );
 }
@@ -126,10 +102,13 @@ export function DashboardSidebar({
       <nav className="bf-dash-nav flex flex-col gap-1 lg:pr-2">
         {isAdminRoute ? (
           <div className="mb-3 space-y-1">
-            <BackNavLink>
+            <Link
+              href="/dashboard"
+              className="bf-dash-nav-link relative overflow-hidden flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-neutral-400"
+            >
               <span className="relative z-[1] inline-flex rounded-lg p-1.5 text-neutral-500">←</span>
               <span className="relative z-[1] flex-1">Back to dashboard</span>
-            </BackNavLink>
+            </Link>
           </div>
         ) : null}
 

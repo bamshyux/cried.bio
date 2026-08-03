@@ -2838,7 +2838,7 @@ body,
     transform 0.15s ease;
 }
 
-/* Animated teardrop — drips in on hover/select, drips out on leave */
+/* Animated teardrop — drips in on select, drips out on deselect */
 .bf-dash-nav-tear {
   position: absolute;
   inset: 0;
@@ -2851,27 +2851,19 @@ body,
 .bf-dash-nav-tear__drop {
   position: absolute;
   top: 50%;
-  right: 13%;
-  width: 9px;
-  height: 13px;
+  right: 12%;
+  display: block;
+  width: 11px;
+  height: 14px;
   transform: translateY(-50%);
   opacity: 0;
-  background: linear-gradient(
-    165deg,
-    rgba(255, 255, 255, 0.38) 0%,
-    rgba(255, 255, 255, 0.14) 52%,
-    rgba(255, 255, 255, 0.05) 100%
-  );
-  border-radius: 50% 50% 50% 50% / 32% 32% 68% 68%;
-  box-shadow:
-    0 0 10px rgba(255, 255, 255, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.18));
 }
 
 .bf-dash-nav-tear--sub .bf-dash-nav-tear__drop {
-  right: 11%;
-  width: 7px;
-  height: 10px;
+  right: 10%;
+  width: 9px;
+  height: 12px;
 }
 
 .bf-dash-nav-tear--hidden .bf-dash-nav-tear__drop {
