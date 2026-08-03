@@ -27,14 +27,14 @@ export function formatUploadSizeLabel(bytes: number): string {
   return `${Math.round(mb)} MB`;
 }
 
-/** Hard cap from Supabase Storage global settings (Free = 50 MB; raise after Pro upgrade). */
+/** Hard cap from Supabase Storage global settings. Defaults to premium max (100 MB). */
 export function resolvePlatformMaxUploadBytes(): number {
   const raw = process.env.SUPABASE_STORAGE_GLOBAL_LIMIT_BYTES?.trim();
   if (raw) {
     const parsed = Number.parseInt(raw, 10);
     if (Number.isFinite(parsed) && parsed > 0) return parsed;
   }
-  return SUPABASE_FREE_PLAN_MAX_BYTES;
+  return PREMIUM_MAX_UPLOAD_BYTES;
 }
 
 export function resolveEntitlementMaxUploadBytes(
