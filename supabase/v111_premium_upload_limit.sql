@@ -1,4 +1,7 @@
--- Premium Supabase plan: raise storage bucket limits to 100 MB for large media uploads
+-- Premium: raise per-bucket limits to 100 MB for large media uploads.
+-- IMPORTANT: Supabase Free caps ALL uploads at 50 MB globally (Storage → Settings).
+-- Files over 50 MB require Supabase Pro AND raising the global file size limit in the dashboard.
+-- After upgrading, set SUPABASE_STORAGE_GLOBAL_LIMIT_BYTES=104857600 in your app env.
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

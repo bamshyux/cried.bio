@@ -3,7 +3,10 @@ import { PREMIUM_MAX_UPLOAD_BYTES } from "@/lib/uploads/limits";
 
 const UPLOAD_BUCKETS = ["backgrounds", "music"] as const;
 
-/** Raise Supabase bucket caps to match premium upload entitlement (idempotent). */
+/**
+ * Raise Supabase bucket caps to match premium upload entitlement (idempotent).
+ * Note: per-bucket limits cannot exceed Supabase's global file size limit (50 MB on Free).
+ */
 export async function syncStorageUploadLimits(): Promise<{ ok: boolean; error?: string }> {
   const admin = createAdminClient();
   if (!admin) {
