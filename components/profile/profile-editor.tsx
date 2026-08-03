@@ -198,11 +198,12 @@ export function ProfileEditor({
               Username locked until {formatUsernameChangeAvailableDate(usernameCooldown.nextChangeAt)}.
             </p>
           ) : null}
-          <div className="mt-3">
+          <div className="mt-2 max-w-md">
             <ToggleField
+              compact
               name="hide_profile_handle"
               label="Hide @username on profile"
-              description="Hides the gray @handle under your display name. Your cried.bio link still works."
+              description="Hides the gray @handle under your display name."
               defaultChecked={settings?.hide_profile_handle ?? false}
             />
           </div>

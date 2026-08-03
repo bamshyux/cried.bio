@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   PurchaseReceiptCard,
@@ -15,7 +15,27 @@ import {
 import type { Purchase } from "@/lib/types/store";
 
 export function BillingPurchasesPanel({ purchases }: { purchases: Purchase[] }) {
+  const router = useRouter();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const backfillAttempted = useRef(false);
+
+  useEffect(() => {
+    if (purchases.length > 0 || backfillAttempted.current) return;
+    backfillAttempted.current = true;
+
+    fetch("/api/stripe/sync-premium", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.ok) {
+          router.refresh();
+        }
+      })
+      .catch(() => {});
+  }, [purchases.length, router]);
 
   const selected = useMemo(
     () => purchases.find((purchase) => purchase.id === selectedId) ?? null,
@@ -26,7 +46,13 @@ export function BillingPurchasesPanel({ purchases }: { purchases: Purchase[] }) 
     return (
       <div className={`${cardClassName} text-center`}>
         <p className="text-sm text-neutral-400">No purchases yet.</p>
-        <Link href="/dashboard/store" className="mt-3 inline-block text-sm text-violet-300 underline">
+        <p className="mt-2 text-xs text-neutral-600">
+          Premium and store orders appear here with your CRIED reference ID.
+        </p>
+        <Link href="/dashboard/premium/plans" className="mt-3 inline-block text-sm text-violet-300 underline">
+          View Premium plans
+        </Link>
+        <Link href="/dashboard/store" className="mt-2 block text-sm text-neutral-500 underline">
           Browse the Store
         </Link>
       </div>

@@ -33,6 +33,7 @@ export async function POST(request: Request) {
 
     const stripe = getStripe();
     const sessionId = body.sessionId?.trim();
+    let referenceId: string | null = null;
 
     if (sessionId) {
       const session = await stripe.checkout.sessions.retrieve(sessionId, {
@@ -50,6 +51,9 @@ export async function POST(request: Request) {
       if (!result.ok && result.reason !== "not_premium_checkout") {
         return NextResponse.json({ error: `Could not sync premium: ${result.reason}` }, { status: 400 });
       }
+      if (result.ok) {
+        referenceId = result.referenceId ?? null;
+      }
     } else {
       const customerId = await getStripeCustomerId(userId);
       if (!customerId) {
@@ -60,11 +64,23 @@ export async function POST(request: Request) {
       if (!synced) {
         return NextResponse.json({ error: "No paid premium checkout or subscription found." }, { status: 404 });
       }
+
+      const { data: purchase } = await supabase
+        .from("purchases")
+        .select("reference_id")
+        .eq("user_id", userId)
+        .in("fulfillment_key", ["premium_monthly", "premium_lifetime"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      referenceId = purchase?.reference_id ?? null;
     }
 
     const entitlements = await getUserEntitlements(userId);
+
     return NextResponse.json({
       ok: true,
+      referenceId,
       entitlements: {
         plan_tier: entitlements.plan_tier,
         is_active: entitlements.is_active,

@@ -84,7 +84,10 @@ export async function resolveCheckoutPeriodEnd(
 export async function fulfillPremiumCheckoutSession(
   stripe: Stripe,
   session: Stripe.Checkout.Session,
-): Promise<{ ok: true; userId: string } | { ok: false; reason: string }> {
+): Promise<
+  | { ok: true; userId: string; referenceId?: string | null }
+  | { ok: false; reason: string }
+> {
   if (session.metadata?.checkout_type === "store") {
     return { ok: false, reason: "not_premium_checkout" };
   }
@@ -137,38 +140,43 @@ export async function fulfillPremiumCheckoutSession(
     extendMonthlyIfActive: isGift && !isLifetime,
   });
 
+  const productSlug = isLifetime ? "premium-lite-lifetime" : "premium-lite-monthly";
+  const productName = isLifetime ? "Premium Lite (Lifetime)" : "Premium Lite (Monthly)";
+  const fulfillmentKey = isLifetime ? "premium_lifetime" : "premium_monthly";
+
+  let purchaseId: string | null = null;
+  let referenceId: string | null = null;
+
+  try {
+    const { generateUniquePurchaseReferenceId } = await import("@/lib/store/reference-id");
+    const { resolveCheckoutPaymentDetails } = await import("@/lib/store/payment-details");
+    const { recordPremiumPurchase } = await import("@/lib/gifts/premium-purchase");
+
+    referenceId = await generateUniquePurchaseReferenceId();
+    const paymentDetails = await resolveCheckoutPaymentDetails(session);
+
+    purchaseId = await recordPremiumPurchase({
+      buyerId,
+      referenceId,
+      stripeSessionId: session.id,
+      stripePaymentIntent: paymentDetails.stripePaymentIntentId,
+      stripeCustomerId: paymentDetails.stripeCustomerId ?? String(session.customer ?? ""),
+      priceId: priceId || session.metadata?.price_id || "",
+      productSlug,
+      productName,
+      amountPaid: session.amount_total ?? 0,
+      currency: session.currency ?? "usd",
+      fulfillmentKey,
+      paymentMethod: paymentDetails.paymentMethod,
+      receiptNumber: paymentDetails.receiptNumber,
+      invoiceNumber: paymentDetails.invoiceNumber,
+    });
+  } catch (err) {
+    console.error("[premium purchase record]", err);
+  }
+
   if (isGift) {
     const { completeGiftFulfillment } = await import("@/lib/gifts/fulfillment");
-    const { generateUniquePurchaseReferenceId } = await import("@/lib/store/reference-id");
-
-    const productSlug = isLifetime ? "premium-lite-lifetime" : "premium-lite-monthly";
-    const productName = isLifetime ? "Premium Lite (Lifetime)" : "Premium Lite";
-
-    let purchaseId: string | null = null;
-    let referenceId: string | null = null;
-
-    try {
-      referenceId = await generateUniquePurchaseReferenceId();
-      const { fulfillPremiumGiftPurchase } = await import("@/lib/gifts/premium-purchase");
-      purchaseId = await fulfillPremiumGiftPurchase({
-        buyerId,
-        referenceId,
-        stripeSessionId: session.id,
-        stripePaymentIntent:
-          typeof session.payment_intent === "string"
-            ? session.payment_intent
-            : session.payment_intent?.id ?? null,
-        stripeCustomerId: String(session.customer ?? ""),
-        priceId: priceId || session.metadata?.price_id || "",
-        productSlug,
-        productName,
-        amountPaid: session.amount_total ?? 0,
-        currency: session.currency ?? "usd",
-        fulfillmentKey: isLifetime ? "premium_lifetime" : "premium_monthly",
-      });
-    } catch (err) {
-      console.error("[premium gift purchase]", err);
-    }
 
     await completeGiftFulfillment({
       senderUserId: buyerId,
@@ -181,7 +189,7 @@ export async function fulfillPremiumCheckoutSession(
     });
   }
 
-  return { ok: true, userId: recipientId };
+  return { ok: true, userId: recipientId, referenceId };
 }
 
 export async function syncPremiumFromStripeCustomer(

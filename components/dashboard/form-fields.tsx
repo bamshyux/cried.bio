@@ -42,6 +42,7 @@ export function ToggleField({
   onCheckedChange,
   disabled = false,
   badge,
+  compact = false,
 }: {
   name: string;
   label: string;
@@ -52,6 +53,7 @@ export function ToggleField({
   onCheckedChange?: (checked: boolean) => void;
   disabled?: boolean;
   badge?: ReactNode;
+  compact?: boolean;
 }) {
   const [internalChecked, setInternalChecked] = useState(defaultChecked ?? false);
   const isControlled = checked !== undefined;
@@ -59,9 +61,9 @@ export function ToggleField({
 
   return (
     <label
-      className={`flex items-start gap-3 rounded-lg border border-white/[0.06] bg-[#0f0f0f] p-4 transition-colors ${
-        disabled ? "cursor-not-allowed opacity-80" : "cursor-pointer hover:border-white/10"
-      }`}
+      className={`flex gap-2.5 rounded-lg border border-white/[0.06] bg-[#0f0f0f] transition-colors ${
+        compact ? "items-center px-3 py-2" : "items-start gap-3 p-4"
+      } ${disabled ? "cursor-not-allowed opacity-80" : "cursor-pointer hover:border-white/10"}`}
     >
       {!isControlled ? <input type="hidden" name={name} value={resolvedChecked ? "true" : "false"} /> : null}
       <input
@@ -74,16 +76,22 @@ export function ToggleField({
           if (!isControlled) setInternalChecked(next);
           onCheckedChange?.(next);
         }}
-        className="mt-0.5 h-4 w-4 rounded border-white/20 bg-[#090909] accent-[#fafafa] disabled:cursor-not-allowed"
+        className={`shrink-0 rounded border-white/20 bg-[#090909] accent-[#fafafa] disabled:cursor-not-allowed ${
+          compact ? "h-3.5 w-3.5" : "mt-0.5 h-4 w-4"
+        }`}
       />
-      <span>
+      <span className="min-w-0">
         <span className="flex flex-wrap items-center gap-2">
-          <span className="block text-sm font-medium text-neutral-100">{label}</span>
+          <span className={`font-medium text-neutral-100 ${compact ? "text-xs" : "block text-sm"}`}>
+            {label}
+          </span>
           {badge}
         </span>
-        {description && (
-          <span className="mt-0.5 block text-xs text-neutral-500">{description}</span>
-        )}
+        {description ? (
+          <span className={`block text-neutral-500 ${compact ? "text-[11px] leading-snug" : "mt-0.5 text-xs"}`}>
+            {description}
+          </span>
+        ) : null}
       </span>
     </label>
   );

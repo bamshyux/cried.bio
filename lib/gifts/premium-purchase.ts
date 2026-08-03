@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function fulfillPremiumGiftPurchase(input: {
+export async function recordPremiumPurchase(input: {
   buyerId: string;
   referenceId: string;
   stripeSessionId: string;
@@ -12,6 +12,9 @@ export async function fulfillPremiumGiftPurchase(input: {
   amountPaid: number;
   currency: string;
   fulfillmentKey: string;
+  paymentMethod?: string | null;
+  receiptNumber?: string | null;
+  invoiceNumber?: string | null;
 }): Promise<string | null> {
   const supabase = createAdminClient();
   if (!supabase) return null;
@@ -39,6 +42,9 @@ export async function fulfillPremiumGiftPurchase(input: {
       currency: input.currency,
       status: "completed",
       fulfillment_key: input.fulfillmentKey,
+      payment_method: input.paymentMethod ?? null,
+      receipt_number: input.receiptNumber ?? null,
+      invoice_number: input.invoiceNumber ?? null,
     })
     .select("id")
     .single();
@@ -57,3 +63,6 @@ export async function fulfillPremiumGiftPurchase(input: {
 
   return data?.id ? String(data.id) : null;
 }
+
+/** @deprecated Use recordPremiumPurchase */
+export const fulfillPremiumGiftPurchase = recordPremiumPurchase;
