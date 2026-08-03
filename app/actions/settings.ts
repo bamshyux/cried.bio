@@ -46,7 +46,6 @@ import type {
 import { revalidatePath } from "next/cache";
 import { revalidateProfileOg } from "@/lib/og/revalidate";
 import { isPremiumFont } from "@/lib/premium/fonts";
-import { getUserEntitlements } from "@/lib/premium/entitlements";
 import { ensureProfileSettingsRow, PAGE_SETTINGS_MIGRATION_HINT } from "@/lib/data/ensure-profile-settings-row";
 
 async function getAuthenticatedUserId() {
