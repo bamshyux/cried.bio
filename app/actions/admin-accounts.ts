@@ -131,6 +131,9 @@ export async function updateAdminAccountAction(
     } catch {
       // Account tier was already updated; cleanup is best-effort here.
     }
+  } else if (nowPremium && !wasPremium) {
+    const { queuePremiumDiscordRoleSync } = await import("@/lib/discord/premium-role-sync");
+    queuePremiumDiscordRoleSync(userId, "grant");
   }
 
   revalidatePath("/dashboard/accounts");

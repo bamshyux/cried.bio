@@ -9,6 +9,7 @@ import {
   inferPremiumTypeFromProfileSignals,
 } from "@/lib/discord/profile-badges";
 import { isDiscordLinked, needsDiscordProfileRefresh } from "@/lib/discord/connection";
+import { queuePremiumDiscordRoleSync } from "@/lib/discord/premium-role-sync";
 import {
   removeDiscordStatusWidget,
   setDiscordStatusWidgetEnabled,
@@ -106,6 +107,11 @@ export async function disconnectDiscordAction(): Promise<{ error?: string }> {
   const userId = await getAuthenticatedUserId();
   if (!userId) return { error: "Not signed in." };
 
+  const linkState = await getDiscordLinkState(userId);
+  if (linkState.discordUserId) {
+    queuePremiumDiscordRoleSync(userId, "revoke", linkState.discordUserId);
+  }
+
   const widgetResult = await removeDiscordStatusWidget(userId);
   if (widgetResult.error) return { error: widgetResult.error };
 
@@ -157,6 +163,7 @@ export async function saveDiscordUserIdAction(discordUserId: string): Promise<{ 
   if (error) return { error: formatSchemaError(error.message) };
   const widgetResult = await setDiscordStatusWidgetEnabled(userId, false);
   if (widgetResult.error) return { error: widgetResult.error };
+  queuePremiumDiscordRoleSync(userId, "sync", trimmed);
   await revalidateProfile(userId);
   return {};
 }

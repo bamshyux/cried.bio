@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { queuePremiumDiscordRoleSync } from "@/lib/discord/premium-role-sync";
 import { syncPremiumBadge } from "@/lib/premium/badge-sync";
 import {
   cleanupPremiumContent,
@@ -120,6 +121,7 @@ export async function grantPremiumAccess(input: GrantPremiumInput): Promise<void
   }
 
   await syncPremiumBadge(input.userId, true);
+  queuePremiumDiscordRoleSync(input.userId, "grant");
 }
 
 export async function revokePremiumAccess(
@@ -166,6 +168,7 @@ export async function revokePremiumAccess(
 
   await syncPremiumBadge(userId, false);
   await revalidateAfterPremiumRevoke(userId);
+  queuePremiumDiscordRoleSync(userId, "revoke");
 }
 
 /** Downgrade lapsed premium and strip leftover premium content. */

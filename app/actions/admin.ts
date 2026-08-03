@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { isFrozenViewCountProfile } from "@/lib/analytics/frozen-view-count";
 import { syncPremiumBadge } from "@/lib/premium/badge-sync";
+import { queuePremiumDiscordRoleSync } from "@/lib/discord/premium-role-sync";
 import { revokePremiumAccess } from "@/lib/premium/sync";
 import { logAdminAudit, logUserTimelineEvent } from "@/lib/admin/audit";
 import { requireAdminAccess } from "@/lib/auth/admin-access";
@@ -288,6 +289,7 @@ export async function adminGrantPremiumAction(
   });
 
   await syncPremiumBadge(userId, tier !== "free");
+  queuePremiumDiscordRoleSync(userId, tier !== "free" ? "grant" : "revoke");
 
   return { success: "Premium updated." };
 }

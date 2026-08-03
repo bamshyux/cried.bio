@@ -8,6 +8,7 @@ import {
   getDiscordRedirectUri,
 } from "@/lib/discord/config";
 import { inferPremiumTypeFromProfileSignals } from "@/lib/discord/profile-badges";
+import { queuePremiumDiscordRoleSync } from "@/lib/discord/premium-role-sync";
 import type { DiscordOAuthUser } from "@/lib/discord/types";
 import { getSiteUrl } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
@@ -102,6 +103,7 @@ export async function GET(request: Request) {
   }
 
   await setDiscordStatusWidgetEnabled(userId, false);
+  queuePremiumDiscordRoleSync(userId, "sync", discordUser.id);
 
   return redirectWithMessage("connected");
 }
