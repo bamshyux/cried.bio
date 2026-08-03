@@ -12,6 +12,7 @@ import {
 import { clampCursorHotspotPercent, clampCursorImageSize } from "@/lib/profile/custom-cursor";
 import { isValidProfileFaviconStorageUrl } from "@/lib/profile/favicon";
 import { backgroundUploadSizeError, resolveMaxUploadBytes, uploadSizeError } from "@/lib/uploads/limits";
+import { syncStorageUploadLimits } from "@/lib/uploads/sync-storage-limits";
 import { getUserEntitlements } from "@/lib/premium/entitlements";
 import {
   backgroundStorageExtension,
@@ -746,6 +747,13 @@ async function deleteStoragePrefix(
   }
 }
 
+/** Raise Supabase bucket caps before large uploads (idempotent, requires service role). */
+export async function ensureStorageUploadLimitsAction(): Promise<{ ok: boolean; error?: string }> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { ok: false, error: "You must be logged in." };
+  return syncStorageUploadLimits();
+}
+
 export async function saveBackgroundMediaAction(
   mediaUrl: string,
   mediaType: "image" | "video",
@@ -821,6 +829,7 @@ export async function uploadBackgroundAction(
   }
 
   try {
+    await syncStorageUploadLimits();
     const ext = backgroundStorageExtension(kind, file);
     const contentType = backgroundUploadContentType(file, kind);
     await deleteStoragePrefix(userId, "backgrounds", "background.");
@@ -854,6 +863,7 @@ export async function uploadMusicAction(
   await ensureSettingsRow(userId);
 
   try {
+    await syncStorageUploadLimits();
     const ext = file.type.split("/")[1]?.replace("mpeg", "mp3") ?? "mp3";
     const url = await uploadFile(userId, file, "music", `track.${ext}`);
 

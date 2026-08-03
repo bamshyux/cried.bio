@@ -1,5 +1,6 @@
 "use client";
 
+import { ensureStorageUploadLimitsAction } from "@/app/actions/settings";
 import { createClient } from "@/lib/supabase/client";
 import {
   backgroundStorageExtension,
@@ -7,6 +8,7 @@ import {
   resolveBackgroundUploadKind,
 } from "@/lib/uploads/background-media";
 import { backgroundUploadSizeError } from "@/lib/uploads/limits";
+import { isStorageSizeError, mapStorageUploadError } from "@/lib/uploads/storage-upload-error";
 
 const SIGNED_UPLOAD_THRESHOLD = 6 * 1024 * 1024;
 
@@ -24,61 +26,41 @@ async function removeExistingBackgroundFiles(userId: string) {
   }
 }
 
-function isStorageSizeError(message: string): boolean {
-  const msg = message.toLowerCase();
-  return (
-    msg.includes("size") ||
-    msg.includes("large") ||
-    msg.includes("payload") ||
-    msg.includes("maximum") ||
-    msg.includes("too big") ||
-    msg.includes("entity too large") ||
-    (msg.includes("limit") && !msg.includes("rate"))
-  );
-}
-
 async function uploadViaSignedUrl(
   supabase: ReturnType<typeof createClient>,
   path: string,
   file: File,
   contentType: string,
-  maxUploadBytes: number,
 ) {
   const { data, error: signError } = await supabase.storage
     .from("backgrounds")
     .createSignedUploadUrl(path, { upsert: true });
 
-  if (signError) {
-    if (isStorageSizeError(signError.message)) {
-      throw new Error(backgroundUploadSizeError(file.size, maxUploadBytes));
-    }
-    throw new Error(signError.message);
-  }
+  if (signError) throw new Error(signError.message);
 
   const { error: uploadError } = await supabase.storage
     .from("backgrounds")
     .uploadToSignedUrl(path, data.token, file, { contentType });
 
-  if (uploadError) {
-    if (isStorageSizeError(uploadError.message)) {
-      throw new Error(backgroundUploadSizeError(file.size, maxUploadBytes));
-    }
-    throw new Error(uploadError.message);
-  }
+  if (uploadError) throw new Error(uploadError.message);
 }
 
-export async function uploadBackgroundToStorage(
+async function uploadDirect(
+  supabase: ReturnType<typeof createClient>,
+  path: string,
   file: File,
-  maxUploadBytes: number,
+  contentType: string,
+) {
+  const { error } = await supabase.storage
+    .from("backgrounds")
+    .upload(path, file, { upsert: true, contentType });
+
+  if (error) throw new Error(error.message);
+}
+
+async function performBackgroundUpload(
+  file: File,
 ): Promise<{ url: string; isVideo: boolean }> {
-  if (file.size === 0) {
-    throw new Error("Please select a file.");
-  }
-
-  if (file.size > maxUploadBytes) {
-    throw new Error(backgroundUploadSizeError(file.size, maxUploadBytes));
-  }
-
   const kind = resolveBackgroundUploadKind(file);
   if (!kind) {
     throw new Error("Upload a JPEG, PNG, WebP, GIF, or MP4 file.");
@@ -102,18 +84,9 @@ export async function uploadBackgroundToStorage(
   const path = `${user.id}/background.${ext}`;
 
   if (file.size > SIGNED_UPLOAD_THRESHOLD) {
-    await uploadViaSignedUrl(supabase, path, file, contentType, maxUploadBytes);
+    await uploadViaSignedUrl(supabase, path, file, contentType);
   } else {
-    const { error } = await supabase.storage
-      .from("backgrounds")
-      .upload(path, file, { upsert: true, contentType });
-
-    if (error) {
-      if (isStorageSizeError(error.message)) {
-        throw new Error(backgroundUploadSizeError(file.size, maxUploadBytes));
-      }
-      throw new Error(error.message);
-    }
+    await uploadDirect(supabase, path, file, contentType);
   }
 
   const {
@@ -121,4 +94,42 @@ export async function uploadBackgroundToStorage(
   } = supabase.storage.from("backgrounds").getPublicUrl(path);
 
   return { url: `${publicUrl}?v=${Date.now()}`, isVideo };
+}
+
+function finalizeUploadError(error: unknown, file: File, maxUploadBytes: number): Error {
+  const message = error instanceof Error ? error.message : "Upload failed.";
+  if (isStorageSizeError(message)) {
+    return new Error(mapStorageUploadError(file.size, maxUploadBytes));
+  }
+  return error instanceof Error ? error : new Error(message);
+}
+
+export async function uploadBackgroundToStorage(
+  file: File,
+  maxUploadBytes: number,
+): Promise<{ url: string; isVideo: boolean }> {
+  if (file.size === 0) {
+    throw new Error("Please select a file.");
+  }
+
+  if (file.size > maxUploadBytes) {
+    throw new Error(backgroundUploadSizeError(file.size, maxUploadBytes));
+  }
+
+  await ensureStorageUploadLimitsAction();
+
+  try {
+    return await performBackgroundUpload(file);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload failed.";
+    if (file.size <= maxUploadBytes && isStorageSizeError(message)) {
+      await ensureStorageUploadLimitsAction();
+      try {
+        return await performBackgroundUpload(file);
+      } catch (retryError) {
+        throw finalizeUploadError(retryError, file, maxUploadBytes);
+      }
+    }
+    throw finalizeUploadError(error, file, maxUploadBytes);
+  }
 }
