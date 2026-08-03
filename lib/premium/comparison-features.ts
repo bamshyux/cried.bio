@@ -1,4 +1,9 @@
 import { PLAN_DEFINITIONS } from "@/lib/premium/plans";
+import {
+  formatUploadSizeLabel,
+  FREE_MAX_UPLOAD_BYTES,
+  PREMIUM_MAX_UPLOAD_BYTES,
+} from "@/lib/uploads/limits";
 
 export type PremiumFeaturePreview =
   | "music"
@@ -120,6 +125,15 @@ export const PREMIUM_COMPARISON_FEATURES: PremiumComparisonFeature[] = [
     free: { kind: "excluded" },
     premium: { kind: "included" },
     preview: "analytics",
+  },
+  {
+    id: "uploads",
+    name: "Maximum upload size",
+    description:
+      "Upload larger background videos, music files, and enter-gate media without hitting the free plan cap.",
+    free: { kind: "limit", label: formatUploadSizeLabel(FREE_MAX_UPLOAD_BYTES) },
+    premium: { kind: "limit", label: formatUploadSizeLabel(PREMIUM_MAX_UPLOAD_BYTES) },
+    preview: "customize",
   },
   {
     id: "early-access",

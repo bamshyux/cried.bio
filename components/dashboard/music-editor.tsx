@@ -18,6 +18,7 @@ import { PremiumLocked, PremiumLockBadge } from "@/components/premium/premium-lo
 import type { MusicTrack } from "@/lib/data/music-tracks";
 import type { UserEntitlements } from "@/lib/premium/types";
 import type { ProfileSettings } from "@/lib/types/settings";
+import { formatUploadSizeLabel, resolveMaxUploadBytes } from "@/lib/uploads/limits";
 import { uploadMusicToStorage } from "@/lib/uploads/music-client";
 import {
   buttonPrimaryClassName,
@@ -91,6 +92,7 @@ export function MusicEditor({
   const canPlaylist = entitlements.can_use_playlist;
   const canHideMusicPlayer = canPlaylist;
   const maxTracks = entitlements.max_music_tracks;
+  const maxUploadBytes = resolveMaxUploadBytes(entitlements);
   const displayTracks = tracks.length > 0 ? tracks : settings.music_url
     ? [{ id: "legacy", url: settings.music_url, title: settings.music_title || "Profile Track", sort_order: 0 } as MusicTrack]
     : [];
@@ -107,7 +109,7 @@ export function MusicEditor({
     setUploadSuccess(undefined);
 
     try {
-      const url = await uploadMusicToStorage(file);
+      const url = await uploadMusicToStorage(file, maxUploadBytes);
       const result = canPlaylist && tracks.length > 0
         ? await saveMusicTrackAction({ url, title: file.name.replace(/\.[^.]+$/, ""), pageId })
         : tracks.length >= maxTracks && canPlaylist
@@ -244,7 +246,7 @@ export function MusicEditor({
 
           <div className="space-y-3">
             <label htmlFor="music" className={labelClassName}>
-              Audio file (max 20 MB)
+              Audio file (max {formatUploadSizeLabel(maxUploadBytes)})
             </label>
             <input
               key={fileInputKey}

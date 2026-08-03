@@ -74,11 +74,13 @@ export function EffectsEditor({
   profile,
   pageId,
   hideEnterGate = false,
+  maxUploadBytes,
 }: {
   settings: ProfileSettings;
   profile: Profile;
   pageId?: string;
   hideEnterGate?: boolean;
+  maxUploadBytes: number;
 }) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
@@ -348,6 +350,7 @@ export function EffectsEditor({
               profile={profile}
               form={form}
               patchForm={patchForm}
+              maxUploadBytes={maxUploadBytes}
             />
           ) : null}
 
@@ -504,11 +507,13 @@ export function EffectsPageShell({
   profile,
   pageId,
   hideEnterGate = false,
+  maxUploadBytes,
 }: {
   settings: ProfileSettings;
   profile: Profile;
   pageId?: string;
   hideEnterGate?: boolean;
+  maxUploadBytes: number;
 }) {
   return (
     <EffectsEditor
@@ -516,6 +521,7 @@ export function EffectsPageShell({
       profile={profile}
       pageId={pageId}
       hideEnterGate={hideEnterGate}
+      maxUploadBytes={maxUploadBytes}
     />
   );
 }

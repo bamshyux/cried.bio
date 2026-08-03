@@ -9,6 +9,7 @@ export const PREMIUM_LITE_BENEFITS = [
   "Scheduled profile presets",
   "Premium font library",
   "Profile picture border effects",
+  "100 MB maximum upload size",
   "Custom profile effect request",
   "24-hour username changes",
   "Premium badge on your profile",

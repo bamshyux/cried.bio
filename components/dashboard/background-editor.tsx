@@ -23,7 +23,7 @@ import { uploadBackgroundToStorage } from "@/lib/uploads/background-client";
 import { isBackgroundVideoFile, resolveProfileBackgroundMedia } from "@/lib/uploads/background-media";
 import { IMAGE_CROP_PRESETS } from "@/lib/uploads/image-crop";
 import { useImageCropPicker } from "@/hooks/use-image-crop-picker";
-import { MAX_BACKGROUND_UPLOAD_LABEL } from "@/lib/uploads/limits";
+import { formatUploadSizeLabel } from "@/lib/uploads/limits";
 import { BACKGROUND_TYPE_OPTIONS, PARTICLE_OPTIONS } from "@/lib/settings";
 import type { BackgroundType, ParticleEffect, ProfileSettings } from "@/lib/types/settings";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
@@ -60,10 +60,12 @@ export function BackgroundEditor({
   settings,
   pageId,
   contentPage = false,
+  maxUploadBytes,
 }: {
   settings: ProfileSettings;
   pageId?: string;
   contentPage?: boolean;
+  maxUploadBytes: number;
 }) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
@@ -128,7 +130,7 @@ export function BackgroundEditor({
     }
 
     try {
-      const { url, isVideo: uploadedVideo } = await uploadBackgroundToStorage(file);
+      const { url, isVideo: uploadedVideo } = await uploadBackgroundToStorage(file, maxUploadBytes);
       const result = await saveBackgroundMediaAction(url, uploadedVideo ? "video" : "image", pageId);
 
       if (result.error) {
@@ -149,7 +151,7 @@ export function BackgroundEditor({
       setUploadPending(false);
       setFileInputKey((key) => key + 1);
     }
-  }, [pageId, patchForm, router]);
+  }, [maxUploadBytes, pageId, patchForm, router]);
 
   const backgroundCrop = useImageCropPicker({
     ...IMAGE_CROP_PRESETS.background,
@@ -329,7 +331,7 @@ export function BackgroundEditor({
             <p className="text-xs text-neutral-600">
               {uploadPending
                 ? "Uploading background..."
-                : `JPEG, PNG, WebP, GIF, or MP4 — max ${MAX_BACKGROUND_UPLOAD_LABEL}.`}
+                : `JPEG, PNG, WebP, GIF, or MP4 — max ${formatUploadSizeLabel(maxUploadBytes)}.`}
             </p>
             <FormFeedback error={uploadError} success={uploadSuccess} />
           </div>
@@ -344,10 +346,19 @@ export function BackgroundPageShell({
   settings,
   pageId,
   contentPage = false,
+  maxUploadBytes,
 }: {
   settings: ProfileSettings;
   pageId?: string;
   contentPage?: boolean;
+  maxUploadBytes: number;
 }) {
-  return <BackgroundEditor settings={settings} pageId={pageId} contentPage={contentPage} />;
+  return (
+    <BackgroundEditor
+      settings={settings}
+      pageId={pageId}
+      contentPage={contentPage}
+      maxUploadBytes={maxUploadBytes}
+    />
+  );
 }

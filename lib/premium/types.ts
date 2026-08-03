@@ -35,7 +35,8 @@ export type EntitlementKey =
   | "max_featured_blocks"
   | "custom_domain"
   | "animated_effects"
-  | "advanced_analytics";
+  | "advanced_analytics"
+  | "max_upload_bytes";
 
 export type EntitlementValues = {
   can_use_playlist: boolean;
@@ -52,6 +53,7 @@ export type EntitlementValues = {
   custom_domain: boolean;
   animated_effects: boolean;
   advanced_analytics: boolean;
+  max_upload_bytes: number;
 };
 
 export type UserEntitlements = EntitlementValues & {

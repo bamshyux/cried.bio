@@ -71,7 +71,7 @@ export function getCriticalFactsBlock(): string {
 - **Unlisted** — hidden from search/explore; still accessible via direct link
 - **Private** — only you can view your profile (others see it as unavailable)
 
-**Premium Lite includes:** animated card border effects, 20+ premium layouts, advanced analytics, premium fonts, up to ${lite.max_music_tracks} music tracks + playlists, ${lite.max_profile_pages} extra profile pages, scheduled presets, premium badge, custom domain support, 24-hour username change cooldown, early access features.
+**Premium Lite includes:** animated card border effects, 20+ premium layouts, advanced analytics, premium fonts, up to ${lite.max_music_tracks} music tracks + playlists, ${lite.max_profile_pages} extra profile pages, scheduled presets, 100 MB maximum upload size, premium badge, custom domain support, 24-hour username change cooldown, early access features.
 
 **Billing:** Stripe handles all payments.
 

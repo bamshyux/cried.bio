@@ -1,3 +1,7 @@
+import {
+  FREE_MAX_UPLOAD_BYTES,
+  PREMIUM_MAX_UPLOAD_BYTES,
+} from "@/lib/uploads/limits";
 import type { EntitlementValues, PlanTier } from "@/lib/premium/types";
 
 export type PlanDefinition = {
@@ -21,6 +25,7 @@ const FREE_ENTITLEMENTS: EntitlementValues = {
   custom_domain: false,
   animated_effects: false,
   advanced_analytics: false,
+  max_upload_bytes: FREE_MAX_UPLOAD_BYTES,
 };
 
 const PREMIUM_LITE_ENTITLEMENTS: EntitlementValues = {
@@ -38,6 +43,7 @@ const PREMIUM_LITE_ENTITLEMENTS: EntitlementValues = {
   custom_domain: true,
   animated_effects: true,
   advanced_analytics: true,
+  max_upload_bytes: PREMIUM_MAX_UPLOAD_BYTES,
 };
 
 /** Future tiers inherit lite + overrides */

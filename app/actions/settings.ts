@@ -11,7 +11,8 @@ import {
 } from "@/lib/settings";
 import { clampCursorHotspotPercent, clampCursorImageSize } from "@/lib/profile/custom-cursor";
 import { isValidProfileFaviconStorageUrl } from "@/lib/profile/favicon";
-import { backgroundUploadSizeError, MAX_BACKGROUND_UPLOAD_BYTES } from "@/lib/uploads/limits";
+import { backgroundUploadSizeError, resolveMaxUploadBytes, uploadSizeError } from "@/lib/uploads/limits";
+import { getUserEntitlements } from "@/lib/premium/entitlements";
 import {
   backgroundStorageExtension,
   backgroundUploadContentType,
@@ -708,8 +709,6 @@ export async function updateCardLayoutAction(layout: {
   return { success: "Card layout saved." };
 }
 
-const MAX_MUSIC_SIZE = 20 * 1024 * 1024;
-
 async function uploadFile(
   userId: string,
   file: File,
@@ -808,8 +807,11 @@ export async function uploadBackgroundAction(
     return { error: "Please select a file." };
   }
 
-  if (file.size > MAX_BACKGROUND_UPLOAD_BYTES) {
-    return { error: backgroundUploadSizeError(file.size) };
+  const entitlements = await getUserEntitlements(userId);
+  const maxUploadBytes = resolveMaxUploadBytes(entitlements);
+
+  if (file.size > maxUploadBytes) {
+    return { error: backgroundUploadSizeError(file.size, maxUploadBytes) };
   }
 
   await ensureSettingsRow(userId);
@@ -842,7 +844,12 @@ export async function uploadMusicAction(
     return { error: "Please select an audio file." };
   }
 
-  if (file.size > MAX_MUSIC_SIZE) return { error: "Audio must be 20 MB or smaller." };
+  const entitlements = await getUserEntitlements(userId);
+  const maxUploadBytes = resolveMaxUploadBytes(entitlements);
+
+  if (file.size > maxUploadBytes) {
+    return { error: uploadSizeError(file.size, maxUploadBytes) };
+  }
   if (!file.type.startsWith("audio/")) return { error: "Upload MP3, WAV, OGG, or WebM audio." };
 
   await ensureSettingsRow(userId);

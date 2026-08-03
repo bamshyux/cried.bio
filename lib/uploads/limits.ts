@@ -1,4 +1,12 @@
-export const MAX_BACKGROUND_UPLOAD_BYTES = 50 * 1024 * 1024;
+import type { EntitlementValues } from "@/lib/premium/types";
+
+export const FREE_MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+export const PREMIUM_MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+
+/** @deprecated Use FREE_MAX_UPLOAD_BYTES */
+export const MAX_BACKGROUND_UPLOAD_BYTES = FREE_MAX_UPLOAD_BYTES;
+
+/** @deprecated Use formatUploadSizeLabel(FREE_MAX_UPLOAD_BYTES) */
 export const MAX_BACKGROUND_UPLOAD_LABEL = "50 MB";
 
 export function formatUploadSize(bytes: number): string {
@@ -10,7 +18,30 @@ export function formatUploadSize(bytes: number): string {
   return `${bytes} B`;
 }
 
-export function backgroundUploadSizeError(fileSize?: number): string {
+export function formatUploadSizeLabel(bytes: number): string {
+  const mb = bytes / (1024 * 1024);
+  if (Number.isInteger(mb)) return `${mb} MB`;
+  return `${Math.round(mb)} MB`;
+}
+
+export function resolveMaxUploadBytes(
+  entitlements?: Pick<EntitlementValues, "max_upload_bytes"> | null,
+): number {
+  const value = entitlements?.max_upload_bytes;
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return value;
+  }
+  return FREE_MAX_UPLOAD_BYTES;
+}
+
+export function uploadSizeError(fileSize: number | undefined, maxBytes: number): string {
   const sizePart = fileSize ? `Your file is ${formatUploadSize(fileSize)}. ` : "";
-  return `${sizePart}Maximum upload size is ${MAX_BACKGROUND_UPLOAD_LABEL}.`;
+  return `${sizePart}Maximum upload size is ${formatUploadSizeLabel(maxBytes)}.`;
+}
+
+export function backgroundUploadSizeError(
+  fileSize?: number,
+  maxBytes: number = FREE_MAX_UPLOAD_BYTES,
+): string {
+  return uploadSizeError(fileSize, maxBytes);
 }

@@ -27,7 +27,7 @@ import { uploadEnterGateBackgroundToStorage } from "@/lib/uploads/enter-gate-cli
 import { isBackgroundVideoFile } from "@/lib/uploads/background-media";
 import { IMAGE_CROP_PRESETS } from "@/lib/uploads/image-crop";
 import { useImageCropPicker } from "@/hooks/use-image-crop-picker";
-import { MAX_BACKGROUND_UPLOAD_LABEL } from "@/lib/uploads/limits";
+import { formatUploadSizeLabel, resolveMaxUploadBytes } from "@/lib/uploads/limits";
 import type { ParticleEffect, ProfileSettings } from "@/lib/types/settings";
 import type { Profile } from "@/lib/types/profile";
 
@@ -115,11 +115,13 @@ export function EnterGateEditor({
   profile,
   form,
   patchForm,
+  maxUploadBytes,
 }: {
   settings: ProfileSettings;
   profile: Profile;
   form: EnterGateFormFields;
   patchForm: (partial: Partial<EnterGateFormFields>) => void;
+  maxUploadBytes: number;
 }) {
   const router = useRouter();
   const [isRemoving, startRemove] = useTransition();
@@ -169,7 +171,7 @@ export function EnterGateEditor({
     }
 
     try {
-      const { url, isVideo: uploadedVideo } = await uploadEnterGateBackgroundToStorage(file);
+      const { url, isVideo: uploadedVideo } = await uploadEnterGateBackgroundToStorage(file, maxUploadBytes);
       const result = await saveEnterGateMediaAction(url, uploadedVideo ? "video" : "image");
 
       if (result.error) {
@@ -190,7 +192,7 @@ export function EnterGateEditor({
       setUploadPending(false);
       setFileInputKey((key) => key + 1);
     }
-  }, [patchForm, router]);
+  }, [maxUploadBytes, patchForm, router]);
 
   const enterGateCrop = useImageCropPicker({
     ...IMAGE_CROP_PRESETS.background,
@@ -375,7 +377,7 @@ export function EnterGateEditor({
                 onChange={(e) => handleEnterGateFilePick(e.target.files?.[0])}
                 className={fileInputClassName}
               />
-              <p className="text-xs text-neutral-600">JPEG, PNG, WebP, GIF, or MP4 — {MAX_BACKGROUND_UPLOAD_LABEL}</p>
+              <p className="text-xs text-neutral-600">JPEG, PNG, WebP, GIF, or MP4 — max {formatUploadSizeLabel(maxUploadBytes)}</p>
               {hasMedia ? (
                 <RemoveMediaButton
                   label="Remove enter gate background"

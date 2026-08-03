@@ -6,7 +6,7 @@ import {
   backgroundUploadContentType,
   resolveBackgroundUploadKind,
 } from "@/lib/uploads/background-media";
-import { backgroundUploadSizeError, MAX_BACKGROUND_UPLOAD_BYTES } from "@/lib/uploads/limits";
+import { backgroundUploadSizeError } from "@/lib/uploads/limits";
 
 const SIGNED_UPLOAD_THRESHOLD = 6 * 1024 * 1024;
 
@@ -42,6 +42,7 @@ async function uploadViaSignedUrl(
   path: string,
   file: File,
   contentType: string,
+  maxUploadBytes: number,
 ) {
   const { data, error: signError } = await supabase.storage
     .from("backgrounds")
@@ -49,7 +50,7 @@ async function uploadViaSignedUrl(
 
   if (signError) {
     if (isStorageSizeError(signError.message)) {
-      throw new Error(backgroundUploadSizeError(file.size));
+      throw new Error(backgroundUploadSizeError(file.size, maxUploadBytes));
     }
     throw new Error(signError.message);
   }
@@ -60,7 +61,7 @@ async function uploadViaSignedUrl(
 
   if (uploadError) {
     if (isStorageSizeError(uploadError.message)) {
-      throw new Error(backgroundUploadSizeError(file.size));
+      throw new Error(backgroundUploadSizeError(file.size, maxUploadBytes));
     }
     throw new Error(uploadError.message);
   }
@@ -68,13 +69,14 @@ async function uploadViaSignedUrl(
 
 export async function uploadBackgroundToStorage(
   file: File,
+  maxUploadBytes: number,
 ): Promise<{ url: string; isVideo: boolean }> {
   if (file.size === 0) {
     throw new Error("Please select a file.");
   }
 
-  if (file.size > MAX_BACKGROUND_UPLOAD_BYTES) {
-    throw new Error(backgroundUploadSizeError(file.size));
+  if (file.size > maxUploadBytes) {
+    throw new Error(backgroundUploadSizeError(file.size, maxUploadBytes));
   }
 
   const kind = resolveBackgroundUploadKind(file);
@@ -100,7 +102,7 @@ export async function uploadBackgroundToStorage(
   const path = `${user.id}/background.${ext}`;
 
   if (file.size > SIGNED_UPLOAD_THRESHOLD) {
-    await uploadViaSignedUrl(supabase, path, file, contentType);
+    await uploadViaSignedUrl(supabase, path, file, contentType, maxUploadBytes);
   } else {
     const { error } = await supabase.storage
       .from("backgrounds")
@@ -108,7 +110,7 @@ export async function uploadBackgroundToStorage(
 
     if (error) {
       if (isStorageSizeError(error.message)) {
-        throw new Error(backgroundUploadSizeError(file.size));
+        throw new Error(backgroundUploadSizeError(file.size, maxUploadBytes));
       }
       throw new Error(error.message);
     }

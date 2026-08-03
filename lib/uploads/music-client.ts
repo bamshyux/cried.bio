@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 
-const MAX_MUSIC_SIZE = 20 * 1024 * 1024;
+import { uploadSizeError } from "@/lib/uploads/limits";
 const AUDIO_EXTENSIONS = new Set(["mp3", "wav", "ogg", "webm", "mpeg"]);
 
 function getAudioExtension(file: File): string {
@@ -53,13 +53,13 @@ async function removeExistingMusicFiles(userId: string) {
   }
 }
 
-export async function uploadMusicToStorage(file: File): Promise<string> {
+export async function uploadMusicToStorage(file: File, maxUploadBytes: number): Promise<string> {
   if (file.size === 0) {
     throw new Error("Please select an audio file.");
   }
 
-  if (file.size > MAX_MUSIC_SIZE) {
-    throw new Error("Audio must be 20 MB or smaller.");
+  if (file.size > maxUploadBytes) {
+    throw new Error(uploadSizeError(file.size, maxUploadBytes));
   }
 
   if (!isAudioFile(file)) {

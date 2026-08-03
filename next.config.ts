@@ -5,9 +5,9 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       // Default is 1MB — too small for background uploads sent via server actions.
-      bodySizeLimit: "50mb",
+      bodySizeLimit: "100mb",
     },
-    proxyClientMaxBodySize: "50mb",
+    proxyClientMaxBodySize: "100mb",
   },
 };
 
