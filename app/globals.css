@@ -1909,8 +1909,13 @@ body,
     transform 0.2s ease;
 }
 
-.bf-profile-username-wrap:hover .bf-profile-uid-hover,
-.bf-profile-username-wrap:focus-within .bf-profile-uid-hover {
+.bf-profile-uid-hover--portal {
+  opacity: 1;
+  transform: translate(-50%, -100%);
+}
+
+.bf-profile-username-wrap:hover .bf-profile-uid-hover:not(.bf-profile-uid-hover--portal),
+.bf-profile-username-wrap:focus-within .bf-profile-uid-hover:not(.bf-profile-uid-hover--portal) {
   opacity: 1;
   transform: translate(-50%, 0);
 }

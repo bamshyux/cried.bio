@@ -75,7 +75,7 @@ export const DEFAULT_SETTINGS: Omit<
   link_animation: "none",
   show_view_count: true,
   show_join_date: true,
-  hide_profile_handle: true,
+  hide_profile_handle: false,
   profile_status: "",
   profile_status_color: "",
   status_preset: "online",

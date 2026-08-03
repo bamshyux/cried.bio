@@ -203,7 +203,7 @@ export function ProfileEditor({
               name="hide_profile_handle"
               label="Hide @username on profile"
               description="Hides the gray @handle under your display name. Your cried.bio link still works."
-              defaultChecked={settings?.hide_profile_handle ?? true}
+              defaultChecked={settings?.hide_profile_handle ?? false}
             />
           </div>
         </div>

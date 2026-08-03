@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { layoutHideBorderActive } from "@/lib/layout-colors";
 import {
@@ -64,7 +65,7 @@ export function ProfileHandle({
   settings?: ProfileSettings;
   className?: string;
 }) {
-  if ((settings?.hide_profile_handle ?? true) === true) {
+  if (settings?.hide_profile_handle === true) {
     return null;
   }
 
@@ -249,6 +250,63 @@ function ProfileUidBadge({ uid, accentColor }: { uid: number; accentColor: strin
   );
 }
 
+function ProfileUidHoverPortal({
+  uid,
+  accentColor,
+  anchorRef,
+  visible,
+}: {
+  uid: number;
+  accentColor: string;
+  anchorRef: React.RefObject<HTMLDivElement | null>;
+  visible: boolean;
+}) {
+  const [mounted, setMounted] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    const updatePosition = () => {
+      const anchor = anchorRef.current;
+      if (!anchor) return;
+      const rect = anchor.getBoundingClientRect();
+      setPosition({
+        top: rect.top - 8,
+        left: rect.left + rect.width / 2,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [visible, anchorRef]);
+
+  if (!mounted || !visible) return null;
+
+  return createPortal(
+    <div
+      className="bf-profile-uid-hover bf-profile-uid-hover--portal pointer-events-none fixed z-[99999]"
+      style={{
+        top: position.top,
+        left: position.left,
+        transform: "translate(-50%, -100%)",
+      }}
+    >
+      <ProfileUidBadge uid={uid} accentColor={accentColor} />
+    </div>,
+    document.body,
+  );
+}
+
 export function Username({
   name,
   settings,
@@ -311,16 +369,26 @@ export function Username({
       : undefined;
 
   const showUid = profile.uid != null;
+  const usernameWrapRef = useRef<HTMLDivElement>(null);
+  const [uidHoverVisible, setUidHoverVisible] = useState(false);
 
   return (
     <div
+      ref={usernameWrapRef}
       className={`bf-profile-username-wrap relative inline-flex max-w-full flex-col items-start ${showUid ? "group cursor-help" : ""}`}
       tabIndex={showUid ? 0 : undefined}
+      onMouseEnter={showUid ? () => setUidHoverVisible(true) : undefined}
+      onMouseLeave={showUid ? () => setUidHoverVisible(false) : undefined}
+      onFocus={showUid ? () => setUidHoverVisible(true) : undefined}
+      onBlur={showUid ? () => setUidHoverVisible(false) : undefined}
     >
       {showUid ? (
-        <div className="bf-profile-uid-hover pointer-events-none absolute bottom-full left-1/2 z-[9999] mb-2">
-          <ProfileUidBadge uid={profile.uid!} accentColor={settings.accent_color} />
-        </div>
+        <ProfileUidHoverPortal
+          uid={profile.uid!}
+          accentColor={settings.accent_color}
+          anchorRef={usernameWrapRef}
+          visible={uidHoverVisible}
+        />
       ) : null}
       <h1 className={headingClass} style={headingStyle}>
         {usesClipText ? (
