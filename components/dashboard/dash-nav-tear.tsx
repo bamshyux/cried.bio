@@ -1,5 +1,6 @@
 "use client";
 
+import { TEARDROP_PATH, TEARDROP_VIEWBOX } from "@/lib/brand/teardrop";
 import { useEffect, useId, useRef, useState } from "react";
 
 type TearMotion = "hidden" | "enter" | "hold" | "exit";
@@ -12,7 +13,13 @@ export function DashNavTearAccent({
   selected: boolean;
   sub?: boolean;
 }) {
-  const gradientId = useId();
+  const uid = useId().replace(/:/g, "");
+  const bodyGradId = `tear-body-${uid}`;
+  const shineGradId = `tear-shine-${uid}`;
+  const rimGradId = `tear-rim-${uid}`;
+  const clipId = `tear-clip-${uid}`;
+  const glowId = `tear-glow-${uid}`;
+
   const [motion, setMotion] = useState<TearMotion>("hidden");
   const wasSelectedRef = useRef(false);
   const enterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -25,7 +32,7 @@ export function DashNavTearAccent({
     if (selected) {
       wasSelectedRef.current = true;
       setMotion("enter");
-      enterTimerRef.current = setTimeout(() => setMotion("hold"), 480);
+      enterTimerRef.current = setTimeout(() => setMotion("hold"), 620);
       return;
     }
 
@@ -34,7 +41,7 @@ export function DashNavTearAccent({
       exitTimerRef.current = setTimeout(() => {
         setMotion("hidden");
         wasSelectedRef.current = false;
-      }, 420);
+      }, 520);
       return;
     }
 
@@ -49,41 +56,102 @@ export function DashNavTearAccent({
     [],
   );
 
+  const motionClass =
+    motion !== "hidden" ? `bf-dash-nav-tear--${motion}` : "bf-dash-nav-tear--hidden";
+
   return (
     <span
-      className={[
-        "bf-dash-nav-tear",
-        sub ? "bf-dash-nav-tear--sub" : "",
-        motion !== "hidden" ? `bf-dash-nav-tear--${motion}` : "bf-dash-nav-tear--hidden",
-      ]
+      className={["bf-dash-nav-tear", sub ? "bf-dash-nav-tear--sub" : "", motionClass]
         .filter(Boolean)
         .join(" ")}
       aria-hidden
     >
+      <span className="bf-dash-nav-tear__aura" />
+      <span className="bf-dash-nav-tear__ripple" />
+      <span className="bf-dash-nav-tear__splash bf-dash-nav-tear__splash--a" />
+      <span className="bf-dash-nav-tear__splash bf-dash-nav-tear__splash--b" />
+      <span className="bf-dash-nav-tear__splash bf-dash-nav-tear__splash--c" />
+
       <svg
         className="bf-dash-nav-tear__drop"
-        viewBox="0 0 14 18"
+        viewBox={TEARDROP_VIEWBOX}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <linearGradient id={gradientId} x1="7" y1="0" x2="7" y2="18" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
-            <stop offset="45%" stopColor="rgba(255,255,255,0.55)" />
-            <stop offset="100%" stopColor="rgba(255,255,255,0.18)" />
+          <clipPath id={clipId}>
+            <path d={TEARDROP_PATH} />
+          </clipPath>
+
+          <linearGradient id={bodyGradId} x1="16" y1="2" x2="16" y2="30" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.98" />
+            <stop offset="18%" stopColor="#e8f4ff" stopOpacity="0.92" />
+            <stop offset="42%" stopColor="#b8d4f0" stopOpacity="0.55" />
+            <stop offset="68%" stopColor="#8eb8e8" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#5a90c8" stopOpacity="0.22" />
           </linearGradient>
+
+          <linearGradient id={shineGradId} x1="0" y1="8" x2="32" y2="24" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="rgba(255,255,255,0)" />
+            <stop offset="45%" stopColor="rgba(255,255,255,0.85)" />
+            <stop offset="55%" stopColor="rgba(255,255,255,0.85)" />
+            <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+          </linearGradient>
+
+          <linearGradient id={rimGradId} x1="16" y1="3" x2="16" y2="29" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.75)" />
+            <stop offset="100%" stopColor="rgba(255,255,255,0.08)" />
+          </linearGradient>
+
+          <filter id={glowId} x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="1.8" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
-        <path
-          d="M7 0.5C7 0.5 12.25 7.25 12.25 11.25C12.25 14.15 9.85 16.75 7 16.75C4.15 16.75 1.75 14.15 1.75 11.25C1.75 7.25 7 0.5 7 0.5Z"
-          fill={`url(#${gradientId})`}
-        />
-        <path
-          d="M7 0.5C7 0.5 12.25 7.25 12.25 11.25C12.25 14.15 9.85 16.75 7 16.75C4.15 16.75 1.75 14.15 1.75 11.25C1.75 7.25 7 0.5 7 0.5Z"
-          stroke="rgba(255,255,255,0.22)"
-          strokeWidth="0.6"
-        />
-        <ellipse cx="5.1" cy="7.2" rx="1.1" ry="2.2" fill="rgba(255,255,255,0.35)" transform="rotate(-18 5.1 7.2)" />
+
+        <g filter={`url(#${glowId})`}>
+          <path d={TEARDROP_PATH} fill={`url(#${bodyGradId})`} />
+          <path
+            d={TEARDROP_PATH}
+            fill="none"
+            stroke={`url(#${rimGradId})`}
+            strokeWidth="0.65"
+            strokeLinejoin="round"
+          />
+          <ellipse
+            className="bf-dash-nav-tear__spec"
+            cx="12.2"
+            cy="11.5"
+            rx="2.4"
+            ry="4.8"
+            fill="rgba(255,255,255,0.72)"
+            transform="rotate(-22 12.2 11.5)"
+          />
+          <ellipse
+            cx="19.5"
+            cy="18"
+            rx="1.1"
+            ry="1.6"
+            fill="rgba(255,255,255,0.28)"
+            transform="rotate(-12 19.5 18)"
+          />
+          <rect
+            className="bf-dash-nav-tear__shimmer"
+            x="-8"
+            y="0"
+            width="14"
+            height="32"
+            fill={`url(#${shineGradId})`}
+            clipPath={`url(#${clipId})`}
+            opacity="0.55"
+          />
+        </g>
       </svg>
+
+      <span className="bf-dash-nav-tear__trail" />
     </span>
   );
 }
