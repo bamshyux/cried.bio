@@ -4,20 +4,17 @@ import { useRef, useState } from "react";
 
 const PERSPECTIVE = 720;
 const MAX_TILT = 22;
-const HOVER_SCALE = 1.04;
-const HOVER_LIFT = 28;
 const SHIFT_X = 12;
 const SHIFT_Y = 10;
 
-const REST_TRANSFORM = `perspective(${PERSPECTIVE}px) rotateX(0deg) rotateY(0deg) translate3d(0, 0, 0) scale(1)`;
+const REST_TRANSFORM = `perspective(${PERSPECTIVE}px) rotateX(0deg) rotateY(0deg) translate3d(0, 0, 0)`;
 
 function buildTransform(x: number, y: number) {
   return [
     `perspective(${PERSPECTIVE}px)`,
     `rotateY(${x * MAX_TILT}deg)`,
     `rotateX(${-y * MAX_TILT}deg)`,
-    `translate3d(${x * SHIFT_X}px, ${y * SHIFT_Y}px, ${HOVER_LIFT}px)`,
-    `scale(${HOVER_SCALE})`,
+    `translate3d(${x * SHIFT_X}px, ${y * SHIFT_Y}px, 0)`,
   ].join(" ");
 }
 
