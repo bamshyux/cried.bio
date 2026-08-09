@@ -2,6 +2,25 @@
 
 import { useRef, useState } from "react";
 
+const PERSPECTIVE = 720;
+const MAX_TILT = 22;
+const HOVER_SCALE = 1.04;
+const HOVER_LIFT = 28;
+const SHIFT_X = 12;
+const SHIFT_Y = 10;
+
+const REST_TRANSFORM = `perspective(${PERSPECTIVE}px) rotateX(0deg) rotateY(0deg) translate3d(0, 0, 0) scale(1)`;
+
+function buildTransform(x: number, y: number) {
+  return [
+    `perspective(${PERSPECTIVE}px)`,
+    `rotateY(${x * MAX_TILT}deg)`,
+    `rotateX(${-y * MAX_TILT}deg)`,
+    `translate3d(${x * SHIFT_X}px, ${y * SHIFT_Y}px, ${HOVER_LIFT}px)`,
+    `scale(${HOVER_SCALE})`,
+  ].join(" ");
+}
+
 export function ProfileParallaxCard({
   enabled,
   children,
@@ -10,9 +29,8 @@ export function ProfileParallaxCard({
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [transform, setTransform] = useState(
-    "perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)",
-  );
+  const [transform, setTransform] = useState(REST_TRANSFORM);
+  const [isHovering, setIsHovering] = useState(false);
 
   if (!enabled) return <>{children}</>;
 
@@ -22,13 +40,13 @@ export function ProfileParallaxCard({
     const rect = el.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setTransform(
-      `perspective(1000px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) scale(1.015)`,
-    );
+    setIsHovering(true);
+    setTransform(buildTransform(x, y));
   };
 
   const handleMouseLeave = () => {
-    setTransform("perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)");
+    setIsHovering(false);
+    setTransform(REST_TRANSFORM);
   };
 
   return (
@@ -36,7 +54,12 @@ export function ProfileParallaxCard({
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="profile-parallax-card relative z-[1] w-full overflow-visible transition-transform duration-300 ease-out will-change-transform"
+      className={[
+        "profile-parallax-card relative z-[1] w-full overflow-visible will-change-transform",
+        isHovering ? "" : "transition-transform duration-300 ease-out",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       style={{ transform }}
     >
       {children}
