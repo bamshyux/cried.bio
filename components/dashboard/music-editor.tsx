@@ -15,8 +15,7 @@ import {
   useDashboardSettingsSection,
 } from "@/components/dashboard/use-settings-form";
 import { PremiumLocked, PremiumLockBadge } from "@/components/premium/premium-locked";
-import type { MusicTrack } from "@/lib/data/music-tracks";
-import { sortMusicTracks } from "@/lib/data/music-tracks";
+import { sortMusicTracks, type MusicTrack } from "@/lib/music/tracks";
 import type { UserEntitlements } from "@/lib/premium/types";
 import type { ProfileSettings } from "@/lib/types/settings";
 import { formatUploadSizeLabel, resolveMaxUploadBytes } from "@/lib/uploads/limits";

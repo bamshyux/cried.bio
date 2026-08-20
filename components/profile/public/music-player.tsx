@@ -12,8 +12,7 @@ import {
 import { rgbString } from "@/lib/badges/badge-visuals";
 import { resolveMusicPlayerColor } from "@/lib/settings";
 import { rangeClassName, rangeFillStyle } from "@/lib/ui/range";
-import type { MusicTrack } from "@/lib/data/music-tracks";
-import { sortMusicTracks } from "@/lib/data/music-tracks";
+import { sortMusicTracks, type MusicTrack } from "@/lib/music/tracks";
 import type { ProfileSettings } from "@/lib/types/settings";
 
 function formatTitle(settings: ProfileSettings) {
