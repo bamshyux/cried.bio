@@ -61,9 +61,12 @@ export async function saveMusicTrackAction(input: {
 
   if (error) return { error: error.message };
 
+  const allTracks = await getMusicTracks(userId, input.pageId ?? null);
+  const firstTrackUrl = allTracks[0]?.url ?? input.url;
+
   let settingsQuery = supabase
     .from("profile_settings")
-    .update({ music_url: input.url })
+    .update({ music_url: firstTrackUrl })
     .eq("profile_id", userId);
   settingsQuery = applyPageFilter(settingsQuery, input.pageId ?? null);
   await settingsQuery;
@@ -128,6 +131,16 @@ export async function reorderMusicTracksAction(
       .eq("profile_id", userId);
   }
 
+  const orderedTracks = await getMusicTracks(userId, pageId ?? null);
+  if (orderedTracks[0]?.url) {
+    let settingsQuery = supabase
+      .from("profile_settings")
+      .update({ music_url: orderedTracks[0].url })
+      .eq("profile_id", userId);
+    settingsQuery = applyPageFilter(settingsQuery, pageId ?? null);
+    await settingsQuery;
+  }
+
   await revalidateMusicPaths(userId, pageId ?? null);
   return { success: "Playlist order saved." };
 }
@@ -158,7 +171,6 @@ export async function setDefaultMusicTrackAction(
     .from("profile_settings")
     .update({
       music_default_track_id: trackId,
-      music_url: track.url,
     })
     .eq("profile_id", userId);
   settingsQuery = applyPageFilter(settingsQuery, resolvedPageId);

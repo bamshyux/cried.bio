@@ -16,6 +16,7 @@ import {
 } from "@/components/dashboard/use-settings-form";
 import { PremiumLocked, PremiumLockBadge } from "@/components/premium/premium-locked";
 import type { MusicTrack } from "@/lib/data/music-tracks";
+import { sortMusicTracks } from "@/lib/data/music-tracks";
 import type { UserEntitlements } from "@/lib/premium/types";
 import type { ProfileSettings } from "@/lib/types/settings";
 import { formatUploadSizeLabel, resolveMaxUploadBytes } from "@/lib/uploads/limits";
@@ -98,9 +99,11 @@ export function MusicEditor({
   const canHideMusicPlayer = canPlaylist;
   const maxTracks = entitlements.max_music_tracks;
   const maxUploadBytes = resolveMaxUploadBytes(entitlements);
-  const displayTracks = tracks.length > 0 ? tracks : settings.music_url
-    ? [{ id: "legacy", url: settings.music_url, title: settings.music_title || "Profile Track", sort_order: 0 } as MusicTrack]
-    : [];
+  const displayTracks = tracks.length > 0
+    ? sortMusicTracks(tracks)
+    : settings.music_url
+      ? [{ id: "legacy", url: settings.music_url, title: settings.music_title || "Profile Track", sort_order: 0 } as MusicTrack]
+      : [];
 
   useEffect(() => {
     setUploadError(undefined);

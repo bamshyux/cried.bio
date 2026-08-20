@@ -13,6 +13,7 @@ import { rgbString } from "@/lib/badges/badge-visuals";
 import { resolveMusicPlayerColor } from "@/lib/settings";
 import { rangeClassName, rangeFillStyle } from "@/lib/ui/range";
 import type { MusicTrack } from "@/lib/data/music-tracks";
+import { sortMusicTracks } from "@/lib/data/music-tracks";
 import type { ProfileSettings } from "@/lib/types/settings";
 
 function formatTitle(settings: ProfileSettings) {
@@ -44,12 +45,6 @@ function contrastOnAccent(hex: string): string {
   if ([r, g, b].some((v) => Number.isNaN(v))) return "#ffffff";
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   return luminance > 0.62 ? "#0a0a0a" : "#ffffff";
-}
-
-function resolveInitialTrackIndex(playlist: MusicTrack[], defaultTrackId: string | null): number {
-  if (!defaultTrackId || playlist.length === 0) return 0;
-  const index = playlist.findIndex((track) => track.id === defaultTrackId);
-  return index >= 0 ? index : 0;
 }
 
 function pickAdjacentIndex(
@@ -96,19 +91,22 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  const playlist = useMemo(
-    () =>
-      tracks.length > 0
-        ? tracks
-        : settings.music_url
-          ? [{ id: "single", url: settings.music_url, title: settings.music_title, sort_order: 0 } as MusicTrack]
-          : [],
-    [tracks, settings.music_title, settings.music_url],
-  );
+  const playlist = useMemo(() => {
+    if (tracks.length > 0) return sortMusicTracks(tracks);
+    if (settings.music_url) {
+      return [
+        {
+          id: "single",
+          url: settings.music_url,
+          title: settings.music_title,
+          sort_order: 0,
+        } as MusicTrack,
+      ];
+    }
+    return [];
+  }, [tracks, settings.music_title, settings.music_url]);
 
-  const [trackIndex, setTrackIndex] = useState(() =>
-    resolveInitialTrackIndex(playlist, settings.music_default_track_id),
-  );
+  const [trackIndex, setTrackIndex] = useState(0);
 
   const playlistMode = Boolean(settings.music_playlist_mode && playlist.length > 1);
   const shuffle = settings.music_shuffle;
@@ -256,8 +254,8 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
   }, [onPlayReady, playFromStart]);
 
   useEffect(() => {
-    setTrackIndex(resolveInitialTrackIndex(playlist, settings.music_default_track_id));
-  }, [settings.music_default_track_id]);
+    setTrackIndex((index) => Math.min(index, Math.max(playlist.length - 1, 0)));
+  }, [playlist.length]);
 
   useEffect(() => {
     if (!currentUrl || deferAutoplay) return;

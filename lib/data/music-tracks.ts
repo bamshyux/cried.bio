@@ -11,6 +11,12 @@ export type MusicTrack = {
   updated_at: string;
 };
 
+export function sortMusicTracks(tracks: MusicTrack[]): MusicTrack[] {
+  return [...tracks].sort(
+    (a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at),
+  );
+}
+
 export async function getMusicTracks(
   profileId: string,
   pageId?: string | null,
@@ -37,7 +43,7 @@ export async function getMusicTracks(
     tracks = tracks.slice(0, entitlements.max_music_tracks);
   }
 
-  return tracks;
+  return sortMusicTracks(tracks);
 }
 
 /** Content pages inherit the main profile playlist when they have no page-specific tracks. */
