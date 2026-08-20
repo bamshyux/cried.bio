@@ -54,6 +54,10 @@ export const DEFAULT_SETTINGS: Omit<
   music_loop: true,
   music_volume: 50,
   music_show_player: true,
+  music_playlist_mode: false,
+  music_shuffle: false,
+  music_autoplay_next: false,
+  music_default_track_id: null,
   cursor_effect: "none",
   cursor_image_url: null,
   cursor_image_size: 48,
@@ -233,12 +237,7 @@ export function applySiteMusicSettings<T extends ProfileSettings>(
   pageSettings: T,
   siteSettings: ProfileSettings,
 ): T {
-  const site = siteSettings as ProfileSettings & {
-    music_playlist_mode?: boolean;
-    music_shuffle?: boolean;
-    music_autoplay_next?: boolean;
-    music_default_track_id?: string | null;
-  };
+  const site = siteSettings;
 
   return {
     ...pageSettings,
@@ -593,6 +592,10 @@ export function mergeSettings(
     music_loop: row?.music_loop ?? DEFAULT_SETTINGS.music_loop,
     music_volume: row?.music_volume ?? DEFAULT_SETTINGS.music_volume,
     music_show_player: row?.music_show_player !== false,
+    music_playlist_mode: row?.music_playlist_mode ?? DEFAULT_SETTINGS.music_playlist_mode,
+    music_shuffle: row?.music_shuffle ?? DEFAULT_SETTINGS.music_shuffle,
+    music_autoplay_next: row?.music_autoplay_next ?? DEFAULT_SETTINGS.music_autoplay_next,
+    music_default_track_id: row?.music_default_track_id ?? DEFAULT_SETTINGS.music_default_track_id,
     cursor_effect: parseCursorEffect(row?.cursor_effect ?? legacyCursor, DEFAULT_SETTINGS.cursor_effect),
     cursor_image_url: row?.cursor_image_url ?? null,
     cursor_image_size: clampCursorImageSize(row?.cursor_image_size, DEFAULT_SETTINGS.cursor_image_size),

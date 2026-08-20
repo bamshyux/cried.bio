@@ -71,14 +71,9 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
       ? [{ id: "single", url: settings.music_url, title: settings.music_title, sort_order: 0 } as MusicTrack]
       : [];
 
-  const playlistMode = Boolean(
-    (settings as ProfileSettings & { music_playlist_mode?: boolean }).music_playlist_mode &&
-      playlist.length > 1,
-  );
-  const shuffle = Boolean((settings as ProfileSettings & { music_shuffle?: boolean }).music_shuffle);
-  const autoplayNext = Boolean(
-    (settings as ProfileSettings & { music_autoplay_next?: boolean }).music_autoplay_next,
-  );
+  const playlistMode = Boolean(settings.music_playlist_mode && playlist.length > 1);
+  const shuffle = settings.music_shuffle;
+  const autoplayNext = settings.music_autoplay_next;
 
   const currentTrack = playlist[trackIndex] ?? playlist[0];
   const currentUrl = currentTrack?.url ?? settings.music_url;

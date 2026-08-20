@@ -88,6 +88,11 @@ export function MusicEditor({
   const [uploadPending, setUploadPending] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [playlistFeedback, setPlaylistFeedback] = useState<{ error?: string; success?: string }>();
+  const [playlistSettings, setPlaylistSettings] = useState({
+    music_playlist_mode: settings.music_playlist_mode,
+    music_shuffle: settings.music_shuffle,
+    music_autoplay_next: settings.music_autoplay_next,
+  });
 
   const canPlaylist = entitlements.can_use_playlist;
   const canHideMusicPlayer = canPlaylist;
@@ -100,6 +105,14 @@ export function MusicEditor({
   useEffect(() => {
     setUploadError(undefined);
   }, [settings.music_url, tracks.length]);
+
+  useEffect(() => {
+    setPlaylistSettings({
+      music_playlist_mode: settings.music_playlist_mode,
+      music_shuffle: settings.music_shuffle,
+      music_autoplay_next: settings.music_autoplay_next,
+    });
+  }, [settings.music_playlist_mode, settings.music_shuffle, settings.music_autoplay_next]);
 
   const handleMusicUpload = async (file: File | undefined) => {
     if (!file) return;
@@ -156,10 +169,18 @@ export function MusicEditor({
   };
 
   const savePlaylistSettings = (patch: Parameters<typeof updateMusicPlaylistSettingsAction>[0]) => {
+    const previous = playlistSettings;
+    setPlaylistSettings((current) => ({ ...current, ...patch }));
+    setPlaylistFeedback(undefined);
+
     startPlaylist(async () => {
       const result = await updateMusicPlaylistSettingsAction(patch, pageId);
       setPlaylistFeedback(result);
-      if (!result.error) router.refresh();
+      if (result.error) {
+        setPlaylistSettings(previous);
+        return;
+      }
+      router.refresh();
     });
   };
 
@@ -273,19 +294,22 @@ export function MusicEditor({
               <ToggleField
                 name="music_playlist_mode"
                 label="Playlist mode"
-                checked={Boolean((settings as ProfileSettings & { music_playlist_mode?: boolean }).music_playlist_mode)}
+                checked={playlistSettings.music_playlist_mode}
+                disabled={playlistPending}
                 onCheckedChange={(music_playlist_mode) => savePlaylistSettings({ music_playlist_mode })}
               />
               <ToggleField
                 name="music_shuffle"
                 label="Shuffle"
-                checked={Boolean((settings as ProfileSettings & { music_shuffle?: boolean }).music_shuffle)}
+                checked={playlistSettings.music_shuffle}
+                disabled={playlistPending}
                 onCheckedChange={(music_shuffle) => savePlaylistSettings({ music_shuffle })}
               />
               <ToggleField
                 name="music_autoplay_next"
                 label="Autoplay next song"
-                checked={Boolean((settings as ProfileSettings & { music_autoplay_next?: boolean }).music_autoplay_next)}
+                checked={playlistSettings.music_autoplay_next}
+                disabled={playlistPending}
                 onCheckedChange={(music_autoplay_next) => savePlaylistSettings({ music_autoplay_next })}
               />
               <ToggleField

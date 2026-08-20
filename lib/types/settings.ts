@@ -278,6 +278,10 @@ export type ProfileSettings = {
   music_loop: boolean;
   music_volume: number;
   music_show_player: boolean;
+  music_playlist_mode: boolean;
+  music_shuffle: boolean;
+  music_autoplay_next: boolean;
+  music_default_track_id: string | null;
   cursor_effect: CursorEffect;
   cursor_image_url: string | null;
   cursor_image_size: number;

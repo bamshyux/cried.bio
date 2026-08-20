@@ -40,19 +40,17 @@ export function sanitizeSettingsForEntitlements(
   }
 
   if (!entitlements.can_use_playlist) {
-    const playlistMode = (settings as ProfileSettings & { music_playlist_mode?: boolean })
-      .music_playlist_mode;
-    const shuffle = (settings as ProfileSettings & { music_shuffle?: boolean }).music_shuffle;
-    const autoplayNext = (settings as ProfileSettings & { music_autoplay_next?: boolean })
-      .music_autoplay_next;
-
-    if (playlistMode || shuffle || autoplayNext) {
+    if (
+      settings.music_playlist_mode ||
+      settings.music_shuffle ||
+      settings.music_autoplay_next
+    ) {
       next = {
         ...next,
         music_playlist_mode: false,
         music_shuffle: false,
         music_autoplay_next: false,
-      } as ProfileSettings;
+      };
     }
   }
 
