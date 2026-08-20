@@ -3689,6 +3689,58 @@ body,
   min-width: 0;
 }
 
+.bf-audio__transport {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.bf-audio:not([data-open="true"]) .bf-audio__transport {
+  gap: 0;
+}
+
+.bf-audio:not([data-open="true"]) .bf-audio__skip {
+  display: none;
+}
+
+.bf-audio__skip {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(var(--bf-audio-accent-rgb), 0.28);
+  border-radius: 50%;
+  background: rgba(var(--bf-audio-accent-rgb), 0.1);
+  color: var(--bf-audio-accent);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.bf-audio__skip:hover {
+  transform: scale(1.05);
+  background: rgba(var(--bf-audio-accent-rgb), 0.2);
+  border-color: rgba(var(--bf-audio-accent-rgb), 0.45);
+}
+
+.bf-audio__skip:active {
+  transform: scale(0.95);
+}
+
+.bf-audio__track-count {
+  margin-left: 6px;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--bf-audio-accent) 72%, transparent);
+}
+
 .bf-audio:not([data-open="true"]) .bf-audio__head {
   justify-content: center;
 }
