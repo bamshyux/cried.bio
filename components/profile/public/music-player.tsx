@@ -10,9 +10,10 @@ import {
   HiMiniSpeakerXMark,
 } from "react-icons/hi2";
 import { rgbString } from "@/lib/badges/badge-visuals";
+import { isPlayableAudioUrl, normalizeAudioUrl } from "@/lib/music/audio-url";
+import { sortMusicTracks, type MusicTrack } from "@/lib/music/tracks";
 import { resolveMusicPlayerColor } from "@/lib/settings";
 import { rangeClassName, rangeFillStyle } from "@/lib/ui/range";
-import { sortMusicTracks, type MusicTrack } from "@/lib/music/tracks";
 import type { ProfileSettings } from "@/lib/types/settings";
 
 function formatTitle(settings: ProfileSettings) {
@@ -76,6 +77,7 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
   const savedVolumeRef = useRef(settings.music_volume > 0 ? settings.music_volume : 50);
   const volumeRef = useRef(Math.max(0, Math.min(100, settings.music_volume)));
   const loadedUrlRef = useRef<string | null>(null);
+  const loadGenerationRef = useRef(0);
   const suppressEndedRef = useRef(false);
   const trackIndexRef = useRef(0);
   const playlistRef = useRef<MusicTrack[]>([]);
@@ -89,23 +91,25 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
   const [volume, setVolume] = useState(() => Math.max(0, Math.min(100, settings.music_volume)));
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [trackIndex, setTrackIndex] = useState(0);
 
   const playlist = useMemo(() => {
-    if (tracks.length > 0) return sortMusicTracks(tracks);
-    if (settings.music_url) {
-      return [
-        {
-          id: "single",
-          url: settings.music_url,
-          title: settings.music_title,
-          sort_order: 0,
-        } as MusicTrack,
-      ];
-    }
-    return [];
-  }, [tracks, settings.music_title, settings.music_url]);
+    const raw =
+      tracks.length > 0
+        ? sortMusicTracks(tracks)
+        : settings.music_url
+          ? [
+              {
+                id: "single",
+                url: settings.music_url,
+                title: settings.music_title,
+                sort_order: 0,
+              } as MusicTrack,
+            ]
+          : [];
 
-  const [trackIndex, setTrackIndex] = useState(0);
+    return raw.filter((track) => isPlayableAudioUrl(track.url));
+  }, [tracks, settings.music_title, settings.music_url]);
 
   const playlistMode = Boolean(settings.music_playlist_mode && playlist.length > 1);
   const shuffle = settings.music_shuffle;
@@ -113,7 +117,7 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
   const showSkipControls = playlist.length > 1;
 
   const currentTrack = playlist[trackIndex] ?? playlist[0];
-  const currentUrl = currentTrack?.url ?? settings.music_url;
+  const currentUrl = currentTrack?.url ?? null;
 
   trackIndexRef.current = trackIndex;
   playlistRef.current = playlist;
@@ -162,48 +166,55 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
     volumeRef.current = volume;
   }, [volume]);
 
-  const loadTrack = useCallback(
-    (url: string, autoplay: boolean) => {
-      const audio = audioRef.current;
-      if (!audio || !url) return;
+  const loadTrack = useCallback((url: string, autoplay: boolean) => {
+    const audio = audioRef.current;
+    if (!audio || !url) return;
 
-      const loopSingleTrack = !playlistModeRef.current && musicLoopRef.current;
+    const normalized = normalizeAudioUrl(url);
+    const loopSingleTrack = !playlistModeRef.current && musicLoopRef.current;
+
+    if (loadedUrlRef.current === normalized) {
       audio.loop = loopSingleTrack;
       audio.volume = volumeRef.current / 100;
-
-      if (loadedUrlRef.current === url) {
-        if (autoplay && audio.paused) {
-          void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
-        }
-        return;
-      }
-
-      suppressEndedRef.current = true;
-      loadedUrlRef.current = url;
-      audio.src = url;
-      setCurrentTime(0);
-      setDuration(0);
-
-      const beginPlayback = () => {
-        suppressEndedRef.current = false;
-        if (!autoplay) {
-          audio.pause();
-          setPlaying(false);
-          return;
-        }
+      if (autoplay && audio.paused) {
         void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
-      };
+      }
+      return;
+    }
 
-      if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-        beginPlayback();
+    const generation = ++loadGenerationRef.current;
+    suppressEndedRef.current = true;
+    loadedUrlRef.current = normalized;
+
+    audio.pause();
+    audio.loop = loopSingleTrack;
+    audio.volume = volumeRef.current / 100;
+    audio.src = url;
+    setCurrentTime(0);
+    setDuration(0);
+    setPlaying(false);
+
+    const beginPlayback = () => {
+      if (generation !== loadGenerationRef.current) return;
+      suppressEndedRef.current = false;
+
+      if (!autoplay) {
+        audio.pause();
+        setPlaying(false);
         return;
       }
 
-      audio.addEventListener("canplay", beginPlayback, { once: true });
-      audio.load();
-    },
-    [],
-  );
+      void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+    };
+
+    if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      beginPlayback();
+      return;
+    }
+
+    audio.addEventListener("canplay", beginPlayback, { once: true });
+    audio.load();
+  }, []);
 
   const goToTrack = useCallback(
     (nextIndex: number, autoplay = true) => {
@@ -242,11 +253,13 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
   );
 
   const playFromStart = useCallback(() => {
-    const url = playlistRef.current[trackIndexRef.current]?.url ?? currentUrl;
-    if (!url) return;
+    if (playlistRef.current.length === 0) return;
     loadedUrlRef.current = null;
-    loadTrack(url, true);
-  }, [currentUrl, loadTrack]);
+    loadGenerationRef.current += 1;
+    setTrackIndex(0);
+    const url = playlistRef.current[0]?.url;
+    if (url) loadTrack(url, true);
+  }, [loadTrack]);
 
   useEffect(() => {
     onPlayReady?.(playFromStart);
@@ -258,7 +271,6 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
 
   useEffect(() => {
     if (!currentUrl || deferAutoplay) return;
-    if (loadedUrlRef.current === currentUrl) return;
     loadTrack(currentUrl, settings.music_autoplay);
   }, [currentUrl, deferAutoplay, loadTrack, settings.music_autoplay]);
 
@@ -283,12 +295,10 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
       const shouldShuffle = shuffleRef.current;
       const loop = musicLoopRef.current;
 
-      if (mode && list.length > 1) {
-        if (shouldAutoplayNext || loop) {
-          const nextIndex = pickAdjacentIndex(trackIndexRef.current, list.length, 1, shouldShuffle);
-          goToTrack(nextIndex, true);
-          return;
-        }
+      if (mode && list.length > 1 && (shouldAutoplayNext || loop)) {
+        const nextIndex = pickAdjacentIndex(trackIndexRef.current, list.length, 1, shouldShuffle);
+        goToTrack(nextIndex, true);
+        return;
       }
 
       if (!loop) setPlaying(false);
@@ -313,6 +323,13 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
   }, [goToTrack]);
 
   useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
+      if (leaveTimerRef.current) window.clearTimeout(leaveTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
       if (rootRef.current?.contains(event.target as Node)) return;
@@ -321,12 +338,6 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [open]);
-
-  useEffect(() => {
-    return () => {
-      if (leaveTimerRef.current) window.clearTimeout(leaveTimerRef.current);
-    };
-  }, []);
 
   if (!currentUrl) return null;
 
@@ -358,7 +369,7 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
 
   if (!showPlayer) {
     return (
-      <audio ref={audioRef} src={currentUrl} preload="metadata" playsInline className="sr-only" aria-hidden />
+      <audio ref={audioRef} preload="metadata" playsInline className="sr-only" aria-hidden />
     );
   }
 

@@ -854,15 +854,11 @@ export function PublicProfileClient({
   const [entered, setEntered] = useState(skipEnterGate);
   const [gateExiting, setGateExiting] = useState(false);
   const profileRevealRef = useRef<HTMLDivElement>(null);
-  const playMusicRef = useRef<(() => void) | null>(null);
 
   const handleEnter = useCallback(() => {
     setGateExiting(true);
     setEntered(true);
-    if (settings.music_autoplay) {
-      playMusicRef.current?.();
-    }
-  }, [settings.music_autoplay]);
+  }, []);
 
   useEffect(() => {
     if (!gateExiting) return;
@@ -996,9 +992,6 @@ export function PublicProfileClient({
             settings={settings}
             tracks={musicTracks}
             deferAutoplay={!entered}
-            onPlayReady={(play) => {
-              playMusicRef.current = play;
-            }}
           />
         </div>
       ) : null}

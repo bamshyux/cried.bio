@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireEntitlement } from "@/lib/premium/entitlements";
 import { getMusicTracks } from "@/lib/data/music-tracks";
+import { isPlayableAudioUrl } from "@/lib/music/audio-url";
+import { revalidateMusicProfilePaths } from "@/lib/music/revalidate";
 
 type ActionResult = { error?: string; success?: string };
 
@@ -19,15 +20,6 @@ function applyPageFilter<T extends { eq: (col: string, val: string) => T; is: (c
   pageId?: string | null,
 ) {
   return pageId ? query.eq("page_id", pageId) : query.is("page_id", null);
-}
-
-async function revalidateMusicPaths(userId: string, pageId?: string | null) {
-  revalidatePath("/dashboard/music");
-  if (pageId) {
-    revalidatePath(`/dashboard/pages/${pageId}/music`);
-    const { revalidateProfilePagePaths } = await import("@/lib/profile-pages/revalidate");
-    await revalidateProfilePagePaths(userId, pageId);
-  }
 }
 
 export async function saveMusicTrackAction(input: {
@@ -47,6 +39,13 @@ export async function saveMusicTrackAction(input: {
       error: gate.ok
         ? `Maximum ${maxTracks} tracks allowed.`
         : "Free accounts are limited to 1 track. Upgrade to Premium Lite for playlists.",
+    };
+  }
+
+  if (!isPlayableAudioUrl(input.url)) {
+    return {
+      error:
+        "That URL is not a playable audio file. Upload MP3, WAV, OGG, or WebM — YouTube/Spotify links cannot be used as tracks.",
     };
   }
 
@@ -71,7 +70,7 @@ export async function saveMusicTrackAction(input: {
   settingsQuery = applyPageFilter(settingsQuery, input.pageId ?? null);
   await settingsQuery;
 
-  await revalidateMusicPaths(userId, input.pageId ?? null);
+  await revalidateMusicProfilePaths(userId, input.pageId ?? null);
   return { success: "Track added." };
 }
 
@@ -108,7 +107,7 @@ export async function removeMusicTrackAction(
   settingsQuery = applyPageFilter(settingsQuery, resolvedPageId);
   await settingsQuery;
 
-  await revalidateMusicPaths(userId, resolvedPageId);
+  await revalidateMusicProfilePaths(userId, resolvedPageId);
   return { success: "Track removed." };
 }
 
@@ -141,7 +140,7 @@ export async function reorderMusicTracksAction(
     await settingsQuery;
   }
 
-  await revalidateMusicPaths(userId, pageId ?? null);
+  await revalidateMusicProfilePaths(userId, pageId ?? null);
   return { success: "Playlist order saved." };
 }
 
@@ -178,7 +177,7 @@ export async function setDefaultMusicTrackAction(
 
   if (error) return { error: error.message };
 
-  await revalidateMusicPaths(userId, resolvedPageId);
+  await revalidateMusicProfilePaths(userId, resolvedPageId);
   return { success: "Default track updated." };
 }
 
@@ -211,6 +210,6 @@ export async function updateMusicPlaylistSettingsAction(
 
   if (error) return { error: error.message };
 
-  await revalidateMusicPaths(userId, pageId ?? null);
+  await revalidateMusicProfilePaths(userId, pageId ?? null);
   return { success: "Playlist settings saved." };
 }

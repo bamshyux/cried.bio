@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   removeMusicTrackAction,
@@ -88,6 +88,7 @@ export function MusicEditor({
   const [uploadPending, setUploadPending] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [playlistFeedback, setPlaylistFeedback] = useState<{ error?: string; success?: string }>();
+  const trackPreviewGroupRef = useRef<HTMLDivElement>(null);
   const [playlistSettings, setPlaylistSettings] = useState({
     music_playlist_mode: settings.music_playlist_mode,
     music_shuffle: settings.music_shuffle,
@@ -170,6 +171,12 @@ export function MusicEditor({
     });
   };
 
+  const pauseOtherTrackPreviews = (current: HTMLAudioElement) => {
+    trackPreviewGroupRef.current?.querySelectorAll("audio").forEach((audio) => {
+      if (audio !== current && !audio.paused) audio.pause();
+    });
+  };
+
   const savePlaylistSettings = (patch: Parameters<typeof updateMusicPlaylistSettingsAction>[0]) => {
     const previous = playlistSettings;
     setPlaylistSettings((current) => ({ ...current, ...patch }));
@@ -207,7 +214,10 @@ export function MusicEditor({
           </div>
 
           {displayTracks.length > 0 ? (
-            <div className="mb-4 space-y-3 border-b border-white/[0.06] pb-4">
+            <div
+              ref={trackPreviewGroupRef}
+              className="mb-4 space-y-3 border-b border-white/[0.06] pb-4"
+            >
               {displayTracks.map((track, index) => (
                 <div
                   key={track.id}
@@ -216,7 +226,13 @@ export function MusicEditor({
                   <span className="text-xs text-neutral-600">{index + 1}</span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-white">{track.title || "Untitled"}</p>
-                    <audio src={track.url} controls className="mt-2 w-full accent-[#fafafa]" />
+                    <audio
+                      src={track.url}
+                      controls
+                      preload="none"
+                      onPlay={(event) => pauseOtherTrackPreviews(event.currentTarget)}
+                      className="mt-2 w-full accent-[#fafafa]"
+                    />
                   </div>
                   <div className="flex gap-2">
                     {canPlaylist && track.id !== "legacy" ? (
