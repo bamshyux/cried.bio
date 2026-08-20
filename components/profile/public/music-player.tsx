@@ -79,6 +79,7 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
   const loadedUrlRef = useRef<string | null>(null);
   const loadGenerationRef = useRef(0);
   const suppressEndedRef = useRef(false);
+  const userNavigatedRef = useRef(false);
   const trackIndexRef = useRef(0);
   const playlistRef = useRef<MusicTrack[]>([]);
   const playlistModeRef = useRef(false);
@@ -166,14 +167,14 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
     volumeRef.current = volume;
   }, [volume]);
 
-  const loadTrack = useCallback((url: string, autoplay: boolean) => {
+  const loadTrack = useCallback((url: string, autoplay: boolean, forceReload = false) => {
     const audio = audioRef.current;
     if (!audio || !url) return;
 
     const normalized = normalizeAudioUrl(url);
     const loopSingleTrack = !playlistModeRef.current && musicLoopRef.current;
 
-    if (loadedUrlRef.current === normalized) {
+    if (!forceReload && loadedUrlRef.current === normalized) {
       audio.loop = loopSingleTrack;
       audio.volume = volumeRef.current / 100;
       if (autoplay && audio.paused) {
@@ -207,21 +208,22 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
       void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
     };
 
-    if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-      beginPlayback();
-      return;
-    }
-
     audio.addEventListener("canplay", beginPlayback, { once: true });
     audio.load();
   }, []);
 
   const goToTrack = useCallback(
     (nextIndex: number, autoplay = true) => {
-      if (nextIndex < 0 || nextIndex >= playlistRef.current.length) return;
+      const list = playlistRef.current;
+      if (nextIndex < 0 || nextIndex >= list.length) return;
+
+      const nextUrl = list[nextIndex]?.url;
+      if (!nextUrl) return;
+
+      userNavigatedRef.current = true;
+      trackIndexRef.current = nextIndex;
       setTrackIndex(nextIndex);
-      const nextUrl = playlistRef.current[nextIndex]?.url;
-      if (nextUrl) loadTrack(nextUrl, autoplay);
+      loadTrack(nextUrl, autoplay, true);
     },
     [loadTrack],
   );
@@ -271,6 +273,10 @@ export function MusicPlayer({ settings, tracks = [], deferAutoplay = false, onPl
 
   useEffect(() => {
     if (!currentUrl || deferAutoplay) return;
+    if (userNavigatedRef.current) {
+      userNavigatedRef.current = false;
+      return;
+    }
     loadTrack(currentUrl, settings.music_autoplay);
   }, [currentUrl, deferAutoplay, loadTrack, settings.music_autoplay]);
 
