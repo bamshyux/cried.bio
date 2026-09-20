@@ -93,14 +93,26 @@ function mergeAccountPreferences(
 
 export async function ensureAccountPreferences(userId: string) {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("account_preferences")
     .select("profile_id")
     .eq("profile_id", userId)
     .maybeSingle();
 
+  if (error) {
+    const { logDatabaseError } = await import("@/lib/db/errors");
+    logDatabaseError("ensureAccountPreferences", error);
+    return;
+  }
+
   if (!data) {
-    await supabase.from("account_preferences").insert({ profile_id: userId });
+    const { error: insertError } = await supabase
+      .from("account_preferences")
+      .insert({ profile_id: userId });
+    if (insertError) {
+      const { logDatabaseError } = await import("@/lib/db/errors");
+      logDatabaseError("ensureAccountPreferences insert", insertError);
+    }
   }
 }
 

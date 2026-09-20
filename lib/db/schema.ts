@@ -2,6 +2,12 @@
  * Columns the app expects on public.profile_settings.
  * Keep in sync with supabase/v2_features.sql + supabase/v3_features.sql.
  */
+import {
+  DATABASE_UNAVAILABLE_USER_MESSAGE,
+  classifyDatabaseError,
+  looksLikeHtml,
+} from "@/lib/db/errors";
+
 export const REQUIRED_PROFILE_SETTINGS_COLUMNS = [
   "profile_id",
   "layout",
@@ -154,7 +160,7 @@ export const REQUIRED_PROFILE_SETTINGS_COLUMNS = [
 
 export type SchemaValidationResult =
   | { ok: true }
-  | { ok: false; missing: string[]; message: string };
+  | { ok: false; kind: "schema" | "unavailable"; missing: string[]; message: string };
 
 export const SCHEMA_MIGRATION_HINT =
   "Run the relevant supabase/*.sql migrations in the Supabase SQL Editor, then restart the dev server.";
@@ -291,6 +297,8 @@ const COLUMN_MIGRATIONS: Record<string, string> = {
 
 /** Which migration file(s) to run for missing columns */
 export function getMigrationFilesForMissing(missing: string[]): string[] {
+  if (missing.length === 0) return [];
+
   const files = new Set<string>();
 
   if (missing.includes("profile_id") || missing.length > 20) {
@@ -349,12 +357,14 @@ export function buildSchemaValidationMessage(missing: string[]): string {
 }
 
 export function isSchemaCacheError(message: string) {
+  if (!message || looksLikeHtml(message)) return false;
   return /could not find the '([^']+)' column/i.test(message) ||
     /schema cache/i.test(message) ||
     /column profile_settings\.\w+ does not exist/i.test(message);
 }
 
 export function parseMissingColumn(message: string): string | null {
+  if (!message || looksLikeHtml(message)) return null;
   const cacheMatch = message.match(/could not find the '([^']+)' column/i);
   if (cacheMatch?.[1]) return cacheMatch[1];
 
@@ -363,6 +373,10 @@ export function parseMissingColumn(message: string): string | null {
 }
 
 export function formatSchemaError(errorMessage: string): string {
+  if (classifyDatabaseError(errorMessage) === "unavailable" || looksLikeHtml(errorMessage)) {
+    return DATABASE_UNAVAILABLE_USER_MESSAGE;
+  }
+
   const missing = parseMissingColumn(errorMessage);
   if (missing) {
     return `Database schema is missing column "${missing}". ${SCHEMA_MIGRATION_HINT}`;
@@ -372,6 +386,9 @@ export function formatSchemaError(errorMessage: string): string {
   }
   if (errorMessage.includes("profile_settings_layout_check")) {
     return "This layout is not enabled in the database yet. Run supabase/v99_premium_animated_layouts.sql in the Supabase SQL Editor, then save again.";
+  }
+  if (errorMessage.length > 280) {
+    return "Could not complete that database request. Please try again.";
   }
   return errorMessage;
 }

@@ -4,7 +4,12 @@ import { DiscordCommunityPromo } from "@/components/discord/discord-community-pr
 import { AuthHashRecoveryRedirect } from "@/components/auth/auth-hash-recovery-redirect";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { SupportShell } from "@/components/support/support-shell";
-import { SchemaErrorBanner } from "@/components/dev/schema-error-banner";
+import {
+  DatabaseUnavailableBanner,
+  SchemaErrorBanner,
+} from "@/components/dev/schema-error-banner";
+import { DATABASE_UNAVAILABLE_USER_MESSAGE, logDatabaseError } from "@/lib/db/errors";
+import type { SchemaValidationResult } from "@/lib/db/schema";
 import { getProfileSettingsSchemaValidation } from "@/lib/db/validate-schema";
 import { siteMetadata } from "@/lib/metadata";
 import "./globals.css";
@@ -26,7 +31,18 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const schema = await getProfileSettingsSchemaValidation();
+  let schema: SchemaValidationResult = { ok: true };
+  try {
+    schema = await getProfileSettingsSchemaValidation();
+  } catch (error) {
+    logDatabaseError("root layout schema validation", error);
+    schema = {
+      ok: false,
+      kind: "unavailable",
+      missing: [],
+      message: DATABASE_UNAVAILABLE_USER_MESSAGE,
+    };
+  }
 
   return (
     <html
@@ -35,9 +51,10 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <AuthHashRecoveryRedirect />
-        {!schema.ok && (
+        {!schema.ok && schema.kind === "unavailable" ? <DatabaseUnavailableBanner /> : null}
+        {!schema.ok && schema.kind === "schema" ? (
           <SchemaErrorBanner message={schema.message} missing={schema.missing} />
-        )}
+        ) : null}
         {children}
         <SupportShell />
         <CookieConsentBanner />

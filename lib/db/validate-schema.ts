@@ -1,6 +1,13 @@
 import {
+  DATABASE_UNAVAILABLE_USER_MESSAGE,
+  classifyDatabaseError,
+  isDatabaseUnavailableError,
+  isGenuineSchemaError,
+  logDatabaseError,
+} from "@/lib/db/errors";
+import {
   buildSchemaValidationMessage,
-  getMigrationFilesForMissing,
+  parseMissingColumn,
   REQUIRED_PROFILE_SETTINGS_COLUMNS,
   type SchemaValidationResult,
 } from "@/lib/db/schema";
@@ -15,77 +22,179 @@ export {
   parseMissingColumn,
 } from "@/lib/db/schema";
 
-let validationPromise: Promise<SchemaValidationResult> | null = null;
-let cachedMissing: string[] | null = null;
+const UNAVAILABLE_RETRY_MS = 30_000;
 
-function isMissingColumnError(message: string) {
-  return /could not find the/i.test(message) || /does not exist/i.test(message);
+let validationPromise: Promise<SchemaValidationResult> | null = null;
+let cachedResult: SchemaValidationResult | null = null;
+let unavailableUntil = 0;
+
+function unavailableResult(): SchemaValidationResult {
+  return {
+    ok: false,
+    kind: "unavailable",
+    missing: [],
+    message: DATABASE_UNAVAILABLE_USER_MESSAGE,
+  };
 }
 
-async function probeColumn(column: string): Promise<boolean> {
+function isMissingTableError(message: string) {
+  return (
+    /could not find the table/i.test(message) ||
+    /relation ["']?public\.profile_settings["']? does not exist/i.test(message) ||
+    /relation ["']?profile_settings["']? does not exist/i.test(message)
+  );
+}
+
+async function probeColumns(columns: string[]) {
   const { createSchemaProbeClient } = await import("@/lib/supabase/schema-probe");
   const supabase = createSchemaProbeClient();
   const { error } = await supabase
     .from("profile_settings")
-    .select(column)
+    .select(columns.join(","))
     .limit(0);
 
-  if (!error) return true;
-  if (isMissingColumnError(error.message)) return false;
-  throw new Error(error.message);
+  if (!error) return { ok: true as const };
+
+  const message = error.message ?? "";
+  if (isDatabaseUnavailableError(error) || classifyDatabaseError(error) === "unavailable") {
+    return { unavailable: true as const, error };
+  }
+
+  if (isMissingTableError(message)) {
+    return { missingTable: true as const, error };
+  }
+
+  const missing = parseMissingColumn(message);
+  if (missing) return { missingColumn: missing };
+
+  if (isGenuineSchemaError(error)) {
+    return { missingTable: true as const, error };
+  }
+
+  // Permission/RLS/auth JSON errors mean the table is reachable.
+  return { ok: true as const };
 }
 
 export async function validateProfileSettingsSchema(): Promise<SchemaValidationResult> {
   const missing: string[] = [];
+  let remaining: string[] = [...REQUIRED_PROFILE_SETTINGS_COLUMNS];
 
-  for (const column of REQUIRED_PROFILE_SETTINGS_COLUMNS) {
-    try {
-      const exists = await probeColumn(column);
-      if (!exists) missing.push(column);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown schema validation error";
+  try {
+    while (remaining.length > 0) {
+      const result = await probeColumns(remaining);
+
+      if ("unavailable" in result && result.unavailable) {
+        logDatabaseError("profile_settings schema probe", result.error);
+        return unavailableResult();
+      }
+
+      if ("missingTable" in result && result.missingTable) {
+        logDatabaseError("profile_settings schema probe", result.error);
+        return {
+          ok: false,
+          kind: "schema",
+          missing: [...REQUIRED_PROFILE_SETTINGS_COLUMNS],
+          message: buildSchemaValidationMessage([...REQUIRED_PROFILE_SETTINGS_COLUMNS]),
+        };
+      }
+
+      if ("missingColumn" in result && result.missingColumn) {
+        if (!remaining.includes(result.missingColumn)) {
+          logDatabaseError(
+            "profile_settings schema probe",
+            `Unexpected missing column "${result.missingColumn}"`,
+          );
+          return unavailableResult();
+        }
+        missing.push(result.missingColumn);
+        remaining = remaining.filter((column) => column !== result.missingColumn);
+        continue;
+      }
+
+      break;
+    }
+  } catch (err) {
+    logDatabaseError("profile_settings schema probe", err);
+    if (isGenuineSchemaError(err) && !isDatabaseUnavailableError(err)) {
       return {
         ok: false,
-        missing: [],
-        message: `Could not validate profile_settings schema: ${message}`,
+        kind: "schema",
+        missing: [...REQUIRED_PROFILE_SETTINGS_COLUMNS],
+        message: buildSchemaValidationMessage([...REQUIRED_PROFILE_SETTINGS_COLUMNS]),
       };
     }
+    return unavailableResult();
   }
 
-  cachedMissing = missing;
+  cachedResult = missing.length === 0
+    ? { ok: true }
+    : {
+        ok: false,
+        kind: "schema",
+        missing,
+        message: buildSchemaValidationMessage(missing),
+      };
 
-  if (missing.length === 0) {
-    return { ok: true };
-  }
-
-  return {
-    ok: false,
-    missing,
-    message: buildSchemaValidationMessage(missing),
-  };
+  return cachedResult;
 }
 
-/** Cached validation — runs once per server process. */
+/** Cached validation — successful/schema results stay cached; outages retry after a short TTL. */
 export function getProfileSettingsSchemaValidation() {
-  if (!validationPromise) {
-    validationPromise = validateProfileSettingsSchema();
+  if (cachedResult?.ok) {
+    return Promise.resolve(cachedResult);
   }
+
+  if (cachedResult && !cachedResult.ok && cachedResult.kind === "schema") {
+    return Promise.resolve(cachedResult);
+  }
+
+  if (
+    cachedResult &&
+    !cachedResult.ok &&
+    cachedResult.kind === "unavailable" &&
+    Date.now() < unavailableUntil
+  ) {
+    return Promise.resolve(cachedResult);
+  }
+
+  if (
+    cachedResult &&
+    !cachedResult.ok &&
+    cachedResult.kind === "unavailable" &&
+    Date.now() >= unavailableUntil
+  ) {
+    cachedResult = null;
+    validationPromise = null;
+  }
+
+  if (!validationPromise) {
+    validationPromise = validateProfileSettingsSchema().then((result) => {
+      cachedResult = result;
+      if (!result.ok && result.kind === "unavailable") {
+        unavailableUntil = Date.now() + UNAVAILABLE_RETRY_MS;
+      }
+      return result;
+    });
+  }
+
   return validationPromise;
 }
 
 export async function getMissingProfileSettingsColumns(): Promise<string[]> {
   const result = await getProfileSettingsSchemaValidation();
-  return result.ok ? [] : result.missing;
+  if (result.ok || result.kind === "unavailable") return [];
+  return result.missing;
 }
 
 export async function profileSettingsSupportsColumn(column: string): Promise<boolean> {
-  const missing = cachedMissing ?? (await getMissingProfileSettingsColumns());
+  const missing = cachedResult && !cachedResult.ok ? cachedResult.missing : await getMissingProfileSettingsColumns();
   return !missing.includes(column);
 }
 
 export function resetSchemaValidationCache() {
   validationPromise = null;
-  cachedMissing = null;
+  cachedResult = null;
+  unavailableUntil = 0;
 }
 
 /** Strip keys for columns absent from the database. */

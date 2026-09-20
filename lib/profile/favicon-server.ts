@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getProfileByUsername } from "@/lib/data/profiles";
+import { lookupProfileByUsername } from "@/lib/data/profiles";
 import { getSettingsByProfileId } from "@/lib/data/settings";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import {
@@ -49,8 +49,9 @@ export async function getProfileFaviconContent(
   const username = normalizeUsername(rawUsername);
   if (!isValidUsername(username)) return null;
 
-  const profile = await getProfileByUsername(username);
-  if (!profile) return null;
+  const lookup = await lookupProfileByUsername(username);
+  if (lookup.status !== "ok") return null;
+  const profile = lookup.profile;
 
   const settings = await getSettingsByProfileId(profile.id);
   const storedUrl = settings.profile_favicon_url?.trim();

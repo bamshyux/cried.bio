@@ -4,6 +4,7 @@ import {
   DEFAULT_THEME_PREVIEWS,
 } from "@/lib/landing/defaults";
 import { isFrozenViewCountProfile } from "@/lib/analytics/frozen-view-count";
+import { logDatabaseError } from "@/lib/db/errors";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -93,7 +94,17 @@ function mapProfile(row: {
   };
 }
 
+const EMPTY_LANDING_STATS: LandingStats = {
+  total_users: 0,
+  total_profiles: 0,
+  total_profile_views: 0,
+  total_guestbook_posts: 0,
+  total_custom_themes: 0,
+  total_badges_granted: 0,
+};
+
 export async function getLandingStats(): Promise<LandingStats> {
+  try {
   const supabase = await db();
 
   const [{ data: rpcData }, totalProfileViews] = await Promise.all([
@@ -135,9 +146,14 @@ export async function getLandingStats(): Promise<LandingStats> {
     total_custom_themes: themes.count ?? 0,
     total_badges_granted: badges.count ?? 0,
   };
+  } catch (error) {
+    logDatabaseError("getLandingStats", error);
+    return EMPTY_LANDING_STATS;
+  }
 }
 
 export async function getRandomPublicProfiles(limit = 12): Promise<LandingProfile[]> {
+  try {
   const supabase = await db();
   const { data } = await supabase
     .from("profiles")
@@ -151,9 +167,14 @@ export async function getRandomPublicProfiles(limit = 12): Promise<LandingProfil
     .filter((p): p is LandingProfile => p !== null);
 
   return shuffle(mapped).slice(0, limit);
+  } catch (error) {
+    logDatabaseError("getRandomPublicProfiles", error);
+    return [];
+  }
 }
 
 export async function getFeaturedProfiles(): Promise<LandingFeaturedProfile[]> {
+  try {
   const supabase = await db();
 
   const { data: featured, error } = await supabase
@@ -198,6 +219,10 @@ export async function getFeaturedProfiles(): Promise<LandingFeaturedProfile[]> {
 
   const fallback = await getRandomPublicProfiles(6);
   return fallback.map((p, i) => ({ ...p, sort_order: i }));
+  } catch (error) {
+    logDatabaseError("getFeaturedProfiles", error);
+    return [];
+  }
 }
 
 async function enrichShowcaseProfiles(
@@ -245,11 +270,17 @@ async function enrichShowcaseProfiles(
 }
 
 export async function getFeaturedShowcaseProfiles(): Promise<LandingShowcaseProfile[]> {
-  const featured = await getFeaturedProfiles();
-  return enrichShowcaseProfiles(featured);
+  try {
+    const featured = await getFeaturedProfiles();
+    return await enrichShowcaseProfiles(featured);
+  } catch (error) {
+    logDatabaseError("getFeaturedShowcaseProfiles", error);
+    return [];
+  }
 }
 
 export async function getLandingMarqueeProfiles(limit = 10): Promise<LandingShowcaseProfile[]> {
+  try {
   const [featured, random] = await Promise.all([
     getFeaturedProfiles(),
     getRandomPublicProfiles(Math.max(limit, 8)),
@@ -263,9 +294,14 @@ export async function getLandingMarqueeProfiles(limit = 10): Promise<LandingShow
   }
 
   return enrichShowcaseProfiles(merged.slice(0, limit));
+  } catch (error) {
+    logDatabaseError("getLandingMarqueeProfiles", error);
+    return [];
+  }
 }
 
 export async function getLandingTestimonials(): Promise<LandingTestimonial[]> {
+  try {
   const supabase = await db();
   const { data, error } = await supabase
     .from("landing_testimonials")
@@ -281,9 +317,17 @@ export async function getLandingTestimonials(): Promise<LandingTestimonial[]> {
     ...item,
     id: `default-${i}`,
   }));
+  } catch (error) {
+    logDatabaseError("getLandingTestimonials", error);
+    return DEFAULT_TESTIMONIALS.map((item, i) => ({
+      ...item,
+      id: `default-${i}`,
+    }));
+  }
 }
 
 export async function getLandingRoadmap(): Promise<LandingRoadmapItem[]> {
+  try {
   const supabase = await db();
   const { data, error } = await supabase
     .from("landing_roadmap_items")
@@ -298,6 +342,13 @@ export async function getLandingRoadmap(): Promise<LandingRoadmapItem[]> {
     ...item,
     id: `default-${i}`,
   }));
+  } catch (error) {
+    logDatabaseError("getLandingRoadmap", error);
+    return DEFAULT_ROADMAP.map((item, i) => ({
+      ...item,
+      id: `default-${i}`,
+    }));
+  }
 }
 
 export async function getThemeMarketplacePreview(): Promise<LandingThemePreview[]> {

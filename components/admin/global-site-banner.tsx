@@ -1,6 +1,7 @@
 import { getActiveAnnouncement, getPlatformSettings } from "@/lib/data/admin";
 
 export async function GlobalSiteBanner() {
+  try {
   const [announcement, settings] = await Promise.all([
     getActiveAnnouncement(),
     getPlatformSettings(),
@@ -38,4 +39,7 @@ export async function GlobalSiteBanner() {
       )}
     </div>
   );
+  } catch {
+    return null;
+  }
 }

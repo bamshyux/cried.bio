@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { logDatabaseError } from "@/lib/db/errors";
 import { createClient } from "@/lib/supabase/server";
 import { getPlanDefinition, normalizePlanTier } from "@/lib/premium/plans";
 import { resolvePremiumActiveState } from "@/lib/premium/subscription-status";
@@ -10,7 +11,22 @@ import type {
   UserEntitlements,
 } from "@/lib/premium/types";
 
+function fallbackEntitlements(profileId: string): UserEntitlements {
+  const plan = getPlanDefinition("free");
+  return {
+    profile_id: profileId,
+    plan_tier: "free",
+    plan_label: plan.label,
+    is_active: false,
+    billing_type: null,
+    lifetime: false,
+    current_period_end: null,
+    ...plan.entitlements,
+  };
+}
+
 async function loadEntitlementsUncached(profileId: string): Promise<UserEntitlements> {
+  try {
   const supabase = await createClient();
 
   const [{ data: profile }, { data: subscription }] = await Promise.all([
@@ -75,6 +91,10 @@ async function loadEntitlementsUncached(profileId: string): Promise<UserEntitlem
     current_period_end: subscription?.current_period_end ?? profile?.premium_expires_at ?? null,
     ...merged,
   };
+  } catch (error) {
+    logDatabaseError("getUserEntitlements", error);
+    return fallbackEntitlements(profileId);
+  }
 }
 
 /** Cached per-request entitlement resolution */

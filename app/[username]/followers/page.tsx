@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getFollowers, getFollowing } from "@/lib/data/social";
-import { getProfileByUsername } from "@/lib/data/profiles";
+import { DatabaseUnavailableNotice } from "@/components/dev/database-unavailable-notice";
+import { getFollowers } from "@/lib/data/social";
+import { lookupProfileByUsername } from "@/lib/data/profiles";
 import { getSettingsByProfileId } from "@/lib/data/settings";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 
@@ -12,8 +13,10 @@ export default async function FollowersPage({ params }: PageProps) {
   const normalized = normalizeUsername(username);
   if (!isValidUsername(normalized)) notFound();
 
-  const profile = await getProfileByUsername(normalized);
-  if (!profile) notFound();
+  const lookup = await lookupProfileByUsername(normalized);
+  if (lookup.status === "unavailable") return <DatabaseUnavailableNotice />;
+  if (lookup.status !== "ok") notFound();
+  const profile = lookup.profile;
 
   const settings = await getSettingsByProfileId(profile.id);
   if (!settings.show_follow_counts) notFound();

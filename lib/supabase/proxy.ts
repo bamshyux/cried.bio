@@ -1,7 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { redirectIncomingAuthRequest } from "@/lib/auth/incoming-auth-redirect";
+import { isDatabaseUnavailableError } from "@/lib/db/errors";
 import { getSupabaseEnv } from "@/lib/supabase/env";
+import { supabaseFetch } from "@/lib/supabase/fetch";
 
 const authEntryRoutes = ["/login", "/signup"];
 
@@ -21,6 +23,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   const supabase = createServerClient(url, key, {
+    global: { fetch: supabaseFetch },
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -41,18 +44,32 @@ export async function updateSession(request: NextRequest) {
   });
 
   let user: Record<string, unknown> | undefined;
+  let authUnavailable = false;
 
   try {
-    const { data } = await supabase.auth.getClaims();
+    const { data, error } = await supabase.auth.getClaims();
     user = data?.claims;
-  } catch {
-    return supabaseResponse;
+    if (!user && error && isDatabaseUnavailableError(error)) {
+      authUnavailable = true;
+    }
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      authUnavailable = true;
+    } else {
+      return supabaseResponse;
+    }
   }
 
   const { pathname } = request.nextUrl;
   const isProtectedRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.includes("-auth-token"));
 
   if (isProtectedRoute && !user) {
+    if (authUnavailable && hasAuthCookie) {
+      return supabaseResponse;
+    }
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     return NextResponse.redirect(redirectUrl);

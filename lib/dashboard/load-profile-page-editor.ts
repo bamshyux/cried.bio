@@ -1,15 +1,22 @@
 import { notFound, redirect } from "next/navigation";
 import { getProfilePageById, getSettingsByPageId } from "@/lib/data/profile-pages";
 import { getProfileByUserId } from "@/lib/data/profiles";
+import { isDatabaseUnavailableError } from "@/lib/db/errors";
 import { requireEntitlement } from "@/lib/premium/entitlements";
 import { createClient } from "@/lib/supabase/server";
 
 export async function loadProfilePageEditor(pageId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
-  if (error || !data?.claims) redirect("/login");
+  const claims = data?.claims;
+  if (!claims) {
+    if (error && isDatabaseUnavailableError(error)) {
+      throw error;
+    }
+    redirect("/login");
+  }
 
-  const userId = data.claims.sub as string;
+  const userId = claims.sub as string;
   const gate = await requireEntitlement(userId, "can_use_multiple_profiles");
   if (!gate.ok) redirect("/dashboard/pages");
 

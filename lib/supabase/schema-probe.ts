@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { supabaseFetch } from "@/lib/supabase/fetch";
 
 let probeClient: SupabaseClient | null = null;
 
@@ -15,6 +16,7 @@ export function createSchemaProbeClient(): SupabaseClient {
 
   probeClient = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: supabaseFetch },
   });
   return probeClient;
 }

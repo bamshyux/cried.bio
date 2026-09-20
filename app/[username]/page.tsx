@@ -17,7 +17,7 @@ import { getGuestbookEntries } from "@/lib/data/guestbook";
 import { getLinksByProfileId } from "@/lib/data/links";
 import { getPublishedProfilePages } from "@/lib/data/profile-pages";
 import { getMusicTracks } from "@/lib/data/music-tracks";
-import { getProfileByUsername } from "@/lib/data/profiles";
+import { lookupProfileByUsername } from "@/lib/data/profiles";
 import { getSettingsByProfileId } from "@/lib/data/settings";
 import {
   getFollowCounts,
@@ -28,7 +28,9 @@ import { buildProfileViewFromPreset, guestbookEntriesForPresetPreview } from "@/
 import { parsePresetData } from "@/lib/profile-presets/snapshot";
 import { PublicProfileView } from "@/components/profile/public-profile";
 import { ProfileFaviconLinks } from "@/components/profile/profile-favicon-links";
+import { DatabaseUnavailableNotice } from "@/components/dev/database-unavailable-notice";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
+import { isDatabaseUnavailableError, logDatabaseError } from "@/lib/db/errors";
 import { createClient } from "@/lib/supabase/server";
 import { buildProfileOgMetadata } from "@/lib/og/build-metadata";
 import { getOgProfileSnapshot } from "@/lib/og/profile-data";
@@ -47,11 +49,18 @@ type PageProps = {
 
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const [{ username }, query] = await Promise.all([params, searchParams]);
-  const snapshot = await getOgProfileSnapshot(username);
-  if (!snapshot) return { title: "Profile Not Found — cried.bio" };
-  return buildProfileOgMetadata(snapshot, {
-    preview: Boolean(query.previewPreset),
-  });
+  try {
+    const snapshot = await getOgProfileSnapshot(username);
+    if (!snapshot) return { title: "Profile Not Found — cried.bio" };
+    return buildProfileOgMetadata(snapshot, {
+      preview: Boolean(query.previewPreset),
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return { title: "Profile — cried.bio" };
+    }
+    throw error;
+  }
 }
 
 export default async function UsernamePage({ params, searchParams }: PageProps) {
@@ -60,8 +69,10 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
 
   if (!isValidUsername(normalized)) notFound();
 
-  const baseProfile = await getProfileByUsername(normalized);
-  if (!baseProfile) notFound();
+  const lookup = await lookupProfileByUsername(normalized);
+  if (lookup.status === "unavailable") return <DatabaseUnavailableNotice />;
+  if (lookup.status !== "ok") notFound();
+  const baseProfile = lookup.profile;
 
   const supabase = await createClient();
   const { data: authData } = await supabase.auth.getClaims();
@@ -77,7 +88,11 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
   const isPresetPreview = Boolean(isOwnProfile && previewListingId);
 
   if (!isPresetPreview) {
-    await syncMilestoneBadges(baseProfile.id);
+    try {
+      await syncMilestoneBadges(baseProfile.id);
+    } catch (error) {
+      logDatabaseError("username page milestone badges", error);
+    }
   }
 
   if (isOwnProfile && !isPresetPreview) {
@@ -101,6 +116,7 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
     }
   }
 
+  try {
   const [
     links,
     settings,
@@ -249,4 +265,8 @@ export default async function UsernamePage({ params, searchParams }: PageProps) 
       />
     </>
   );
+  } catch (error) {
+    logDatabaseError("username page data", error);
+    return <DatabaseUnavailableNotice />;
+  }
 }

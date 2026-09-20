@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { PublicContentPageView } from "@/components/profile/public-content-page";
 import { ProfileFaviconLinks } from "@/components/profile/profile-favicon-links";
-import {
-  getProfilePageBySlug,
+import { DatabaseUnavailableNotice } from "@/components/dev/database-unavailable-notice";
+import { getProfilePageBySlug,
   getPublishedProfilePages,
   getSettingsByPageId,
   getLinksByPageId,
@@ -10,11 +10,12 @@ import {
   getFeaturedBlocksByPageId,
   resolvePublicPageMusic,
 } from "@/lib/data/profile-pages";
-import { getProfileByUsername } from "@/lib/data/profiles";
+import { lookupProfileByUsername } from "@/lib/data/profiles";
 import { getProfileVisibility } from "@/lib/data/account-settings";
 import { isValidUsername, normalizeUsername } from "@/lib/profile";
 import { isValidPageSlug, normalizePageSlug } from "@/lib/profile-pages/slug";
 import { createClient } from "@/lib/supabase/server";
+import { logDatabaseError } from "@/lib/db/errors";
 import type { Metadata } from "next";
 
 type PageProps = {
@@ -23,8 +24,10 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username, pageSlug } = await params;
-  const profile = await getProfileByUsername(normalizeUsername(username));
-  if (!profile) return { title: "Page Not Found — cried.bio" };
+  const lookup = await lookupProfileByUsername(normalizeUsername(username));
+  if (lookup.status === "unavailable") return { title: "Page — cried.bio" };
+  if (lookup.status !== "ok") return { title: "Page Not Found — cried.bio" };
+  const profile = lookup.profile;
   const page = await getProfilePageBySlug(profile.id, normalizePageSlug(pageSlug));
   const label = page?.label || page?.slug || pageSlug;
   return {
@@ -39,8 +42,12 @@ export default async function ContentPage({ params }: PageProps) {
 
   if (!isValidUsername(normalized) || !isValidPageSlug(slug)) notFound();
 
-  const profile = await getProfileByUsername(normalized);
-  if (!profile) notFound();
+  const lookup = await lookupProfileByUsername(normalized);
+  if (lookup.status === "unavailable") return <DatabaseUnavailableNotice />;
+  if (lookup.status !== "ok") notFound();
+  const profile = lookup.profile;
+
+  try {
 
   const page = await getProfilePageBySlug(profile.id, slug);
   if (!page) notFound();
@@ -110,4 +117,8 @@ export default async function ContentPage({ params }: PageProps) {
       />
     </>
   );
+  } catch (error) {
+    logDatabaseError("content page", error);
+    return <DatabaseUnavailableNotice />;
+  }
 }

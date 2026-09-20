@@ -58,10 +58,17 @@ function mergeShowcaseProfiles(
 }
 
 export default async function Home() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const userId = data?.claims?.sub as string | undefined;
-  const profile = userId ? await getProfileByUserId(userId) : null;
+  let userId: string | undefined;
+  let profile = null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getClaims();
+    userId = data?.claims?.sub as string | undefined;
+    profile = userId ? await getProfileByUserId(userId) : null;
+  } catch (error) {
+    const { logDatabaseError } = await import("@/lib/db/errors");
+    logDatabaseError("homepage auth", error);
+  }
   const isLoggedIn = !!userId;
 
   const [
@@ -80,7 +87,34 @@ export default async function Home() {
     getLandingTestimonials(),
     getLandingRoadmap(),
     getLandingMarqueeProfiles(12),
-  ]);
+  ]).catch(async (error) => {
+    const { logDatabaseError } = await import("@/lib/db/errors");
+    logDatabaseError("homepage landing data", error);
+    return [
+      {
+        total_users: 0,
+        total_profiles: 0,
+        total_profile_views: 0,
+        total_guestbook_posts: 0,
+        total_custom_themes: 0,
+        total_badges_granted: 0,
+      },
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+    ] as [
+      Awaited<ReturnType<typeof getLandingStats>>,
+      Awaited<ReturnType<typeof getRandomPublicProfiles>>,
+      Awaited<ReturnType<typeof getFeaturedProfiles>>,
+      Awaited<ReturnType<typeof getFeaturedShowcaseProfiles>>,
+      Awaited<ReturnType<typeof getLandingTestimonials>>,
+      Awaited<ReturnType<typeof getLandingRoadmap>>,
+      Awaited<ReturnType<typeof getLandingMarqueeProfiles>>,
+    ];
+  });
 
   const showcaseProfiles = mergeShowcaseProfiles(showcaseProfilesRaw, featuredProfiles);
 

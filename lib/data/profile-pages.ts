@@ -76,17 +76,27 @@ export async function getSettingsByPageId(
   profileId: string,
   pageId: string,
 ): Promise<ReturnType<typeof import("@/lib/data/settings").getSettingsByProfileId>> {
+  try {
   const supabase = await createClient();
   const { ensureProfileSettingsRow } = await import("@/lib/data/ensure-profile-settings-row");
 
-  let { data } = await supabase
+  let { data, error } = await supabase
     .from("profile_settings")
     .select("*")
     .eq("profile_id", profileId)
     .eq("page_id", pageId)
     .maybeSingle();
 
-  if (!data) {
+  if (error) {
+    const { logDatabaseError, isDatabaseUnavailableError } = await import("@/lib/db/errors");
+    logDatabaseError("getSettingsByPageId", error);
+    if (isDatabaseUnavailableError(error)) {
+      const { mergeSettings } = await import("@/lib/settings");
+      return mergeSettings(null, profileId);
+    }
+  }
+
+  if (!data && !error) {
     const ensure = await ensureProfileSettingsRow(profileId, pageId);
     if (!ensure.error) {
       const { data: created } = await supabase
@@ -119,6 +129,12 @@ export async function getSettingsByPageId(
     ...withBorders,
     layout: enforceProfileLayoutEntitlement(withBorders.layout, entitlements.animated_effects),
   };
+  } catch (error) {
+    const { logDatabaseError } = await import("@/lib/db/errors");
+    logDatabaseError("getSettingsByPageId", error);
+    const { mergeSettings } = await import("@/lib/settings");
+    return mergeSettings(null, profileId);
+  }
 }
 
 export async function resolvePublicPageMusic(

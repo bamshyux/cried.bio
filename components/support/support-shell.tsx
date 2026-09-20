@@ -5,9 +5,15 @@ import { getAdminSupportUnreadTotal } from "@/lib/data/support";
 import { createClient } from "@/lib/supabase/server";
 
 export async function SupportShell() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
-  const userId = !error && data?.claims?.sub ? (data.claims.sub as string) : null;
+  let userId: string | null = null;
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.getClaims();
+    userId = !error && data?.claims?.sub ? (data.claims.sub as string) : null;
+  } catch (error) {
+    const { logDatabaseError } = await import("@/lib/db/errors");
+    logDatabaseError("SupportShell auth", error);
+  }
 
   const adminAccess = userId ? await getAdminAccess() : null;
   let initialSupportUnread = 0;
